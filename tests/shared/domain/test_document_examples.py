@@ -133,3 +133,53 @@ def test_matches_accepts_equal_lines_and_the_placeholders_and_refuses_missing_or
     expected: list[str], actual: list[str], result: bool
 ) -> None:
     assert matches(expected, actual) is result
+
+
+def _step_with_block(fence_indent: str, body: list[str]) -> str:
+    return "\n".join(
+        [
+            "# A guide",
+            "",
+            "1. Run it:",
+            "",
+            f"{fence_indent}{FENCE}console",
+            *body,
+            f"{fence_indent}{FENCE}",
+            "",
+        ]
+    )
+
+
+@pytest.mark.parametrize(
+    ("fence_indent", "body", "expected"),
+    [
+        pytest.param("   ", ["   $ echo hi", "   hi"], ["hi"], id="three-spaces"),
+        pytest.param("    ", ["    $ echo hi", "    hi"], ["hi"], id="four-spaces"),
+        pytest.param("\t", ["\t$ echo hi", "\thi"], ["hi"], id="tab"),
+        pytest.param("", ["$ echo hi", "hi"], ["hi"], id="column-0"),
+        pytest.param("   ", ["   $ echo hi", " hi"], [" hi"], id="line-less-indented-than-fence"),
+    ],
+)
+def test_a_block_indented_under_a_step_reads_as_at_column_0(
+    fence_indent: str, body: list[str], expected: list[str]
+) -> None:
+    found = examples(_step_with_block(fence_indent, body))
+
+    assert found.runnable == [
+        Example(
+            line=5,
+            fixture="checkout",
+            commands=[Command(line=6, command="echo hi", expected=expected)],
+        )
+    ]
+    assert found.skipped == []
+
+
+@pytest.mark.parametrize(
+    "fence_indent",
+    [pytest.param("", id="column-0"), pytest.param("   ", id="indented")],
+)
+def test_a_console_block_without_a_command_gives_no_example(fence_indent: str) -> None:
+    found = examples(_step_with_block(fence_indent, [f"{fence_indent}hi"]))
+
+    assert found.runnable == []

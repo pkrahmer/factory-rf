@@ -1,3 +1,104 @@
+---
+stage: approval
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: 609
+comments_read: [6697578988]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T22:36:34.873663Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:36:34.880607Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T22:36:50.244182Z'
+  stage: intake
+  run: 648c633bb9a54c50ba81a79e1b303124
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T22:38:39.900698Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:38:42.530110Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T22:39:00.812571Z'
+  stage: intake
+  run: 6b09def657a4483891f0cd8612b3835a
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:39:05.960744Z'
+  stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T22:41:27.370645Z'
+  stage: tests
+  run: 67d09e2143a04ecea3de9ea01ab76cba
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:41:32.403983Z'
+  stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-06T22:46:35.986904Z'
+  stage: doing
+  run: ddf3b1cfbea5456b9047a1d68cecdb34
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:46:41.158438Z'
+  stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:47:52.267061Z'
+  stage: review
+  run: a5a9cf4cbb484b2295348678e8d9c90c
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:47:58.338963Z'
+  stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T22:50:24.695313Z'
+  stage: docs
+  run: 3eebbff62cc245d7ade27b8dfffb69b8
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:50:30.247468Z'
+  stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T22:50:50.803664Z'
+  stage: smoke-test
+  run: 7b7d2f5935274450986d4dddf7ba32e8
+---
+
 # The check reads an indented example and one without a command
 
 ## Description
@@ -14,11 +115,12 @@ The style page asks for tasks as numbered steps, and a step's example belongs un
 
 ## Acceptance criteria
 
-1. A `console` block indented by three spaces under a numbered step, with `$ echo hi` and `hi`, gives one `Example` with the command `echo hi`, the expected line `hi` and the same line numbers as at column 0. Rows: three spaces, four spaces, a tab, and column 0.
+1. A `console` block indented by three spaces under a numbered step, with `$ echo hi` and `hi`, gives one `Example` with the command `echo hi`, the expected line `hi` and the same line numbers as at column 0. Rows: three spaces, four spaces, a tab, and column 0; and a block whose fence is indented by three spaces and which holds a line indented by one space, which keeps that space.
 2. A `console` block with no `$ ` line gives the finding `<document>:<line>: the example has no command` at its fence line, and no exception. Rows: at column 0 and indented.
-3. On minimal documents, `make documents` (through `main(["--root", ...])`) runs an indented example that matches and gives no finding. It gives one blocking finding for an indented example that does not match in a listed file. Rows of one test.
-4. `make check` stays green.
-5. docs: `docs/project-guide/style.md`, *Runnable examples*: the reader learns that an example may stand indented under its numbered step, and that a `console` block must hold at least one `$ ` command. `docs/project-guide/shared.md`, the example check: the reader learns that the block's indentation is removed before it is read, and the new finding. `docs/decisions.md`: none.
+3. On minimal documents, through `main(["--root", ...])`, the finding `the example has no command` blocks in a listed file and is reported without blocking in an unlisted one; an indented example that does not match is reported without blocking in an unlisted file. Rows of one test.
+4. On minimal documents, `make documents` (through `main(["--root", ...])`) runs an indented example that matches and gives no finding. It gives one blocking finding for an indented example that does not match in a listed file. Rows of one test.
+5. `make check` stays green.
+6. docs: `docs/project-guide/style.md`, *Runnable examples*: the reader learns that an example may stand indented under its numbered step, and that a `console` block must hold at least one `$ ` command. `docs/project-guide/shared.md`, the example check: the reader learns that the block's indentation is removed before it is read, and the new finding. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -28,3 +130,117 @@ d=$(mktemp -d); trap 'rm -rf "$d"' EXIT; printf '# T\n\n1. Run it:\n\n   ```cons
 Expect: `1 echo hi`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
+3. intake: 1. Interface rule "A line of the block with less indentation than its fence keeps what it has" has no criterion. Add one, e.g. a row in criterion 1 where a block line is indented less than the fence and keeps its indentation. I would add it.
+   2. Interface rule "That path blocks in a listed file and is reported in any other" is not tested for the new finding. Criterion 2 only covers `examples`, and criterion 3 covers only a mismatch in a listed file. Add a criterion with rows for the no-command finding in a listed file (blocking) and in an unlisted file (reported, not blocking), and the same for the unlisted side of an indented mismatch. I would add both.
+   3. Criterion 1 names the line numbers as unchanged, but the finding line for a tab-indented fence and the "less indentation" case are not stated. Covered by 1 once added; confirm.
+   Everything else checks out. Interface names the module and signatures. The smoke test is runnable and its Expect is checkable (no pytest). The docs criterion names what the reader must know and dictates no sentences. The architecture is a domain-only change. The scope fits F0054 (this is the follow-up story for the code fault the feature's Out of scope says becomes its own story).
+4. 2026-11-06 human: 1. Yes: a row in criterion 1 where a block line is indented less than its fence and keeps the indentation it has.
+   2. Yes, one more criterion with rows: the no-command finding blocks in a listed file and is only reported in an unlisted one; an indented example that does not match is only reported in an unlisted file.
+   3. Confirmed: with those rows, criterion 1 states the line numbers for a tab-indented fence and for the less-indented line, unchanged from column 0.
+5. factory: started intake as vm.
+6. intake: accepted, with the human's answer (journal entry 4) carried into the story.
+   Edits from entry 4: criterion 1 gets the row for a block line indented less than its fence, which keeps its indentation; a new criterion 3 tests the no-command finding as blocking in a listed file and only reported in an unlisted one, and an indented mismatch as only reported in an unlisted file. The later criteria are renumbered, and `make check` and `docs:` stay last.
+   - Interface: `factory.shared.domain.documents.examples` is a concrete module with unchanged signatures. The indentation removal, the less-indented line and the `the example has no command` finding at the fence line are stated, and the finding's blocking path is stated.
+   - Criteria: each is testable by one parametrized test. Every Interface rule has a criterion for both sides: indented and column 0, a tab, less-indented lines, no command against a command present, a listed file against an unlisted one.
+   - Smoke test: the command is runnable and does not run pytest. `Expect: 1 echo hi` can be checked against the output.
+   - Docs criterion: it names what the reader must know (an indented example under a step, at least one `$ ` command, the indentation removal, the new finding) and dictates no sentences.
+   - Architecture: the change is domain-only in the shared area, with no new dependency.
+   - Scope: it fits F0054. It is the code-fault follow-up story that the feature's Out of scope calls for.
+7. factory: started tests as vm.
+8. tester: I added the red tests for every criterion: new rows in the two earlier modules that the Interface names. No earlier row was changed.
+
+   - criterion 1: tests/shared/domain/test_document_examples.py::test_a_block_indented_under_a_step_reads_as_at_column_0 (rows: three-spaces, four-spaces, tab, column-0, line-less-indented-than-fence; every row expects the same Example, fence line 5 and command line 6, and the less-indented row keeps its one space in the expected line ` hi`)
+   - criterion 2: tests/entry/test_check_documents_examples.py::test_a_console_block_without_a_command_is_a_finding_at_its_fence (rows: column-0, indented; the finding `docs/project-guide/shared.md:<fence line>: the example has no command` is printed and `main` does not raise). A second test covers the domain side: tests/shared/domain/test_document_examples.py::test_a_console_block_without_a_command_gives_no_example (rows: column-0, indented; `examples` does not raise and gives no runnable Example). It does not pin whether such a block appears in `skipped`, because the Interface leaves that open.
+   - criterion 3: tests/entry/test_check_documents_examples.py::test_an_example_finding_blocks_in_a_listed_file_and_is_reported_in_any_other (rows: no-command-listed blocks with exit 1; no-command-not-listed and mismatch-not-listed are reported under the report heading with exit 0)
+   - criterion 4: tests/entry/test_check_documents_examples.py::test_an_indented_example_is_run_and_a_mismatch_in_a_listed_file_blocks (rows: match prints only the time line with exit 0; mismatch-listed prints one finding, `the example printed ...`, with exit 1)
+
+   The entry tests run on the `minimal` fixture (tests/support/minimal_documents_support.py). They append a numbered step with a `console` block to `docs/project-guide/shared.md` and commit it through `add_and_commit`. `docs/checked-documents.txt` holds either that page or nothing.
+
+   Files changed: tests/shared/domain/test_document_examples.py and tests/entry/test_check_documents_examples.py. I created no new files. No module failed to import, because `factory.shared.domain.documents` exists.
+
+   Test run (`uv run pytest -q` on the two files): 13 new rows fail, all with `ValueError: zip() argument 2 is longer than argument 1` at src/factory/shared/domain/documents.py:681. The column-0 row of criterion 1 and every earlier row pass. I ran the tests twice: the first run showed that my own helper `_append_step` counted the fence line wrongly, so I changed it to use `line_of` and ran once more to see the real reasons. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
+10. coder: I made the 13 red rows pass without changing a test. `make check` is green (`check: green`).
+
+    What I built:
+    - `src/factory/shared/domain/documents.py`:
+      - The new `_block_lines` removes the opening fence's indentation from each line of a block, using `str.removeprefix`. A line indented less than its fence keeps what it has, and line numbers do not change.
+      - `_commands` returns `[]` for a block with no `$ ` line. Before, it crashed with the strict `zip` error.
+      - `examples` sends such a block to a new field, `Examples.without_command`, which holds the fence line of each block without a command. Such a block is neither runnable nor skipped.
+      - The finding's text is the new public constant `NO_COMMAND`.
+    - `src/factory/entry/check_documents.py`, `_example_results`: it turns each line in `without_command` into a `GatedFinding` `<document>:<line>: the example has no command`. These go to the same `split_findings` path as the runner's findings, so they block in a listed file and are reported in any other.
+
+    The Interface says "no other module changes", but the entry tests for criteria 2 and 3 need `main` to print the finding. The Interface also says it goes "through the same path as the other example findings", and that path is in the entry module. So this four-line change there is unavoidable; please judge whether it is acceptable.
+
+    Main design decision: the domain reports blocks without a command as a list of fence lines, and the entry formats the finding with the document name, the way it already formats the "not run" lines. I rejected two alternatives:
+    - Reporting such a block as a `Skipped` kind: the entry would print it as "not run (...)" in the report and never block on it.
+    - Building finding strings in `examples`: it does not know the document's path.
+
+    Refactor: I read my diff once and found nothing to change.
+
+    The smoke-test command was refused by the shell's permission check, so I did not run it. The tester's indented rows in `tests/shared/domain/test_document_examples.py` check the same thing (`echo hi` from a block indented three spaces) and pass.
+
+    Noticed, not touched: an unclosed `console` block still reads to the end of the document, as before.
+
+    The journal did not change the meaning of the task beyond what intake already carried into the Description.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
+11. factory: started review as vm.
+12. reviewer: no findings
+
+    What I checked (the diff `git diff main...HEAD -- . ':!factory'` and the work item):
+    - Criterion 1: `tests/shared/domain/test_document_examples.py::test_a_block_indented_under_a_step_reads_as_at_column_0` has rows for three spaces, four spaces, a tab, column 0 and a line indented less than its fence (it keeps ` hi`). Every row expects fence line 5 and command line 6. In the code, `_block_lines` (`src/factory/shared/domain/documents.py:682`) applies `removeprefix` of the fence's own indentation, and the line numbers stay those of the raw lines.
+    - Criterion 2: `tests/entry/test_check_documents_examples.py::test_a_console_block_without_a_command_is_a_finding_at_its_fence` has a column-0 row and an indented row. It checks the finding at the fence line from `line_of`, and `main` does not raise. The domain side is `test_a_console_block_without_a_command_gives_no_example`. In the code, `_commands` returns `[]` when there is no prompt (documents.py:692), and `examples` records `block.start + 1`, which is the 1-based fence line.
+    - Criterion 3: one parametrized test covers three cases. The no-command finding blocks in a listed file (exit 1, no report heading, no time line). It is reported after the heading in an unlisted file (exit 0). An indented mismatch is reported in an unlisted file.
+    - Criterion 4: one parametrized test. An indented match prints only the time line with exit 0. An indented mismatch in a listed file prints one `the example printed` finding with exit 1.
+    - Interface limits: both sides are tested (indented and column 0, a tab, a less-indented line, a block with and without a command, a listed and an unlisted file). The tester's red run named the `zip` crash. The coder's `make check` was green (journal entry 10).
+    - Architecture: the domain change is pure, with no I/O. `Examples` is not in the records contract, so the contract needs no regeneration. Nothing else in `src` or `tests` builds `Examples(...)`. The entry change is wiring only.
+    - The coder asked whether changing `src/factory/entry/check_documents.py` is acceptable when the Interface says "No other module changes". I judge it acceptable, not a finding. The same Interface sends the finding "through the same path as the other example findings", and that path is `_example_results` in the entry module. Criteria 2 and 3 can only pass if `main` prints the finding. The change is four lines in `_example_results` and reuses the existing `GatedFinding` and `split_findings` path. The Description makes no claim about which modules change, so it is not stale.
+    - Security: there are no markers, secrets, strings that reach a shell, or new dependencies.
+    - Quality: I found no existing helper that `_fence_indentation` or `_block_lines` copies; `sections.py` only strips the indentation inside `_closes`. The docstrings of `Examples` and `examples` describe the new behaviour. I ran `make duplicates`: its 6 new findings are all outside this diff (`claude_runtime` and `opencode_runtime`, `hand_over` and `acceptance`, the fields of `cost_records`, and `matches`, which was already unused and only moved lines).
+    - Work item hygiene: the coder's journal entry 10 names the main decision (a `without_command` field rather than a new `Skipped` kind or finding strings built in the domain) and what it rejected. The Description matches what was built. The docs criterion still names what the reader must know.
+    - Smoke test: the coder did not run it, because the shell refused it. The domain rows cover the same case.
+
+    Earlier tests:
+    - tests/shared/domain/test_document_examples.py: none needed (rows added only; the Interface also allows them).
+    - tests/entry/test_check_documents_examples.py: none needed (tests and imports added only, every earlier test unchanged; the Interface also allows them).
+13. factory: started docs as vm.
+14. documenter: Docs written from the story's docs criterion and the code on the branch (`src/factory/shared/domain/documents.py`, `src/factory/entry/check_documents.py`). `make documents` ends with `documents ok (1.8 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/style.md`, *Runnable examples*: a `console` block must hold at least one `$ ` command, or it gives the finding `<document>:<line>: the example has no command` at its fence line. An example may stand indented under its numbered step and is read as at column 0. A line indented less than its fence keeps its indentation.
+    - `docs/project-guide/shared.md`, *The examples*: the fence's indentation is removed before the block is read, and line numbers do not change. A block with no command lands in `Examples.without_command`. `factory.entry.check_documents` turns it into the `NO_COMMAND` finding, which blocks in a listed document and is reported in any other.
+
+    `docs/decisions.md`: none, as the criterion says.
+
+    I did not run the story's smoke test; the tester's and reviewer's rows cover it.
+
+    Cross-read and found current: the rest of `style.md` and `shared.md`'s example section.
+
+    Stale text I saw and did not touch: `make documents` reports `docs/project-guide/machine.md:362: factory/stage.Containerfile does not exist` and `docs/project-guide/work.md:13: factory/agents does not exist`. Both are unrelated to this story and not blocking.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (1.9 s)
+15. factory: started smoke-test as vm.
+16. smoke-tester: Smoke test passed. I ran its one command from the repository root exactly as written. It met its `Expect:` line and the run produced no findings.
+
+    Command 1: writes a document whose `console` block is indented by three spaces under the numbered step "1. Run it:", then reads it with `factory.shared.domain.documents.examples` and prints the number of runnable examples and the first command.
+
+    ```
+    Bytecode compiled 4164 files in 49ms
+    1 echo hi
+    ```
+    (exit status 0)
+
+    Expect: `1 echo hi`. **Met.** The first line is uv compiling bytecode; the program printed only `1 echo hi`. The indented block gives one `Example` whose command is `echo hi`, with no `ValueError` from `_commands`.
+
+    Against the acceptance criteria: the output agrees with criterion 1 (a block indented three spaces under a numbered step gives one `Example` with the command `echo hi`) and contradicts none of the others. The command did not exercise criteria 2 to 6: the `the example has no command` finding, the blocking in listed and unlisted files through `main(["--root", ...])`, `make check` and the docs. I did not judge those beyond what the output shows.
+
+    Findings: none.

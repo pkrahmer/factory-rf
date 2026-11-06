@@ -19,6 +19,8 @@ How the factory's documents read. The documenter writes to this page, and the re
 
 A runnable example is a fenced block whose info string is `console`. The blocks below are `console` blocks, so `make documents` runs them. A line that starts with `$ ` is a command. The lines below it, up to the next `$ ` line, are what it must print. Standard error counts as output.
 
+A `console` block must hold at least one `$ ` command. A block without one is a finding, `<document>:<line>: the example has no command`, at the line of its opening fence. An example may stand indented under its numbered step: write the fence and every line of the block with the same indentation, and the check reads the block as if it stood at column 0. A line indented less than its fence keeps the indentation it has.
+
 ```console
 $ echo one
 one

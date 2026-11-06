@@ -11,6 +11,7 @@ from factory.pipeline.domain.fault_paths import FAULT_PATHS
 from factory.pipeline.domain.stop_table import STOP_TABLE, Destination
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
 from factory.shared.domain.sections import (
+    CodeBlock,
     code_blocks,
     lines_outside_blocks,
     opening_fence,
@@ -612,6 +613,7 @@ INSTANCE_FIXTURE: Final = "instance"
 UNRUN_MARKS: Final = ("vm", "github", "model")
 SUITE: Final = "suite"
 ANY_LINES: Final = "..."
+NO_COMMAND: Final = "the example has no command"
 _COMMAND_PROMPT = "$ "
 _FIXTURE_OPTION = "fixture="
 _SUITE_TARGETS = ("make check", "make test")
@@ -654,12 +656,16 @@ class Skipped(BaseModel):
 
 
 class Examples(BaseModel):
-    """The `console` blocks of one document, the runnable ones and the skipped ones, in order."""
+    """The `console` blocks of one document, in order: runnable, skipped, and without a command.
+
+    `without_command` holds the opening lines of the blocks that hold no `$ ` line.
+    """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     runnable: list[Example]
     skipped: list[Skipped]
+    without_command: list[int]
 
 
 def _info_words(line: str) -> list[str]:
@@ -669,8 +675,22 @@ def _info_words(line: str) -> list[str]:
     return line.lstrip(" \t")[len(fence) :].split()
 
 
+def _fence_indentation(line: str) -> str:
+    return line[: len(line) - len(line.lstrip(" \t"))]
+
+
+def _block_lines(lines: Sequence[str], block: CodeBlock) -> list[str]:
+    # A block indented under a numbered step reads as at column 0; a line indented less
+    # than its fence keeps what it has.
+    indentation = _fence_indentation(lines[block.start])
+    end = len(lines) if block.end is None else block.end
+    return [line.removeprefix(indentation) for line in lines[block.start + 1 : end]]
+
+
 def _commands(lines: Sequence[str], first: int) -> list[Command]:
     prompts = [index for index, line in enumerate(lines) if line.startswith(_COMMAND_PROMPT)]
+    if not prompts:
+        return []
     ends = [*prompts[1:], len(lines)]
     return [
         Command(
@@ -733,25 +753,30 @@ def examples(text: str) -> Examples:
     A block's `$ ` lines are its commands and the lines below each its expected output. A
     block marked `vm`, `github` or `model`, or one with a command that runs the suite, is
     skipped with that kind; any other runs on the fixture its `fixture=` names, `checkout`
-    when it names none.
+    when it names none. A block without a `$ ` line gives its opening line in
+    `without_command`. The indentation of a block's opening fence is removed from its lines
+    before they are read.
     """
     lines = split_lines(text)
     runnable: list[Example] = []
     skipped: list[Skipped] = []
+    without_command: list[int] = []
     for block in code_blocks(lines):
         words = _info_words(lines[block.start])
         if not words or words[0] != CONSOLE:
             continue
-        end = len(lines) if block.end is None else block.end
         line = block.start + 1
-        commands = _commands(lines[block.start + 1 : end], line + 1)
+        commands = _commands(_block_lines(lines, block), line + 1)
+        if not commands:
+            without_command.append(line)
+            continue
         options = words[1:]
         kind = _skipped_kind(options, commands)
         if kind is None:
             runnable.append(Example(line=line, fixture=_fixture(options), commands=commands))
         else:
             skipped.append(Skipped(line=line, kind=kind))
-    return Examples(runnable=runnable, skipped=skipped)
+    return Examples(runnable=runnable, skipped=skipped, without_command=without_command)
 
 
 def _line_matches(expected: str, actual: str) -> bool:
