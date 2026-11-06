@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T12:19:12.947675Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T12:19:07.570815Z'
   stage: doing
   run: ccea0efcf262477ba52b43cfb7c9e572
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:19:12.947675Z'
+  stage: review
 ---
 
 # The name check reads log files and git addresses
@@ -116,3 +125,4 @@ Expect: `0`
 
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
+8. factory: started review as vm.
