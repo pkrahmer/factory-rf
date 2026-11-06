@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:36:21.776570Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-06T23:36:16.536395Z'
   stage: docs-review
   run: 5c26794b23ab4c93abe5ee813cb250d5
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:36:21.776570Z'
+  stage: docs-only
 ---
 
 # The operator guide's the machine reads for the operator
@@ -258,3 +267,4 @@ Expect: `1`
     9. `docs/operator-guide/machine.md:473`: wrong: `(see *The script*, "The two passes")` mixes italics and quotes. Fix: `(see *The two passes*)`.
 
     Criterion 2: unchanged from entries 7 and 11. Nothing was dropped except the two history sentences, and no *Reference* section was added.
+15. factory: started docs-only as vm.
