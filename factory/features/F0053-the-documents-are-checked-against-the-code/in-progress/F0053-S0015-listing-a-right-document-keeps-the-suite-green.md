@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T19:59:49.665575Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-06T19:59:44.299874Z'
   stage: tests
   run: a982f14ec05d4ba5ad3e9e7e785b4c66
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:59:49.665575Z'
+  stage: doing
 ---
 
 # Listing a right document keeps the suite green
@@ -215,3 +224,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     Left as it was: the `docs/operator-guide/` literals in `MISSING_LINES` and the `NO_INDEX` in `test_check_documents_suite_copy.py`. They predate this story and neither the reviewer nor the coder named them.
 
     `lint`: lint: green (0.1 s)
+14. factory: started doing as vm.
