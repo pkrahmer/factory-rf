@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T02:21:31.052276Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-06T02:21:24.055797Z'
   stage: doing
   run: fab2e4b028b24d0ba8e64a78eb74d2af
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:21:31.052276Z'
+  stage: tests
 ---
 
 # Every name a document writes in backticks exists
@@ -203,3 +212,4 @@ Expect: a number alone (the count of findings, possibly `0`)
     After the tests change I will run `make check` again and do the refactor step, which is still open.
 
     The 152 name findings on the real repository stay printed only, as you decided. S0004 settles them.
+14. factory: started tests as vm.
