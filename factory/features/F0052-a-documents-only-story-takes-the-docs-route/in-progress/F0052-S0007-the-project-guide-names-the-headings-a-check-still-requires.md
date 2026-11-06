@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T01:07:33.823330Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -52,6 +48,12 @@ journal:
   kind: started
   at: '2026-11-06T01:07:33.823330Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:10:21.971090Z'
+  stage: docs-only
+  run: 922bcf2cba2142b694824d32a953cf4b
 ---
 
 # The project guide names the headings a check still requires
@@ -115,3 +117,18 @@ Expect: `documents ok`
    FAILED tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_and_its_named_files - AssertionError: assert ['missing: ## The files'] == []
    make: *** [Makefile:89: test] Error 1
 7. factory: started docs-only as vm.
+8. documenter: documenter, round 0, second run after the red check in entry 6.
+
+   Changed `docs/project-guide/README.md`, *The files*. The first run's list put `## The files` in backticks at the start of a list item. The guard `tests/guards/test_project_guide_files.py` reads such a line (`- `…` text.`) as an index entry naming a page called "## The files". It then reported that page as missing, which was the red check (`missing: ## The files`). The item now starts with the words "The heading" and the backticked name follows. The other eight headings and their reasons are unchanged from the first run.
+
+   Checks: `uv run pytest -q tests/guards/test_project_guide_files.py` passes, and `make documents` prints `documents ok`. I did not run the whole `make check`; the factory runs it after this stage, and only a document changed.
+
+   Cross-read: the rest of *The files* (the page entries). It is consistent with the new text. Heading existence was checked in the first run.
+
+   Stale text noticed but not touched: none. One thing for the reviewer: a list item in *The files* that starts with a backticked name followed by a sentence is read by the guard as a page entry. The guide does not say so, and this story keeps to its Interface and does not add that.
+
+   No Rejected line was needed; no `decisions.md` entry was written.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok
