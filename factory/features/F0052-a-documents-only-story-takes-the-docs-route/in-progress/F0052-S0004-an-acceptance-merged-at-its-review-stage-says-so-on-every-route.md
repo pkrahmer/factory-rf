@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-05T23:58:34.411667Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-05T23:58:34.411667Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T00:01:00.110800Z'
+  stage: tests
+  run: a1bd4c27f6fc4b64a9c3caef54b6ff12
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -87,3 +89,27 @@ Expect: `True True False`
    - Architecture: the change is a pure rule in the work area's domain layer and adds no import. The booking, the merge handling and the pipeline definition stay as they are.
    - Scope: the story is within F0052. It follows from the docs route that S0001 and S0002 added, and it touches nothing in "Out of scope". The change to the earlier test follows decision 7 and is limited to that one row.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for criteria 1 to 5 against the Interface. One run of the three test files: the failures are wrong results from today's positional rule, not import or syntax errors. 5 failed, and the remaining rows passed. `make lint` is green.
+
+   - criterion 1: tests/work/domain/test_acceptance_before_approval_routes.py::test_every_stage_of_the_shipped_order_is_before_approval_by_its_forward_moves (one row per stage, 12 rows; the `acceptance` row fails today)
+   - criterion 2: tests/work/domain/test_acceptance_before_approval_routes.py::test_the_single_route_keeps_its_results (rows `acceptance`, `approval`, `done`)
+   - criterion 3: tests/work/domain/test_acceptance_before_approval_routes.py::test_a_forward_chain_is_before_approval_only_when_it_reaches_one (rows `loop`, `dead-end-at-done`, `three-moves`; the first two fail today)
+   - criterion 4: tests/work/domain/test_acceptance_before_approval_routes.py::test_an_unknown_stage_or_a_definition_without_approval_is_refused (rows `unknown-stage` → KeyError, `no-approval-stage` → ValueError)
+   - criterion 5: tests/work/application/test_acceptance_merged_on_two_routes.py::test_an_acceptance_merged_on_the_shipped_order_says_whether_it_came_before_approval (rows `at-acceptance`, which fails today with the ordinary entry, and `at-approval`). It runs through the shared `AcceptanceWalk` (`walk` fixture) with the two-route definition pushed to main and set as the walk's definition. I did not copy the per-module `opened`/`publish`/`merge` fixtures.
+   - Earlier row changed, with the leave from feature decision 7 that the Interface names: tests/pipeline/application/test_docs_route.py::test_only_the_docs_routes_working_stages_lie_before_the_approval, row `("acceptance", False)` → `("acceptance", True)`. It fails today, as intended.
+
+   Files created:
+   - tests/work/domain/test_acceptance_before_approval_routes.py
+   - tests/work/application/test_acceptance_merged_on_two_routes.py
+   - tests/support/two_routes_support.py, which holds `TWO_ROUTES`, the shipped-order definition.
+
+   Earlier test file changed under the standing leave to move a shared test helper:
+   - tests/pipeline/application/test_docs_route.py. Its `TWO_ROUTES` constant moved to `support.two_routes_support`, and the module now imports it from there. Every test keeps its name and checks the same thing.
+
+   Modules the runner could not import: none, because `is_before_approval` exists already.
+
+   Rejected: copying the `opened`/`publish`/`merge` fixtures of test_acceptance_merged_before_approval.py into the new application test. The reviewer counts a copy as a finding.
+
+   Open for the docs stage: `tests/support/two_routes_support.py` is a new support module, and the project guide's *Shared test helpers* list names such modules. Criterion 7 does not mention it.
+
+   `lint`: lint: green (0.1 s)
