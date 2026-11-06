@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T21:24:30.955077Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-06T21:24:30.955077Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T21:25:50.719749Z'
+  stage: review
+  run: 6d9b2e37e9ef47c9b81197c0d421c1bb
 ---
 
 # The document check's tests run on documents they write
@@ -435,3 +437,24 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 26. factory: started review as vm.
+27. reviewer: Review, round 1. I read the work item, the diff's stat and name-status, and the whole diff under `tests/`. Nothing under `src/` and no document changed. I checked the diff against `src/factory/shared/domain/documents.py` and `src/factory/entry/check_documents.py`.
+
+    Both findings from round 0 (entry 19) are fixed:
+    - Finding 1, the copied helpers. `tests/support/minimal_documents_support.py` now builds its documents from `clean_texts()` of `tests/support/document_texts.py`. It adds only one page per area and the empty `docs/checked-documents.txt`. `document_texts` now reads `stop_table.STOP_TABLE`, `kill_point_cases.KILL_POINT_CASES`, `fault_paths.FAULT_PATHS` and `settings.SETTINGS` when it is called, so the `monkeypatch` rows of criterion 2 reach the texts. `SETTINGS_TABLE` is gone and no other module imported it. `tests/entry/test_check_documents_checked_files.py:31` has its own local constant of that name.
+    - Finding 2, the guard. The `ROOT` pattern in `tests/guards/test_document_tests_write_their_documents.py:14-17` now reaches across lines inside the parentheses, and the guard's test has the row `parenthesized-ROOT`.
+
+    Criteria 1 to 6 each have their test, as mapped in entries 8 and 23. Every behaviour in the Interface's list has a test on `minimal`, with both sides where the story asks for both. The skipped-block test and the page-listed-again test now compare the exact output. Criterion 5's guard covers every `check_documents` module under `tests/entry/`. The one call without `--root`, `tests/entry/test_check_documents.py:68` (`main([])`), first runs `chdir` into `tmp_path`. The smoke test's grep finds nothing in `tests/entry`. The coder's `make check` was green (entry 25). The Description and the docs criterion match what was built.
+
+    no findings
+
+    Earlier tests that the diff changes or deletes, and the leave each was changed under:
+    - `tests/conftest.py`: the human's leave, feature decision 10, named in the story's Interface. The fixtures `tracked_files` and `documents` are removed and `minimal` is added.
+    - `tests/entry/test_check_documents_any_list.py`: the human's leave, feature decision 10. The tests that only checked the coupling are removed and named in entry 8.
+    - `tests/entry/test_check_documents_checked_files.py`: the human's leave, feature decision 10.
+    - `tests/entry/test_check_documents_copies.py`: the human's leave, feature decision 10.
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, feature decision 10.
+    - `tests/entry/test_check_documents_settings.py`: the human's leave, feature decision 10.
+    - `tests/entry/test_check_documents_suite_copy.py`: the human's leave, feature decision 10. One test is renamed for the smoke test's grep, as entry 8 says.
+    - `tests/entry/test_check_documents_todays_names.py`: the human's leave, feature decision 10.
+    - `tests/support/documents_copy_support.py` (deleted): the human's leave, feature decision 10.
+    - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`CLAUDE.md` *Tests*). The shared module now reads the code's tables when called, so that it can replace the copy in the new support module. Every builder keeps its name and signature, and gives the same text when nothing is patched, so every earlier test that uses it checks the same thing.
