@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:13:29.846154Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-06T23:13:29.846154Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:15:45.641876Z'
+  stage: docs-only
+  run: 830349f46a39435dba2d99f04a481649
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -298,3 +300,19 @@ Expect: `1`
 
     Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: fixed the reviewer's finding 1 of round 2 in `docs/operator-guide/site.md`. `make documents` ends with `documents ok (2.1 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/operator-guide/site.md`: I dropped the plain `sh` block with the two `reset-to-tag.sh` commands, and the sentence above it that said they were not run. Step 4 of *Repeating a trial* now reads "Run `sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`. It prints the plan and exits 1." Step 5 reads "Run it again with `--yes` added to do it." The prose below them still names every output line. It is the only file I changed. `docs/checked-documents.txt` is unchanged.
+
+    I could not run `reset-to-tag.sh`: it needs GitHub. Its text follows the script as the reviewer checked it in round 2.
+
+    Cross-read and found current: I changed no heading this round, so the links to `site.md` headings from other documents stay as checked in rounds 1 and 2.
+
+    Stale text I saw and left alone: `make documents` still prints `does not exist` lines for files that are not on the checked list. They are not part of this story.
+
+    For the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. I left the Description as it is.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (2.2 s)

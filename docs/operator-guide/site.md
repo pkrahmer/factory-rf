@@ -225,15 +225,8 @@ A trial repository can be set back to a starting point, so that a run is repeate
 1. Tag the starting point once: `git tag starting-point <commit>`.
 2. Push the tag: `git push origin starting-point`.
 3. Name the trial repository in the site file: `SITE_RESET_REPOSITORY` must equal `SITE_REPOSITORY`.
-4. Run the skill's script without `--yes`. It prints the plan and exits 1.
-5. Run it again with `--yes` to do it.
-
-The commands need GitHub, which the document check cannot reach, so they are not run here:
-
-```sh
-sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point
-sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point --yes
-```
+4. Run `sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`. It prints the plan and exits 1.
+5. Run it again with `--yes` added to do it.
 
 The script works through the hosting API alone and needs no checkout. It resolves the tag, and an annotated tag is followed to its commit. Then, in this order, it does three things:
 
