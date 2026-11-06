@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T09:25:58.540243Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T09:25:58.540243Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T09:26:17.282299Z'
+  stage: intake
+  run: adb14e06a0d04bca9410b86cb5469efd
 ---
 
 # The checks block the listed files and report on the others
@@ -65,15 +67,21 @@ The new checks (names, settings, examples) will find many faults in today's docu
 2. A finding of today's checks (a missing stop row, a missing section, an old word) fails the command for every file, as before.
 3. With today's documents and the first `docs/checked-documents.txt` (the style page and the glossary), `make documents` prints a report and ends with `documents ok (<seconds> s)`.
 4. `factory.env` and `factory.local.env` in backticks give no finding; `tests/x.py::test_y` gives the finding of a missing `tests/x.py` and none when it exists; `$HOME/a/b.txt` gives none (rows of the name check's test).
-5. `make check` stays green.
-6. docs: `docs/project-guide/shared.md`: the checked files and the report. `docs/project-guide/style.md`, rule 8: a path of another repository, such as the project the factory runs on, starts with a placeholder (`<project>/factory/agents/`), and a path in the repository is written from its root (`tests/support/time_limits.py`, not `support/time_limits.py`), so that the name check reads it right. `docs/decisions.md`: an entry for feature decisions 1 to 4, naming F0053.
+5. A listed path that does not exist gives one finding that fails the command; a listed path that is not a document the check reads (`docs/decisions.md`) gives one finding that fails the command (one row each).
+6. A `#` line and a blank line in the list give no entry (one row).
+7. The output has the blocking findings first, then the report under its heading, then nothing more (one test).
+8. On the failing side the output is one line per blocking finding, then the report, no `documents ok` line, and exit status 1.
+9. With nothing to report, the heading `Report (not checked yet):` is not printed (one row).
+10. A backticked text that holds `$` is skipped as a whole (`$HOME/factory.nothing.here` gives none); a pytest node id without `::` is read as before; `factory.shared.domain.yml_reader` is still checked as a module and gives a finding when it does not exist (rows of the name check's test).
+11. `make check` stays green.
+12. docs: `docs/project-guide/shared.md`: the checked files and the report. `docs/project-guide/style.md`, rule 8: a path of another repository, such as the project the factory runs on, starts with a placeholder (`<project>/factory/agents/`), and a path in the repository is written from its root (`tests/support/time_limits.py`, not `support/time_limits.py`), so that the name check reads it right. `docs/decisions.md`: an entry for feature decisions 1 to 4, naming F0053.
 
 ## Smoke test
 
 ```bash
 uv run python -m factory.entry.check_documents | tail -1
 ```
-Expect: `documents ok`
+Expect: `documents ok (<seconds> s)`
 
 ## Journal
 
@@ -95,3 +103,9 @@ Expect: `documents ok`
    6. The whole backticked text that holds `$` is skipped. A pytest node id without `::` is read as before. And yes to the negative row: `factory.shared.domain.yml_reader` is still checked as a module.
    7. The smoke test's last line carries its time: `Expect: documents ok (<seconds> s)`.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) written into the story.
+   - Interface: concrete. `docs/checked-documents.txt`, `factory.shared.domain.documents.read_checked_documents(text) -> list[str]`, the output order and the three name-check readings are stated. Entry 4 adds the edges: the whole backticked text that holds `$` is skipped, a node id without `::` is read as before, and `factory.shared.domain.yml_reader` is still checked as a module.
+   - Criteria: each is testable by one test function. From entry 4 I added criteria 5 to 10 before the two closing ones: a listed path that does not exist, a listed path that is no document of the check, comment and blank lines, the output order, the failing-side output (no `documents ok`, status 1), the omitted heading, and the `$` and `yml_reader` rows. Criterion 1 already covers the pass and fail sides of blocking against reporting. `make check` is now 11 and `docs:` 12.
+   - Smoke test: runnable, and the pytest `-q` rule does not apply. `Expect:` now reads `documents ok (<seconds> s)` (entry 4, item 7).
+   - Architecture: the pure logic goes in `shared.domain`, and the command stays in `factory.entry`. That fits.
+   - Scope: it is within F0053 scope, "the checked-files list and a report" (S0004). `docs/decisions.md` is not checked, as the feature's out-of-scope section says. The route is `tests`, because the Interface changes `src/` and `tests/`.
