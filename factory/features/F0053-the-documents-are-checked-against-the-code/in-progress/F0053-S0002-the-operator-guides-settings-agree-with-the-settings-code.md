@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T02:57:53.733863Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T02:57:53.733863Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T02:58:14.943540Z'
+  stage: intake
+  run: dd348d42c5184fb4b0820ad3257fa586
 ---
 
 # The operator guide's settings agree with the settings code
@@ -50,19 +52,20 @@ The operator guide lists the instance's settings, their defaults and the message
 
 ## Interface
 
-- `factory.shared.domain.settings`: `SETTINGS: tuple[SettingDoc, ...]`, one entry per variable `read_settings` reads: `name`, `required` (`yes`, `no`, or a condition such as `with zfs`), `default` (its text as the guide shows it, or `None`). A test keeps the table equal to what `read_settings` reads.
-- `factory.shared.domain.documents`: `settings_findings(guide_tables, settings) -> list[str]`, pure, comparing the rows of the operator guide's settings tables (in `docs/operator-guide/install.md`, the section *Configuration*; a table whose first column is `Name` or `Variable`) with `SETTINGS`.
-- Refusal texts: every backticked text in the guide's *Reference: the refusals* table (or today's equivalent) must occur in the settings module's source.
+- `factory.shared.domain.settings`: `SettingDoc`, a frozen Pydantic model with `name: str`, `required: str` (`yes`, `no`, or a condition such as `with zfs`; kept for the guide's writer, never compared) and `default: str | None`. `SETTINGS: tuple[SettingDoc, ...]`, one entry per variable `read_settings` reads (`FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included). A test keeps the table equal to what `read_settings` reads: it calls `read_settings` with a recording mapping that notes every key looked up, on an environment valid enough to reach every read, and compares the noted keys with the names in `SETTINGS`.
+- `factory.shared.domain.documents`: `GuideTable`, a frozen model with `header: tuple[str, ...]` and `rows: tuple[tuple[str, ...], ...]`, parsed from the Markdown by a pure function that extends the existing `_table_rows`, not a second copy. `settings_findings(guide_tables: list[GuideTable], settings: tuple[SettingDoc, ...]) -> list[str]`, pure, comparing the rows of the operator guide's settings tables (in `docs/operator-guide/install.md`, the section *Configuration*; a table counts when its first column is `Name` or `Variable`, any other table is ignored) with `SETTINGS`. Names are always compared. A default is compared only in a table that has a `Default` column, exactly against `SettingDoc.default` (`None` against an empty cell or `none`). Today's tables have no such column, so only names are compared.
+- Refusal texts: checked only in a table under a heading `The refusals` whose first column is `Refusal`; a refusal's text is the backticked text of that first column. Its parts between placeholders in angle brackets (`<value>`) are cut out, and each remaining piece of three characters or more must occur in the source of `factory.shared.domain.settings`. Today's guide has none, so nothing is checked yet.
 - Tests: `tests/shared/domain/test_settings_table.py`, `tests/shared/domain/test_document_settings.py`.
 
 ## Acceptance criteria
 
-1. `SETTINGS` names exactly the variables `read_settings` and the boundaries read (one row per variable), with their defaults.
-2. A setting the code reads and the guide omits, a setting the guide names and the code does not read, and a default that differs each give one finding, naming the setting (rows of one test).
-3. A quoted refusal text the settings code does not hold gives one finding.
-4. Today's guide gives findings that the command prints, without changing its exit status until S0004.
-5. `make check` stays green.
-6. docs: `docs/project-guide/shared.md`: `SETTINGS` and the settings check. `docs/operator-guide/install.md`: none yet (the rewrite adds the file to the checked files).
+1. `SETTINGS` names exactly the variables `read_settings` reads (one row per variable), with their defaults.
+2. A setting the code reads and the guide omits, a setting the guide names and the code does not read, and, in a table with a `Default` column, a default that differs each give one finding, naming the setting (rows of one test); a table without a `Default` column gives no default finding.
+3. A table whose first column is neither `Name` nor `Variable` is ignored (no finding).
+4. A quoted refusal text, in a table under `The refusals` with first column `Refusal`, gives no finding when it is held by the settings source, one finding when it is not, and none when it has a `<placeholder>` and its remaining pieces of three characters or more are held.
+5. Today's guide gives findings that `factory.entry.check_documents` (through `make documents`) prints, without changing its exit status until S0004.
+6. `make check` stays green.
+7. docs: `docs/project-guide/shared.md`: `SETTINGS` and the settings check. `docs/operator-guide/install.md`: none yet (the rewrite adds the file to the checked files).
 
 ## Smoke test
 
@@ -89,3 +92,9 @@ Expect: `True`
    5. Only `read_settings`: every variable it reads, `FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included (both are read there). The keeping test calls `read_settings` with a recording mapping that notes every key looked up, on an environment valid enough to reach every read, and compares the noted keys with the names in `SETTINGS`. Criterion 1 reads "the variables `read_settings` reads".
    Also yes: criterion 4 names `factory.entry.check_documents` through `make documents`.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answer (journal entry 4) carried into the story. I rewrote the Interface and criteria to match it and added no requirement of my own.
+   - Interface: `SettingDoc`, `GuideTable` and the `settings_findings` signature now have concrete types. `required` is not compared. A default is compared only in a table with a `Default` column. The keeping test uses a recording mapping on `read_settings`. The refusal rule is stated: a table under `The refusals` with first column `Refusal`, placeholders cut out, pieces of three characters or more checked against the settings source. The Interface changes only source and tests, so the route is `tests`.
+   - Criteria: seven now, each testable by one parametrized test. They cover omitted, extra and differing names or defaults, no default finding without a `Default` column, an ignored table, the three refusal rows, and the printed findings without an exit-status change (criterion 5 names `factory.entry.check_documents` through `make documents`). `make check` and `docs:` are last. Criteria 1, 2, 3 and 4 are new or reworded from entry 4; I did not reword the rest.
+   - Smoke test: the command is runnable and the `Expect: True` line is checkable.
+   - Architecture: the models sit in the shared domain layer, the functions are pure, and nothing needs I/O.
+   - Scope: the story is inside the feature's settings check and not in its Out of scope. `install.md` stays unchanged.
