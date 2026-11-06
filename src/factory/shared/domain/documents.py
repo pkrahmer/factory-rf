@@ -132,6 +132,9 @@ _NO_DEFAULT_CELLS = ("", "none")
 REFUSALS_HEADING: Final = "The refusals"
 _REFUSAL_FIRST_COLUMN = "Refusal"
 _SHORTEST_CHECKED_PIECE = 3
+# A refusal is written as `<variable>: <fault>`; the colon after the variable is the
+# message's frame, not part of the fault text the settings code holds.
+_PIECE_EDGES = " \t:"
 _HEADING_MARK = "#"
 # A pipe escaped with a backslash belongs to its cell's text.
 _CELL_SEPARATOR = re.compile(r"(?<!\\)\|")
@@ -241,7 +244,8 @@ def _default_findings(table: GuideTable, settings: Mapping[str, SettingDoc]) -> 
         if setting is None or column >= len(row):
             continue
         cell = row[column]
-        written = None if cell in _NO_DEFAULT_CELLS else cell
+        read = _backticked_or_plain(cell)
+        written = None if read in _NO_DEFAULT_CELLS else read
         if written != setting.default:
             messages.append(
                 f"setting {setting.name} has the default {cell!r} in the guide, "
@@ -257,7 +261,8 @@ def settings_findings(
 
     A table counts when its first column is `Name` or `Variable`. A setting the code reads
     that no such table names, a name no setting has, and, in a table with a `Default`
-    column, a default other than the setting's (`None` written empty or `none`) are findings.
+    column, a default other than the setting's (`None` written empty or `none`) are findings;
+    a `Default` cell is read through its backticks, as the name cell is.
     Without such a table nothing can be compared, which is one finding while there are
     settings to compare.
     """
@@ -297,7 +302,7 @@ def _quoted_refusal(row: tuple[str, ...]) -> str | None:
 
 
 def _is_held(refusal: str, settings_source: str) -> bool:
-    pieces = _PLACEHOLDER.split(refusal)
+    pieces = [piece.strip(_PIECE_EDGES) for piece in _PLACEHOLDER.split(refusal)]
     return all(
         piece in settings_source for piece in pieces if len(piece) >= _SHORTEST_CHECKED_PIECE
     )
@@ -307,8 +312,9 @@ def refusal_findings(guide_tables: list[GuideTable], settings_source: str) -> li
     """The refusal texts the guide quotes that `settings_source` does not hold, one each.
 
     Only tables headed `The refusals` whose first column is `Refusal` count; a refusal is
-    the backticked text of its first cell. Its `<placeholder>`s are cut out, and every
-    remaining piece of three characters or more must occur in the source.
+    the backticked text of its first cell. Its `<placeholder>`s are cut out, the whitespace
+    and colons around each remaining piece are removed, and every piece of three
+    characters or more must occur in the source.
     """
     refusals = [
         _quoted_refusal(row)
