@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T19:50:59.950898Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T19:50:55.185729Z'
   stage: intake
   run: 1165b19bf69d45fca6bdd3fc38e05b1e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:50:59.950898Z'
+  stage: tests
 ---
 
 # Listing a right document keeps the suite green
@@ -74,3 +83,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    - Docs criterion: names what the reader must know (a settings or refusal finding blocks in a listed `install.md` and is only reported in an unlisted one). It dictates no sentences. Naming the sentence to drop is a removal of a false claim, not text to write.
    - Architecture: this is test support only, placed in `tests/support/` as CLAUDE.md requires. No test module imports another.
    - Scope: within feature decision 8 and outside the feature's "Out of scope". Route: tests, because the Interface changes tests and support code, not only documents.
+4. factory: started tests as vm.
