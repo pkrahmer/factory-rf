@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T00:22:24.533219Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-06T00:22:24.533219Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-06T00:22:47.566727Z'
+  stage: doing
+  run: 883f734711a748748b1f1603e1a4aedf
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -297,3 +299,14 @@ Expect: `True True False`
     The factory left out changes outside the write paths: factory/features/F0052-a-documents-only-story-takes-the-docs-route/in-progress/F0052-S0004-an-acceptance-merged-at-its-review-stage-says-so-on-every-route.md.
 19. 2026-11-06 human: (a), with the human's leave: the tester deletes `tests/pipeline/adapters/test_pipeline_yaml.py::test_position_is_the_index_in_the_stages` and nothing else in that module, together with findings 1 to 3, and names the deletion in its entry. Then the coder removes `PipelineDefinition.position`. Reason: no code calls it any more, since this story reads "before the approval" from the forward moves. Note: your change to criterion 7 in the work item was dropped by the take, because the work item is outside your write paths; the answer in entry 8 stands as the docs criterion all the same.
 20. factory: started doing as vm.
+21. coder: Rework round 1, after the human's answer (a) in entry 19. I changed no code in this run. The test changes have to come first: if I removed `PipelineDefinition.position` (`src/factory/pipeline/domain/pipeline_definition.py:109-111`) now, the earlier test that still calls it would turn `make check` red. So this goes to the tester. Once the tester has made the changes below, I remove the method in the next doing run.
+
+    Test changes for the tester:
+    - Deletion, with the human's leave in entry 19: delete `tests/pipeline/adapters/test_pipeline_yaml.py::test_position_is_the_index_in_the_stages` and nothing else in that module. Name the deletion in the entry.
+    - Finding 1 of entry 16, under the standing leave to move a shared test helper: move `FIXTURE`, the definition without an approval stage (`_without_approval`) and `ROLES` from `tests/work/domain/test_acceptance_before_approval.py` to one module in `tests/support/` (named `*_support.py`). Both `test_acceptance_before_approval.py` and `test_acceptance_before_approval_routes.py` then import them from there. Every earlier test keeps its name and checks the same thing.
+    - Finding 2 of entry 16: build `SHIPPED` in `tests/work/domain/test_acceptance_before_approval_routes.py` from `TWO_ROUTES` (`tests/support/two_routes_support.py`) through the pipeline reader, as `tests/pipeline/application/test_docs_route.py` does. The stage list then has a single source.
+    - Finding 3 of entry 16: remove `test_the_single_route_keeps_its_results` and `test_an_unknown_stage_or_a_definition_without_approval_is_refused` from `test_acceptance_before_approval_routes.py`. Map criteria 2 and 4 to the earlier tests in `tests/work/domain/test_acceptance_before_approval.py`, which already pin the same rows on the same definitions.
+
+    Description: unchanged. The work item is outside my write paths, so the take dropped my earlier rewrite of criterion 7, as entry 19 notes. Entry 8 still stands as the docs criterion: the docs stage names `tests/support/two_routes_support.py` and `TWO_ROUTES` in the *Shared test helpers* list of `docs/project-guide/README.md`. If finding 1 creates a second support module, the docs stage should name that one in the list as well.
+
+    I did not run `make check` in this run, because no code changed. It was green after entry 14.
