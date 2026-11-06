@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T13:38:50.324345Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-06T13:38:44.869028Z'
   stage: tests
   run: c7f4c2bd58514ae8af425f5fbbaa9876
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:38:50.324345Z'
+  stage: doing
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -200,3 +209,4 @@ Expect: `0 []`
     One run of `uv run pytest -q` on that file passed all 37 tests, the new row included. That fits, because the coder's code already strips both ends. `make lint`: green.
 
     `lint`: lint: green (0.1 s)
+14. factory: started doing as vm.
