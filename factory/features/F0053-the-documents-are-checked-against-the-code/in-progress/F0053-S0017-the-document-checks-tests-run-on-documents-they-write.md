@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 606
-comments_read: []
+comments_read: [6695295968]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: c1038a76837244ee9914156042a2648e
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T20:57:25.533995Z'
+  stage: intake
 ---
 
 # The document check's tests run on documents they write
@@ -91,3 +96,7 @@ Expect: `documents ok (<seconds> s)`
    3. Criterion 4 covers the guard's failing side only for `support.operator_support.ROOT`. The Interface's rule names four things: `ROOT`, `tracked_files`, `documents_copy_support` and the path `docs/checked-documents.txt`. Please say that the failing-side test has one row for each of the four. I would choose that.
 
    4. Criterion 3 asks for "a test for each behaviour listed", with the passing and failing sides. But the Interface list has no failing side for some behaviours: "a page listed once more gives no second finding" and "a skipped block adds only its `not run` line". Please say what the failing side is for each, or say that the criterion applies to the passing side only for them. For the skipped block, I would choose one row for each of `vm`, `github`, `model` and `suite`.
+4. 2026-11-06 human: 1. Yes: after `add_and_commit(root, {...})` the status is empty and every written file is tracked; rows for a file in an existing folder and one in a new subfolder.
+   2. Split as you propose, and drop the `sleep 30` check. (a) Criterion 5 becomes: no test module under `tests/entry/` that tests `check_documents` runs it on a path outside `tmp_path`, checked by the guard of criterion 4 (which already refuses the names that lead to the real repository). (b) The entry reports the `make test` time before and after; that is no criterion.
+   3. Yes: the guard's failing side has one row for each of the four names (`support.operator_support.ROOT`, `tracked_files`, `documents_copy_support`, the repository's `docs/checked-documents.txt`).
+   4. For those two, criterion 3 covers the passing side only. The skipped block gets one row each for `vm`, `github`, `model` and `suite`; the page listed once more gets a row for a page listed once and a page listed twice, both with one finding.
