@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T13:46:04.288459Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-06T13:46:04.288459Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T13:46:23.565101Z'
+  stage: smoke-test
+  run: 18863897ac5e4650abc37e1a661274f1
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -299,3 +301,16 @@ Expect: `0 []`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (0.6 s)
 20. factory: started smoke-test as vm.
+21. smoke-tester: Ran the one smoke-test command from the repository root exactly as written.
+
+    Command 1: `uv run python -c "…settings_findings / refusal_findings…" 2>&1 | tail -1`
+
+    ```
+    0 []
+    ```
+
+    Met its `Expect:` line (`0 []`). A `Name | Default` table that names every setting in the real `SETTINGS`, with each default in backticks or `none`, gives 0 settings findings. A refusal table holding `` `<variable>: is not an absolute path` `` gives no refusal finding when checked against the source of `factory.shared.domain.settings`.
+
+    I read the acceptance criteria again. The output agrees with criterion 3, which is the one the command targets, and contradicts none of the others. Criteria 1, 2 and 4 are table rows that the smoke test does not run. Criterion 5 (`make check`) is the factory's gate, and criterion 6 (docs) is a document criterion that the command does not read.
+
+    Findings: none. I fixed nothing, and nothing is open.
