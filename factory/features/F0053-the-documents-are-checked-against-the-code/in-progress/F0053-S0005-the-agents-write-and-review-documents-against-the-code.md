@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 590
-comments_read: []
+comments_read: [6682263635]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 3462562d1fcb42cf8e6226b61bb41de2
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T10:04:48.570677Z'
+  stage: intake
 ---
 
 # The agents write and review documents against the code
@@ -68,3 +73,7 @@ Expect: `named`
    4. The smoke test only counts the string "make documents" in `documenter.md`. That passes before the story if the string is already there, and it checks none of the other rules. Please give an `Expect:` that the story changes: for example grep for `documents ok` in `documenter.md`, and for the *Documents* item in `reviewer.md`.
 
    Scope and architecture are fine: the Interface changes only agent files under `agents/agents/` and the tests under `tests/agent_files/`, which fits the documented layout. The human's leave to change the whole-text pinning tests is stated. Route would be `tests`.
+4. 2026-11-06 human: 1. Yes: split criterion 2. One row for the *Documents* item in `reviewer.md`, one row that it names a claim it cannot find in the code as a finding, and one row that it names a command shown without a runnable or marked example as a finding.
+   2. The four rules are rules 8 to 10, split by task: rule 8 (facts from the code) is "read the code first"; rule 9 (keep the detail in a *Reference* section) is "detail kept in *Reference*"; rule 10 (every example run with real or marked values) is "runnable or marked examples, copied from a named real run" plus "run `make documents` and end only on `documents ok`". Say so in the criterion, one row per rule; the Description's sentence then holds.
+   3. Confirmed: `intake.md` makes a docs criterion that dictates the sentences to write a question, and says the criterion names what the reader must know afterwards. Yes to the failing-side row: such a criterion ends the intake with `question`.
+   4. Yes: `grep -q "documents ok" agents/agents/documenter.md && grep -q "### Documents" agents/agents/reviewer.md && echo named` with `Expect: named`, or the exact heading the tester gives the *Documents* item, so that the smoke test fails before the story.
