@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:47:12.725718Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -113,6 +109,12 @@ journal:
   kind: started
   at: '2026-11-06T07:47:12.725718Z'
   stage: doing
+- number: 19
+  speaker: coder
+  kind: result
+  at: '2026-11-06T07:47:31.946145Z'
+  stage: doing
+  run: 7ab4cbd256f145518ddb00805e3070a8
 ---
 
 # A document's marked examples are run by the check
@@ -327,3 +329,16 @@ Expect: `1`
     2. (a), and a wider leave so this does not come back: in any earlier test whose only failure is the exact `documents ok` line, the tester makes the last line match `documents ok \(\d+(\.\d+)? s\)` and keeps its exit-status check. That covers the three rows you name and any other of the same kind. Nothing else in those modules changes, and the entry names each test it changed.
     Noted: `documents.py` at about 590 lines is for a later split, not this story.
 18. factory: started doing as vm.
+19. coder: I changed no code this round. Your answer in journal 17 calls for test changes, and only the tester makes those. The implementation from journal 16 is committed on the branch, and `make check` fails only on the tests named below.
+
+    What the tester changes, with your leave from journal 17:
+    1. `tests/guards/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`: add `"factory.shared.adapters.document_examples"` to the set of modules allowed to import `factory.shared.adapters.process`. Nothing else in that module changes, and the test keeps its name.
+    2. The tests whose only failure is the exact `documents ok` line now check that their last line matches `documents ok \(\d+(\.\d+)? s\)`, and each keeps its exit-status check:
+       - `tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read`, rows `others-ignored` and `utf-8`
+       - `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`, row `as-it-is`
+       - any other earlier test that fails the same way. The entry names each one changed.
+
+    Still open:
+    - My refactor step comes after `make check` is green, so I do it when the work item comes back.
+    - Criterion 9 (the docs) is the documenter's.
+    - `documents.py` at about 590 lines is for a later split, as you noted.
