@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T12:40:47.113235Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T12:40:41.251960Z'
   stage: doing
   run: 296d6432f5094c87ac1335e0f6e6b45d
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:40:47.113235Z'
+  stage: review
 ---
 
 # A configuration section without its settings table is a finding
@@ -133,3 +142,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
 
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
+8. factory: started review as vm.
