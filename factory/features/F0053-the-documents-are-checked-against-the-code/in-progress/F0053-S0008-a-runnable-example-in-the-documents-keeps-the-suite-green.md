@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T11:48:21.420732Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T11:48:21.420732Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T11:49:21.542563Z'
+  stage: review
+  run: 36e4f8716a8643ed9e62acb605de0c11
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -138,3 +140,27 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I reviewed: `git diff main...HEAD -- . ':!factory'`, which changes `tests/conftest.py` and adds `tests/entry/test_check_documents_copies.py`, read against the work item. Nothing changes under `src/`, as the Interface says.
+
+   1. Acceptance criteria:
+      - Criterion 1: covered by `test_a_matching_example_in_a_copied_document_gives_no_finding`, rows `unlisted` and `listed`. It commits the block and runs `main`. It then asserts that no finding appears at or after the block's line. That includes the `fixture default could not be prepared` finding that `src/factory/shared/adapters/document_examples.py:66-68` adds at the example's line. So the test catches the regression this story fixes.
+      - The "every row of `test_the_operator_guide_folder_is_checked_per_file` passes" part of criterion 1 runs on the real documents. That earlier test is unchanged and green in the coder's `make check`.
+      - Criterion 2: covered by `test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one`, rows `unlisted-reported` (exit 0) and `listed-fails` (exit 1). It checks the message `<doc>:<n>: the example printed one`, the exit status, and which side of `Report (not checked yet):` the finding is printed on. In the listed row the exit status alone would not tell the cases apart, because the copy's name findings give exit 1 anyway. The check of the finding's position against the heading does tell them apart.
+      - Criterion 3: covered by `test_the_copied_documents_are_a_clean_git_work_tree`, which checks both the `status --porcelain` output and the `rev-parse` output.
+      - Criterion 4: the coder's `make check` ended `check: green` (journal entry 7).
+      - Criterion 5 is left to the documenter.
+   2. Architecture: only test code changes. The fixture reuses `run_git` and `commit_all` from `tests/support/git_support.py`, so it adds no new copy of a git helper.
+   3. Security: no secrets, no shell command built from strings, no silencing markers.
+   4. Quality:
+      - The fixture's docstring is updated.
+      - The private helpers `_append_block` and `_findings_from` copy no existing support helper. `line_of` in `tests/support/check_documents_support.py` does a different job: it finds the line of a given text.
+      - The sides of each rule are rows of one parametrized test.
+   5. Work item hygiene:
+      - The Description matches what was built: the copy is now a git repository. Its last sentence, turning the style page's blocks back into `console` blocks, is the documenter's work under criterion 5.
+      - The journal gives the main choices: the tester made the fixture change itself, `checked-documents.txt` is written only in the listed rows, and the ` does not exist` lines are filtered out. It also says what the coder rejected: a product-side helper.
+      - The docs criterion still says what the reader must know.
+
+   Earlier tests:
+   - `tests/conftest.py` (fixture `documents`): changed under the human's leave, feature decision 6 of `feature.md` (the human, 2026-11-06), as the story's Interface cites it. The change is what that leave describes: the fixture becomes a git repository. The fixture keeps its name and returns the same folder. No other earlier test was changed.
