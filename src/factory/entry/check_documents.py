@@ -8,6 +8,7 @@ from pathlib import Path
 
 from factory.hosting.adapters.checkout_fixture import CheckoutFixture
 from factory.hosting.adapters.git_cli import GitCli
+from factory.hosting.adapters.instance_fixture import InstanceFixture
 from factory.shared.adapters.document_examples import ProcessExampleRunner
 from factory.shared.application.document_examples import ExampleRunner, Fixture
 from factory.shared.domain import settings
@@ -31,6 +32,7 @@ from factory.shared.domain.documents import (
 )
 
 _PROGRAM = "check-documents"
+_INSTANCE_FIXTURE = "instance"
 _CLEAN = 0
 _FINDINGS = 1
 
@@ -149,7 +151,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(name_finding)
     for settings_finding in _settings_guide_findings(root):
         print(f"{OPERATOR_INSTALL}: {settings_finding}")
-    fixtures = {DEFAULT_FIXTURE: CheckoutFixture(GitCli(root))}
+    git = GitCli(root)
+    fixtures = {DEFAULT_FIXTURE: CheckoutFixture(git), _INSTANCE_FIXTURE: InstanceFixture(git)}
     for example_line in _example_lines(root, ProcessExampleRunner(), fixtures):
         print(example_line)
     if findings:

@@ -9,6 +9,8 @@ from factory.pipeline.domain.stops import HealthStatus
 from factory.shared.adapters.atomic_file import replace_text
 from factory.watching.application.machine import HealthStatusStore
 
+HEALTH_FILE_NAME = "health.json"
+
 
 class JsonHealthStatusFile(HealthStatusStore):
     """Keeps the health status as one JSON file."""

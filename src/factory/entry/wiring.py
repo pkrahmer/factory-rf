@@ -110,7 +110,7 @@ from factory.watching.adapters.cost_records_jsonl import (
     JsonLinesCostRecordWriter,
 )
 from factory.watching.adapters.factory_log import TimestampedFactoryLog
-from factory.watching.adapters.health_file import JsonHealthStatusFile
+from factory.watching.adapters.health_file import HEALTH_FILE_NAME, JsonHealthStatusFile
 from factory.watching.adapters.machine_files import CgroupMachineReadings
 from factory.watching.adapters.record_log_jsonl import JsonLinesRecordLog
 from factory.watching.adapters.transcript_files import FileTranscriptStore
@@ -172,7 +172,6 @@ CREDENTIAL_HELPER = "/usr/local/bin/git-credential-factory"
 WORK_HOME_ENVIRONMENT = {"HOME": WORK_HOME}
 
 _LOG_FILE_NAME = "factory.log"
-_HEALTH_FILE_NAME = "health.json"
 _PREFLIGHT_STAMP_FILE_NAME = "preflight-stamp.json"
 _COMMAND_RECORDS_PATH = Path("records", "project-commands.jsonl")
 _DISK_RECORDS_PATH = Path("records", "disk.jsonl")
@@ -280,7 +279,7 @@ def machine_log(state_directory: Path, clock: Clock | None = None) -> FactoryLog
 
 def health_file(state_directory: Path) -> Path:
     """Return the path of the health file in `state_directory`."""
-    return state_directory / _HEALTH_FILE_NAME
+    return state_directory / HEALTH_FILE_NAME
 
 
 def health_store(state_directory: Path) -> HealthStatusStore:

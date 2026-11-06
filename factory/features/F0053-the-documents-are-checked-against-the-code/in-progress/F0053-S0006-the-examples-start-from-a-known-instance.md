@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 588
 comments_read: [6681011738]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T08:56:14.014925Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-06T08:56:14.014925Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-06T09:01:35.986893Z'
+  stage: doing
+  run: be07fe7e7de14ce2adfdf639b434a612
+  blocked: question
 ---
 
 # The examples start from a known instance
@@ -145,3 +148,27 @@ Expect: `1`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I stopped with `make check` red. The cause is a structural guard tripping on the new test module, and code cannot fix it.
+
+    What I built (in the working tree):
+    - `src/factory/hosting/adapters/instance_fixture.py` (new): `InstanceFixture(git: GitCli)`. Its `prepare(folder)` makes a bare clone of the checkout at `<folder>/remote.git`. It writes a healthy health file (`JsonHealthStatusFile(...).write(HealthStatus())`) into `<folder>/state`. It also writes the image id file, makes the agent home, workspace and copy base, and writes the settings file `<folder>/factory.env`. It returns the environment: `FACTORY_INSTANCE=docs`, `FACTORY_SNAPSHOTS=copy`, and every path variable under the folder. A `GitError` becomes a `FixtureError`, as in `CheckoutFixture`.
+    - `src/factory/hosting/adapters/git_cli.py`: `GitCli.clone_bare(destination)`. It is not an operation of `Git`, for the same reason `export` is not.
+    - `src/factory/watching/adapters/health_file.py`: `HEALTH_FILE_NAME = "health.json"`. It moved down from `factory.entry.wiring`, which now imports it and keeps `health_file()`. Main choice: the fixture in `hosting.adapters` may not import `factory.entry`, so the name moved to the module of the health file. I rejected the alternative of copying `"health.json"` into the fixture, because it would be a second definition of the same name.
+    - `src/factory/entry/check_documents.py`: the table is now `{"checkout": CheckoutFixture(git), "instance": InstanceFixture(git)}`.
+
+    State: all 7 tests in `tests/hosting/adapters/test_instance_fixture.py` pass. lint, types, layers, sast, secrets and licenses are green. `make test` fails on exactly one test:
+    ```
+    FAILED tests/guards/test_areas.py::test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own[hosting/adapters/test_instance_fixture.py]
+    E   AssertionError: test_instance_fixture.py imports areas not yet moved: ['factory.entry.wiring', 'factory.entry.wiring.health_file']
+    tests/guards/test_areas.py:263
+    ```
+    The new test module imports `health_file` from `factory.entry.wiring`. The guard forbids a test under `tests/<area>/` from importing `factory.entry`. No code change can satisfy both, and I do not edit tests.
+
+    Question: how should the test change? The options I see:
+    1. (my choice) The tester changes criterion 4's test to import `HEALTH_FILE_NAME` from `factory.watching.adapters.health_file` (or `JsonHealthStatusFile`). It then checks that `Path(environment["FACTORY_STATE"]) / HEALTH_FILE_NAME` is a file. This is the same name `factory-health` reads, through `wiring.health_file`.
+    2. The tester moves the criterion 4 test to `tests/entry/`, where importing `factory.entry.wiring` is allowed. That would split the fixture's tests over two folders.
+    3. The guard gets an exception for this test. That changes a test another story wrote, and the guard's purpose argues against it.
+
+    With option 1 I would end the next round with `tests`, naming that one import change.
+
+    I noticed one thing and left it alone: `DEFAULT_FIXTURE` (`"checkout"`) lives in `shared.domain.documents`, while the name `"instance"` is a private constant in `check_documents.py`. It may be worth having one place for the fixture names later. No refactor needed beyond what is above.
