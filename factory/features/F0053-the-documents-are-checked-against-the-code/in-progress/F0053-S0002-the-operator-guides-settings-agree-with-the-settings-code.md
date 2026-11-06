@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T07:20:47.072248Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-06T07:20:47.072248Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T07:21:10.984135Z'
+  stage: smoke-test
+  run: 2baeaac9601044b7b9fb5acf6de7a010
 ---
 
 # The operator guide's settings agree with the settings code
@@ -439,3 +441,17 @@ Expect: `True`
     `secrets`: secrets: green (0.8 s)
     `documents`: docs/project-guide/work.md:186: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones does not exist
 30. factory: started smoke-test as vm.
+31. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, exactly as written.
+
+    Command 1: `uv run python -c "from factory.shared.domain.settings import SETTINGS; print(len(SETTINGS) > 30)"`
+    ```
+    Bytecode compiled 4164 files in 48ms
+    True
+    ```
+    Exit status 0. It met `Expect: True`. The `Bytecode compiled` line is uv's own message on stderr, not output from the command.
+
+    For context only (not part of the smoke test), I also printed `len(SETTINGS)`: it is 36.
+
+    Against the acceptance criteria: this output contradicts none of them. It shows that `SETTINGS` imports from `factory.shared.domain.settings` and holds more than 30 entries, which fits criterion 1 (one row per variable `read_settings` reads). The smoke test does not exercise criteria 2 to 6 (the guide comparison, the refusal texts, what `make documents` prints) or 7 (`make check`), so it does not contradict them. I did not run `make check` myself, because the stage does not ask for it and the factory runs its own checks.
+
+    Findings: none.
