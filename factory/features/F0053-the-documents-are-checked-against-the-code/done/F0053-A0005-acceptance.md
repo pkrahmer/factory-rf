@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T20:25:26.911115Z'
   stage: acceptance
   run: 5e1fec753f4e4abe9fcec41435d5fd95
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T20:29:23.671464Z'
+  stage: done
 stories: [F0053-S0001, F0053-S0002, F0053-S0003, F0053-S0004, F0053-S0005, F0053-S0006, F0053-S0007, F0053-S0008, F0053-S0009, F0053-S0010, F0053-S0011, F0053-S0012, F0053-S0013, F0053-S0014, F0053-S0015]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents are checked against the code
@@ -230,3 +235,4 @@ Human interventions: 20 questions answered (18 questions, 2 round caps), 1.4 h w
    6. Decisions: feature decisions 1 to 8 and the earlier defaults are listed for the human. S0015's earlier-test changes each have their leave (decision 8, plus the standing leave for `drop_settings_row`). S0016 needs a decision 9 before it starts.
    7. Slow checks: nothing beyond `make check`, which was green as found (109.5 s, 99.22 %). There are 10,756 cases, and the document tests take 40.8 s. Free disk fell 0.2 GB on the shared filesystem; used space stayed at 1.4 GB, and the feature does not explain the drop.
    8. Cost: 183 runs, 238.8 min, $51.18, plus one unknown. S0015 cost 10 runs and $2.16; a review round over three copied constants took two coder runs that built nothing. Human interventions: 20 answered (18 questions, 2 round caps), 1.4 h waited, unchanged since A0004. S0003 needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 12.7 min, 37 turns, 85043 tokens in (1965916 more from cache), 26667 out, $1.61
