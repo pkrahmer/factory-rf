@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T13:31:53.286415Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T13:31:47.849521Z'
   stage: intake
   run: bf3916bd899548a49f4b7b36986fd745
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:31:53.286415Z'
+  stage: tests
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -71,3 +80,4 @@ Expect: `0 []`
    - Docs criterion: names what the reader must know in `style.md` (*The operator guide*) and `shared.md` (*The settings check*): a default may be in backticks, and a refusal is the message `<variable>: <fault>`. It dictates no sentences.
    - Architecture: the changes are in the shared domain's `documents` module, which is pure rules and data with no I/O, and the docs are in the guides. Both are where they belong.
    - Scope: this is the settings check of S0002, which the feature's scope covers. It does not touch the Out of scope items. Routed to `tests` because the Interface changes Python code.
+4. factory: started tests as vm.
