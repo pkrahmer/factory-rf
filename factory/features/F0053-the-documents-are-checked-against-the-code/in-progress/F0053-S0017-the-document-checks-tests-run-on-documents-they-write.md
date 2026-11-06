@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T21:18:23.371459Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-06T21:18:18.066127Z'
   stage: doing
   run: c9039e501e7a418dbff3f77926aceb59
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:18:23.371459Z'
+  stage: tests
 ---
 
 # The document check's tests run on documents they write
@@ -359,3 +368,4 @@ Expect: `documents ok (<seconds> s)`
     Checks: I did not run `make check` or `make test` this round, because I changed no file. The last `make check`, in entry 17, was green, with `make test` at 106.7 s. When the work item comes back I will run `make check` and do the refactor step.
 
     Noticed and not touched: on line 14 I confirmed that the `ROOT` pattern ends at the first newline (`[^\n]*`), so finding 2 is real. Criterion 8 (`docs:`) is the documenter's.
+22. factory: started tests as vm.
