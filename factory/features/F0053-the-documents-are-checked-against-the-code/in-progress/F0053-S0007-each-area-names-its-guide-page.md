@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T11:13:54.628446Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T11:13:49.366381Z'
   stage: intake
   run: 9fc7b7e1998f464cad270c1c652d12b7
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:13:54.628446Z'
+  stage: tests
 ---
 
 # Each area names its guide page
@@ -65,3 +74,4 @@ Expect: `8`
    - Architecture: the change touches only package docstrings and a guard test in `tests/guards/`, which fits the layout in `CLAUDE.md`. There is no new dependency and no change to `factory/`.
    - Scope: this is the feature's S0007 and decision 5, and it is not in "Out of scope". Module docstrings stay unchanged.
    - Route: `tests`, because the Interface changes `src/` and `tests/` paths, which the documenter may not write.
+4. factory: started tests as vm.
