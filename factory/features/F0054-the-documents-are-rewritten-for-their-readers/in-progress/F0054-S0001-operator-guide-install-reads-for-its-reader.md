@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433, 6697301221]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T22:31:07.068343Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -240,6 +236,12 @@ journal:
   kind: started
   at: '2026-11-06T22:31:07.068343Z'
   stage: docs-review
+- number: 42
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:32:02.599660Z'
+  stage: docs-review
+  run: 9099f8b50e8948ffa5e54041efe92eb2
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -661,3 +663,27 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (1.8 s)
 41. factory: started docs-review as vm.
+42. reviewer: Docs review after the documenter's entry 40. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`. I also read `git diff 4fd41a7a7 HEAD`, the change since review entry 38. It touches only *Install*. I checked that change against `operator/vm/setup.sh` (its header at lines 2-6 and its first pass at lines 349-352), `docs/operator-guide/machine.md` (*The machine*, *The two passes*, *The stage image*, *The service*), `docs/operator-guide/health.md` (*The preflight's items*), `docs/project-guide/style.md` and the old file on `main`.
+
+    What holds:
+    - Finding 1 of entry 38 is fixed. Step 1's first sentence now ends after the `setup.sh` command (install.md:11). The list of what the script sets up is its own sentence at install.md:21, about 22 words long. It says "the ZFS pool and datasets" as setup.sh:3 does and points to "The machine" in machine.md, which is a heading at machine.md:5. "Enabled, not started" moved out of step 1 and agrees with machine.md:279.
+    - Finding 2 of entry 38 is fixed.
+      - Step 1 is now the action plus one sentence: the first-pass line. That line is a true prefix of setup.sh:351, and its reason matches setup.sh:5-6 and machine.md:288.
+      - Step 5 is now the action plus "If it refuses, see …".
+      - The Cloud Run pointer is now in the paragraph above the list (install.md:9).
+      - The unit and preflight sentences are now a paragraph after the list (install.md:21). Every heading they link to exists.
+    - Steps 2 to 4 are unchanged since entry 38 and still agree with machine.md:125-128 and :288.
+    - The sentence "It reads the same environment as `factory-watch`" left step 5, but nothing from the old file is lost. The old file's line 13 rule is still at install.md:237 (*The order of faults*) and install.md:125 (criterion 2).
+    - Unchanged and still correct from earlier rounds:
+      - the settings tables, the refusal table and *The order of faults*;
+      - the kept headings (criterion 4);
+      - the line in `docs/checked-documents.txt` (criterion 3);
+      - the inline `make mutants` commands (the human's entry 14).
+
+    Findings: no findings.
+
+    Still open outside this diff, as entries 14 and 20 decided:
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
+    - `docs/operator-guide/README.md` keeps its version-history sections.
+    - The documents check crashes on a fenced block indented under a numbered step, and the human has made that its own story.
