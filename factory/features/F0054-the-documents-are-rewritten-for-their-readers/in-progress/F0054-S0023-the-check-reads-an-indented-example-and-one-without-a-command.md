@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T22:38:42.530110Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T22:38:42.530110Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T22:39:00.812571Z'
+  stage: intake
+  run: 6b09def657a4483891f0cd8612b3835a
 ---
 
 # The check reads an indented example and one without a command
@@ -58,11 +60,12 @@ The style page asks for tasks as numbered steps, and a step's example belongs un
 
 ## Acceptance criteria
 
-1. A `console` block indented by three spaces under a numbered step, with `$ echo hi` and `hi`, gives one `Example` with the command `echo hi`, the expected line `hi` and the same line numbers as at column 0. Rows: three spaces, four spaces, a tab, and column 0.
+1. A `console` block indented by three spaces under a numbered step, with `$ echo hi` and `hi`, gives one `Example` with the command `echo hi`, the expected line `hi` and the same line numbers as at column 0. Rows: three spaces, four spaces, a tab, and column 0; and a block whose fence is indented by three spaces and which holds a line indented by one space, which keeps that space.
 2. A `console` block with no `$ ` line gives the finding `<document>:<line>: the example has no command` at its fence line, and no exception. Rows: at column 0 and indented.
-3. On minimal documents, `make documents` (through `main(["--root", ...])`) runs an indented example that matches and gives no finding. It gives one blocking finding for an indented example that does not match in a listed file. Rows of one test.
-4. `make check` stays green.
-5. docs: `docs/project-guide/style.md`, *Runnable examples*: the reader learns that an example may stand indented under its numbered step, and that a `console` block must hold at least one `$ ` command. `docs/project-guide/shared.md`, the example check: the reader learns that the block's indentation is removed before it is read, and the new finding. `docs/decisions.md`: none.
+3. On minimal documents, through `main(["--root", ...])`, the finding `the example has no command` blocks in a listed file and is reported without blocking in an unlisted one; an indented example that does not match is reported without blocking in an unlisted file. Rows of one test.
+4. On minimal documents, `make documents` (through `main(["--root", ...])`) runs an indented example that matches and gives no finding. It gives one blocking finding for an indented example that does not match in a listed file. Rows of one test.
+5. `make check` stays green.
+6. docs: `docs/project-guide/style.md`, *Runnable examples*: the reader learns that an example may stand indented under its numbered step, and that a `console` block must hold at least one `$ ` command. `docs/project-guide/shared.md`, the example check: the reader learns that the block's indentation is removed before it is read, and the new finding. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -83,3 +86,11 @@ Expect: `1 echo hi`
    2. Yes, one more criterion with rows: the no-command finding blocks in a listed file and is only reported in an unlisted one; an indented example that does not match is only reported in an unlisted file.
    3. Confirmed: with those rows, criterion 1 states the line numbers for a tab-indented fence and for the less-indented line, unchanged from column 0.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answer (journal entry 4) carried into the story.
+   Edits from entry 4: criterion 1 gets the row for a block line indented less than its fence, which keeps its indentation; a new criterion 3 tests the no-command finding as blocking in a listed file and only reported in an unlisted one, and an indented mismatch as only reported in an unlisted file. The later criteria are renumbered, and `make check` and `docs:` stay last.
+   - Interface: `factory.shared.domain.documents.examples` is a concrete module with unchanged signatures. The indentation removal, the less-indented line and the `the example has no command` finding at the fence line are stated, and the finding's blocking path is stated.
+   - Criteria: each is testable by one parametrized test. Every Interface rule has a criterion for both sides: indented and column 0, a tab, less-indented lines, no command against a command present, a listed file against an unlisted one.
+   - Smoke test: the command is runnable and does not run pytest. `Expect: 1 echo hi` can be checked against the output.
+   - Docs criterion: it names what the reader must know (an indented example under a step, at least one `$ ` command, the indentation removal, the new finding) and dictates no sentences.
+   - Architecture: the change is domain-only in the shared area, with no new dependency.
+   - Scope: it fits F0054. It is the code-fault follow-up story that the feature's Out of scope calls for.
