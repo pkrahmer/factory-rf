@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T12:19:12.947675Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T12:19:12.947675Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T12:20:51.459537Z'
+  stage: review
+  run: 033da3ee005a4b4bb951b156d6e1f4e6
 ---
 
 # The name check reads log files and git addresses
@@ -126,3 +128,15 @@ Expect: `0`
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: 1. `tests/entry/test_check_documents_todays_names.py:17-23`: the criterion 3 test runs the whole `check_documents.main` on the real repository once for each of its three rows. That is three full runs of the documents command, including every runnable example in every document. The examples run as processes in `tempfile` folders outside `tmp_path`, and the instance fixture makes a bare clone of the real repository. The test checks one naming rule, but its cost grows with every example the documents gain, and an unrelated example output that holds `factory.log` would fail it. Fix: give one parametrized test the rows (`docs/operator-guide/machine.md`, `factory.log`), (`docs/operator-guide/install.md`, `git@github.com:owner/project.git`) and (`docs/operator-guide/cloud-run.md`, `git@host:owner/name.git`). It reads `ROOT / document` and asserts that no `Reference` of `named_references(document, text, top_level)` has that text as its name: no processes, no files outside `tmp_path`. At the least, run `main` only once.
+
+   Checked without finding:
+   - Criteria 1 and 2: the new rows of both tests match the criteria. The Interface rule (first `:` before first `/`) is tested on both sides: the git addresses give no reference, while `tests/x.py::test_y` and `docs/a:b.md` stay paths. The new `.log` and `.jsonl` extensions are tested on both sides too: `factory.log` and `factory.x.jsonl` give no reference, and `factory.shared.domain.nothing_here` stays a module.
+   - The code: `_is_address` in `src/factory/shared/domain/documents.py` replaces the old `://` check inside `_is_path`. The existing `web-address-in-backticks` row still covers `https://`. Pytest node ids are still split at `::` in `_line_references` before the check.
+   - Smoke test: I ran its command on the branch and it prints `0`.
+   - Architecture and security: the change stays in the shared domain layer with no I/O, and adds no marker that silences a check. The coder's entry 7 records `make check` green.
+   - Duplicates: I ran `make duplicates` once (6 new, 39 known, 4 gone). All 6 new findings are in code this diff does not touch (`documents.py:789 matches`, `cost_records.py`, the two runtimes, `hand_over`/`acceptance`).
+   - Work item: the Description, the Interface and the docs criterion match what was built, and entry 7 explains the main decision and what was rejected.
+
+   Earlier tests:
+   - `tests/shared/domain/test_document_references.py`: no leave needed. The change only adds rows and one new test function and keeps every earlier row as it was. The human's story also names this file (Interface, criterion 1).
