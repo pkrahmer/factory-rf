@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:12:33.933505Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-06T23:12:33.933505Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:13:24.496309Z'
+  stage: docs-review
+  run: 304a3ed8c3b643e2951f4c51e003f29c
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -267,3 +269,22 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (2.2 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 docs review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff rewrites `docs/operator-guide/site.md` and adds one line to `docs/checked-documents.txt`. I read the file against `operator/bin/site`, `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/skill/kumpel/scripts/reset-to-tag.sh` and `docs/project-guide/style.md`.
+
+    The round-1 findings 2 to 6 are fixed as asked:
+    - the token-failure row at :126 now matches `hosting.sh:89` and its callers;
+    - the `FAIL site file:` row at :320 now covers the git work tree;
+    - *approval* at :268 is linked;
+    - the long sentences and the ones with two parentheses are split;
+    - the intro at :9 is now true.
+
+    The facts I checked again are right: the `reset-to-tag.sh` messages and statuses (:244, :252-256, against `reset-to-tag.sh:8-21`, `:72-89`), the `site_require` message (:254, against `site.sh:65`), the eleven checks of `site check` (:314, against `operator/bin/site:72-81`), and `init`'s two failures and the loader's statuses (:303-304).
+
+    Criteria 2 and 4 are still met: no heading changed in this round. Criterion 3: the checked-list line is present, and the journal records `documents ok`.
+
+    Round-1 finding 1 was fixed in a way that brings back the problem of round-0 finding 3.
+
+    Findings:
+    1. `docs/operator-guide/site.md:231-236`: the two `reset-to-tag.sh` commands are in a plain `sh` block. That block is neither a runnable `console` example nor marked `console github`, and `style.md:59` says "A command that needs the hosting service ... mark its block `console github`". Text that says "not run here" is not the mark. A `console github` block would need output copied from a real run that is named above it, and the journal says no such run exists. Fix: drop the block and put the commands inline in their steps, as steps 1 and 2 already do. Step 4 becomes "Run `sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`. It prints the plan and exits 1." Step 5 becomes "Run it again with `--yes` added to do it." The sentence at :231 goes too.
+
+    Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant.
