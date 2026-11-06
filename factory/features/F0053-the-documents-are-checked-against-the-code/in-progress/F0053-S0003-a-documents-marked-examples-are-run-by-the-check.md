@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T07:57:56.056666Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -159,6 +163,11 @@ journal:
   at: '2026-11-06T07:57:50.700464Z'
   stage: doing
   run: 9b822f0136004777a7fd72f5919d65a0
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:57:56.056666Z'
+  stage: tests
 ---
 
 # A document's marked examples are run by the check
@@ -495,3 +504,4 @@ Expect: `1`
     - `documents.py` is still large; the human left the split for later (journal 17).
 
     The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0003-a-documents-marked-examples-are-run-by-the-check.md.
+28. factory: started tests as vm.
