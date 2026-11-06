@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T07:17:57.653442Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-06T07:17:52.314645Z'
   stage: review
   run: 7d8490dc9d66403da1e5c805b1ff4aff
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:17:57.653442Z'
+  stage: docs
 ---
 
 # The operator guide's settings agree with the settings code
@@ -384,3 +393,4 @@ Expect: `True`
     Earlier tests:
     - tests/conftest.py: standing leave to move a shared test helper. The `documents` fixture moved here with the same name and body.
     - tests/entry/test_check_documents_operator_guide.py: standing leave to move a shared test helper. Its local `documents` fixture, `ROOT` and the `shutil` import were removed, and its tests keep their names and checks.
+28. factory: started docs as vm.
