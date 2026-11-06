@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T22:41:32.403983Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T22:41:27.370645Z'
   stage: tests
   run: 67d09e2143a04ecea3de9ea01ab76cba
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:41:32.403983Z'
+  stage: doing
 ---
 
 # The check reads an indented example and one without a command
@@ -120,3 +129,4 @@ Expect: `1 echo hi`
    Test run (`uv run pytest -q` on the two files): 13 new rows fail, all with `ValueError: zip() argument 2 is longer than argument 1` at src/factory/shared/domain/documents.py:681. The column-0 row of criterion 1 and every earlier row pass. I ran the tests twice: the first run showed that my own helper `_append_step` counted the fence line wrongly, so I changed it to use `line_of` and ran once more to see the real reasons. `make lint` is green.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
