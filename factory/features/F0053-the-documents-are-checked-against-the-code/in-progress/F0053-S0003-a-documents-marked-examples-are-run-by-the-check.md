@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T07:53:01.579577Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -146,6 +142,12 @@ journal:
   kind: started
   at: '2026-11-06T07:53:01.579577Z'
   stage: review
+- number: 25
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T07:54:57.289531Z'
+  stage: review
+  run: 9328e68e5dc445f3a2347a938b27b997
 ---
 
 # A document's marked examples are run by the check
@@ -177,8 +179,10 @@ An example that shows a command and what it prints is the claim a reader trusts 
 5. A block that names an unknown fixture gives `<document>:<line>: no fixture <name>`.
 6. The commands never run in the checkout itself; `env` inside a block shows only the fixed environment and the fixture's variables.
 7. `make documents` ends with `documents ok (<seconds> s)` when nothing blocks, and the report lists every skipped block as `<document>:<line>: not run (<kind>)`.
-8. `make check` stays green.
-9. docs: `docs/project-guide/style.md` (from F0052) or, until it exists, `docs/project-guide/shared.md`: how to write a runnable example, name a fixture, use the placeholders, and mark one that needs the VM, GitHub or a model; that a block running the suite is skipped without a mark; that a `vm` example comes from a real run and says where it ran.
+8. A command that prints fewer lines than its expected output holds gives `<document>:<line>: the example printed nothing more`.
+9. A command run through `uv run` is read like the one after it: `uv run make check`, `uv run make test`, `uv run pytest` and a `pytest` with options only (`pytest -q`) are skipped as `suite`, and `uv run pytest <file>` is run (rows of the criterion 1 tests).
+10. `make check` stays green.
+11. docs: `docs/project-guide/style.md` (from F0052) or, until it exists, `docs/project-guide/shared.md`: how to write a runnable example, name a fixture, use the placeholders, and mark one that needs the VM, GitHub or a model; that a block running the suite is skipped without a mark; that a `vm` example comes from a real run and says where it ran.
 
 ## Smoke test
 
@@ -431,3 +435,22 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 24. factory: started review as vm.
+25. reviewer: Findings:
+    1. criterion 8 added: it needs its test. When a command prints fewer lines than expected, `src/factory/shared/adapters/document_examples.py` (`_difference`, `_NOTHING_MORE`) reports `the example printed nothing more`. No criterion names this and no test covers it. Fix: the tester adds a row to `tests/shared/adapters/test_document_examples.py::test_a_command_whose_output_differs_gives_one_finding_and_one_that_matches_none` (for example `echo hi` expecting `hi`, `more`).
+    2. criterion 9 added: it needs its test. `src/factory/shared/domain/documents.py` `runs_the_suite` strips a leading `uv run` and treats `pytest` followed only by options as the suite. No row covers `uv run make check`, `uv run make test`, `uv run pytest`, `pytest -q` or `uv run pytest <file>`. Fix: the tester adds these as rows of the two criterion 1 tests in `tests/shared/domain/test_document_examples.py`.
+    3. `src/factory/shared/domain/documents.py` `runs_the_suite`: every word after `pytest` that does not start with `-` counts as a file. So `pytest -q 2>&1 | tail -5`, the form CLAUDE.md itself writes, and `pytest -k name` are run, although they run pytest without a file, which the Interface says is skipped as `suite`. Fix: stop reading at the first shell operator or redirection (`|`, `&&`, `;`, `2>&1`, `>`), skip an option's value, and count a word as a file only when it names a test path. Add those rows to the criterion 1 skip test.
+    4. `src/factory/shared/domain/documents.py` `_commands`: it builds each `Command`, a frozen model, with `expected=[]` and then fills it with `commands[-1].expected.append(line)`, so a frozen DTO is changed after it is built. Fix: collect each command's lines first, then build the `Command` with its complete `expected`.
+    5. `tests/shared/domain/test_document_examples.py:7`, `tests/shared/adapters/test_document_examples.py:15` and `tests/entry/test_check_documents_examples.py:13`: each holds its own `FENCE = "```"`, a third, fourth and fifth copy of the constant in `tests/pipeline/domain/test_documents.py:38`. Fix (tester, standing leave): move `FENCE` to a module in `tests/support/` and import it in all four.
+    6. `## Interface`, the line "Tests: ... and an adapter test with the fake containers": this is out of date. The human's answers in journals 4 and 9 (6) settled on real short commands in `tmp_path` and no containers, and that is what was built. Fix: rewrite the line to name `tests/shared/adapters/test_document_examples.py` with real short commands and no containers, plus `tests/hosting/adapters/test_checkout_fixture.py` and `tests/entry/test_check_documents_examples.py`. A reviewer may correct only the Description, so this is left to the coder.
+
+    Notes:
+    - The 60-second default limit has no test. `ProcessExampleRunner()` defaults to `EXAMPLE_TIME_LIMIT = timedelta(seconds=60)` in `src/factory/shared/adapters/document_examples.py`, and `_no_end` formats it as `60 s`, so the code does what the Interface says. Missing row: `ProcessExampleRunner()._time_limit`, or a finding text built from the default, equals 60 s.
+
+    Checked and in order: criteria 1 to 7 each have a test that checks what it is named after. Journal 23 shows `make check` green after the coder. The layers and wrappers hold: the new process importer has the human's leave (journal 17), `GitCli.export` goes through `_run` with `check_git_argument`, and a timeout kills the process group (`process.py`). Example findings do not change the exit status, as "until S0004" asks. No suppression markers were added.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents.py`: the human's leave, journals 9 (1) and 12 (1).
+    - `tests/entry/test_check_documents_guide_files.py`: the human's leave, journal 17 (2).
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal 17 (2).
+    - `tests/guards/test_wrapper_search.py`: the human's leave, journal 17 (1).
+    - `tests/support/check_documents_support.py`: the standing leave to move a shared test helper (`TIME_LINE` moved there, the earlier tests unchanged in name and in what they check).
