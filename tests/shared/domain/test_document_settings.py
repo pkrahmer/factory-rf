@@ -1,7 +1,10 @@
 """The guide's settings tables and refusals are compared with the settings code."""
 
+from pathlib import Path
+
 import pytest
 
+from factory.shared.domain import settings as settings_module
 from factory.shared.domain.documents import (
     OPERATOR_INSTALL,
     SETTINGS_SECTION,
@@ -243,3 +246,61 @@ def test_guide_tables_keep_their_nearest_heading() -> None:
         ("Configuration", "Variable"),
         ("The refusals", "Refusal"),
     ]
+
+
+@pytest.mark.parametrize(
+    ("cell", "expected"),
+    [
+        pytest.param("`5`", [], id="backticked-equal"),
+        pytest.param("5", [], id="plain-equal"),
+        pytest.param(
+            "`6`",
+            ["setting FACTORY_A has the default '`6`' in the guide, '5' in the settings code"],
+            id="backticked-differs",
+        ),
+    ],
+)
+def test_backticked_default_is_read_through_its_backticks(cell: str, expected: list[str]) -> None:
+    table = _table(_DEFAULT_HEADER, ("`FACTORY_A`", "no", cell))
+
+    assert settings_findings([table], (_setting("FACTORY_A", "5"),)) == expected
+
+
+@pytest.mark.parametrize(
+    ("refusal", "expected"),
+    [
+        pytest.param("<variable>: is not a colour", [], id="message-held"),
+        pytest.param(
+            "<variable>: is not a shade",
+            ["refusal `<variable>: is not a shade` is not held by the settings code"],
+            id="message-not-held",
+        ),
+        pytest.param("<a>: qz<b>", [], id="stripped-piece-of-two-unchecked"),
+    ],
+)
+def test_refusal_pieces_are_checked_without_their_colons_and_spaces(
+    refusal: str, expected: list[str]
+) -> None:
+    table = GuideTable(heading=_REFUSALS, header=("Refusal",), rows=((f"`{refusal}`",),))
+
+    assert refusal_findings([table], "is not a colour") == expected
+
+
+def test_real_settings_written_with_backticks_and_variable_give_no_finding() -> None:
+    defaults = GuideTable(
+        heading="Configuration",
+        header=("Name", "Default"),
+        rows=tuple(
+            (f"`{setting.name}`", "none" if setting.default is None else f"`{setting.default}`")
+            for setting in SETTINGS
+        ),
+    )
+    refusals = GuideTable(
+        heading=_REFUSALS,
+        header=("Refusal",),
+        rows=(("`<variable>: is not an absolute path`",),),
+    )
+    source = Path(settings_module.__file__).read_text(encoding="utf-8")
+
+    assert settings_findings([defaults], SETTINGS) == []
+    assert refusal_findings([refusals], source) == []

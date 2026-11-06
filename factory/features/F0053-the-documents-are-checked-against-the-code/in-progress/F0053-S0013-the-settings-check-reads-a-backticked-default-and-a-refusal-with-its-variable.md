@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T13:31:53.286415Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T13:31:53.286415Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T13:32:29.269541Z'
+  stage: tests
+  run: cfe056b2d43a40eab45615a6d501df5b
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -81,3 +83,15 @@ Expect: `0 []`
    - Architecture: the changes are in the shared domain's `documents` module, which is pure rules and data with no I/O, and the docs are in the guides. Both are where they belong.
    - Scope: this is the settings check of S0002, which the feature's scope covers. It does not touch the Out of scope items. Routed to `tests` because the Interface changes Python code.
 4. factory: started tests as vm.
+5. tester: I added three tests to `tests/shared/domain/test_document_settings.py`. Every earlier row is unchanged and still passes.
+
+   - criterion 1: tests/shared/domain/test_document_settings.py::test_backticked_default_is_read_through_its_backticks (rows `backticked-equal`, `plain-equal`, `backticked-differs`; the differing row checks the full finding text)
+   - criterion 2: tests/shared/domain/test_document_settings.py::test_refusal_pieces_are_checked_without_their_colons_and_spaces (rows `message-held`, `message-not-held`, `stripped-piece-of-two-unchecked`; the not-held row checks the full finding text)
+   - criterion 3: tests/shared/domain/test_document_settings.py::test_real_settings_written_with_backticks_and_variable_give_no_finding (real `SETTINGS` in a `Name | Default` table, with backticked defaults or `none`; the refusal is checked against the text of `factory.shared.domain.settings`'s file)
+   - criterion 4 (`make check`) and criterion 5 (docs) have no test of mine.
+
+   Files: I created none and changed `tests/shared/domain/test_document_settings.py`, the file the Interface names. Modules the test runner could not import: none, because both functions already exist.
+
+   One run of `uv run pytest -q` on that file failed four tests on wrong results, as expected: `backticked-equal`, `message-held`, `stripped-piece-of-two-unchecked` and the real-settings test. `plain-equal`, `backticked-differs` and `message-not-held` already pass with today's code. `make lint`: green.
+
+   `lint`: lint: green (0.2 s)
