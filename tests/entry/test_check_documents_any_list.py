@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
+from factory.shared.domain.documents import CHECKED_DOCUMENTS, OPERATOR_GUIDE, OPERATOR_INSTALL
 from support.check_documents_support import (
-    CHECKED_LIST,
     REPORT_HEADING,
     append_block,
     drop_settings_row,
@@ -18,10 +18,9 @@ from support.check_documents_support import (
 )
 from support.git_support import commit_all, run_git
 
-_INDEX = "docs/operator-guide/README.md"
 _SHARED = "docs/project-guide/shared.md"
-_NEWLY_LISTED = (_INDEX, "docs/operator-guide/install.md", _SHARED)
-_NO_INDEX = f"{_INDEX}: missing\n"
+_NEWLY_LISTED = (OPERATOR_GUIDE, OPERATOR_INSTALL, _SHARED)
+_NO_INDEX = f"{OPERATOR_GUIDE}: missing\n"
 
 Steps = Callable[[Path, pytest.CaptureFixture[str]], None]
 
@@ -29,7 +28,7 @@ Steps = Callable[[Path, pytest.CaptureFixture[str]], None]
 @pytest.fixture
 def listed(documents: Path) -> Path:
     """The `documents` copy whose list also names the three pages, committed."""
-    path = documents / CHECKED_LIST
+    path = documents / CHECKED_DOCUMENTS
     text = path.read_text(encoding="utf-8")
     if not text.endswith("\n"):
         text += "\n"
@@ -52,7 +51,7 @@ def _settings_steps(root: Path, capsys: pytest.CaptureFixture[str]) -> None:
 
 def _no_index_steps(root: Path, capsys: pytest.CaptureFixture[str]) -> None:
     write_checked_list(root, [])
-    (root / _INDEX).unlink()
+    (root / OPERATOR_GUIDE).unlink()
 
     status = main(["--root", str(root)])
 
@@ -92,13 +91,13 @@ def test_a_test_that_writes_its_list_keeps_its_outcome_when_the_repository_lists
 def test_without_its_own_list_the_repository_list_reaches_the_output(
     listed: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    (listed / _INDEX).unlink()
+    (listed / OPERATOR_GUIDE).unlink()
 
     main(["--root", str(listed)])
 
     printed = without_report_lines(capsys.readouterr().out.splitlines(keepends=True))
     assert sorted(printed.splitlines(keepends=True)) == sorted(
-        [_NO_INDEX, f"{CHECKED_LIST}: {_INDEX} is no document of the check\n"]
+        [_NO_INDEX, f"{CHECKED_DOCUMENTS}: {OPERATOR_GUIDE} is no document of the check\n"]
     )
 
 
@@ -114,5 +113,5 @@ def test_the_written_list_holds_one_path_per_line_and_is_committed(
 ) -> None:
     write_checked_list(documents, paths)
 
-    assert (documents / CHECKED_LIST).read_text(encoding="utf-8") == text
+    assert (documents / CHECKED_DOCUMENTS).read_text(encoding="utf-8") == text
     assert run_git(documents, "status", "--porcelain") == ""

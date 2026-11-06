@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T19:58:45.938537Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T19:58:45.938537Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-06T19:59:44.299874Z'
+  stage: tests
+  run: a982f14ec05d4ba5ad3e9e7e785b4c66
 ---
 
 # Listing a right document keeps the suite green
@@ -193,3 +195,23 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
     Noticed but not touched: `tests/support/check_documents_support.py:24-25` spells out `docs/operator-guide/` in the expected output text. That code was there before this story and the reviewer did not name it, so I left it. Criterion 6 (`docs/project-guide/shared.md`, *The settings check*) is still open for the docs stage. The journal did not change the meaning of the task, so the Description stays. I made no code change, so there was nothing to refactor and I did not run `make check` this round.
 12. factory: started tests as vm.
+13. tester: Approved test change, round 1. I made the change the coder's entry 11 names, which carries the reviewer's three findings from entry 9. The copied path constants now come from `factory.shared.domain.documents`:
+    - `tests/support/check_documents_support.py`: I dropped `CHECKED_LIST` and `INSTALL`. `write_checked_list` now uses `CHECKED_DOCUMENTS` and `drop_settings_row` uses `OPERATOR_INSTALL`, both imported from `factory.shared.domain.documents`.
+    - `tests/entry/test_check_documents_any_list.py`: I dropped `_INDEX` and use `OPERATOR_GUIDE` in its place. In `_NEWLY_LISTED`, the literal `"docs/operator-guide/install.md"` is now `OPERATOR_INSTALL`, and every use of `CHECKED_LIST` is now `CHECKED_DOCUMENTS`.
+
+    Every test keeps its name, its ids and what it checks. No other test file changed: no other module used `CHECKED_LIST` or `INSTALL`.
+
+    Criteria → tests (unchanged from entry 5):
+    - criterion 1: tests/entry/test_check_documents_any_list.py::test_a_test_that_writes_its_list_keeps_its_outcome_when_the_repository_lists_more_pages (rows `install`, `operator-guide-index`, `shared`)
+    - criterion 2: tests/entry/test_check_documents_any_list.py::test_without_its_own_list_the_repository_list_reaches_the_output
+    - criterion 3: tests/entry/test_check_documents_any_list.py::test_the_written_list_holds_one_path_per_line_and_is_committed (rows `empty`, `one`)
+    - criterion 4: the earlier rows of test_check_documents_settings.py::test_settings_findings_are_printed_without_changing_the_exit_status, test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file, test_check_documents_suite_copy.py::test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_its_line and test_check_documents_copies.py, all under their old ids
+    - criteria 5 and 6: `make check` and docs, no test.
+
+    Files created this round: none. Files changed: tests/support/check_documents_support.py and tests/entry/test_check_documents_any_list.py, both written earlier in this story.
+
+    Modules the test run could not import: none. One run over the five modules: all 27 tests passed, and `make lint` is green. I did not run the type check in this stage, so the coder's `make check` is still to come.
+
+    Left as it was: the `docs/operator-guide/` literals in `MISSING_LINES` and the `NO_INDEX` in `test_check_documents_suite_copy.py`. They predate this story and neither the reviewer nor the coder named them.
+
+    `lint`: lint: green (0.1 s)
