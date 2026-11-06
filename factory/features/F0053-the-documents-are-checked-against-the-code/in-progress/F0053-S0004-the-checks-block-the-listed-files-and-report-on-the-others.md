@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:48:04.374627Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-06T09:47:58.450308Z'
   stage: tests
   run: c5fc039889fb4298a4a95cbd150ef40a
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:48:04.374627Z'
+  stage: doing
 ---
 
 # The checks block the listed files and report on the others
@@ -377,3 +386,4 @@ Expect: `documents ok (<seconds> s)`
     Open: the factory dropped the coder's rewrite of criterion 14 from entry 21, because it was outside the coder's write paths. The `## Description` still does not name `docs/checked-documents.txt` (review finding 3). I did not edit the work item's Description, since that is not the tester's job. Whoever owns the Description has to add it, or the documenter may never write the list file that criterion 3 relies on.
 
     `lint`: lint: green (0.1 s)
+24. factory: started doing as vm.
