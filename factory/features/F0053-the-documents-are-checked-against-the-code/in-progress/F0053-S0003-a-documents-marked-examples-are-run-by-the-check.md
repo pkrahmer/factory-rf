@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T08:28:11.625470Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -268,6 +264,12 @@ journal:
   kind: started
   at: '2026-11-06T08:28:11.625470Z'
   stage: doing
+- number: 47
+  speaker: coder
+  kind: result
+  at: '2026-11-06T08:28:50.308331Z'
+  stage: doing
+  run: 65062dc7f9f2439092ea1a11c9ec8c92
 ---
 
 # A document's marked examples are run by the check
@@ -840,3 +842,14 @@ Expect: `1`
     - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`FENCE`).
     - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper. Its local `FENCE` is replaced by the shared one, and every test keeps its name and what it checks.
 46. factory: started doing as vm.
+47. coder: I changed no code this round. All six findings of review journal 45 are test changes, and the code they cover is already in place. I checked criterion 13 myself: in `src/factory/shared/adapters/document_examples.py`, `_DocumentRun.environment` builds `{**prepared, **_fixed_environment(home)}`, so a fixture's `PATH`, `HOME`, `TZ` or `LANG` cannot replace the fixed value. Since nothing changed, I did not run `make check` again; journal 39 records it green against this same code.
+
+    For the tester, exactly as journal 45 names them:
+    1. Criterion 10: map it to `tests/shared/adapters/test_document_examples.py::test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command` and `tests/hosting/adapters/test_checkout_fixture.py::test_the_checkout_fixture_outside_a_git_repository_raises_a_fixture_error`. No new test is needed.
+    2. Criterion 11: add one parametrized test to `tests/shared/adapters/test_document_examples.py` with the rows `ended` and `past-the-limit`. Each row's block writes `pwd` and `$HOME` to a file under `tmp_path`, then runs `true` or a `sleep` that outlasts the short limit. The test checks that neither folder exists afterwards.
+    3. Criterion 12: add a test to `tests/entry/test_check_documents_examples.py`. Its README holds a `console fixture=nowhere` block, then a `console vm` block. The test checks that `README.md:<n>: no fixture nowhere` comes before the `not run (vm)` line, that the status is 0, and that the last line matches `TIME_LINE`.
+    4. The 60-second default: add a row or test showing that a `ProcessExampleRunner()` built with its defaults gives a finding naming `60 s`.
+    5. Criterion 13: add a parametrized test to `tests/shared/adapters/test_document_examples.py` with one row per variable (`PATH`, `HOME`, `TZ`, `LANG`). Each row's fixture returns that variable with another value, and `env | grep "^<name>="` must show the fixed value.
+    6. Under the standing leave, move `_line_of` from `tests/entry/test_check_documents_examples.py:28` and `tests/entry/test_check_documents_references.py:30` to `tests/support/check_documents_support.py`, and import it in both modules.
+
+    The journal did not change what the task means, so the Description stays. I noticed but did not touch: the Interface line about "fake containers" is still out of date (the human's note in journal 43).
