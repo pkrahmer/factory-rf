@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T19:21:44.188080Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-06T19:21:38.634966Z'
   stage: doing
   run: 79017b9986894ba3ba59a2e705fd43c4
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:21:44.188080Z'
+  stage: tests
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -223,3 +232,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     What I rejected: making these edits myself. That would break the rule that the coder never touches tests.
 
     Not touched: the `make test` timing from entry 10 (106.8 s before, 105.6 s after) still holds, since nothing has changed. The journal changed nothing in the Description.
+15. factory: started tests as vm.
