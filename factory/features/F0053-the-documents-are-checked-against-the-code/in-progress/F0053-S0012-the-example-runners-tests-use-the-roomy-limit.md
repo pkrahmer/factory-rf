@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T13:04:04.442247Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-06T13:04:04.442247Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T13:04:29.549521Z'
+  stage: docs
+  run: dddda7421f1040b38fecff5bc4b2768b
 ---
 
 # The example runner's tests use the roomy limit
@@ -203,3 +205,14 @@ Expect: `1`
     - tests/hosting/adapters/test_instance_fixture.py: the human's leave, journal 4 answer 1 and feature decision 6 (`SETTINGS_FILE` imported)
     - tests/support/check_documents_support.py: the standing leave to move a shared test helper (`REPORT_HEADING` added as the shared place)
 13. factory: started docs as vm.
+14. documenter: Files changed: none. The docs criterion says `none` and the story changes only tests (`git diff main...HEAD --stat` shows seven test files, nothing under `src/`, README or `docs/`).
+
+    Cross-read, found current: `docs/project-guide/shared.md` (line 46, the rule on `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS`), `docs/project-guide/README.md` (line 121, `support/time_limits.py`) and `docs/decisions.md` (line 987, the roomy-limit decision). They match what the repaired tests do. A grep of README and `docs/` for `ELAPSED_BOUND_SECONDS`, `CHECKED_LIST` and `REPORT_HEADING` finds nothing outside the human's `docs/runs/` logs.
+
+    Not touched, unrelated to this story's criteria: `tests/entry/test_check_documents_copies.py:20` still writes the literal `docs/checked-documents.txt` (named by the tester, the coder and the reviewer; no criterion covers it). `docs/runs/` is the human's.
+
+    No findings. I did not run `make check`, because I changed no file; the factory runs the stage's checks next.
+
+    `check`: check: green (not run again: passed on tree bc7d2e757af3 at 2026-11-06T13:01:14Z)
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (0.6 s)
