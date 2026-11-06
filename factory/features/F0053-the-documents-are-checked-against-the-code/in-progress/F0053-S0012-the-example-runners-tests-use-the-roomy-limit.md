@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T13:03:17.277849Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,12 +69,18 @@ journal:
   kind: started
   at: '2026-11-06T13:03:17.277849Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T13:03:59.149679Z'
+  stage: review
+  run: 79202f18656848c4a15a2868058a6ad2
 ---
 
 # The example runner's tests use the roomy limit
 ## Description
 
-`tests/shared/adapters/test_document_examples.py` gives every command one second (`SHORT_LIMIT_SECONDS = 1`), also the commands that must write or print before the limit, such as the `pwd > record` command of the folder-removal test. It bounds the elapsed time by a local `ELAPSED_BOUND_SECONDS = 15`. `CLAUDE.md`, *Tests*, asks a child that must act before its limit for `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` of `tests/support/time_limits.py`, because `make test` runs on every core and a stand-in once needed more than three seconds to start. The S0003 reviewer named this as a note in the last round, and nobody took it up. In the same F0053 tests, three test modules write a production constant again instead of importing it. These are `CHECKED_LIST` and `REPORT_HEADING` in `tests/entry/test_check_documents_checked_files.py`, with `REPORT_HEADING` repeated in two more entry tests, and `SETTINGS_FILE` in `tests/hosting/adapters/test_instance_fixture.py`. The S0004 and S0006 reviewers noted them. This story is a test-only repair: the code stays as it is.
+`tests/shared/adapters/test_document_examples.py` gives every command one second (`SHORT_LIMIT_SECONDS = 1`), also the commands that must write or print before the limit, such as the `pwd > record` command of the folder-removal test. It bounds the elapsed time by a local `ELAPSED_BOUND_SECONDS = 15`. `CLAUDE.md`, *Tests*, asks a child that must act before its limit for `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` of `tests/support/time_limits.py`, because `make test` runs on every core and a stand-in once needed more than three seconds to start. The S0003 reviewer named this as a note in the last round, and nobody took it up. In the same F0053 tests, three test modules write a production constant again instead of importing it. These are `CHECKED_LIST` and `REPORT_HEADING` in `tests/entry/test_check_documents_checked_files.py`, with `REPORT_HEADING` defined again in `tests/entry/test_check_documents_copies.py` and written inline in two more entry tests, and `SETTINGS_FILE` in `tests/hosting/adapters/test_instance_fixture.py`. The S0004 and S0006 reviewers noted them. This story is a test-only repair: the code stays as it is.
 
 ## Interface
 
@@ -170,3 +172,24 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    I read the diff (tests only, `git diff main...HEAD -- src` is empty) against the seven criteria and the Interface:
+    - Criterion 1: `tests/shared/adapters/test_document_examples.py:60`. The shared `runner` fixture now uses `ROOMY_LIMIT`. Only the time-limit test at `:113` builds its own runner with `SHORT_LIMIT_SECONDS`, and its elapsed check at `:125` uses `ROOMY_BOUND_SECONDS`. `ELAPSED_BOUND_SECONDS` is gone. The past-the-limit row of the folder-removal test (`sleep 30`) is still killed, now at 10 s, and it has no elapsed bound of its own. `test_a_runner_built_with_its_defaults_gives_each_command_60_seconds` builds no runner.
+    - Criterion 2: `Report (not checked yet):` now appears under `tests/` only at `tests/support/check_documents_support.py:22`. The four entry modules import `REPORT_HEADING` from there.
+    - Criterion 3: `CHECKED_LIST` is replaced by `CHECKED_DOCUMENTS` (`src/factory/shared/domain/documents.py:558`, the same string). The file holds no `docs/checked-documents.txt` literal.
+    - Criterion 4: `SETTINGS_FILE` is imported from `factory.hosting.adapters.instance_fixture` (`:25`, `"factory.env"`). No local literal remains.
+    - Criterion 5: no test was renamed. The tester's run and the coder's `make check` passed (journal 8, journal 10: `check: green`).
+    - Architecture and security: no code under `src/` changed, and no marker that silences a check was added. Quality: nothing found. Hygiene: journals 8 and 10 explain the work, and `docs: none` fits a story that changes only tests.
+    - Out of scope: `tests/entry/test_check_documents_copies.py:20` still writes the literal `docs/checked-documents.txt`. No criterion covers it. The tester and the coder both named it.
+
+    description corrected: "with `REPORT_HEADING` repeated in two more entry tests" -> "with `REPORT_HEADING` defined again in `tests/entry/test_check_documents_copies.py` and written inline in two more entry tests"
+
+    Earlier tests:
+    - tests/shared/adapters/test_document_examples.py: the human's leave, feature decision 6 (S0012: the example runner's tests take `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS`)
+    - tests/entry/test_check_documents_checked_files.py: the standing leave to move a shared test helper (`REPORT_HEADING`), plus the human's leave in feature decision 6 and journal 4 answers 1 and 2 (the `CHECKED_DOCUMENTS` import)
+    - tests/entry/test_check_documents_copies.py: the standing leave to move a shared test helper (`REPORT_HEADING`), plus journal 4 answer 3
+    - tests/entry/test_check_documents_operator_guide.py: the human's leave, journal 4 answer 3 and feature decision 6 (inline literal replaced by the shared constant)
+    - tests/entry/test_check_documents_references.py: the human's leave, journal 4 answer 3 and feature decision 6 (inline literal replaced by the shared constant)
+    - tests/hosting/adapters/test_instance_fixture.py: the human's leave, journal 4 answer 1 and feature decision 6 (`SETTINGS_FILE` imported)
+    - tests/support/check_documents_support.py: the standing leave to move a shared test helper (`REPORT_HEADING` added as the shared place)
