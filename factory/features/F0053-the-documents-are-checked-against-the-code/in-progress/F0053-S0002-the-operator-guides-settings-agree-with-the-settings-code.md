@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T07:08:48.139654Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-06T07:08:48.139654Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T07:10:43.968304Z'
+  stage: review
+  run: ebef2ac1db4c487da7aa1e4b163b75c8
 ---
 
 # The operator guide's settings agree with the settings code
@@ -134,8 +136,9 @@ The operator guide lists the instance's settings, their defaults and the message
 3. A table whose first column is neither `Name` nor `Variable` is ignored (no finding).
 4. A quoted refusal text, in a table under `The refusals` with first column `Refusal`, gives no finding when it is held by the settings source, one finding when it is not, and none when it has a `<placeholder>` and its remaining pieces of three characters or more are held.
 5. Today's guide gives findings that `factory.entry.check_documents` (through `make documents`) prints, without changing its exit status until S0004.
-6. `make check` stays green.
-7. docs: `docs/project-guide/shared.md`: `SETTINGS` and the settings check. `docs/operator-guide/install.md`: none yet (the rewrite adds the file to the checked files).
+6. A guide with no settings table (no table whose first column is `Name` or `Variable`) gives no settings finding, also when the code reads settings.
+7. `make check` stays green.
+8. docs: `docs/project-guide/shared.md`: `SETTINGS` and the settings check. `docs/operator-guide/install.md`: none yet (the rewrite adds the file to the checked files).
 
 ## Smoke test
 
@@ -240,3 +243,16 @@ Expect: `True`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 18. factory: started review as vm.
+19. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (src/factory/shared/domain/settings.py, src/factory/shared/domain/documents.py, src/factory/entry/check_documents.py and the four test files) against the work item and the human's answers in entries 4 and 9. The coder's `make check` was green (entry 17). I read `make duplicates`: its 5 new findings are all in modules this diff does not touch (claude_runtime/opencode_runtime, hand_over/acceptance, cost_records).
+
+    Findings:
+    1. tests/shared/domain/test_settings_table.py: criterion 1 asks for `SETTINGS` "with their defaults", but nothing tests the defaults (the tester says so in entry 11). Only the names are compared. Any `SettingDoc.default` in src/factory/shared/domain/settings.py:126-179 could be wrong and the suite would stay green, for example the literal `"0"` for `FACTORY_IDLE_SHUTDOWN_MINUTES`, or `_SNAPSHOTS[0]`. Fix: the tester adds one parametrized test with a row per setting, pinning its `default` (`FACTORY_STATE` -> `/state`, `FACTORY_MIN_FREE_GB` -> `5`, `FACTORY_IDLE_SHUTDOWN_MINUTES` -> `0`, a setting with no default -> `None`, and so on) against the value `read_settings` applies when the variable is unset. If the human does not want that test, the coder asks (R8) to drop "with their defaults" from criterion 1.
+    2. criterion 6 added: it needs its test. src/factory/shared/domain/documents.py, `settings_findings`, `if not tables: return []`: when the guide has no settings table, it gives no finding, not even the "missing from the guide" findings that criterion 2 describes. No criterion named this. It keeps the earlier entry tests green (tests/entry/test_check_documents.py `clean_texts`, whose install.md has no settings table, expects `documents ok`). I wrote it as criterion 6, before the two closing ones, now 7 and 8. Fix: the coder hands it to the tester for one row. Two cases are needed: a table with another first column and a non-empty `settings` gives no finding, and a `Variable` table with one row names every other setting. Be aware: under this rule a guide whose settings table loses its `Variable`/`Name` header passes silently. Raise that with S0004's gate if it matters.
+
+    Open, not a finding: the `## Interface` still predates entry 9. It does not name `GuideTable.heading`, `guide_tables(text, section)` or `refusal_findings(guide_tables, settings_source)`, and it still says refusals are checked by `settings_findings`. The code and tests follow entry 9. The Description's sentences are still true of what was built, so there is no description correction. I may correct only the Description, and the coder may not write the work item, so the Interface can be brought up to date only by the human or an intake rerun.
+
+    Rejected: `_RecordingEnviron` is not a copy (no other recording Mapping exists under tests/ or src/). The refusal and table tests are parametrized rows as the rules ask. `guide_tables` reuses `_section_lines`, and `_table_rows` now shares `_is_table_row`, so there is no second copy of the table reading.
+
+    Earlier tests:
+    - tests/conftest.py: the standing leave to move a shared test helper (the `documents` fixture moved here with the same name and body).
+    - tests/entry/test_check_documents_operator_guide.py: the standing leave to move a shared test helper (its local `documents` fixture, `ROOT` and the `shutil` import removed; its tests keep their names and checks).
