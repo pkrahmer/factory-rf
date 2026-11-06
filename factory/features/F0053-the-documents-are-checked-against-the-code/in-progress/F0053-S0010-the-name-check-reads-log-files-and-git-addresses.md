@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T12:20:57.012620Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T12:20:51.459537Z'
   stage: review
   run: 033da3ee005a4b4bb951b156d6e1f4e6
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:20:57.012620Z'
+  stage: doing
 ---
 
 # The name check reads log files and git addresses
@@ -140,3 +149,4 @@ Expect: `0`
 
    Earlier tests:
    - `tests/shared/domain/test_document_references.py`: no leave needed. The change only adds rows and one new test function and keeps every earlier row as it was. The human's story also names this file (Interface, criterion 1).
+10. factory: started doing as vm.
