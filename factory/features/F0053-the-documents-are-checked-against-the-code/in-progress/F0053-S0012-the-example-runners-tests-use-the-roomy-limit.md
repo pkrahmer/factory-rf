@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T12:56:59.427354Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T12:56:59.427354Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T12:57:27.674496Z'
+  stage: intake
+  run: 735dfc5f37ec4dcdbc623633c9db7098
 ---
 
 # The example runner's tests use the roomy limit
@@ -49,19 +51,21 @@ journal:
 
 ## Interface
 
-- `tests/shared/adapters/test_document_examples.py`: a command that must start, write or print before its limit runs under `ROOMY_LIMIT`, and its elapsed time is bounded by `ROOMY_BOUND_SECONDS`. A command that must be killed (`sleep` past the limit) may keep a short limit. The local `ELAPSED_BOUND_SECONDS` goes.
-- `REPORT_HEADING`: one constant in `tests/support/check_documents_support.py`, used by `tests/entry/test_check_documents_checked_files.py`, `tests/entry/test_check_documents_operator_guide.py` and `tests/entry/test_check_documents_references.py` (standing leave to move a shared test helper).
-- `CHECKED_LIST` imports `CHECKED_DOCUMENTS` from `factory.shared.domain.documents`, and `SETTINGS_FILE` imports `factory.hosting.adapters.instance_fixture.SETTINGS_FILE`, unless the human prefers that a test keep the criterion's own literal (the S0006 tester's reason, journal 23 of that story).
+- `tests/shared/adapters/test_document_examples.py`: every `ProcessExampleRunner` is built with `ROOMY_LIMIT` and its elapsed time is bounded by `ROOMY_BOUND_SECONDS`, except the runner of the time-limit test, whose command must be killed (`sleep` past the limit) and may keep a short limit (journal 4). The tester names each runner it changed. The local `ELAPSED_BOUND_SECONDS` goes.
+- `REPORT_HEADING`: one constant in `tests/support/check_documents_support.py`, used by `tests/entry/test_check_documents_checked_files.py`, `tests/entry/test_check_documents_copies.py`, `tests/entry/test_check_documents_operator_guide.py` and `tests/entry/test_check_documents_references.py`; the inline literals of the last two become the constant (standing leave to move a shared test helper; journal 4).
+- `CHECKED_LIST` imports `CHECKED_DOCUMENTS` from `factory.shared.domain.documents`, and `SETTINGS_FILE` imports `factory.hosting.adapters.instance_fixture.SETTINGS_FILE`. Both are imported (journal 4).
 - Changing the limits in tests that F0053-S0003 wrote is beyond the standing leave. Feature decision 6 gives the leave. The leave also covers any other earlier test, whichever story wrote it, whose only failure is the effect this Interface describes; every changed test keeps its name and what it checks, and the entry names each one. Every changed test keeps its name and what it checks.
 - No module under `src/` changes.
 
 ## Acceptance criteria
 
-1. In `tests/shared/adapters/test_document_examples.py`, every runner whose commands must print or write before their limit is built with `ROOMY_LIMIT`, and every elapsed-time assertion uses `ROOMY_BOUND_SECONDS`. `grep -c ELAPSED_BOUND_SECONDS` on the file prints `0`.
-2. The text `Report (not checked yet):` is written once under `tests/`, in `tests/support/check_documents_support.py`.
-3. Every test of the three changed modules keeps its name, and `uv run pytest` over them passes.
-4. `make check` stays green.
-5. docs: none, the change is to tests only and no reader-facing behaviour changes.
+1. In `tests/shared/adapters/test_document_examples.py`, only the time-limit test builds a `ProcessExampleRunner` with a limit shorter than `ROOMY_LIMIT`, every elapsed-time assertion uses `ROOMY_BOUND_SECONDS`, and `grep -c ELAPSED_BOUND_SECONDS` on the file prints `0`.
+2. The text `Report (not checked yet):` is written once under `tests/`, in `tests/support/check_documents_support.py` as `REPORT_HEADING`; `tests/entry/test_check_documents_checked_files.py`, `tests/entry/test_check_documents_copies.py`, `tests/entry/test_check_documents_operator_guide.py` and `tests/entry/test_check_documents_references.py` use that constant.
+3. `tests/entry/test_check_documents_checked_files.py` holds no literal `docs/checked-documents.txt` and imports `CHECKED_DOCUMENTS` from `factory.shared.domain.documents`.
+4. `tests/hosting/adapters/test_instance_fixture.py` holds no literal of the settings file's name and imports `SETTINGS_FILE` from `factory.hosting.adapters.instance_fixture`.
+5. Every test of the changed modules (`tests/shared/adapters/test_document_examples.py`, `tests/entry/test_check_documents_checked_files.py`, `tests/entry/test_check_documents_operator_guide.py`, `tests/entry/test_check_documents_references.py`, `tests/entry/test_check_documents_copies.py`, `tests/hosting/adapters/test_instance_fixture.py`, `tests/support/check_documents_support.py`) keeps its name, and `uv run pytest` over them passes.
+6. `make check` stays green.
+7. docs: none, the change is to tests only and no reader-facing behaviour changes.
 
 ## Smoke test
 
@@ -91,3 +95,10 @@ Expect: `1`
    4. One checkable rule instead of a list: in `tests/shared/adapters/test_document_examples.py`, every `ProcessExampleRunner` is built with `ROOMY_LIMIT` and its elapsed time is bounded by `ROOMY_BOUND_SECONDS`, except the runner of the time-limit test, whose command must be killed and may keep a short limit. The criterion: only that one test builds a runner with a limit shorter than `ROOMY_LIMIT`, and no local `ELAPSED_BOUND_SECONDS` remains. The tester names each runner it changed.
    5. The modules: `tests/shared/adapters/test_document_examples.py`, `tests/entry/test_check_documents_checked_files.py`, `tests/entry/test_check_documents_operator_guide.py`, `tests/entry/test_check_documents_references.py`, `tests/entry/test_check_documents_copies.py`, `tests/hosting/adapters/test_instance_fixture.py` and `tests/support/check_documents_support.py`. Criterion 3 says "the changed modules" and names them.
 5. factory: started intake as vm.
+6. intake: accepted, after carrying in the human's answers of journal 4 (the human's edit, not mine): I rewrote the Interface lines (the "unless the human prefers" sentence went, `test_check_documents_copies.py` and the inline literals joined `REPORT_HEADING`, the one-rule form for the runners) and replaced the criteria with 7: one each for `CHECKED_DOCUMENTS` and `SETTINGS_FILE` (new 3 and 4), criterion 1 reworded as only the time-limit test having a short limit, criterion 2 naming the four modules, criterion 5 listing the seven modules, and `make check` and `docs:` last.
+   - Interface: names concrete test modules, constants and import sources. `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` exist in `tests/support/time_limits.py`, and `SETTINGS_FILE` exists in `src/factory/hosting/adapters/instance_fixture.py`. No module under `src/` changes.
+   - Criteria: each is checkable. Every rule has its failing side: only one test may keep a short limit, no `ELAPSED_BOUND_SECONDS` remains, and the text is written once. Criterion 5 asks that test names stay and the tests pass.
+   - Smoke test: both commands are runnable. The pytest addopts has a single `-q`, which prints the summary line, and the command passes no extra `-q`. Each Expect line is checkable.
+   - Docs criterion: `docs: none`, which is right because only tests change. It dictates no sentences.
+   - Architecture: test-only changes put shared helpers in `tests/support/`, as CLAUDE.md asks. No test module imports another.
+   - Scope: within F0053 and not in its "Out of scope". Decision 6 gives the leave to change earlier tests, and the tester names each changed test. The route is `tests`.
