@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T12:35:50.513461Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T12:35:45.186437Z'
   stage: tests
   run: 75ee9c2b0c034c2a98c8a015b93b587a
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:35:50.513461Z'
+  stage: doing
 ---
 
 # A configuration section without its settings table is a finding
@@ -97,3 +106,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
    Open for the coder: the Interface says that a missing *Configuration* section adds no settings finding, while `check_documents` stays unchanged. No criterion covers that case, so I did not test it. As the code stands, `guide_tables` would return `[]` for that section, and the new finding would appear.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
