@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T01:43:16.458324Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T01:43:16.458324Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:43:48.800007Z'
+  stage: docs-review
+  run: b9e824ad5e3f466eba49ae99c68dd06e
 ---
 
 # The project guide says which lines of its index name a page
@@ -99,3 +101,11 @@ Expect: `documents ok`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `INDEX_LINE` in `tests/support/guide_files_support.py` (`^- `([^`]+)`[^.]*\w[^.]*\.`), the guard `tests/guards/test_project_guide_files.py` and `docs/project-guide/style.md`. The facts are right. The guard reads a line as a page entry only when it starts with `` - ` `` and a backticked name, followed by text that holds a word and a full stop. A list item that starts any other way is never read as a page. The docs criterion's subject is covered. Two points remain, both about the writing:
+
+   1. `docs/project-guide/README.md:17`, the sentence that starts "It reads a list item in this section as a page entry…": it is about 55 words, two clauses joined by a semicolon, which breaks style rule 2 (split a sentence of more than about 25 words). Fix: split it at the semicolon into two sentences. The first says which lines the guard reads as a page entry. The second says "Every other list item in this section starts with a word, so that…".
+   2. `docs/project-guide/README.md:17`, "every other list item in this section must start with a word": three of the four exception items right below it start with an asterisk (`- *Kill points* …`, `- *Replaced from v1* …`, `- *The machine* …`), not a plain word. A writer reading the raw Markdown will see the rule broken by the lines right under it. The guard only refuses a backtick at the start. Fix: say what the guard allows, for example "starts with a word, plain or in italics, never with a name in backticks". That stays true of `INDEX_LINE` and meets criterion 1.
+
+   Rejected as findings:
+   - The example "a heading such as `## The files` is never read as a page" can stay. It names the very case that stalled the earlier story, and the guard does not read it.
+   - Criteria 2 to 4 are met. Entry 5 of the journal records `check: green`, `secrets: green` and `documents ok`, and the diff touches no code or test.
