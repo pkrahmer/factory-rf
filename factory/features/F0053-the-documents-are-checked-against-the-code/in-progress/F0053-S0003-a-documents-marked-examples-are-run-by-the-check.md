@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T07:37:12.577175Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-11-06T07:37:07.178843Z'
   stage: tests
   run: 4d3c02f13e3046469f5ad9f15a25851e
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:37:12.577175Z'
+  stage: doing
 ---
 
 # A document's marked examples are run by the check
@@ -259,3 +268,4 @@ Expect: `1`
     These three test modules fail at collection. The entry tests fail on their assertions, since there is no time line yet. `make lint` is green.
 
     `lint`: lint: green (0.1 s)
+15. factory: started doing as vm.
