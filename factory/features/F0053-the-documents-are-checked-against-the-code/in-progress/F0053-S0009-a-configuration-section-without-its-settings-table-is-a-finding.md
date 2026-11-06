@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T12:48:31.778320Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-06T12:48:31.778320Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T12:50:52.533454Z'
+  stage: docs
+  run: f9af098333944a0cb7029bd68f5e5a44
 ---
 
 # A configuration section without its settings table is a finding
@@ -297,3 +299,22 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
     Notes:
     - `tests/shared/domain/test_document_settings.py:19`: `_NO_SETTINGS_TABLE` repeats the text of `NO_SETTINGS_TABLE` as a literal. This is acceptable, because it pins the exact text that criterion 1 states.
 18. factory: started docs as vm.
+19. documenter: Changed one file: `docs/project-guide/shared.md`, *The settings check*. I replaced the sentence "A guide with no such table gives no finding." (the reviewer's open point, now false). The new text says four things:
+    - When no table counts (for example the first column is `Setting`, or the table sits under another heading of the section) and `SETTINGS` is not empty, the finding is `no settings table (first column Name or Variable) in Configuration`. The check says that it cannot compare instead of passing silently.
+    - With an empty `SETTINGS` there is no finding.
+    - A missing `install.md` or a missing *Configuration* section adds no settings finding. `check_documents` skips both settings checks there, and the operator guide's own finding stands.
+    - Today's guide still gives no settings finding.
+
+    I read `settings_findings` and `_settings_guide_findings` on the branch before writing. Criterion 5 asks for nothing in `docs/operator-guide/`, so I left it unchanged.
+
+    `make documents` ended with `documents ok (0.6 s)`. I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current: the rest of *The settings check* in `shared.md` (the sentence "Today's operator guide has no `Default` column..." still holds, since the guide has a `Variable` table), `docs/operator-guide/install.md`'s Configuration tables (headed `Variable`), and `README.md`.
+
+    Stale text I saw and did not touch: `make documents` prints two findings that are not from this story and do not block. `docs/project-guide/machine.md:362` says `factory/stage.Containerfile` does not exist. `docs/project-guide/work.md:13` says `factory/agents` does not exist.
+
+    No findings for the coder. The code matches the Interface. Decision-log entries: I added none, so there is no "Rejected" line to flag.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (0.6 s)
