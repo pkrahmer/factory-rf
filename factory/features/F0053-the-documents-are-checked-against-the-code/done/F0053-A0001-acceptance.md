@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T11:35:10.566466Z'
   stage: acceptance
   run: 30d861d67cbf4ac68a8b6e038096f289
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T11:39:06.418313Z'
+  stage: done
 stories: [F0053-S0001, F0053-S0002, F0053-S0003, F0053-S0004, F0053-S0005, F0053-S0006, F0053-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents are checked against the code
@@ -181,3 +186,4 @@ Human interventions: 16 questions answered (14 questions, 2 round caps), 1.1 h w
    8 Cost: 106 runs, 158.8 min, $33.98 + 1 unknown. S0003 stands out ($10.23, 26 runs, four review rounds, a docs stall, 5 of the 16 human answers, most of them leaves for earlier tests). 16 answers in all (14 questions, 2 round caps), 1.1 h waited.
 
    Side effects of my run: running pytest in the clone pointed the checkout's `.venv` editable install at the clone. `uv sync --frozen` restored it to /work/checkout, checked through the `.pth` file and `make documents`. The temporary folder is removed.
+3. factory: done (pull request merged); cost: 1 runs, 10.6 min, 54 turns, 133372 tokens in (3946291 more from cache), 43101 out, $2.72
