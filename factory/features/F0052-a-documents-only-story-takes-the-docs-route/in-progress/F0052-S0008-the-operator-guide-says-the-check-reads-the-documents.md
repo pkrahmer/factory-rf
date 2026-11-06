@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 582
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T01:33:33.301728Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T01:33:33.301728Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:36:20.331575Z'
+  stage: docs-only
+  run: 27c8ca5533f94daba5f52f195d3aa2aa
 ---
 
 # The operator guide says that the check reads the documents
@@ -145,3 +147,16 @@ Expect: `documents ok`
    - The documenter flagged the "Two warnings" bullet about `secrets` as possibly stale. Its rewrite belongs to the next feature, so I did not judge it.
    - The general advice "never a whole folder" already sat beside the project's own whole-folder patterns (`planning/*`, `session-logs/*`) before this diff. That is not a finding here.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's three findings, all in `docs/operator-guide/pipeline.md`.
+   - Finding 1 and 2: rewrote the paragraph "kumpel-factory's own definition" as five short sentences. It now says the definition leaves out the Markdown and JSON Lines files no test reads, plus folders with no code that no test reads (`docs/runs/`, `planning/`, `session-logs/`, `factory/archive/`). It keeps the `make lint` reason and says `README.md` and `docs/` stay in the key because the guide guards under `tests/guards/` and other `make test` tests read the documents. It also says only `docs/runs/*` of `docs/` is left out.
+   - Finding 3: the generic `not_read` example is now `["notes/*.md", "notes/*.jsonl"]`, file-type patterns only, so it no longer contradicts the advice "never a whole folder".
+
+   Checks: the grep for `"docs/*.md"` returns 0, and `make documents` prints `documents ok`. The yaml block and `docs/decisions.md` are unchanged from round 0. I did not run `make check`, as only documents changed.
+
+   Cross-read and found current: the criterion-1 `check:` line against `factory/pipeline.yml:10`, and the rest of the paragraph's neighbours (the generic example and its advice).
+
+   Stale text not touched, outside this story: the "Two warnings" bullet about `secrets` in `pipeline.md` may be stale; the next feature rewrites the docs route. The advice "never a whole folder" sits beside the project's own whole-folder patterns (`planning/*`, `session-logs/*`), as the reviewer noted.
+
+   `check`: check: green
+   `secrets`: secrets: green (1.3 s)
+   `documents`: documents ok

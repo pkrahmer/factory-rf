@@ -50,12 +50,12 @@ An unknown key is refused with `pipeline_definition_invalid`. That includes `too
 
 ```yaml
 project_commands:
-  check: {time_limit: 10, not_read: ["notes/*.md", "docs/runs/*"]}
+  check: {time_limit: 10, not_read: ["notes/*.md", "notes/*.jsonl"]}
 ```
 
 A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results" in [health.md](health.md)), so a change only there is no reason to run the command again. List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
 
-kumpel-factory's own definition, `factory/pipeline.yml`, takes this, and only the Markdown and JSON Lines files that no test reads, because `make lint` reads every Python file of the tree, wherever it lies. `README.md` and `docs/` stay in the key: the guide guards under `tests/guards/` and other tests of `make test` read the real documents, so a documents-only change can turn `make check` red. Of `docs/` only `docs/runs/*` is left out, which no test reads.
+kumpel-factory's own definition, `factory/pipeline.yml`, takes this. It leaves out the Markdown and JSON Lines files that no test reads, and folders that hold no code and that no test reads (`docs/runs/`, `planning/`, `session-logs/`, `factory/archive/`). `make lint` reads every Python file of the tree, wherever it lies, so no folder with code is left out. `README.md` and `docs/` stay in the key. The guide guards under `tests/guards/` and other tests of `make test` read the real documents, so a documents-only change can turn `make check` red. Of `docs/` only `docs/runs/*` is left out, which no test reads.
 
 ```yaml
 project_commands:
