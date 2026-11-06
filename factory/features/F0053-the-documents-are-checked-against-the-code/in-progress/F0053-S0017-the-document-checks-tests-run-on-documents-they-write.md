@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T21:29:01.731821Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-06T21:28:56.462184Z'
   stage: docs
   run: 4ebca3dc58ca4113a3b6ec26519bff5f
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:29:01.731821Z'
+  stage: smoke-test
 ---
 
 # The document check's tests run on documents they write
@@ -489,3 +498,4 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok (0.6 s)
+30. factory: started smoke-test as vm.
