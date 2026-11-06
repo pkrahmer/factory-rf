@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T01:59:45.516747Z'
   stage: acceptance
   run: 52fa49bb06084aafa394df2991456482
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T02:03:54.477497Z'
+  stage: done
 stories: [F0052-S0001, F0052-S0002, F0052-S0003, F0052-S0004, F0052-S0005, F0052-S0006, F0052-S0007, F0052-S0008, F0052-S0009]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of A documents-only story takes the docs route
@@ -271,3 +276,4 @@ Human interventions: 8 questions answered, all of the cause `question`, with 0.4
    - F0052-S0010: the decision log's docs route entry says a documents-only change runs the check again. It passes `factory-check-story`.
 
    Not done: removing my temporary folder `/tmp/tmp.dfhelmlkpe` (the smoke-test module) and `/tmp/pytest-of-*` was denied. Both are lost with the stage.
+3. factory: done (pull request merged); cost: 1 runs, 6.5 min, 27 turns, 76063 tokens in (1412700 more from cache), 20602 out, $1.30
