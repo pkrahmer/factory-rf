@@ -20,3 +20,8 @@ MISSING_LINES = (
     "docs/decisions.md: missing\n"
 )
 TIME_LINE = r"documents ok \(\d+(\.\d+)? s\)"
+
+
+def line_of(text: str, line: str) -> int:
+    """The 1-based number of the first line of `text` that equals `line`."""
+    return text.splitlines().index(line) + 1

@@ -1,5 +1,6 @@
 """The process runner of a document's examples: one folder per document, the limit, the env."""
 
+import inspect
 import os
 import time
 from collections.abc import Mapping
@@ -16,6 +17,7 @@ from support.document_texts import FENCE
 
 DOCUMENT = "docs/project-guide/shared.md"
 FIXTURE_VARIABLE = "EXAMPLE_FIXTURE"
+LIFTED_VALUE = "from-the-fixture"
 SHORT_LIMIT_SECONDS = 1
 # What the stand-in waits is far longer than the bound, so a missed kill fails.
 SLEEP_SECONDS = 30
@@ -198,3 +200,67 @@ def test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command
 
     assert findings == [f"{DOCUMENT}:3: fixture checkout could not be prepared"]
     assert not marker.exists()
+
+
+@pytest.mark.parametrize(
+    "last_command",
+    [
+        pytest.param("true", id="ended"),
+        pytest.param(f"sleep {SLEEP_SECONDS}", id="past-the-limit"),
+    ],
+)
+def test_the_folder_and_the_home_are_gone_once_the_document_has_run(
+    tmp_path: Path,
+    runner: ProcessExampleRunner,
+    fixtures: Mapping[str, Fixture],
+    last_command: str,
+) -> None:
+    record = tmp_path / "where"
+    text = _document(_block(f'$ pwd > {record} && echo "$HOME" >> {record}', f"$ {last_command}"))
+
+    runner.run_document(DOCUMENT, examples(text).runnable, fixtures)
+
+    folder, home = record.read_text(encoding="utf-8").splitlines()
+    assert folder
+    assert home
+    assert not Path(folder).exists()
+    assert not Path(home).exists()
+
+
+def test_a_runner_built_with_its_defaults_gives_each_command_60_seconds() -> None:
+    default = inspect.signature(ProcessExampleRunner).parameters["time_limit"].default
+
+    assert default == timedelta(seconds=60)
+
+
+class LiftingFixture(Fixture):
+    """A fixture that gives one of the fixed variables a value of its own."""
+
+    def __init__(self, name: str) -> None:
+        """Give `name` the value `from-the-fixture`."""
+        self._name = name
+
+    def prepare(self, folder: Path) -> dict[str, str]:
+        """Check the folder is there and give the one variable."""
+        assert folder.is_dir()
+        return {self._name: LIFTED_VALUE}
+
+
+@pytest.mark.parametrize("name", ["PATH", "HOME", "TZ", "LANG"])
+def test_a_fixtures_variable_does_not_replace_a_fixed_one(
+    runner: ProcessExampleRunner, name: str
+) -> None:
+    text = _document(
+        _block(
+            f'$ env | grep -c "^{name}="',
+            "1",
+            f'$ env | grep -c -x "{name}={LIFTED_VALUE}"',
+            "0",
+        )
+    )
+
+    findings = runner.run_document(
+        DOCUMENT, examples(text).runnable, {"checkout": LiftingFixture(name)}
+    )
+
+    assert findings == []

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T08:28:55.606564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -279,6 +275,12 @@ journal:
   kind: started
   at: '2026-11-06T08:28:55.606564Z'
   stage: tests
+- number: 49
+  speaker: tester
+  kind: result
+  at: '2026-11-06T08:30:43.213830Z'
+  stage: tests
+  run: 9ca54e5343f14d9ca169adc11cf3a958
 ---
 
 # A document's marked examples are run by the check
@@ -863,3 +865,20 @@ Expect: `1`
 
     The journal did not change what the task means, so the Description stays. I noticed but did not touch: the Interface line about "fake containers" is still out of date (the human's note in journal 43).
 48. factory: started tests as vm.
+49. tester: I made the test changes that review journal 45 lists and coder journal 47 passes on. No code changed.
+
+    Criterion → test, for what this round touched:
+    - criterion 10: `tests/shared/adapters/test_document_examples.py::test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command` and `tests/hosting/adapters/test_checkout_fixture.py::test_the_checkout_fixture_outside_a_git_repository_raises_a_fixture_error`. Both tests already existed; this round only maps them.
+    - criterion 11: `tests/shared/adapters/test_document_examples.py::test_the_folder_and_the_home_are_gone_once_the_document_has_run`, rows `ended` and `past-the-limit`. A block writes `pwd` and `$HOME` to a file in `tmp_path`, then runs `true` or a `sleep` past the short limit. The test checks that both recorded paths are non-empty and no longer exist.
+    - criterion 12: `tests/entry/test_check_documents_examples.py::test_an_examples_finding_comes_before_the_skipped_blocks_and_does_not_block`. The README holds a `console fixture=nowhere` block, then a `console vm` block. The test checks that `README.md:<n>: no fixture nowhere` comes before `not run (vm)`, that the status is 0 and that the last line matches `TIME_LINE`.
+    - the 60-second default (journal 43): `tests/shared/adapters/test_document_examples.py::test_a_runner_built_with_its_defaults_gives_each_command_60_seconds`. Waiting out a real 60-second limit would add a minute to the suite, so this test checks the default of `ProcessExampleRunner`'s `time_limit` (through `inspect.signature`), which is `timedelta(seconds=60)`. It does not run a command into the limit, and it does not call the private `_no_end`. The 1-second test already covers how the limit's finding names the seconds. If the reviewer wants a finding that actually says `60 s`, the options are a test that waits about 61 s, or an Interface that makes the message builder public.
+    - criterion 13: `tests/shared/adapters/test_document_examples.py::test_a_fixtures_variable_does_not_replace_a_fixed_one`, one row per variable (`PATH`, `HOME`, `TZ`, `LANG`). The fixture (`LiftingFixture`) gives that variable the value `from-the-fixture`. Inside the block, `env` shows exactly one line for the name, and none equals the fixture's value. The test does not compare against the fixed value directly, because `HOME` is a temporary path.
+    - criteria 1 to 9 keep their earlier tests, unchanged.
+
+    Under the standing leave to move a shared test helper, I moved `_line_of` to `tests/support/check_documents_support.py::line_of`. I first called it `line_number`, but that pushed one existing line past the length limit, so it is `line_of`. I changed these earlier test files to import it: `tests/entry/test_check_documents_references.py` (from F0053-S0001; every test keeps its name and checks the same thing) and `tests/entry/test_check_documents_examples.py`.
+
+    Files changed: `tests/shared/adapters/test_document_examples.py`, `tests/entry/test_check_documents_examples.py`, `tests/entry/test_check_documents_references.py`, `tests/support/check_documents_support.py`. I created no new files.
+
+    Run: `uv run pytest -q` over the three test files passed every test, because the code already exists, so these tests are green rather than red. The test runner imported every module. `make lint` is green. I skipped the type check, as this stage says.
+
+    `lint`: lint: green (0.1 s)

@@ -12,6 +12,7 @@ from factory.shared.domain.documents import (
     PROJECT_GUIDE,
     README,
 )
+from support.check_documents_support import line_of
 from support.document_texts import (
     clean_texts,
     decision_log,
@@ -25,10 +26,6 @@ from support.document_texts import (
 FINDING_END = " does not exist"
 SCRIPT = "operator/vm/setup.sh"
 OPERATOR_TOPIC = "docs/operator-guide/machine.md"
-
-
-def _line_of(text: str, planted: str) -> int:
-    return text.splitlines().index(planted) + 1
 
 
 def _name_findings(output: str) -> list[str]:
@@ -46,7 +43,7 @@ def checkout(tmp_path: Path) -> Path:
 
 
 def _finding(planted: str, name: str) -> list[str]:
-    line = _line_of(project_guide(suffix=planted), planted)
+    line = line_of(project_guide(suffix=planted), planted)
     return [f"{PROJECT_GUIDE}:{line}: {name}{FINDING_END}"]
 
 
@@ -151,7 +148,7 @@ def _in_guide(suffix: str) -> Callable[[Path, dict[str, str | None]], None]:
         pytest.param(
             _in_guide(AFTER_REPLACED),
             [
-                f"{PROJECT_GUIDE}:{_line_of(project_guide(suffix=AFTER_REPLACED), STILL_MISSING)}: "
+                f"{PROJECT_GUIDE}:{line_of(project_guide(suffix=AFTER_REPLACED), STILL_MISSING)}: "
                 f"factory.still_missing{FINDING_END}"
             ],
             id="after-the-replaced-section",
@@ -206,7 +203,7 @@ def test_name_findings_follow_todays_findings_and_leave_the_exit_status(
     lines = capsys.readouterr().out.splitlines()
     findings = _name_findings("\n".join(lines))
     assert sorted(findings) == sorted(
-        f"{path}:{_line_of(text, name)}: {name.strip('`')}{FINDING_END}"
+        f"{path}:{line_of(text, name)}: {name.strip('`')}{FINDING_END}"
         for path, (text, name) in planted.items()
     )
     assert status == exit_status
