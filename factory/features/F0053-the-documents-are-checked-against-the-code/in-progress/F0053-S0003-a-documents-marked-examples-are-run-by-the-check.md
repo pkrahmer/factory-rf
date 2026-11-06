@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T08:26:30.868378Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -247,6 +251,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T08:26:28.282314Z'
+  stage: review
+- number: 44
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:26:30.868378Z'
   stage: review
 ---
 
@@ -778,3 +787,4 @@ Expect: `1`
     - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper (its local `FENCE` replaced by the shared one; every test keeps its name and what it checks).
 42. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 43. 2026-11-06 human: One more round, by the human's decision. The findings of review journal 41 go on as written: the tester maps criterion 10 to the two existing tests and adds the tests for criteria 11 (the folder and the home are removed, rows `ended` and `past-the-limit`) and 12 (an example's finding in `main`'s output, before the `not run` line, status 0, ending with the time line). No new code. Add the row for the 60-second default too, since it is cheap: the finding a default runner gives names `60 s`. The out-of-date Interface line about fake containers is noted for the human; it changes nothing here.
+44. factory: started review as vm.
