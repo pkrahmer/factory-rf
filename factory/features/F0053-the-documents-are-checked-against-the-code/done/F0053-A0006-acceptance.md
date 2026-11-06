@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T21:41:16.889798Z'
   stage: acceptance
   run: b5d9513ab75d490b9b267a98011cac32
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T21:43:11.099585Z'
+  stage: done
 stories: [F0053-S0001, F0053-S0002, F0053-S0003, F0053-S0004, F0053-S0005, F0053-S0006, F0053-S0007, F0053-S0008, F0053-S0009, F0053-S0010, F0053-S0011, F0053-S0012, F0053-S0013, F0053-S0014, F0053-S0015, F0053-S0016, F0053-S0017]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents are checked against the code
@@ -238,3 +243,4 @@ None. The feature keeps its promises, and the only change I see worth making, `f
    6 Decisions: feature decisions 1 to 10, and the open defaults from A0001 to A0005. Taken in S0016 and S0017: the human's answer (no re-export), the extra patch in each table's defining module, and the coupling-only tests removed with what covers each. A question for the human: should `factory-health` default to `FACTORY_STATE`? I would choose yes, as a later story. `tests/support/document_texts.py` was changed under the standing leave to move a helper, which fits loosely: it is a low-weight note to accept or revisit.
    7 Slow checks: nothing beyond `make check`, which is green (`test: green (104.4 s)`, coverage 99.20 %). The feature's document tests fell from 40.8 s to 15.2 s, and `make test` from 109.5 s to 104.4 s. Disk: 0.3 GB less free on the shared filesystem with used space unchanged; S0016 and S0017 explain none of it.
    8 Cost: 207 runs, 275.7 min, $58.44 plus one unknown. S0017 stands out at $5.19 over 14 runs: intake questions, a type-check question and a duplicate-helper cycle. Human: 22 answers (20 questions, 2 round caps), 1.5 h waited. S0003 still needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 9.6 min, 35 turns, 111194 tokens in (2170410 more from cache), 32096 out, $1.97
