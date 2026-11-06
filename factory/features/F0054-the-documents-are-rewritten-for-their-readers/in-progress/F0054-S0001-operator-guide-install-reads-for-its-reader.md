@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T21:56:07.350507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T21:56:07.350507Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T21:58:12.182786Z'
+  stage: docs-review
+  run: bc42d74bba66402a8b4f86b23e1e021a
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -211,3 +213,35 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (1.9 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`. I checked them against the old file on `main`, against `docs/project-guide/style.md`, and against the code in `src/factory/shared/domain/settings.py`, `src/factory/entry/wiring.py`, `operator/vm/setup.sh` and `uv.lock`.
+
+    What holds:
+    - Round 0's findings 1 to 3 and 5 to 10 are fixed.
+    - *The order of faults* (install.md:235) now matches settings.py:337-359.
+    - The refusal texts match settings.py, including `cannot read <path>: <reason>` and `<path> is empty` (settings.py:643-645), and wiring.py:235 has `names no owner/name on a host`.
+    - The `console vm` block for `uv sync` says where it ran. Its `Resolved 107 packages` matches the 107 packages in `uv.lock`.
+    - The headings that other files link to are all kept (criterion 4).
+    - `docs/checked-documents.txt` has the line (criterion 3).
+
+    Findings:
+    1. docs/operator-guide/install.md:27: the code contradicts two claims about `operator/vm/setup.sh`.
+       - It does not build the stage image. The script has no build step, and its last line says `setup: done: build the stage image and start factory@<instance>` (setup.sh:476).
+       - It does not "make the VM". It prepares a fresh Ubuntu 24.04 machine (setup.sh:2-6).
+       - The sentence is also about 34 words long (style rule 2).
+       - Fix: say that setup.sh prepares the machine (the packages, the ZFS pool and dataset, the factory's checkout and its virtual environment, `image-id`, `factory.env` and the systemd unit). Then add a step that builds the stage image, pointing to "The stage image" in machine.md, before the instance starts.
+    2. docs/operator-guide/install.md:37 and :124: "Every path is absolute" and the refusal row "A path variable holds a relative path" claim more than the code does.
+       - `FACTORY_TOKEN_FILE`, `FACTORY_CLAUDE_LOGIN_FILE` and `FACTORY_API_LOGIN_FILE` are read with `_optional_path` (settings.py:370-372) and are never refused when relative.
+       - Only checkout, state, agent home, image id file, provider file, CA bundle and snapshot base (settings.py:222-234, 606-630), plus workspace and transcript dir (settings.py:279, 298), are refused.
+       - Fix: name in the row the variables that the refusal covers, and drop or narrow the sentence at :37.
+    3. docs/operator-guide/install.md:215-217 and :229: the two `make mutants` commands are still shown as inline code. They are neither runnable nor marked `console vm` with a real run (the Description's rule on commands, and the Documents check).
+       - "A sweep's command is:" ends in a colon that nothing follows.
+       - "It is not run in the documents, and no real sweep backs it" speaks about the docs check, not to the operator.
+       - No stage can make a real sweep: only the human starts one.
+       - Fix: remove the two meta sentences and the dangling colon. Then end the docs-only stage with `question` to the human, offering three options:
+         - (a) the human pastes a real sweep's output for a `console vm` block;
+         - (b) the human accepts an inline command in prose for a command that only the human's sweeps run, as the style page's own Install example writes `setup.sh` inline;
+         - (c) a form the human names.
+    4. docs/operator-guide/install.md:62: the old file pointed from `FACTORY_API_LOGIN_FILE` to "The agent's API key" (agent-runtime.md:40). The old file's login-token row also pointed to "The agent's login token" (agent-runtime.md:30). Both pointers are dropped, and the journal does not name that as on purpose (criterion 2). Fix: add "See "The agent's API key" in [agent-runtime.md](agent-runtime.md)" to the row at :62, and name "The agent's login token" in the row at :61.
+    5. docs/operator-guide/install.md:190: "A checkout that has a `.git` is kept as it is: the factory does not check it, …" is about 30 words (style rule 2). Fix: split it after "kept as it is".
+
+    Open, outside this diff: `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table. That is now false. It belongs to that file's story or to the human.
