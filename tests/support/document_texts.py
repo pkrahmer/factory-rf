@@ -16,6 +16,7 @@ from factory.shared.domain.documents import (
     README,
 )
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
+from factory.shared.domain.settings import SETTINGS
 
 DESTINATION_WORDS = {
     "health_status": "health status",
@@ -25,6 +26,11 @@ DESTINATION_WORDS = {
 FENCE = "```"
 INSTALL_SECTIONS = ("Install", "Configuration")
 STOPS_SECTIONS = ("The stops",)
+SETTINGS_TABLE = (
+    "| Variable | Meaning |",
+    "|---|---|",
+    *(f"| `{setting.name}` | A setting. |" for setting in SETTINGS),
+)
 PATH_7_TEST = "test_round_cap_question_killed_between_post_and_record_posts_once_and_waits"
 
 
@@ -56,8 +62,8 @@ def operator_index(*, prefix: str = "", suffix: str = "") -> str:
 def operator_install(
     *, sections: Sequence[str] = INSTALL_SECTIONS, prefix: str = "", suffix: str = ""
 ) -> str:
-    """The operator guide's `install.md` with the given sections."""
-    return _document("Install", sections, (), prefix, suffix)
+    """The guide's `install.md`: the given sections, the settings table in the last one."""
+    return _document("Install", sections, SETTINGS_TABLE, prefix, suffix)
 
 
 def operator_stops(

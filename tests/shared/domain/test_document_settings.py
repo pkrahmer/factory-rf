@@ -3,16 +3,20 @@
 import pytest
 
 from factory.shared.domain.documents import (
+    OPERATOR_INSTALL,
+    SETTINGS_SECTION,
     GuideTable,
     guide_tables,
     refusal_findings,
     settings_findings,
 )
-from factory.shared.domain.settings import SettingDoc
+from factory.shared.domain.settings import SETTINGS, SettingDoc
+from support.operator_support import ROOT
 
 _VARIABLE_HEADER = ("Variable", "Required", "Meaning")
 _DEFAULT_HEADER = ("Name", "Required", "Default")
 _REFUSALS = "The refusals"
+_NO_SETTINGS_TABLE = "no settings table (first column Name or Variable) in Configuration"
 _SOURCE = (
     'raise SettingsInvalid(variable, "is neither zfs nor copy")\n'
     'return f"holds {name}, which the factory sets itself"\n'
@@ -25,6 +29,9 @@ def _setting(name: str, default: str | None = None) -> SettingDoc:
 
 def _table(header: tuple[str, ...], *rows: tuple[str, ...]) -> GuideTable:
     return GuideTable(heading="Configuration", header=header, rows=rows)
+
+
+_SETTING_TABLE = _table(("Setting", "Meaning"), ("`FACTORY_A`", "A."))
 
 
 @pytest.mark.parametrize(
@@ -112,7 +119,9 @@ def test_table_with_another_first_column_is_ignored(first_column: str, counted: 
     ("table", "named"),
     [
         pytest.param(
-            _table(("Setting", "Meaning"), ("`FACTORY_A`", "A.")), (), id="no-settings-table"
+            _SETTING_TABLE,
+            (_NO_SETTINGS_TABLE,),
+            id="no-settings-table",
         ),
         pytest.param(
             _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A.")),
@@ -131,6 +140,43 @@ def test_guide_without_a_settings_table_gives_no_settings_finding(
     assert len(findings) == len(named)
     for name in named:
         assert any(name in finding for finding in findings)
+
+
+@pytest.mark.parametrize(
+    ("tables", "settings", "expected"),
+    [
+        pytest.param([], (_setting("FACTORY_A"),), [_NO_SETTINGS_TABLE], id="no-table-one-setting"),
+        pytest.param(
+            [],
+            (_setting("FACTORY_A"), _setting("FACTORY_B")),
+            [_NO_SETTINGS_TABLE],
+            id="no-table-two-settings",
+        ),
+        pytest.param(
+            [_SETTING_TABLE], (_setting("FACTORY_A"),), [_NO_SETTINGS_TABLE], id="setting-column"
+        ),
+        pytest.param([], (), [], id="no-table-no-settings"),
+        pytest.param([_SETTING_TABLE], (), [], id="setting-column-no-settings"),
+        pytest.param(
+            [_SETTING_TABLE, _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A."))],
+            (_setting("FACTORY_A"),),
+            [],
+            id="counting-table-beside-another",
+        ),
+    ],
+)
+def test_guide_without_a_counting_table_is_one_finding_when_there_are_settings(
+    tables: list[GuideTable], settings: tuple[SettingDoc, ...], expected: list[str]
+) -> None:
+    assert settings_findings(tables, settings) == expected
+
+
+def test_todays_install_guide_gives_no_settings_finding() -> None:
+    text = (ROOT / OPERATOR_INSTALL).read_text(encoding="utf-8")
+
+    findings = settings_findings(guide_tables(text, SETTINGS_SECTION), SETTINGS)
+
+    assert findings == []
 
 
 @pytest.mark.parametrize(

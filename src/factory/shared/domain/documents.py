@@ -123,6 +123,9 @@ _ADDRESS_SEPARATOR = ":"
 _HOME = "~"
 _MAIL_PREFIX = "mailto:"
 SETTINGS_SECTION: Final = "Configuration"
+NO_SETTINGS_TABLE: Final = (
+    f"no settings table (first column Name or Variable) in {SETTINGS_SECTION}"
+)
 _SETTINGS_FIRST_COLUMNS = ("Name", "Variable")
 _DEFAULT_COLUMN = "Default"
 _NO_DEFAULT_CELLS = ("", "none")
@@ -255,11 +258,12 @@ def settings_findings(
     A table counts when its first column is `Name` or `Variable`. A setting the code reads
     that no such table names, a name no setting has, and, in a table with a `Default`
     column, a default other than the setting's (`None` written empty or `none`) are findings.
-    Without such a table there is nothing to compare, and no finding.
+    Without such a table nothing can be compared, which is one finding while there are
+    settings to compare.
     """
     tables = _settings_tables(guide_tables)
     if not tables:
-        return []
+        return [NO_SETTINGS_TABLE] if settings else []
     by_name = {setting.name: setting for setting in settings}
     named = [_backticked_or_plain(row[0]) for table in tables for row in table.rows if row]
     messages = [
