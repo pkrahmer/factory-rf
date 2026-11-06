@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T13:37:03.050583Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T13:37:03.050583Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T13:37:58.349073Z'
+  stage: review
+  run: 477f09ff0035416285c34b61a1a9dcf1
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -74,8 +76,9 @@ The rewrite will write the operator guide's settings tables by `docs/project-gui
 1. In a table headed `Name | Required | Default` and a setting `FACTORY_A` with the default `5`, the cell `` `5` `` and the cell `5` give no finding, and the cell `` `6` `` gives the one finding ``setting FACTORY_A has the default '`6`' in the guide, '5' in the settings code`` (rows of one test).
 2. In a table under `The refusals` with the first column `Refusal`, and a source that holds `is not a colour`, the refusal `` `<variable>: is not a colour` `` gives no finding, and `` `<variable>: is not a shade` `` gives the one finding ``refusal `<variable>: is not a shade` is not held by the settings code``. The refusal `` `<a>: qz<b>` `` gives no finding, since `qz` is shorter than three characters once its colon and space are removed (rows of one test).
 3. With the real `SETTINGS` and the source of `factory.shared.domain.settings`, a `Name | Default` table naming every setting, with its default in backticks or `none`, gives no settings finding. A refusal table holding `` `<variable>: is not an absolute path` `` gives no refusal finding.
-4. `make check` stays green.
-5. docs: `docs/project-guide/style.md`, *The operator guide*: the reader learns that a default may be written in backticks, and that a refusal is written as the message `<variable>: <fault>` with the variable as a placeholder. `docs/project-guide/shared.md`, *The settings check*: the reader learns the same two rules as the check applies them.
+4. In the table and with the source of criterion 2, which holds `is not a colour` and no colon after it, the refusal `` `<variable>: is not a colour: <value>` `` gives no finding, since the piece between the placeholders loses its trailing colon and space as well as its leading ones (a row of criterion 2's test).
+5. `make check` stays green.
+6. docs: `docs/project-guide/style.md`, *The operator guide*: the reader learns that a default may be written in backticks, and that a refusal is written as the message `<variable>: <fault>` with the variable as a placeholder. `docs/project-guide/shared.md`, *The settings check*: the reader learns the same two rules as the check applies them.
 
 ## Smoke test
 
@@ -135,3 +138,28 @@ Expect: `0 []`
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'`, which changes `src/factory/shared/domain/documents.py` and `tests/shared/domain/test_document_settings.py`, against the work item.
+
+   1. criterion 4 added: it needs its test. Location: `## Acceptance criteria` of the work item, and `tests/shared/domain/test_document_settings.py::test_refusal_pieces_are_checked_without_their_colons_and_spaces`. The problem: the Interface says each piece loses its leading and trailing whitespace and `:`, but every new row (`message-held`, `message-not-held`, `stripped-piece-of-two-unchecked`) only has the frame at the start of a piece. A `lstrip` in place of `strip` in `_is_held` (`src/factory/shared/domain/documents.py:305`) would pass every test. The fix: I added criterion 4, `<variable>: is not a colour: <value>` against the source `is not a colour` gives no finding. It is one more row of criterion 2's test. The closing criteria are renumbered to 5 (`make check`) and 6 (docs).
+
+   Checked with nothing found:
+   - **Group 1:**
+     - Criterion 1 is pinned by `backticked-equal`, `plain-equal` and `backticked-differs`, which checks the full text and so the cell quoted as written.
+     - Criterion 2 is pinned by the three refusal rows. The three-character limit is tested on both sides: `qz` is not checked after stripping, and the earlier row `piece-of-three-checked` is checked.
+     - Criterion 3 is pinned by the real `SETTINGS` test. `_NOT_ABSOLUTE` at `settings.py:94` holds the text it looks for.
+     - The empty cell and `none` keep their earlier rows, and every earlier row is unchanged.
+     - The coder's `make check` was green (journal entry 7).
+   - **Group 2:** the change stays in the shared domain layer, with no I/O.
+   - **Group 3:** nothing relevant to security and no silencing markers.
+   - **Group 4:**
+     - `_default_findings` reuses `_backticked_or_plain` instead of copying it.
+     - `_PIECE_EDGES` has a comment that says why.
+     - Both docstrings now state the new rules.
+     - The 6 new findings from `make duplicates` cannot come from this diff of two code lines.
+   - **Group 5:**
+     - The journal names the main choice (reusing the helper) and what was rejected (stripping only the `": "`).
+     - The Description matches what was built.
+     - The docs criterion still says what the reader must learn.
+
+   Earlier tests:
+   - `tests/shared/domain/test_document_settings.py`: none needed. The change only adds three tests and two imports, and every earlier test is as it was.
