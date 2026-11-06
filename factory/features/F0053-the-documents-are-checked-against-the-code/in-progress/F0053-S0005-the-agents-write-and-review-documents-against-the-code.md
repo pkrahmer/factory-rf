@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T10:24:26.291992Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-06T10:24:26.291992Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-06T10:28:52.578663Z'
+  stage: doing
+  run: 7695aba45c9540d8bb01bf4fbf01e522
 ---
 
 # The agents write and review documents against the code
@@ -373,3 +375,24 @@ Expect: `named`
 
     `lint`: lint: green (0.1 s)
 24. factory: started doing as vm.
+25. coder: `make check` passes (`check: green`, `test: green (104.0 s)`, coverage 99.22 %). The tester's change in entry 23 (`_reviewer_checklist` now uses `section_text`) was the last open review finding, number 5. I changed no file in this run.
+
+    What is built (my earlier runs, entries 10, 13 and 21):
+    - `agents/agents/documenter.md`, Role: three rules.
+      - Read the code first.
+      - Every example is runnable, or is marked for the VM, GitHub or a model and copied from a real run that the text names.
+      - Detail is kept in a *Reference* section and not cut.
+    - `agents/agents/documenter.md`, Stage step 3: in the same command as the last edit, run `make documents` (when the pipeline definition lists a `documents` command), then `make check`. The documenter ends only on `documents ok (<seconds> s)`. This covers review findings 1 and 2.
+    - `agents/agents/reviewer.md`: a `### Documents` checklist item after group 6. It covers any document the documenter may write. Two things are findings: a claim not found in the code, and a command with neither a runnable example nor a marked one. This covers review findings 3 and 4.
+    - `agents/agents/intake.md`: a new step 4. A docs criterion that dictates the sentences to write is a question, and the intake ends with `question`. The criterion should name what the reader must know afterwards.
+
+    Main choice: `### Documents` is a headed item after the numbered groups (the human's option a, entry 11), not a numbered item 7 and not placed at the end of Role.
+
+    Refactor: I re-read the diff against `main` and found nothing to change.
+
+    Still open, not touched: review finding 6. My edit to criterion 11 in entry 21 was dropped, because the work item is outside the coder's write paths. Criterion 11 still names only the documenter and the reviewer. The documenter should also describe the intake's new question on a docs criterion that dictates sentences in `docs/project-guide/agents.md`. Otherwise the human amends the criterion.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
