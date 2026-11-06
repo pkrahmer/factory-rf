@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T07:36:20.672868Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T07:36:18.105953Z'
+  stage: tests
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:36:20.672868Z'
   stage: tests
 ---
 
@@ -217,3 +226,4 @@ Expect: `1`
     The two entry tests fail on their assertions, since there is no time line yet. `make lint` is green.
 12. 2026-11-06 human: 1. (a), with the human's leave: the three tests `test_without_a_root_the_current_directory_is_read`, the `clean` row of `test_the_module_run_as_a_process_exits_with_the_status_of_main` (its stdout's last line) and `test_documents_are_read_as_utf_8` get the same change: the last line matches `documents ok \(\d+(\.\d+)? s\)`, and each keeps its exit-status check. The `empty-directory` row stays. Nothing else in that module changes, and your entry names all four.
     2. `CheckoutFixture(git: GitCli)`, as you propose.
+13. factory: started tests as vm.
