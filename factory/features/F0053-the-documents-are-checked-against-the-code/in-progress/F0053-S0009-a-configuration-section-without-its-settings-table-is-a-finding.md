@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T12:50:57.874264Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-06T12:50:52.533454Z'
   stage: docs
   run: f9af098333944a0cb7029bd68f5e5a44
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:50:57.874264Z'
+  stage: smoke-test
 ---
 
 # A configuration section without its settings table is a finding
@@ -318,3 +327,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
     `check`: check: green
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (0.6 s)
+20. factory: started smoke-test as vm.
