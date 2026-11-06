@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T14:18:28.779159Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T14:18:26.002800Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T14:18:28.779159Z'
   stage: intake
 ---
 
@@ -83,3 +92,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
 
    Once question 1 is answered I would accept on the `tests` route.
 4. 2026-11-06 human: Yes, with your wording: a file committed or changed in one test's `documents` copy is absent from the copy another test gets, and a fresh copy's `git status --porcelain` is empty. One criterion, tested at fixture level (two copies from the one session repository).
+5. factory: started intake as vm.
