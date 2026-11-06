@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T00:09:45.879944Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-06T00:09:40.383940Z'
   stage: doing
   run: 5ddac77f124f4b06b2163e39d3725612
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:09:45.879944Z'
+  stage: tests
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -176,3 +185,4 @@ Expect: `True True False`
     `make check` was not run in this run. In the previous run it was red only on that guard row, and the code has not changed since. The coder's next round needs `make check` green, then hands forward to `review`.
 
     Description: unchanged. The human's answer does not change what the task means. It adds one thing for the docs stage: name `tests/support/two_routes_support.py` in the project guide's shared-helper list.
+11. factory: started tests as vm.
