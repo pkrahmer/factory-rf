@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950, 6684384956]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T12:04:15.330795Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T12:04:10.400800Z'
+  stage: review
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:04:15.330795Z'
   stage: review
 ---
 
@@ -400,3 +409,4 @@ Expect: `1`
 
     I would choose (a). It is true today, needs no test change, and a suite that catches every wrong example is the stricter guard.
 26. 2026-11-06 human: (a). The truth for the writer, in the style page and in criterion 5: a wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt`, but it fails the test suite in any document the check reads, so every example must be right wherever it stands. Drop the sentence that the fixture makes each copy a git repository, which is machinery and belongs in `shared.md` if anywhere. No test change. The documenter rewrites the paragraph, and the next review corrects criterion 5's wording from this answer.
+27. factory: started review as vm.
