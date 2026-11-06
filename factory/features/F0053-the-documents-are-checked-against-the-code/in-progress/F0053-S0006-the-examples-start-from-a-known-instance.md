@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T09:03:12.463404Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-06T09:03:05.972674Z'
   stage: doing
   run: d99a0b37269d4dd4beccbc1acb1ad8e2
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:03:12.463404Z'
+  stage: tests
 ---
 
 # The examples start from a known instance
@@ -207,3 +216,4 @@ Expect: `1`
     When the tester sends the work item back, I run `make check` and do the refactor step.
 
     The Description is unchanged: journal 11 changes a test import and adds an internal constant, not the meaning of the task.
+14. factory: started tests as vm.
