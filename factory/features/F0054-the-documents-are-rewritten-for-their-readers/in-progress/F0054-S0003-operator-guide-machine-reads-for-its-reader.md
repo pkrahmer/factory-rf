@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455, 6698899316]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:49:42.078044Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-06T23:49:42.078044Z'
   stage: docs-only
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:52:39.354841Z'
+  stage: docs-only
+  run: 257325f35d744c73b44cf0fdd051d63b
 ---
 
 # The operator guide's the machine reads for the operator
@@ -451,3 +453,33 @@ Expect: `1`
     - Criterion 3: the file is on `docs/checked-documents.txt`, and entry 20 says `make documents` printed `documents ok`.
     - Criterion 4: the links that entry 22 followed still resolve. No linked file changed since that review.
 27. factory: started docs-only as vm.
+28. documenter: Round 1 docs-only, after the human's answer in entry 24. I fixed findings 1 to 8 of entry 22, as entry 26 restated them. The last line of `make documents` is `documents ok (5.8 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/operator-guide/machine.md`, the only file I touched:
+      1. Setup script, the refused inputs: the five refused inputs are a list, and one sentence says what the script prints and that it exits 2.
+      2. Secrets: placing the three files and the second run are separate sentences.
+      3. `factory.env` and `factory.local.env`: both sentences are split, and each parenthesis is its own sentence.
+      4. Page cache after the rollback: split into what the file reads, what git's stat cache does, and that the sync does not repair it.
+      5. The base-image paragraph, the user-less container, the `Dockerfile` build and the files written as `factory`: each sentence is split into sentences of one idea.
+      6. Without `gcloud`: one sentence says that steps 6 to 11 apply, and a short numbered list names what differs.
+      7. The read-only mounts bullet, the `take` timing, the exit action in a job, the machine stop in a job and the right to `poweroff`: all are split.
+      8. The three inline commands are now `sh` blocks with the place named above each:
+         - The `ls -l /dev/disk/by-id/ | grep google` command is in step 7 of *On GCP, step by step*, and runs on the VM.
+         - `gcloud run jobs execute <job>` runs on your own computer.
+         - The schedule is now two numbered steps, make the schedule and attach it. The placeholders `<schedule>`, `<region>`, `<cron expression>` and `<timezone>` are mine; the old text named only the two commands. I did not run these commands, because they act on a cloud account. The flags `--vm-start-schedule` and `--timezone` are from my knowledge of `gcloud`, not from a run.
+
+    Entry 24 asked me to count the words of every sentence I changed with a script. I ran it over the added lines and split at `.`, `:` and `;`. Two sentences remain, at 26 and 27 words: the opening of *In a job* and the opening of *The right*. I left them as about 25 words.
+
+    Cross-read: the headings that other files link to are unchanged. The *Starting the machine again* heading is the same, and the numbering of steps 1 to 11 of *On GCP, step by step* is unchanged.
+
+    Not done: finding 9 of entry 22, which would split step 12 of *On GCP, step by step* into steps 12 to 14. Entry 24 limited this round to findings 1 to 8, and the human can open it in a later round.
+
+    Stale text I saw and did not touch, because it is outside this story:
+    - `make documents` reports `docs/project-guide/work.md:13: factory/agents does not exist` in its report-only list.
+    - `docs/operator-guide/agent-runtime.md:181` names `planning/cloud-sandbox/`.
+    - `docs/operator-guide/stops.md:235` is a very long paragraph.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.7 s)
+    `documents`: documents ok (5.9 s)
