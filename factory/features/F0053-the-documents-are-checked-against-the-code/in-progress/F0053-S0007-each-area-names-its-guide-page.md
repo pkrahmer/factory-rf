@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T11:14:45.150527Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T11:14:39.687114Z'
   stage: tests
   run: 53ac4abac9b64dbab9fe2f64a1086e6b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:14:45.150527Z'
+  stage: doing
 ---
 
 # Each area names its guide page
@@ -90,3 +99,4 @@ Expect: `8`
    Files created: tests/guards/test_area_guides.py. Modules the test run could not import: none (the guard imports nothing of `factory`). Nothing was interpreted, so there is no open question.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
