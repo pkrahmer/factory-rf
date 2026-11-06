@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:43:57.339849Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T01:43:48.800007Z'
   stage: docs-review
   run: b9e824ad5e3f466eba49ae99c68dd06e
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:43:57.339849Z'
+  stage: docs-only
 ---
 
 # The project guide says which lines of its index name a page
@@ -109,3 +118,4 @@ Expect: `documents ok`
    Rejected as findings:
    - The example "a heading such as `## The files` is never read as a page" can stay. It names the very case that stalled the earlier story, and the guard does not read it.
    - Criteria 2 to 4 are met. Entry 5 of the journal records `check: green`, `secrets: green` and `documents ok`, and the diff touches no code or test.
+8. factory: started docs-only as vm.
