@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 589
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T09:23:35.963315Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-06T09:23:35.963315Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T09:24:06.084697Z'
+  stage: intake
+  run: 4140d0a57d194ccd894297f6195a4876
+  blocked: question
 ---
 
 # The checks block the listed files and report on the others
@@ -62,3 +65,11 @@ Expect: `documents ok`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: 1. `read_checked_documents(text)`: "a path that is no document of the check is a finding" has no criterion for its failing side (for example a listed path that does not exist, or that is outside the checked documents such as `docs/decisions.md`). Proposed: add a criterion that such a line is a finding that fails the command. Which paths count as "no document of the check"?
+   2. The same Interface line says `#` starts a comment, and blank lines are skipped. No criterion tests either. Proposed: add one (a `#` line and a blank line give no entry).
+   3. The output order is stated (blocking findings first, then the report, then the last line). No criterion tests it. Proposed: add one, or drop the sentence.
+   4. Also unspecified and untested: `documents ok (<seconds> s)` is stated for the passing side, but the failing side prints "one line per blocking finding" and exit status 1, and no criterion checks that the `documents ok` line is absent then. Criterion 1 covers the exit status only. Proposed: extend criterion 1 to include the one-line-per-finding output.
+   5. The `Report (not checked yet):` heading when there is nothing to report: printed or omitted? Proposed: omitted. Please state it and add a criterion.
+   6. The three new name-check readings each have a criterion in 4, but the edges are open. A `factory.x.y.json`-style name is a file name only with the listed extensions, so a negative row is needed (`factory.shared.domain.yml_reader` is still checked as a module). A `$` text is skipped, but is the whole backticked text skipped, or only the part after `$`? Proposed: the whole text. For `tests/x.py::test_y`, is a node id that has no `::` unchanged? Please add the rows you want.
+   7. The smoke test is `uv run python -m factory.entry.check_documents | tail -1` with `Expect: documents ok`. That is runnable and the pytest `-q` rule does not apply. The smoke test is acceptable once criterion 3 is fixed.
+   8. Route: the Interface changes `src/` and `tests/`, so I would route this to `tests` once the questions are answered.
