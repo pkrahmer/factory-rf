@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 606
-comments_read: [6695295968]
+comments_read: [6695295968, 6695615126]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 54516e30c89e4f878643217754ebebaf
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-06T21:08:06.087939Z'
+  stage: doing
 ---
 
 # The document check's tests run on documents they write
@@ -219,3 +224,4 @@ Expect: `documents ok (<seconds> s)`
     I would choose A. With your answer I end with `tests`, naming that change, and the tester makes it. Then I finish `make check` and the refactor step. The `docs:` criterion is the documenter's.
 
     Noticed and left alone: the tester's entry says it skipped the type check, which is how these errors reached this stage.
+11. 2026-11-06 human: A: end with `tests`. The tester reads the three tables from the modules that define them and keeps patching the names inside `documents` with `monkeypatch.setattr(documents, "STOP_TABLE", ...)`, the name as a string. Nothing in `src/` changes. The tests are the tester's own, so no leave is needed.
