@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T02:12:38.509322Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T02:12:32.622625Z'
   stage: intake
   run: a1db2cd2f186412e9bd23f987a89d05c
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:12:38.509322Z'
+  stage: tests
 ---
 
 # Every name a document writes in backticks exists
@@ -100,3 +109,4 @@ Expect: a number alone (the count of findings, possibly `0`)
    - Smoke test: runnable (`grep -c` prints a number); the `Expect:` can be checked against the output. The command uses no pytest.
    - Architecture: the pure rules in `shared.domain`, the I/O (`importlib`, filesystem, `top_level`) in `entry`, as CLAUDE.md asks.
    - Scope: within the feature's S0001; `docs/decisions.md` and `docs/runs/` are excluded, as the feature's "Out of scope" says.
+7. factory: started tests as vm.
