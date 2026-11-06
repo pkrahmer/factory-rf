@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T19:57:16.959789Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T19:57:16.959789Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T19:58:10.001743Z'
+  stage: review
+  run: 3716b8331880461581ea18b12949299d
 ---
 
 # Listing a right document keeps the suite green
@@ -144,3 +146,16 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`: six test files, nothing under `src/`. Groups 1, 2, 3 and 5 hold. Every criterion has a test that checks what the criterion says. Criterion 1 is one parametrized test with one row per listed page (`install`, `operator-guide-index`, `shared`). Criterion 2 is the run without the helper, which shows the extra list line. Criterion 3 has the rows `empty` and `one` plus a clean `git status`. Criterion 4 is the four earlier tests, which keep their names and ids. The coder's `make check` was green (journal entry 7). No `src/` change, no silencing marker and no secret. The Description, Interface and docs criterion still match what was built. The findings are all group 4: helpers copied from constants that already exist. The support module is an earlier file, and the new module is judged at round 0, so these send the story back.
+
+   Findings:
+   1. `tests/support/check_documents_support.py:32`: `CHECKED_LIST = "docs/checked-documents.txt"` copies `CHECKED_DOCUMENTS` from `src/factory/shared/domain/documents.py:564`. Fix: drop the constant. Use `CHECKED_DOCUMENTS` in `write_checked_list` and in `tests/entry/test_check_documents_any_list.py`, which imports `CHECKED_LIST`.
+   2. `tests/support/check_documents_support.py:33`: `INSTALL = "docs/operator-guide/install.md"` copies `OPERATOR_INSTALL` from `src/factory/shared/domain/documents.py:25`, which `tests/support/document_texts.py` already imports. Fix: drop `INSTALL` and use `OPERATOR_INSTALL` in `drop_settings_row`.
+   3. `tests/entry/test_check_documents_any_list.py:21-23`: `_INDEX = "docs/operator-guide/README.md"` copies `OPERATOR_GUIDE` (`src/factory/shared/domain/documents.py:24`). The literal `"docs/operator-guide/install.md"` in `_NEWLY_LISTED` copies `OPERATOR_INSTALL` (same module, line 25). Fix: import and use `OPERATOR_GUIDE` and `OPERATOR_INSTALL` from `factory.shared.domain.documents`.
+
+   Earlier tests:
+   - tests/entry/test_check_documents_copies.py: the human's leave, feature decision 8, named in the story's Interface.
+   - tests/entry/test_check_documents_operator_guide.py: the human's leave, feature decision 8, named in the story's Interface.
+   - tests/entry/test_check_documents_settings.py: the human's leave, feature decision 8, named in the story's Interface. Moving its `_drop_row` to the support module as `drop_settings_row`, unchanged, is under the standing leave to move a shared test helper.
+   - tests/entry/test_check_documents_suite_copy.py: the human's leave, feature decision 8, named in the story's Interface.
+   - tests/support/check_documents_support.py: none needed. The change only adds `write_checked_list` and receives the moved helper, and leaves every helper the file held as it was.
