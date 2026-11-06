@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T20:41:06.551549Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T20:41:06.551549Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T20:42:02.762427Z'
+  stage: review
+  run: 36916745fc804af2b59dfe9ed1dce404
 ---
 
 # A page already listed keeps the document tests green
@@ -148,3 +150,22 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: Review of round 0. I read the work item and `git diff main...HEAD -- . ':!factory'`, which changes only `tests/entry/test_check_documents_any_list.py` and `tests/support/check_documents_support.py`. Nothing under `src/` changes, and neither do `docs/checked-documents.txt` nor the `documents` fixture.
+
+   Group 1 holds:
+   - Criterion 1 is `test_listing_the_three_pages_names_each_once_whatever_the_list_already_names`. Its rows `none-listed`, `index-listed` and `all-listed` cover the Interface's three cases, and the last row checks that `HEAD` stays the same.
+   - Criterion 2 is `test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again`. Its rows are `added-once` and `appended-again`, and it compares the sorted lines outside the report lines.
+   - Criterion 3 is `test_the_written_list_is_committed_only_when_its_text_changes`, with rows `changed` and `unchanged`, and it checks `git status` for both.
+   - Criterion 4: the earlier tests keep their names and ids, and journal entry 7 says the factory's `make check` was green.
+
+   Group 2 (architecture) and group 3 (security) have no findings: no `src/` change and no silencing marker. The comment in `write_checked_list` says why it returns early. Group 5: the Description matches what was built, and the docs criterion (6) is still the documenter's to write.
+
+   Findings:
+   1. `tests/entry/test_check_documents_any_list.py`, `_list_newly`: its last five lines copy the body of `_append_to_list` in the same module (fix the missing final newline, write the appended pages, `commit_all`). Fix: `_list_newly` works out `missing`, returns when it is empty, and otherwise calls `_append_to_list(root, missing)`.
+   2. `tests/entry/test_check_documents_any_list.py`, `_list_by_looking`: a wrapper whose only line is `_list_newly(root)`, and it has the same signature. Fix: remove it and use `pytest.param(_list_newly, 1, id="added-once")`.
+
+   Earlier tests:
+   - `tests/entry/test_check_documents_any_list.py`: changed under the human's leave, feature decision 9 (`feature.md`, 2026-11-06), which the story's Interface names. Only the fixture `listed` changed, and new rows were added. The earlier tests keep their names and what they check.
+   - `tests/support/check_documents_support.py`: changed under the same human's leave, feature decision 9. `write_checked_list` keeps its signature and its text, and only skips the commit when the text is unchanged.
+
+   Both findings are in test files, so the coder hands them to the tester with `tests` (R9).
