@@ -22,7 +22,7 @@ from factory.shared.domain.documents import (
     PROJECT_GUIDE_FOLDER,
     README,
     SETTINGS_SECTION,
-    NewFinding,
+    GatedFinding,
     Reference,
     check_documents,
     checked_list_findings,
@@ -100,11 +100,11 @@ def _existence(root: Path) -> Callable[[Reference], bool]:
     return exists
 
 
-def _name_findings(root: Path, documents: Sequence[str]) -> list[NewFinding]:
+def _name_findings(root: Path, documents: Sequence[str]) -> list[GatedFinding]:
     top_level = frozenset(entry.name for entry in root.iterdir())
     exists = _existence(root)
     return [
-        NewFinding(document=document, line=line)
+        GatedFinding(document=document, line=line)
         for document in documents
         for line in unresolved(
             named_references(document, (root / document).read_text(encoding="utf-8"), top_level),
@@ -113,7 +113,7 @@ def _name_findings(root: Path, documents: Sequence[str]) -> list[NewFinding]:
     ]
 
 
-def _settings_guide_findings(root: Path) -> list[NewFinding]:
+def _settings_guide_findings(root: Path) -> list[GatedFinding]:
     text = _read(root / OPERATOR_INSTALL)
     if text is None:
         return []
@@ -124,24 +124,24 @@ def _settings_guide_findings(root: Path) -> list[NewFinding]:
         *refusal_findings(tables, source),
     ]
     return [
-        NewFinding(document=OPERATOR_INSTALL, line=f"{OPERATOR_INSTALL}: {message}")
+        GatedFinding(document=OPERATOR_INSTALL, line=f"{OPERATOR_INSTALL}: {message}")
         for message in messages
     ]
 
 
-def _example_lines(
+def _example_results(
     root: Path,
     documents: Sequence[str],
     runner: ExampleRunner,
     fixtures: Mapping[str, Fixture],
-) -> tuple[list[NewFinding], list[str]]:
-    findings: list[NewFinding] = []
+) -> tuple[list[GatedFinding], list[str]]:
+    findings: list[GatedFinding] = []
     not_run: list[str] = []
     for document in documents:
         found = examples((root / document).read_text(encoding="utf-8"))
         if found.runnable:
             lines = runner.run_document(document, found.runnable, fixtures)
-            findings += [NewFinding(document=document, line=line) for line in lines]
+            findings += [GatedFinding(document=document, line=line) for line in lines]
         not_run += [f"{document}:{block.line}: not run ({block.kind})" for block in found.skipped]
     return findings, not_run
 
@@ -172,13 +172,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     listed = _checked_documents(root)
     git = GitCli(root)
     fixtures = {DEFAULT_FIXTURE: CheckoutFixture(git), INSTANCE_FIXTURE: InstanceFixture(git)}
-    example_findings, not_run = _example_lines(root, documents, ProcessExampleRunner(), fixtures)
-    new_findings = [
+    example_findings, not_run = _example_results(root, documents, ProcessExampleRunner(), fixtures)
+    gated_findings = [
         *_name_findings(root, documents),
         *_settings_guide_findings(root),
         *example_findings,
     ]
-    split = split_findings(new_findings, frozenset(listed))
+    split = split_findings(gated_findings, frozenset(listed))
     blocking = [
         *(f"{finding.document}: {finding.message}" for finding in findings),
         *checked_list_findings(listed, documents),

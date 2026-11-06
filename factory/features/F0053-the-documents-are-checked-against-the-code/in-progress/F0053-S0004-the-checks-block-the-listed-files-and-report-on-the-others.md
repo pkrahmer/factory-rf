@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:38:48.638434Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-06T09:38:48.638434Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:45:00.906417Z'
+  stage: doing
+  run: 3a44e0bcfd0648789a02f651c7b64d0b
 ---
 
 # The checks block the listed files and report on the others
@@ -269,3 +271,26 @@ Expect: `documents ok (<seconds> s)`
 
     `lint`: lint: green (0.2 s)
 16. factory: started doing as vm.
+17. coder: The tester's changes from entry 15 make the whole suite pass against the code from the first doing round (2b6135a73). I changed no behaviour this round, only did the refactor step. `make check` is green: test 104.2 s, coverage 99.22 %. The smoke test `uv run python -m factory.entry.check_documents | tail -1` prints `documents ok (0.3 s)`, run with no list file present.
+
+    What I built (across both doing rounds):
+    - `src/factory/shared/domain/documents.py`:
+      - The name check reads three kinds of text more exactly. A backticked text that holds `$` is skipped as a whole. A pytest node id is read up to its `::`. A dotted `factory.` name ending in `.env`, `.service`, `.yml`, `.yaml`, `.json`, `.toml`, `.md` or `.txt` is a file name, not a module (`_is_module_name`).
+      - New: `CHECKED_DOCUMENTS`, `read_checked_documents(text)`, `checked_list_findings(listed, documents)`, the models `GatedFinding` and `SplitFindings`, and `split_findings(findings, checked)`.
+    - `src/factory/entry/check_documents.py`:
+      - The blocking lines print first: today's findings, the list's own findings, and the name, settings and example findings in listed documents.
+      - Then `Report (not checked yet):` with the other findings and the lines for examples not run. The heading is left out when there is nothing to report.
+      - `documents ok (<s> s)` is printed only when nothing blocks; otherwise the exit status is 1.
+      - A missing list file counts as an empty list (journal entry 11).
+
+    Refactor: I renamed `NewFinding` to `GatedFinding`, because the name now says what the list decides about it, and rewrote its docstring to match. I renamed `_example_lines` to `_example_results`, because it now returns findings and not-run lines separately. No tests use either name. Nothing else needed changing.
+
+    Main decision: each finding of the new checks carries its document as a field, and `split_findings` decides by document whether it blocks. Rejected: parsing the `doc:line:` prefix of the printed lines, which is fragile, and the settings findings carry no line number.
+
+    Noticed, not touched:
+    - `docs/checked-documents.txt` lies outside the coder's write paths. The documenter writes it in the docs stage, with the style page and the glossary (entry 11), together with criterion 12.
+    - When I ran it in the first round, neither page had a blocking finding.
+    - `_COMMENT_MARK` and `_FRAGMENT` are both `"#"`. I kept them separate on purpose because they mean different things.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone

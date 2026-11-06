@@ -534,8 +534,8 @@ CHECKED_DOCUMENTS: Final = "docs/checked-documents.txt"
 _COMMENT_MARK = "#"
 
 
-class NewFinding(BaseModel):
-    """A finding of the name, settings or example check: the document it is in, its line."""
+class GatedFinding(BaseModel):
+    """A finding of the name, settings or example check, which blocks only in a listed document."""
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
@@ -567,7 +567,7 @@ def checked_list_findings(listed: Sequence[str], documents: Collection[str]) -> 
     ]
 
 
-def split_findings(findings: Sequence[NewFinding], checked: Collection[str]) -> SplitFindings:
+def split_findings(findings: Sequence[GatedFinding], checked: Collection[str]) -> SplitFindings:
     """The findings in a `checked` document block, the others are reported; order is kept."""
     return SplitFindings(
         blocking=[finding.line for finding in findings if finding.document in checked],
