@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T02:43:57.699077Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-06T02:43:57.699077Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T02:47:13.486350Z'
+  stage: docs
+  run: fa1f3d19c216470a8e9eef554cea0ab8
 ---
 
 # Every name a document writes in backticks exists
@@ -447,3 +449,19 @@ Expect: a number alone (the count of findings, possibly `0`)
     Notes:
     - `tests/entry/test_check_documents_references.py`: the Interface's "a path found under the checkout" has no row for a link or path that exists but resolves outside the checkout (for example `[x](../../../outside.md)` with a file planted in `tmp_path`). The code handles that side in `src/factory/entry/check_documents.py` `_path_exists` (`is_relative_to(root.resolve())`). The missing row is one row in `test_each_missing_name_path_or_link_target_gets_one_finding`, expecting one finding.
 28. factory: started docs as vm.
+29. documenter: Docs, round 1. Only a document changed, so I did not run `make check`.
+
+    Changed:
+    - `docs/project-guide/shared.md`: new subsection *The name check* inside *The document check*. It says what the command prints and that the lines don't change the exit status. It lists the files read and the ones not read (`docs/decisions.md`, `docs/runs/`). It gives the three reference kinds (module or attribute, repository path, link) with their rules, and the exemptions: placeholder, glob, absolute path, fenced block, *Replaced* sections up to the next `##`. This is what the docs criterion (7) asked for.
+
+    I ran the smoke command: it prints a number alone (152). `make documents` exits 0 with those findings printed. My first draft of the new text had three examples that the check itself flagged, so I reworded them. The text now adds no finding of its own.
+
+    Cross-read and found current against the diff (the command's behaviour and the pure functions): the rest of *The document check* in `docs/project-guide/shared.md`, and `docs/project-guide/README.md`. `docs/operator-guide/pipeline.md` needed nothing (criterion 7: none). `docs/decisions.md` was not touched (criterion 7: none; the feature's decisions go in at S0004). I wrote no "Why" or "Rejected" line.
+
+    Stale text noticed, not touched: the command prints about 152 name findings on the real repository. Examples are `docs/project-guide/operator.md:21` (`$XDG_CONFIG_HOME/kumpel/site.env`), `docs/project-guide/work.md:13` (`factory/agents`) and `docs/project-guide/work.md:186` (a `file::test` id). Some are real stale names and some are false positives of the agreed path rule. The human left them for S0004.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: docs/project-guide/work.md:186: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones does not exist

@@ -102,4 +102,16 @@ This repository's pipeline runs the report after the coder and writes its last l
 
 The command also reads every other `.md` file directly in `docs/project-guide/` (`factory.shared.domain.documents.is_guide_file` says which: not the index, no subfolder, no other extension) and checks it for the phrases and the v1 words only, so that a section moved out of the index does not leave the check. Its findings follow those of the four documents, in path order. A folder, a file in a subfolder and a missing folder add nothing.
 
+### The name check
+
+After those findings the command prints one line per name a document writes that does not exist, as `<document>:<line>: <name> does not exist`. For now these lines are only printed: they do not change the exit status, which today's findings alone set, and `make documents` stays green with them (the feature that adds the check makes them count in a later story). `uv run python -m factory.entry.check_documents | grep -c "does not exist"` counts them.
+
+It reads `README.md` and every `.md` file under `docs/operator-guide/` and `docs/project-guide/`; `docs/decisions.md` and `docs/runs/` are not read. The pure functions are `named_references` (finds the names, with their lines) and `unresolved` (turns the refused ones into findings) in `factory.shared.domain.documents`; the command gives them the checkout's top-level entries and the real test of existence. Three kinds of reference are found:
+
+- **A module or attribute:** a backticked dotted name that starts with `factory.`. It exists when `importlib` imports the longest leading part that is a module and the rest are attributes of it in turn (`factory.shared.domain.documents.named_references` is checked that way). Other dotted names, such as `os.path`, are not checked.
+- **A repository path:** a backticked text that contains `/`, has no whitespace, does not start with `/` or `~` and holds no `://`, and either starts with a top-level entry of the checkout or ends in a file name with an extension (so a path whose first folder was renamed is still checked). `origin/main` is not a path. It exists when it resolves to something inside the checkout.
+- **A link:** the target of a relative Markdown link, read from the document's own folder (`../` included) with any `#fragment` left off. A web address, a `mailto:` address, an absolute path and a link to a heading alone (`#...`) are not checked.
+
+Never checked, whatever the kind: a placeholder in angle brackets (`<instance>`), a glob (`*`), an absolute path such as one under `/srv` or `/etc`, anything inside a fenced code block, and a section headed `## Replaced from v1` or `## Replaced in v1.2` up to the next `##` heading. A name after that heading is checked again.
+
 This repository's pipeline definition (`factory/pipeline.yml`) runs it as a check of the docs stage through `make documents`, so a missing row or a v1 word is found where the four documents are written, before the human sees the pull request; red holds the work item at the docs stage. `make check` does not run it (the decision log, *The four documents are checked by a command*, and its 2026-10-17 entry for the docs stage). A story that adds a row to `STOP_TABLE`, `KILL_POINT_CASES` or `FAULT_PATHS`, changes one of the four documents or changes a file of the guide, runs the check and ends with `documents ok`.
