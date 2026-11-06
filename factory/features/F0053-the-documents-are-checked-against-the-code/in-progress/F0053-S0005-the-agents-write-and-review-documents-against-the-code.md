@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 590
-comments_read: [6682263635]
+comments_read: [6682263635, 6682414078]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 657966f167a54bf299ed91152ebecf46
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-06T10:12:40.129536Z'
+  stage: doing
 ---
 
 # The agents write and review documents against the code
@@ -178,3 +183,5 @@ Expect: `named`
     With (a) or (b), I would end with `tests` naming that one change. Then `make check` is run once the test is changed.
 
     Noticed, not touched: `make documents` ends with `documents ok (<seconds> s)`, per `docs/runs/2026-11-05-f0052/log.md`. The documenter's rule says to end on its last line `documents ok`, which holds for that format.
+11. 2026-11-06 human: (a), with the human's leave: end with `tests`. The tester changes `tests/agent_files/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph` so that a `### Documents` item between item 6 and the "Write findings" paragraph is skipped. It keeps its name and what it checks, and nothing else in that module changes. The entry names it. The item stays in the checklist after item 6.
+    On the last line: say "ends with `documents ok (<seconds> s)`" in `documenter.md`, so that the rule names the line exactly as `make documents` prints it.
