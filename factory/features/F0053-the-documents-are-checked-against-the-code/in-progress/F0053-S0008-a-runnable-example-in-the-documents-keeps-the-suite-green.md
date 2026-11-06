@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T11:49:27.302967Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T11:49:21.542563Z'
   stage: review
   run: 36e4f8716a8643ed9e62acb605de0c11
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:49:27.302967Z'
+  stage: docs
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -164,3 +173,4 @@ Expect: `1`
 
    Earlier tests:
    - `tests/conftest.py` (fixture `documents`): changed under the human's leave, feature decision 6 of `feature.md` (the human, 2026-11-06), as the story's Interface cites it. The change is what that leave describes: the fixture becomes a git repository. The fixture keeps its name and returns the same folder. No other earlier test was changed.
+10. factory: started docs as vm.
