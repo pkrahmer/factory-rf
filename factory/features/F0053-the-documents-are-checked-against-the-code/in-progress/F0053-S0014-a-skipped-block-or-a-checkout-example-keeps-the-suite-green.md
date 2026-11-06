@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T19:27:49.933748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-06T19:27:44.425524Z'
   stage: doing
   run: 98805114f2ce48dca3fc8ff378eb5d12
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:27:49.933748Z'
+  stage: review
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -288,3 +297,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+19. factory: started review as vm.
