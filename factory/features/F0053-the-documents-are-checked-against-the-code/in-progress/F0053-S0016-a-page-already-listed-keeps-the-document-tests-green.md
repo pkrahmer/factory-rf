@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T20:36:41.018649Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T20:36:41.018649Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T20:41:00.869717Z'
+  stage: doing
+  run: 181aae488fe0461da3880c9c3bdc76e2
 ---
 
 # A page already listed keeps the document tests green
@@ -124,3 +126,15 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: I wrote no code. Everything this story changes is test code: the fixture `listed` in `tests/entry/test_check_documents_any_list.py` and `write_checked_list` in `tests/support/check_documents_support.py`. The tester already made both changes, with the leave of feature decision 9, and they are in this branch's take. The Interface keeps every module under `src/factory/` unchanged, so I had nothing to implement. My only work was to run `make check`, which ended with `test: green (110.0 s)` and `check: green`, at 99.22 % total coverage.
+
+   Main choice: I left the tester's changes as they are. The alternative I rejected was to tidy their helpers (`_names`, `_append_to_list`, `_unlist_the_three`, `_list_by_looking`, `_list_without_looking`). Those are test files, and the coder never edits tests.
+
+   Refactor: my own diff outside `tests/` and `factory/` is empty, so there was nothing to refactor. Description: the journal did not change what the task means, so I left the Description as it is.
+
+   Noticed but not touched:
+   - The tester reported that a standalone `mypy` run flagged two errors in `tests/support/git_support.py`. `make types` inside `make check` is green, so those errors came from that run being made outside `make types`.
+   - The docs criterion (6) is still open for the docs stage: `docs/project-guide/shared.md` and the `check_documents_support.py` line in `docs/project-guide/README.md`.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
