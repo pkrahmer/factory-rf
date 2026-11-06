@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T12:26:32.244699Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-06T12:26:32.244699Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T12:27:04.684784Z'
+  stage: review
+  run: 098a51a1fe2e41a7898ea7988a1b74e5
 ---
 
 # The name check reads log files and git addresses
@@ -231,3 +233,20 @@ Expect: `0`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 16. factory: started review as vm.
+17. reviewer: no findings
+
+    I read the work item and the diff (`src/factory/shared/domain/documents.py`, `tests/shared/domain/test_document_references.py`, `tests/entry/test_check_documents_todays_names.py`) against the code on the branch.
+
+    - Criterion 1: `factory.x.log` and `factory.x.jsonl` are rows of the existing extensions loop, and the rows `file-name-log-bare` and `module-not-a-file-name` are in the criterion 1 test. `.log` and `.jsonl` are in `_FILE_NAME_EXTENSIONS` (`documents.py:104-115`).
+    - Criterion 2: `test_a_text_with_a_colon_before_its_first_slash_is_no_path` tests both sides of the Interface's colon rule as rows of one test: the two git addresses give no reference, and `tests/x.py::test_y` and `docs/a:b.md` stay paths. `_is_address` (`documents.py:458`) does what the Interface says. A text with a `:` and no `/` was already refused by the `/` test in `_is_path`. Node ids are still split at `::` before this check. The existing `web-address-in-backticks` row still covers `https://`, which used to go through the `_WEB_ADDRESS` check that `_is_address` replaces. `_WEB_ADDRESS` is still used in `_link_name` (`documents.py:489`), so the change leaves no dead code.
+    - Criterion 3: the reworked test calls `named_references` on the three real documents and builds `top_level` the same way `_name_findings` in `src/factory/entry/check_documents.py` does. It also asserts that each text is still in its document. I checked those documents: the texts are at `machine.md:540`, `install.md:72` and `cloud-run.md:108`. The round 0 finding (three full runs of `check_documents.main`) is fixed.
+    - Criterion 4: entry 15 records `check: green` on the current tree.
+    - Architecture and security: the change is a pure rule in the shared domain layer. It adds no I/O and no marker that silences a check.
+    - Quality: the new comment says why the rule exists, and the `named_references` docstring names the new rule.
+    - Work item: the Description, the Interface and the docs criterion match what was built. Entry 7 explains the main decision (one colon-before-first-slash rule replaces the `://` check inside `_is_path`) and what was rejected.
+
+    Notes:
+    1. `tests/entry/test_check_documents_todays_names.py`: the test now imports only `factory.shared.domain.documents`, so it sits under `tests/entry/` although it does not exercise `factory.entry.check_documents`. It would mirror the package better beside the other name-check tests in `tests/shared/domain/`. It also repeats the `top_level` set from `check_documents.py:104` and does not reuse it.
+
+    Earlier tests:
+    - `tests/shared/domain/test_document_references.py`: none needed. The change only adds rows (two extensions in the loop, plus `file-name-log-bare` and `module-not-a-file-name`) and one new test function, and keeps every earlier row as it was.
