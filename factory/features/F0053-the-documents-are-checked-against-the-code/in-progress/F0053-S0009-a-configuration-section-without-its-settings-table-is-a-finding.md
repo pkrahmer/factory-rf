@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T12:33:36.261079Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T12:33:36.253901Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:33:36.261079Z'
+  stage: intake
+---
+
 # A configuration section without its settings table is a finding
 ## Description
 
@@ -26,3 +53,6 @@ uv run python -c "from factory.shared.domain.documents import settings_findings;
 Expect: `['no settings table (first column Name or Variable) in Configuration']`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
