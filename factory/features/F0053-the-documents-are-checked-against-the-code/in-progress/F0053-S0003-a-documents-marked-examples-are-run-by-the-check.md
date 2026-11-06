@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:55:03.009670Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -157,6 +153,12 @@ journal:
   kind: started
   at: '2026-11-06T07:55:03.009670Z'
   stage: doing
+- number: 27
+  speaker: coder
+  kind: result
+  at: '2026-11-06T07:57:50.700464Z'
+  stage: doing
+  run: 9b822f0136004777a7fd72f5919d65a0
 ---
 
 # A document's marked examples are run by the check
@@ -464,3 +466,32 @@ Expect: `1`
     - `tests/guards/test_wrapper_search.py`: the human's leave, journal 17 (1).
     - `tests/support/check_documents_support.py`: the standing leave to move a shared test helper (`TIME_LINE` moved there, the earlier tests unchanged in name and in what they check).
 26. factory: started doing as vm.
+27. coder: I fixed the two code findings from the review (journal 25) and the Interface line. The remaining findings are test changes, so this goes to the tester. `make check`: check: green (coverage 99.18 %).
+
+    Code changes in `src/factory/shared/domain/documents.py`:
+    - Finding 3, `runs_the_suite`:
+      - It now reads only up to the first shell operator (`|`, `&`, `;`, `<`, `>`) in the command, through `_first_simple_command`.
+      - A word counts as a file only when it names a test path, meaning it holds a `/` or `.py` (`_names_a_test_path`).
+      - So `pytest -q 2>&1 | tail -5`, `pytest -k name` and `pytest -q` are now `suite`. `uv run pytest tests/a/test_b.py` and `pytest tests/a/test_b.py::t -q` are still run. I checked those cases by hand.
+      - I rejected the reviewer's other suggestion of a table of pytest options that take a value. Once a bare word no longer counts as a file, an option's value (the name after `-k`) is never one, so the table is not needed.
+      - The unused `_OPTION_MARK` constant is gone.
+    - Finding 4, `_commands`: it finds the `$ ` lines first. It then builds each `Command` with its complete `expected` slice, so no frozen model is changed after it is built.
+
+    Finding 6: in the work item's `## Interface`, I rewrote the "Tests:" line. It now names the four test modules, with the adapter test running real short commands in `tmp_path` with no containers. The Description itself is unchanged.
+
+    For the tester:
+    1. Criterion 8: add a row to `tests/shared/adapters/test_document_examples.py::test_a_command_whose_output_differs_gives_one_finding_and_one_that_matches_none`. Example: `echo hi` expecting `hi`, `more`, which gives `<document>:<line>: the example printed nothing more`.
+    2. Criterion 9: add rows to the two criterion 1 tests in `tests/shared/domain/test_document_examples.py`.
+       - Skipped as `suite`: `uv run make check`, `uv run make test`, `uv run pytest`, `pytest -q`.
+       - Run: `uv run pytest <file>`.
+    3. Finding 3: add `pytest -q 2>&1 | tail -5` and `pytest -k name` as `suite` rows of the criterion 1 skip test.
+    4. Finding 5, under the standing leave: move `FENCE = "```"` into a module in `tests/support/`. Import it in `tests/pipeline/domain/test_documents.py`, `tests/shared/domain/test_document_examples.py`, `tests/shared/adapters/test_document_examples.py` and `tests/entry/test_check_documents_examples.py`.
+    5. Optionally, the reviewer's note: a row showing that the default limit of `ProcessExampleRunner()` is 60 s.
+
+    Refactor: I reread the diff and found nothing more to change.
+
+    Noticed, not touched:
+    - `runs_the_suite` looks only at the first simple command, so `cd x && pytest` is run, not skipped. Neither the Interface nor the finding covers this case.
+    - `documents.py` is still large; the human left the split for later (journal 17).
+
+    The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0003-a-documents-marked-examples-are-run-by-the-check.md.

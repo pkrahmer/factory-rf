@@ -525,7 +525,9 @@ _FIXTURE_OPTION = "fixture="
 _SUITE_TARGETS = ("make check", "make test")
 _RUNNER_PREFIX = ("uv", "run")
 _PYTEST = "pytest"
-_OPTION_MARK = "-"
+_SHELL_OPERATORS = frozenset("|&;<>")
+_PATH_SEPARATOR = "/"
+_TEST_FILE_SUFFIX = ".py"
 
 
 class Command(BaseModel):
@@ -574,26 +576,42 @@ def _info_words(line: str) -> list[str]:
 
 
 def _commands(lines: Sequence[str], first: int) -> list[Command]:
-    commands: list[Command] = []
-    for index, line in enumerate(lines):
-        if line.startswith(_COMMAND_PROMPT):
-            command = line[len(_COMMAND_PROMPT) :]
-            commands.append(Command(line=first + index, command=command, expected=[]))
-        elif commands:
-            commands[-1].expected.append(line)
-    return commands
+    prompts = [index for index, line in enumerate(lines) if line.startswith(_COMMAND_PROMPT)]
+    ends = [*prompts[1:], len(lines)]
+    return [
+        Command(
+            line=first + start,
+            command=lines[start][len(_COMMAND_PROMPT) :],
+            expected=list(lines[start + 1 : end]),
+        )
+        for start, end in zip(prompts, ends, strict=True)
+    ]
+
+
+def _first_simple_command(command: str) -> str:
+    # What follows a pipe, a list operator or a redirection is not pytest's argument.
+    cut = next((index for index, char in enumerate(command) if char in _SHELL_OPERATORS), None)
+    return command if cut is None else command[:cut]
+
+
+def _names_a_test_path(word: str) -> bool:
+    return _PATH_SEPARATOR in word or _TEST_FILE_SUFFIX in word
 
 
 def runs_the_suite(command: str) -> bool:
-    """Whether `command` runs the whole test suite: `make check`, `make test`, a bare `pytest`."""
-    words = tuple(command.split())
+    """Whether `command` runs the whole test suite: `make check`, `make test`, a bare `pytest`.
+
+    A `pytest` runs the suite unless one of its words names a test path; an option's value,
+    such as the name after `-k`, names none.
+    """
+    words = tuple(_first_simple_command(command).split())
     if words[: len(_RUNNER_PREFIX)] == _RUNNER_PREFIX:
         words = words[len(_RUNNER_PREFIX) :]
     if " ".join(words[:2]) in _SUITE_TARGETS:
         return True
     if not words or words[0] != _PYTEST:
         return False
-    return all(word.startswith(_OPTION_MARK) for word in words[1:])
+    return not any(_names_a_test_path(word) for word in words[1:])
 
 
 def _skipped_kind(options: Sequence[str], commands: Sequence[Command]) -> str | None:
