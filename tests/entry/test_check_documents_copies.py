@@ -6,7 +6,12 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from support.check_documents_support import REPORT_HEADING, append_block, findings_from
+from support.check_documents_support import (
+    REPORT_HEADING,
+    append_block,
+    findings_from,
+    write_checked_list,
+)
 from support.git_support import run_git
 
 LISTED = "docs/project-guide/style.md"
@@ -14,9 +19,8 @@ UNLISTED = "docs/project-guide/shared.md"
 
 
 def _append_example(root: Path, document: str, command: str, output: str) -> int:
-    """Append a `console` block to `document`, list the listed page, commit; the block's line."""
-    if document == LISTED:
-        (root / "docs" / "checked-documents.txt").write_text(f"{LISTED}\n", encoding="utf-8")
+    """List only the listed page, append a `console` block to `document`; the block's line."""
+    write_checked_list(root, [LISTED] if document == LISTED else [])
     return append_block(root, document, "console", [f"$ {command}", output])
 
 
