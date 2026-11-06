@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T09:25:58.540243Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T09:25:56.045409Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:25:58.540243Z'
   stage: intake
 ---
 
@@ -85,3 +94,4 @@ Expect: `documents ok`
    5. Omitted: with nothing to report, the heading is not printed (one row).
    6. The whole backticked text that holds `$` is skipped. A pytest node id without `::` is read as before. And yes to the negative row: `factory.shared.domain.yml_reader` is still checked as a module.
    7. The smoke test's last line carries its time: `Expect: documents ok (<seconds> s)`.
+5. factory: started intake as vm.
