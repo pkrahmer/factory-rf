@@ -371,6 +371,18 @@ class GitCli(Git):
             found.extend(self._ignored_group(list(paths[start : start + IGNORE_GROUP])))
         return found
 
+    # Not an operation of `Git`: only the examples' checkout fixture copies a commit's files,
+    # and it holds a `GitCli`.
+    def export(self, ref: str, folder: Path) -> None:
+        """Write the files tracked at `ref` into `folder`, leaving the index and work tree alone."""
+        check_git_argument(ref)
+        with tempfile.TemporaryDirectory() as scratch:
+            index = Path(scratch) / "index"
+            self._run(["read-tree", ref], index=index)
+            # The prefix ends in a separator, so that git writes into the folder, not beside it.
+            prefix = f"{folder.absolute()}{os.sep}"
+            self._run(["checkout-index", "--all", f"--prefix={prefix}"], index=index)
+
     def work_tree_id(self, left_out: Sequence[str] = ()) -> TreeId:
         """Stage the work tree in a temporary index, drop the paths left out, write its tree."""
         with tempfile.TemporaryDirectory() as folder:

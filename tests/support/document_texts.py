@@ -22,6 +22,7 @@ DESTINATION_WORDS = {
     "pull_request": "pull request",
     "none": "no stop",
 }
+FENCE = "```"
 INSTALL_SECTIONS = ("Install", "Configuration")
 STOPS_SECTIONS = ("The stops",)
 PATH_7_TEST = "test_round_cap_question_killed_between_post_and_record_posts_once_and_waits"

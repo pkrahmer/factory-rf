@@ -22,6 +22,7 @@ from factory.shared.domain.documents import (
 )
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES, KillPointCase
 from support.document_texts import (
+    FENCE,
     INSTALL_SECTIONS,
     PATH_7_TEST,
     STOPS_SECTIONS,
@@ -35,7 +36,6 @@ from support.document_texts import (
     readme,
 )
 
-FENCE = "```"
 PATH_7_FINDING = f"fault-injection path 7 has no table row naming '{PATH_7_TEST}'"
 TEXT_GUIDES = (README, OPERATOR_GUIDE, *OPERATOR_GUIDE_FILES, PROJECT_GUIDE)
 

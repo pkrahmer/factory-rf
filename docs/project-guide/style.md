@@ -13,6 +13,56 @@ How the factory's documents read. The documenter writes to this page, and the re
 7. **Write the current truth only.** Write no changelog, no "since" and no "no longer". A removed behaviour goes from the text, with one line in the decision log.
 8. **Link a file of the repository by a relative link.** Write `[process.py](../../src/factory/shared/adapters/process.py)`, never a GitHub URL and never a link to a line (`#L42`). A code block holds no links, so link the file it shows once, above the block.
 
+## Runnable examples
+
+`make documents` runs the examples that a document marks as runnable. It is the check of the docs stage; `make check` does not run it. The marked examples cover the README and every file of the operator guide and the project guide.
+
+A runnable example is a fenced block whose info string is `console`. The blocks below are shown as `text` here, so that they are not run in every copy of this guide. A line that starts with `$ ` is a command. The lines below it, up to the next `$ ` line, are what it must print. Standard error counts as output.
+
+```text
+$ echo one
+one
+$ printf 'a\nb\n'
+a
+b
+```
+
+The commands of one document run in order in one new folder, so a file that the first block writes is there for the next one. Each command runs under `sh -c` with a fixed environment (`PATH`, `HOME` as an empty temporary folder, `TZ=UTC`, `LANG=C.UTF-8`) and nothing else. The folder is removed when the document is done. A command that runs past 60 seconds stops the document.
+
+The expected output must match line by line. Two placeholders loosen it:
+
+- `<name>` stands for any text inside one line. Use it for a time, an id or a path that changes from run to run.
+- A line that holds only `...` stands for any number of lines, none included.
+
+```text
+$ echo "took $((40 + 2)) s"
+took <seconds> s
+$ seq 1 100
+1
+...
+100
+```
+
+A finding says `<document>:<line>: the example printed <line>`, where the line is the first one that differs, or `the example printed nothing more` when the command printed fewer lines than the block holds.
+
+### The fixture
+
+The info string may name the starting point of the folder: `console fixture=<name>`. The only one today is `checkout`, which is also the default: a copy of the repository's tracked files at the checked commit. The commands never run in the real checkout. A name that does not exist is a finding, `no fixture <name>`.
+
+### Examples that are not run
+
+Add a mark to the info string for an example that needs more than the check container has:
+
+| Info string | The example needs |
+| --- | --- |
+| `console vm` | the factory's VM |
+| `console github` | the hosting service |
+| `console model` | an agent's model |
+
+A `vm` example comes from a real run, and the text above it says where it ran. A block that runs the whole suite (`make check`, `make test`, or `pytest` without a test file, also after `uv run`) is skipped without a mark, so that the docs stage does not grow with the suite. `uv run pytest <file>` is run.
+
+The report lists every skipped block as `<document>:<line>: not run (<kind>)`, with the kind `vm`, `github`, `model` or `suite`. A block with another info string, such as `markdown` or none, is never run.
+
 ## The operator guide
 
 The guide is in `docs/operator-guide/`. Its reader runs an [instance](glossary.md): installs it, configures it, watches it and fixes its [stops](glossary.md). They know Linux, git and a terminal. They do not read the code.

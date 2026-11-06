@@ -1,11 +1,13 @@
 """The documents command checks the operator guide's index and topic files in the repository."""
 
+import re
 from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
 from factory.entry.check_documents import main
+from support.check_documents_support import TIME_LINE
 
 GUIDE = "docs/operator-guide"
 
@@ -35,7 +37,7 @@ def _unchanged(root: Path) -> None:
 @pytest.mark.parametrize(
     ("change", "output", "exit_status"),
     [
-        pytest.param(_unchanged, "documents ok\n", 0, id="as-it-is"),
+        pytest.param(_unchanged, None, 0, id="as-it-is"),
         pytest.param(
             _without_heading("stops.md", "The stops"),
             "docs/operator-guide/stops.md: section 'The stops' is missing\n",
@@ -73,7 +75,7 @@ def test_the_operator_guide_folder_is_checked_per_file(
     capsys: pytest.CaptureFixture[str],
     *,
     change: Callable[[Path], None],
-    output: str,
+    output: str | None,
     exit_status: int,
 ) -> None:
     change(documents)
@@ -81,5 +83,8 @@ def test_the_operator_guide_folder_is_checked_per_file(
     status = main(["--root", str(documents)])
 
     printed = capsys.readouterr().out.splitlines(keepends=True)
-    assert "".join(line for line in printed if not line.endswith(" does not exist\n")) == output
+    if output is None:
+        assert re.fullmatch(TIME_LINE, printed[-1].rstrip("\n"))
+    else:
+        assert "".join(line for line in printed if not line.endswith(" does not exist\n")) == output
     assert status == exit_status
