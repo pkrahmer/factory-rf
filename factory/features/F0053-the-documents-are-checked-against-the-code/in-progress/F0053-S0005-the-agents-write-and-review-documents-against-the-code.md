@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T10:18:47.441792Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-06T10:18:47.441792Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T10:20:50.914764Z'
+  stage: review
+  run: b9ed440a59b343b186897dfbbece4a6d
 ---
 
 # The agents write and review documents against the code
@@ -286,3 +288,21 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 18. factory: started review as vm.
+19. reviewer: Findings:
+
+    1. `agents/agents/documenter.md`, Stage step 3: the shipped documenter serves every project, but the template project has no `documents` target in `operator/template/Makefile` and no `documents` command in `operator/template/factory/pipeline.yml`. A documenter there is told to end only on a line that it can never get. Fix: make the rule apply when the pipeline definition lists a `documents` command, in the same sentence that holds `make documents` and `documents ok`, so the test row still holds.
+    2. `agents/agents/documenter.md`, Stage step 3: the step gives two orders for one moment. It says "run `make documents` after your last edit" and then "run `make check` in the same command as your last edit", and fixing a `make documents` finding is another edit. Fix: one order, for example "in the same command as your last edit, run `make documents`, then `make check`".
+    3. `agents/agents/reviewer.md`, *Documents* item, line 3: "A command shown without a runnable example, or without one marked for the VM, GitHub or a model ..., is a finding" reads as an OR of two absences, so a runnable example with no mark becomes a finding. Fix: "A command shown with neither a runnable example nor one marked for the VM, GitHub or a model that names the real run it was copied from, is a finding".
+    4. `agents/agents/reviewer.md`, *Documents* item, line 1: the item names only `README.md` and files under `docs/`. It leaves out `operator/README.md`, which the documenter may write and which the docs-review scope reads. Fix: name `operator/README.md` too, or say "a document the documenter may write".
+    5. `tests/agent_files/test_claude_agent_texts_documents.py`, `_reviewer_checklist`: it cuts the `## Role` section out by hand with `body.index("\n## Role\n")` and `body.index("\n## Stage\n")`. That copies `factory.shared.domain.sections.section_text`, which `stage_section` in `tests/support/shipped_agents.py` already uses. Fix (tester): `section_text(agent_body("reviewer"), "Role")`, or a `role_section` beside `stage_section` in `tests/support/shipped_agents.py`.
+    6. Work item, criterion 11 (the docs criterion): it names only how the documenter and the reviewer treat documents. The story also gives `agents/agents/intake.md` its new step 4 (a docs criterion that dictates sentences is a question) and renumbers steps 5 to 7. A reader of `docs/project-guide/agents.md` must know that too. Fix: the docs criterion also names the intake's question on a docs criterion that dictates sentences.
+
+    Checked and fine:
+    - Criteria 1 to 9 each have a row in `tests/agent_files/test_claude_agent_texts_documents.py`, and I read each row against the text it pins. The sides of each rule are rows of one parametrized test.
+    - The coder's `make check` was green (journal entry 17).
+    - No `src/` change, so there is nothing for the architecture or security groups. No suppression markers.
+    - The Description matches what was built.
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py`: the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name and only also strips the `### Documents` item.
+    - `tests/agent_files/test_claude_agent_texts_mutants.py`: the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name and only skips the `### Documents` item. Nothing else in the module changed.
