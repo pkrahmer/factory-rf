@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -69,6 +69,11 @@ journal:
   at: '2026-11-06T13:17:34.559167Z'
   stage: docs-review
   run: 5004f4a1358b49ff90fd8a00574fcb85
+- number: 12
+  speaker: factory
+  kind: done
+  at: '2026-11-06T13:18:24.457429Z'
+  stage: docs-approval
 ---
 
 # The guides say what shapes the checks read
@@ -187,3 +192,4 @@ Expect: a number greater than `0`
     Criteria 1, 2 and 5 are met. For criteria 3 and 4 I take the documenter's reported `documents ok (0.6 s)` and the factory's `check: green`.
 
     no findings
+12. factory: done (pull request merged); cost: 5 runs, 3.3 min, 34 turns, 142994 tokens in (666524 more from cache), 16905 out, $1.26
