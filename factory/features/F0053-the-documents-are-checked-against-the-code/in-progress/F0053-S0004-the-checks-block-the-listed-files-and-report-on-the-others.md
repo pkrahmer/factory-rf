@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:48:04.374627Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-06T09:48:04.374627Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:52:17.357077Z'
+  stage: doing
+  run: 6e23f00664b84d69864f89f02d36d35b
 ---
 
 # The checks block the listed files and report on the others
@@ -387,3 +389,22 @@ Expect: `documents ok (<seconds> s)`
 
     `lint`: lint: green (0.1 s)
 24. factory: started doing as vm.
+25. coder: I changed no code this round. The tester's changes in entry 23 cover review findings 1, 2 and 4: there are new tests for criteria 11 and 12, and `ROOT` now comes from `tests/support/operator_support.py`. Those tests pass against the code already committed in 2b6135a73. `make check` is green: test 103.6 s, coverage 99.22 %.
+
+    What I built (from the earlier doing rounds, unchanged):
+    - `src/factory/shared/domain/documents.py`:
+      - The name check reads three kinds of text more exactly: a backticked text that holds `$`, a pytest node id, and a `factory.` file name.
+      - New: `read_checked_documents`, `checked_list_findings`, `GatedFinding`, `SplitFindings` and `split_findings`.
+    - `src/factory/entry/check_documents.py`:
+      - Blocking lines print first, then the report under its heading, and the time line only when nothing blocks.
+      - A missing list file counts as an empty list.
+
+    Refactor: nothing needed changing. The code is the same as when I refactored it in entry 17, and this round's changes were all in tests.
+
+    Main decision (unchanged): each finding of the new checks carries its document as a field, and `split_findings` uses that field to decide whether it blocks. Rejected: parsing the `doc:line:` prefix of the printed lines.
+
+    Open, not touched:
+    - Review finding 3 is still open. The `## Description`'s docs criterion (14) does not name `docs/checked-documents.txt`, the file to write with `docs/project-guide/style.md` and `docs/project-guide/glossary.md`. My rewrite in entry 21 was dropped because the work item is outside the coder's write paths. Whoever may edit the Description has to add it, or the documenter has to take it from journal entry 11. Otherwise the first list that the Interface and the smoke test rely on is never written. Until it is written, the command passes because it treats the missing list as an empty one.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
