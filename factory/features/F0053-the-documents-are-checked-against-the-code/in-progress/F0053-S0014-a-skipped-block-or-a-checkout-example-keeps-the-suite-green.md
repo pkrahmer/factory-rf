@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T14:21:49.154527Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-06T14:21:49.154527Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-06T19:19:47.391824Z'
+  stage: doing
+  run: da126ef6792a435291a998ef48ae5922
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -152,3 +154,21 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: I built nothing. The Interface puts this story's whole change in test files and forbids any change under `src/factory/`. The tester wrote all of it: `tests/conftest.py`, `tests/entry/test_check_documents_operator_guide.py`, `tests/entry/test_check_documents_suite_copy.py`, `tests/support/check_documents_support.py` and `tests/support/documents_copy_support.py`. The working tree has no change of mine.
+
+    What I did:
+    - Ran `make check` on the branch. It is green: `test: green (105.6 s)`, then `check: green`, with coverage at 99.22 %.
+    - Measured the `make test` time the Interface asks for. Before: 106.8 s, from `make test` in a throwaway clone of `main` in a `mktemp -d` directory (`test: green (106.8 s)`). After: 105.6 s on this branch. The session-scoped copy adds no measurable time, well inside the allowed ten seconds.
+
+    Main choice: I measured "before" on a separate clone of `main`. The alternative I rejected was swapping `main`'s tests into this working tree, which would have meant touching tests and risked leaving them behind.
+
+    Refactor step: nothing to change. My diff against `main` holds only tests, and the coder does not edit tests.
+
+    Noticed, not touched:
+    - I could not delete the throwaway clone `/tmp/tmp.713FltQTdB`: the `rm -rf` was denied. It is a temporary directory outside the repository and goes with the stage.
+    - Journal entry 8 reads criterion 2 as counting only the `machine.md` lines at or after the appended block's opening fence. The reason is that today's `machine.md` already gives two `does not exist` lines in the full copy. The reviewer may want to confirm that reading.
+
+    The journal changed nothing in the Description beyond the criterion intake already added.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
