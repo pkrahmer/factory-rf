@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T11:41:17.936338Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T11:41:12.322650Z'
   stage: intake
   run: 3db6db9d613343e99367272a983ab60b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:41:17.936338Z'
+  stage: tests
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -75,3 +84,4 @@ Expect: `1`
    - Docs criterion: it names what the reader must know (the examples run in the tests' copies, and a wrong example fails the suite only in a listed file). It dictates no sentences.
    - Architecture: only test code changes. The fixture stays in `tests/conftest.py` and reuses the shared git helpers instead of a new copy.
    - Scope: it is within F0053 (runnable examples, S0003/S0006) and outside its "Out of scope". The changes to the S0002 and S0003 tests are covered by decision 6.
+4. factory: started tests as vm.
