@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T00:22:52.529261Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-06T00:22:52.529261Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-06T00:25:02.378701Z'
+  stage: tests
+  run: b0bf8f8aaad043e19a1c60514975b865
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -320,3 +322,25 @@ Expect: `True True False`
 
     I did not run `make check` in this run, because no code changed. It was green after entry 14.
 22. factory: started tests as vm.
+23. tester: I made the test changes the coder listed in entry 21. They cover the human's answer (a) in entry 19 and findings 1 to 3 of entry 16.
+
+    - **Deletion (human's leave, entry 19):** I deleted `tests/pipeline/adapters/test_pipeline_yaml.py::test_position_is_the_index_in_the_stages` and changed nothing else in that module. No test or code under `tests/` or `src/` calls `.position(` any more, so the coder can now remove `PipelineDefinition.position`.
+    - **Finding 1 (standing leave to move a shared test helper):** I created `tests/support/before_approval_support.py` with `ROLES`, `FIXTURE` and `without_approval()`. I moved them out of `tests/work/domain/test_acceptance_before_approval.py`, which now imports `FIXTURE` and `without_approval` from there. The import is aliased `definition_without_approval` because the test's parameter `without_approval` would shadow it. Every earlier test keeps its name and checks the same thing. `FIXTURE`'s roles are the same `ROLES` dict as before.
+    - **Finding 1, second module:** `tests/work/domain/test_acceptance_before_approval_routes.py` now takes `ROLES` from the new support module. I dropped its copies of `ROLES`, `SINGLE_ROUTE` and `WITHOUT_APPROVAL`.
+    - **Finding 2:** `SHIPPED` is now `RuamelPipelineDefinitionReader().parse(TWO_ROUTES)`, from `tests/support/two_routes_support.py`, so the stage list has one source. The guard of area imports passes with the pipeline adapter import.
+    - **Finding 3:** I removed `test_the_single_route_keeps_its_results` and the duplicate `test_an_unknown_stage_or_a_definition_without_approval_is_refused` from the routes module.
+
+    Criterion mapping after these changes. Criteria 2 and 4 now map to the earlier tests; criteria 1, 3 and 5 are unchanged from entries 5 and 12:
+    - criterion 2: tests/work/domain/test_acceptance_before_approval.py::test_only_a_stage_before_the_first_approval_is_before_approval
+    - criterion 4: tests/work/domain/test_acceptance_before_approval.py::test_an_unknown_stage_or_a_definition_without_approval_is_refused
+
+    **Files:**
+    - Created: `tests/support/before_approval_support.py`.
+    - Changed: `tests/pipeline/adapters/test_pipeline_yaml.py` (another story's, under the human's leave in entry 19), `tests/work/domain/test_acceptance_before_approval.py` (another story's, under the standing leave) and `tests/work/domain/test_acceptance_before_approval_routes.py` (this story's).
+    - The test run imported every module.
+
+    **Run:** `uv run pytest -q` passed on the three changed modules plus `tests/guards/test_areas.py` and `tests/guards/test_shared_imports.py`. The first try failed in `test_an_unknown_stage_or_a_definition_without_approval_is_refused[no-approval-stage]` with `TypeError: 'bool' object is not callable` (the shadowing), and the alias fixed it. `make lint` is green (`lint: green (0.1 s)`).
+
+    **For the docs stage:** besides `tests/support/two_routes_support.py` (entry 8), the *Shared test helpers* list in `docs/project-guide/README.md` should also name the new `tests/support/before_approval_support.py`.
+
+    `lint`: lint: green (0.2 s)

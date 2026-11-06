@@ -75,11 +75,6 @@ def test_role_of_an_unknown_stage_raises_key_error() -> None:
         _parse(PIPELINE_YAML).role_of("nowhere")
 
 
-@pytest.mark.parametrize(("stage", "index"), [("intake", 0), ("tests", 1), ("done", 8)])
-def test_position_is_the_index_in_the_stages(stage: str, index: int) -> None:
-    assert _parse(PIPELINE_YAML).position(stage) == index
-
-
 def test_left_out_keys_with_defaults_take_them() -> None:
     role = _parse(PIPELINE_YAML).roles["coder"]
     definition = _parse(MINIMAL)
