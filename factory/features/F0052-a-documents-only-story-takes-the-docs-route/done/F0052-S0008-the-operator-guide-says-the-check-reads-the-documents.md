@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -69,6 +69,11 @@ journal:
   at: '2026-11-06T01:37:06.444420Z'
   stage: docs-review
   run: 65c8f9ab2e3846ed9e371b8ebe080131
+- number: 12
+  speaker: factory
+  kind: done
+  at: '2026-11-06T01:39:02.127660Z'
+  stage: docs-approval
 ---
 
 # The operator guide says that the check reads the documents
@@ -190,3 +195,4 @@ Expect: `documents ok`
     - The "Two warnings" bullet about `secrets` may be stale.
     - The advice "never a whole folder" sits beside the project's own whole-folder patterns.
     The next feature rewrites that part of `pipeline.md`.
+12. factory: done (pull request merged); cost: 5 runs, 2.6 min, 31 turns, 94633 tokens in (543679 more from cache), 12814 out, $0.82
