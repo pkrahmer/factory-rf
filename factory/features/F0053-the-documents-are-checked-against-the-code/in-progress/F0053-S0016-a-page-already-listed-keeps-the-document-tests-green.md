@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T20:30:01.702658Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T20:30:01.695722Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:30:01.702658Z'
+  stage: intake
+---
+
 # A page already listed keeps the document tests green
 ## Description
 
@@ -33,3 +60,6 @@ PATH="$OLDPWD/.venv/bin:$PATH" python -m pytest -p no:cacheprovider -o addopts= 
 Expect: the first command prints `documents ok (<seconds> s)`. The second prints a last line `<n> passed in <seconds>s`, with no `failed` in it. Before this story the module `tests/entry/test_check_documents_any_list.py` alone gives `1 failed, 5 passed` on the same copy.
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
