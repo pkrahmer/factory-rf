@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-06T12:51:18.366279Z'
   stage: smoke-test
   run: 7edf5f38962b4727ab1d3ceb4d72aaf7
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-06T12:53:10.153911Z'
+  stage: approval
 ---
 
 # A configuration section without its settings table is a finding
@@ -344,3 +349,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
     Against the acceptance criteria: the output is what criterion 1 asks for when there are no counting tables and `SETTINGS` is not empty. The smoke test does not contradict any other criterion. It does not touch criteria 2, 3, 4 or 5. The docs stage's entry 19 records that `make documents` ended `documents ok` and `make check` was green.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 10.5 min, 64 turns, 213081 tokens in (1339937 more from cache), 25685 out, $2.29
