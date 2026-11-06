@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T02:30:59.910503Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-06T02:30:48.496434Z'
   stage: doing
   run: 586c5ff44cb64dac885b5e8fceee37e6
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:30:59.910503Z'
+  stage: review
 ---
 
 # Every name a document writes in backticks exists
@@ -271,3 +280,4 @@ Expect: a number alone (the count of findings, possibly `0`)
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+18. factory: started review as vm.
