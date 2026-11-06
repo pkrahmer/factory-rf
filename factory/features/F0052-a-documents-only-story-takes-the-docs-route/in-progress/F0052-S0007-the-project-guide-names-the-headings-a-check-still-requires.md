@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:07:33.823330Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -43,6 +47,11 @@ journal:
   stage: docs-only
   run: 72aaf13cd7104c129d4150af504c851a
   reason: check_red
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:07:33.823330Z'
+  stage: docs-only
 ---
 
 # The project guide names the headings a check still requires
@@ -105,3 +114,4 @@ Expect: `documents ok`
    ======================================================================================= short test summary info ========================================================================================
    FAILED tests/guards/test_project_guide_files.py::test_the_guide_holds_the_index_and_its_named_files - AssertionError: assert ['missing: ## The files'] == []
    make: *** [Makefile:89: test] Error 1
+7. factory: started docs-only as vm.
