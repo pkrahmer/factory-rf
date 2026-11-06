@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T00:17:52.792155Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-06T00:17:47.372125Z'
   stage: review
   run: a45988830328409587a7023e4ea698f8
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:17:52.792155Z'
+  stage: doing
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -249,3 +258,4 @@ Expect: `True True False`
 
     Earlier tests:
     - `tests/pipeline/application/test_docs_route.py`: changed under two leaves. Its `TWO_ROUTES` moved to `tests/support/two_routes_support.py` under the standing leave to move a shared test helper. The row `("acceptance", False)` became `("acceptance", True)` in `test_only_the_docs_routes_working_stages_lie_before_the_approval`, under the human's leave: feature decision 7, named in the story's Interface. No other change.
+17. factory: started doing as vm.
