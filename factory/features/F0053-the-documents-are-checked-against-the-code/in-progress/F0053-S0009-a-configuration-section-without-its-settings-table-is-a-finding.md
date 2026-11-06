@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T12:33:36.261079Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T12:33:36.261079Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T12:33:51.353640Z'
+  stage: intake
+  run: 729e9be60e814337a2697a060c9eea1b
 ---
 
 # A configuration section without its settings table is a finding
@@ -56,3 +58,10 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `factory.shared.domain.documents.settings_findings(guide_tables, settings)`, which exists (documents.py:250), with the exact finding text, the empty-settings case, and the unchanged `check_documents`. It also names the earlier tests it changes: `test_guide_without_a_settings_table_gives_no_settings_finding` and `clean_texts` in `tests/entry/test_check_documents.py`. Feature decision 6 gives the leave.
+   - Criteria: 1 covers both sides (no counting table with settings gives the finding; empty settings gives none), including a `Setting`-headed table. 2 covers the passing side with a counting table. 3 covers today's guide. Each is testable by one test function.
+   - Smoke test: the command is runnable. Its `Expect:` is an exact printed list, so it can be checked. It does not run pytest, so the `-q` rule does not apply.
+   - Docs criterion: it names what the reader must know (a guide without a counting table is a finding, not a silent pass) and in which section. It dictates no sentences.
+   - Architecture: the change is in the shared domain layer. It is pure, with no I/O.
+   - Scope: within the feature's settings check (S0002) and its decision 6. It is not in the feature's "Out of scope". The route is `tests` because the Interface changes `src` code.
