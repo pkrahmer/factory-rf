@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T08:05:29.838301Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -192,6 +196,11 @@ journal:
   at: '2026-11-06T08:05:24.311288Z'
   stage: review
   run: d6ca9489170043eb85f87364fe2a7c5a
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:05:29.838301Z'
+  stage: doing
 ---
 
 # A document's marked examples are run by the check
@@ -605,3 +614,4 @@ Expect: `1`
     - `tests/support/check_documents_support.py`: the standing leave to move a shared test helper (`TIME_LINE`).
     - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`FENCE`).
     - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper. Its local `FENCE` was replaced by the shared one, and every test keeps its name and what it checks.
+34. factory: started doing as vm.
