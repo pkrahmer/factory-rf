@@ -24,17 +24,19 @@ $ make check
 check: green
 ```
 
-3. Prepare the machine with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`. It is the way to run an instance: it makes the VM with the dataset, installs the factory and its service, and builds the stage image, which carries the agent runtime and the pinned tools. The preflight checks the dataset and the image (see "The preflight's items" in [health.md](health.md)). See "The machine" in [machine.md](machine.md).
+3. Prepare the machine with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`. It is the way to run an instance. It prepares a fresh Ubuntu 24.04 machine: the packages, the ZFS pool and dataset, the factory's checkout with its virtual environment, the image identity file `image-id`, the environment file `factory.env` and the systemd unit. The preflight checks the dataset and the stage image (see "The preflight's items" in [health.md](health.md)). See "The machine" in [machine.md](machine.md).
 
-4. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
+4. Build the stage image, which carries the agent runtime and the pinned tools, before the instance starts. See "The stage image" in [machine.md](machine.md).
 
-5. Start the instance with `factory-run`. It reads the same environment as `factory-watch`. If it refuses, see "When the process refuses to start".
+5. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
+
+6. Start the instance with `factory-run`. It reads the same environment as `factory-watch`. If it refuses, see "When the process refuses to start".
 
 ## Configuration
 
 The tables below list every variable the factory reads. A variable that is unset or holds only spaces counts as unset, and takes its default. A variable that is required and unset is refused (see *The refusals*).
 
-Every path is absolute. The examples below are from the VM that `operator/vm/setup.sh` makes, where `<instance>` is the instance's name.
+The path variables named in *The refusals* must be absolute. The examples below are from the VM that `operator/vm/setup.sh` makes, where `<instance>` is the instance's name.
 
 The factory reports the first fault it finds. The order is in the *Reference*, under *The order of faults*.
 
@@ -58,8 +60,8 @@ The two commit-identity variables are decided one by one: a half that is unset f
 | Name | What it does | Default | Example |
 |---|---|---|---|
 | `FACTORY_TOKEN_FILE` | The file that holds the hosting-service token. It is needed for `factory-run` to start. See "The hosting-service token" in [health.md](health.md). | none | `/home/factory/.secrets/hosting-token` |
-| `FACTORY_CLAUDE_LOGIN_FILE` | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. See "The agent runtime" in [agent-runtime.md](agent-runtime.md). | none | `/home/factory/.secrets/claude-token` |
-| `FACTORY_API_LOGIN_FILE` | The file that holds the agent's Anthropic API key, as plain ASCII text. A key in it wins over the token. | none | `/home/factory/.secrets/anthropic-api-key` |
+| `FACTORY_CLAUDE_LOGIN_FILE` | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. See "The agent's login token" in [agent-runtime.md](agent-runtime.md). | none | `/home/factory/.secrets/claude-token` |
+| `FACTORY_API_LOGIN_FILE` | The file that holds the agent's Anthropic API key, as plain ASCII text. A key in it wins over the token. See "The agent's API key" in [agent-runtime.md](agent-runtime.md). | none | `/home/factory/.secrets/anthropic-api-key` |
 | `FACTORY_IMAGE_ID_FILE` | Required for `factory-run` and `factory-watch`. The file that holds the identity of the stage image the instance runs on. Renew it after every build of the image (see "The stage image" and "The rebuild after a merge" in [machine.md](machine.md)). | none | `/srv/factory/<instance>/image-id` |
 
 ### The agent runtime
@@ -121,7 +123,7 @@ See *The idle shutdown* under "The machine" in [machine.md](machine.md).
 | Refusal | When it happens |
 |---|---|
 | `<variable>: missing` | A required variable is unset or blank. For `FACTORY_DATASET`, `FACTORY_SNAPSHOT_BASE`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` it is raised when `factory-run` starts. The order is: with `zfs` the dataset, the workspace, the image. With `copy` it is the base, the workspace, the image. |
-| `<variable>: is not an absolute path` | A path variable holds a relative path. |
+| `<variable>: is not an absolute path` | A path variable holds a relative path. This covers the checkout, the state directory, the workspace, the transcript folder, the agent home, the image identity file, the provider file, the CA bundle and the snapshot base. The token file and the two login files are not checked for it. |
 | `<variable>: names more than one repository` | `FACTORY_REPOSITORY_URL` holds whitespace or a comma. |
 | `<variable>: holds a password; use the token file` | `FACTORY_REPOSITORY_URL` holds a user name and a password before the `@`. |
 | `<variable>: is not a name` | `FACTORY_INSTANCE` does not match the rule of its row. |
@@ -187,7 +189,7 @@ With `FACTORY_IDLE_SHUTDOWN_MINUTES` set, the loop also counts its idle ticks in
 
 ### The checkout is cloned when it is missing
 
-The checkout lies where `FACTORY_CHECKOUT` names. When that directory has no `.git`, the instance clones the repository into it. A checkout that has a `.git` is kept as it is: the factory does not check it, does not clone it again and removes no repository nested in the work tree. What an agent can reach is bounded by the container it runs in (see "What the container can and cannot see" in [machine.md](machine.md)), not by checks on the checkout.
+The checkout lies where `FACTORY_CHECKOUT` names. When that directory has no `.git`, the instance clones the repository into it. A checkout that has a `.git` is kept as it is. The factory does not check it, does not clone it again and removes no repository nested in the work tree. What an agent can reach is bounded by the container it runs in (see "What the container can and cannot see" in [machine.md](machine.md)), not by checks on the checkout.
 
 A folder with files and no `.git` is refused: git will not clone into a non-empty directory, and the iteration fails. Delete the checkout directory and let the next iteration clone it again. The checkout is disposable (see "The stops of the tick" in [stops.md](stops.md)), so nothing is lost.
 
@@ -212,9 +214,7 @@ A project whose `check` scans for secrets, with the template's `make secrets` or
 
 No stage and no agent runs `make mutants`. Mutation testing runs only as sweeps outside the factory, which the human starts on a fresh copy in a throwaway container. Every run makes `mutants/` anew. The template's `CLAUDE.md` and `Makefile` say the same: `make mutants` is for a sweep by hand. A coder's entry has no `mutants` line, and the [acceptance](../project-guide/glossary.md)'s check 3, *Mutation testing*, says `By sweep, not run here.`
 
-A sweep's command is:
-
-Run `make mutants MODULES=factory.pipeline.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2`. It is not run in the documents, and no real sweep backs it.
+A sweep's command is `make mutants MODULES=factory.pipeline.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2`. Its variables are:
 
 | Name | What it does | Default | Example |
 |---|---|---|---|
@@ -224,9 +224,7 @@ Run `make mutants MODULES=factory.pipeline.application MUTANTS_SECONDS=7200 MUTA
 
 Every run starts with mutmut's stats over the whole suite in one process. That is the cost to plan for: about three minutes on 20 cores, and 4.5 to 19 minutes on two cores. On top of that each mutant costs about a fifth of a second on 20 cores. The recipe sets no stop unless `MUTANTS_SECONDS` is given.
 
-A `MUTANTS_SECONDS` below the stats checks no mutant, and the run then fails with `mutants: stopped after <n> s, so the mutants it did not reach are not checked`. So `MUTANTS_SECONDS` must cover the stats plus the mutants' time:
-
-Run `make mutants MODULES=<module> MUTANTS_SECONDS=1500`. It is not run in the documents, and no real sweep backs it.
+A `MUTANTS_SECONDS` below the stats checks no mutant, and the run then fails with `mutants: stopped after <n> s, so the mutants it did not reach are not checked`. So `MUTANTS_SECONDS` must cover the stats plus the mutants' time, as in `make mutants MODULES=<module> MUTANTS_SECONDS=1500`.
 
 ## Reference
 

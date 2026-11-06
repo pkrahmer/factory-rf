@@ -1,17 +1,13 @@
 ---
 stage: docs-only
-blocked: null
+blocked: question
 round: 2
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T21:58:17.600265Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,13 @@ journal:
   kind: started
   at: '2026-11-06T21:58:17.600265Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: question
+  at: '2026-11-06T21:58:55.440004Z'
+  stage: docs-only
+  run: 79de3ed9565f48d08a1ae1b34d66225e
+  blocked: question
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -255,3 +258,29 @@ Expect: `1`
 
     Open, outside this diff: `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table. That is now false. It belongs to that file's story or to the human.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's findings 1, 2, 4 and 5 in `docs/operator-guide/install.md` and part of finding 3. `make documents` ends `documents ok (1.8 s)`. I ran no `make check`, because I changed only documents. Finding 3 needs the human's decision (question below).
+
+    Files changed:
+    - `docs/operator-guide/install.md`: the fixes below. `docs/checked-documents.txt` is unchanged.
+
+    Findings by number:
+    1. Step 3 now says what `setup.sh` does, from its header (setup.sh:2-6): it prepares a fresh Ubuntu 24.04 machine (the packages, the ZFS pool and dataset, the factory's checkout with its virtual environment, `image-id`, `factory.env` and the systemd unit). It no longer says it builds the stage image or "makes the VM". The long sentence is split. A new step 4 builds the stage image and points to "The stage image" in `machine.md`. The old steps 4 and 5 are now 5 and 6.
+    2. "Every path is absolute" became "The path variables named in *The refusals* must be absolute". The refusal row now lists what it covers: the checkout, the state directory, the workspace, the transcript folder, the agent home, the image identity file, the provider file, the CA bundle and the snapshot base. It says the token file and the two login files are not checked for it.
+    3. In part. I removed the dangling colon and the two meta sentences ("It is not run in the documents, and no real sweep backs it"). The two `make mutants` commands are now plain inline code in prose, and they are not runnable and not marked `console vm`.
+    4. The login-token row points to "The agent's login token" and the API-key row to "The agent's API key", both in `agent-runtime.md`.
+    5. The sentence about a checkout with a `.git` is split after "kept as it is".
+
+    Question for the human, on finding 3: no stage can run a mutation sweep, because only the human starts one, so I have no real run to copy into a `console vm` block. How should the two `make mutants` commands (the sweep command and the `MUTANTS_SECONDS` example) be shown? The options:
+    - (a) You paste a real sweep's output, and I make each command a `console vm` block from it.
+    - (b) You accept an inline command in prose, as it stands now and as the style page's own Install example writes `setup.sh` inline. This is the one I would choose.
+    - (c) A form you name.
+    With (b) the story can go on to `docs-review` as it is.
+
+    Cross-read and found current: the links from `stops.md`, `machine.md`, `health.md` and `agent-runtime.md` to the headings of `install.md`. I kept all four of those headings.
+
+    Stale text that is not mine to fix:
+    - `docs/operator-guide/README.md` still has the "Replaced in v1.2" and "Replaced from v1" sections.
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column and no refusal table, which is false now.
+    - `docs/operator-guide/agent-runtime.md:57` names "F0043" and links to install.md's "The stage environment" under *Configuration*, a heading that I could not find in the new file. The link text was already there before this story, but check it. The reviewer or the story for that file should look at it.
+
+    Found in the check, for the coder and not part of this story: the documents check crashes on a fenced block that is indented under a numbered step (`documents.py:681`, `ValueError: zip() argument 2 is longer than argument 1`). So the blocks in `install.md` sit at column 0.
