@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T01:47:30.468956Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T01:47:30.468956Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:50:20.915353Z'
+  stage: docs-only
+  run: b1b29fa931b64592b8ccf29fd6d1ea7c
 ---
 
 # The project guide says which lines of its index name a page
@@ -156,3 +158,8 @@ Expect: `documents ok`
     Rejected as findings:
     - The first new sentence ("It reads a list item … ends in a full stop.") has about 30 words but only one idea. It stood unchanged in round 0, where it was not flagged.
 12. factory: started docs-only as vm.
+13. documenter: Round 2, fixing the reviewer's one finding. Changed `docs/project-guide/README.md`, `## The files`, the paragraph that names the guard: I split the 35-word sentence in two. The first says every other list item starts with a word, plain or in italics. The second says a list item that starts with a name in backticks, such as `## The files`, is read as a page, and the guard fails when no such page exists. That removes the backwards "so that" clause. I ran `make documents` (documents ok) and `tests/guards/test_project_guide_files.py` (3 passed). I did not run `make check`, because I changed only a document. I touched no code or test. Cross-read: the rest of `docs/project-guide/README.md` is current. I saw no stale text outside this story. No `docs/decisions.md` entry was written, so there is no Why or Rejected line to flag.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok
