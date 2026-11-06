@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T13:04:34.772098Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-06T13:04:34.772098Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T13:05:11.293908Z'
+  stage: smoke-test
+  run: 92decdcd43a14254b60e925686c12190
 ---
 
 # The example runner's tests use the roomy limit
@@ -226,3 +228,27 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
 15. factory: started smoke-test as vm.
+16. smoke-tester: Smoke test passed. I ran both commands from the repository root, exactly as written and in order, and found nothing.
+
+    Command 1: `grep -rc --include="*.py" "Report (not checked yet):" tests | grep -v ":0$"`
+    ```
+    tests/support/check_documents_support.py:1
+    ```
+    Met its Expect line (`tests/support/check_documents_support.py:1`).
+
+    Command 2: `uv run pytest tests/shared/adapters/test_document_examples.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met its Expect line (`1`).
+
+    Criteria re-read against what the smoke test showed, with a few read-only greps:
+    - Criterion 1: `grep -c ELAPSED_BOUND_SECONDS` on `tests/shared/adapters/test_document_examples.py` prints `0`. The shared runner fixture is built with `ROOMY_LIMIT` (`:60`). Only the time-limit test builds a runner with `SHORT_LIMIT_SECONDS` (`:116`), and its elapsed check uses `ROOMY_BOUND_SECONDS` (`:125`).
+    - Criterion 2: command 1 shows that the text is written once, in the support module.
+    - Criterion 3: `tests/entry/test_check_documents_checked_files.py` imports `CHECKED_DOCUMENTS` and holds no `docs/checked-documents.txt` literal.
+    - Criterion 4: `tests/hosting/adapters/test_instance_fixture.py` imports `SETTINGS_FILE` from `factory.hosting.adapters.instance_fixture` and holds no `factory.env` literal.
+    - Criteria 5 to 7: command 2 passed, and the smoke test contradicts none of them. I did not run `make check` again; it was green in journal 10.
+
+    Findings: none.
+
+    Still open, and not a finding: `tests/entry/test_check_documents_copies.py:20` still writes the literal `docs/checked-documents.txt`. No criterion covers it, and earlier stages named it already.
