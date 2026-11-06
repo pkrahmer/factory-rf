@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T02:07:39.823711Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T02:07:39.817288Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:07:39.823711Z'
+  stage: intake
+---
+
 # Every name a document writes in backticks exists
 
 ## Description
@@ -28,3 +55,6 @@ uv run python -m factory.entry.check_documents | grep -c "does not exist" | awk 
 Expect: `counted`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
