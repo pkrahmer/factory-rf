@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T00:51:08.875378Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T00:51:03.971598Z'
   stage: intake
   run: 71ab526ab9ea4ca589b70a3b8a26b860
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:51:08.875378Z'
+  stage: tests
 ---
 
 # The docs reviewer judges by the style page alone
@@ -73,3 +82,4 @@ Expect: `1`
    - Architecture: the change touches agent text and a test under `tests/agent_files/`, which is where agent file tests belong. It adds no code and no layer.
    - Scope: the story falls within F0052's goal and decision 8. It touches nothing in "Out of scope". The operator guide is explicitly left to the next feature.
    Route: `tests`. `agents/agents/reviewer.md` is not a path the documenter may write.
+4. factory: started tests as vm.
