@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 1
 attempts: 1
 crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T11:53:49.646720Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,13 @@ journal:
   kind: started
   at: '2026-11-06T11:53:49.646720Z'
   stage: tests
+- number: 18
+  speaker: tester
+  kind: question
+  at: '2026-11-06T11:54:16.030113Z'
+  stage: tests
+  run: 1936cc9a6ea14298bcdb59b9d1b3a4a2
+  blocked: question
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -276,3 +279,15 @@ Expect: `1`
 
     Noticed, not touched: other tests in that file that copy `ROOT` with `_NOT_COPIED` may need the same change when they list style.md. In my run, only this one failed.
 17. factory: started tests as vm.
+18. tester: Round 1, tests stage, in the mode for a test change the human approved. I made no change. The coder's entry 16 names the change, but no answer from the human approves it. I can't tell whether the existing leave covers it, so I am asking.
+
+    The change entry 16 names: in `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass`, after it writes `docs/checked-documents.txt` into its copy of the repository, turn the copy into a git repository with one commit of every file. It would use `run_git(copy, "init", "-q")` and `commit_all(copy, ...)` from `tests/support/git_support.py`, the same way the `documents` fixture in `tests/conftest.py` now does. The test keeps its name and its three assertions.
+
+    Why I stopped: F0053-S0004 wrote this test. The story's Interface cites feature decision 6 as the leave only for tests that F0053-S0002 and F0053-S0003 wrote and that use the `documents` fixture. This test was written by another story and builds its own copy with `shutil.copytree` minus `_NOT_COPIED`, without the fixture. It is not a move of a shared helper, so the standing leave in `CLAUDE.md` *Tests* does not cover it either. `CLAUDE.md` lists "change to a test you did not write beyond the standing leave" under *Not without asking*. Entry 16 raised the same doubt.
+
+    Question for the human: may I change this test, which F0053-S0004 wrote?
+    - (a) Yes, exactly as above: `git init` plus one `commit_all` of the copy after the list is written. Name and assertions stay the same. The same change would go into any other test in that file that copies `ROOT` and lists style.md (entry 16 found only this one failing). **I would choose (a).** It is the smallest change, it matches the `documents` fixture, and it keeps criterion 5.
+    - (b) Yes, but the test builds its copy the way the `documents` fixture does, through a shared helper moved to `tests/support/`. That is a larger change and alters what is copied.
+    - (c) No: drop the `console` blocks from `docs/project-guide/style.md` again. That undoes criterion 5.
+
+    Criterion → test mapping: unchanged from entry 5. No test changed in this run. No files were created. No `make test` run was needed.
