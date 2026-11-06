@@ -24,6 +24,8 @@ from support.document_texts import (
     write_documents,
 )
 
+TIME_LINE = r"documents ok \(\d+(\.\d+)? s\)"
+
 
 def test_clean_documents_print_documents_ok_and_return_zero(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
@@ -32,7 +34,7 @@ def test_clean_documents_print_documents_ok_and_return_zero(
 
     status = main(["--root", str(tmp_path)])
 
-    assert re.fullmatch(r"documents ok \(\d+(\.\d+)? s\)", capsys.readouterr().out.splitlines()[-1])
+    assert re.fullmatch(TIME_LINE, capsys.readouterr().out.splitlines()[-1])
     assert status == 0
 
 
@@ -67,17 +69,17 @@ def test_without_a_root_the_current_directory_is_read(
 
     status = main([])
 
-    assert capsys.readouterr().out == "documents ok\n"
+    assert re.fullmatch(TIME_LINE, capsys.readouterr().out.splitlines()[-1])
     assert status == 0
 
 
 @pytest.mark.parametrize(
     ("clean", "exit_status", "output"),
-    [(True, 0, "documents ok\n"), (False, 1, MISSING_LINES)],
+    [(True, 0, None), (False, 1, MISSING_LINES)],
     ids=["clean", "empty-directory"],
 )
 def test_the_module_run_as_a_process_exits_with_the_status_of_main(
-    tmp_path: Path, clean: bool, exit_status: int, output: str
+    tmp_path: Path, clean: bool, exit_status: int, output: str | None
 ) -> None:
     root = tmp_path / "root"
     root.mkdir()
@@ -92,7 +94,10 @@ def test_the_module_run_as_a_process_exits_with_the_status_of_main(
     )
 
     assert result.exit_status == exit_status
-    assert result.stdout == output
+    if output is None:
+        assert re.fullmatch(TIME_LINE, result.stdout.splitlines()[-1])
+    else:
+        assert result.stdout == output
 
 
 def test_documents_are_read_as_utf_8(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -102,5 +107,5 @@ def test_documents_are_read_as_utf_8(tmp_path: Path, capsys: pytest.CaptureFixtu
 
     status = main(["--root", str(tmp_path)])
 
-    assert capsys.readouterr().out == "documents ok\n"
+    assert re.fullmatch(TIME_LINE, capsys.readouterr().out.splitlines()[-1])
     assert status == 0

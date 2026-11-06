@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T07:36:20.672868Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-06T07:36:20.672868Z'
   stage: tests
+- number: 14
+  speaker: tester
+  kind: result
+  at: '2026-11-06T07:37:07.178843Z'
+  stage: tests
+  run: 4d3c02f13e3046469f5ad9f15a25851e
 ---
 
 # A document's marked examples are run by the check
@@ -227,3 +229,33 @@ Expect: `1`
 12. 2026-11-06 human: 1. (a), with the human's leave: the three tests `test_without_a_root_the_current_directory_is_read`, the `clean` row of `test_the_module_run_as_a_process_exits_with_the_status_of_main` (its stdout's last line) and `test_documents_are_read_as_utf_8` get the same change: the last line matches `documents ok \(\d+(\.\d+)? s\)`, and each keeps its exit-status check. The `empty-directory` row stays. Nothing else in that module changes, and your entry names all four.
     2. `CheckoutFixture(git: GitCli)`, as you propose.
 13. factory: started tests as vm.
+14. tester: I made the change you allowed in journal 12. I left the tests from journal 11 as they were, and they match answer 2: `CheckoutFixture(git: GitCli)`.
+
+    Earlier test file changed, with your leave (journals 9 and 12): `tests/entry/test_check_documents.py`. I added a module constant `TIME_LINE = r"documents ok \(\d+(\.\d+)? s\)"`. Four tests now check that the output's last line matches it, and each keeps its exit-status check:
+    - `test_clean_documents_print_documents_ok_and_return_zero` (from journal 11, now uses the constant)
+    - `test_without_a_root_the_current_directory_is_read`
+    - `test_documents_are_read_as_utf_8`
+    - the `clean` row of `test_the_module_run_as_a_process_exits_with_the_status_of_main`. That row's expected output is now `None`, and the test checks the stdout's last line against `TIME_LINE`. The `empty-directory` row is unchanged.
+
+    Nothing else in that module changed.
+
+    Criterion → test:
+    - criterion 1: `tests/shared/domain/test_document_examples.py::test_a_console_block_gives_its_fixture_commands_and_expected_output_in_order` (also covers `pytest` with a file being run), and `::test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind` (rows: vm, github, model, make-check, make-test, pytest-without-a-file)
+    - criterion 2: `tests/shared/domain/test_document_examples.py::test_matches_accepts_equal_lines_and_the_placeholders_and_refuses_missing_or_extra_lines`
+    - criterion 3: `tests/shared/adapters/test_document_examples.py::test_the_blocks_of_one_document_share_a_folder_and_the_next_document_starts_fresh`
+    - criterion 4: `tests/shared/adapters/test_document_examples.py::test_a_command_whose_output_differs_gives_one_finding_and_one_that_matches_none`, `::test_the_output_compared_holds_stderr_too` and `::test_a_command_past_its_limit_gives_one_finding_and_the_later_blocks_do_not_run`
+    - criterion 5: `tests/shared/adapters/test_document_examples.py::test_a_block_naming_an_unknown_fixture_gives_a_finding`
+    - criterion 6: `tests/shared/adapters/test_document_examples.py::test_the_commands_never_run_in_the_current_directory`, `::test_env_in_a_block_shows_the_fixed_variables_and_the_fixtures_and_not_the_callers`, and `tests/hosting/adapters/test_checkout_fixture.py::test_the_checkout_fixture_copies_the_tracked_files_and_not_the_untracked_ones`
+    - criterion 7: `tests/entry/test_check_documents_examples.py::test_the_report_lists_every_skipped_block_and_ends_with_the_time_line`, and the four tests above in `tests/entry/test_check_documents.py`
+    - criteria 8 and 9: no test (`make check` and docs)
+
+    Files created (journal 11): `tests/shared/domain/test_document_examples.py`, `tests/shared/adapters/test_document_examples.py`, `tests/hosting/adapters/test_checkout_fixture.py`, `tests/entry/test_check_documents_examples.py`.
+
+    Modules the test run could not import:
+    - `factory.shared.domain.documents` (no `Command`)
+    - `factory.shared.adapters.document_examples`
+    - `factory.hosting.adapters.checkout_fixture`
+
+    These three test modules fail at collection. The entry tests fail on their assertions, since there is no time line yet. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)
