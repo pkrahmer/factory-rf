@@ -7,12 +7,12 @@ crash_cap: 2
 acceptance_stage: acceptance
 project_commands:
   # The gate; a passed result is reused while the files it reads, the pipeline definition and the image stay the same.
-  check: {time_limit: 8, not_read: ["README.md", "docs/*.md", "factory/features/*.md", "factory/features/*.jsonl", "factory/archive/*", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
+  check: {time_limit: 8, not_read: ["docs/runs/*", "factory/features/*.md", "factory/features/*.jsonl", "factory/archive/*", "factory/stops.jsonl", "planning/*", "session-logs/*"]}
   lint: {time_limit: 5}
   test: {time_limit: 10}
   duplicates: {time_limit: 2}   # similar and dead code against security/duplicates-baseline.txt, for the reviewer
   documents: {time_limit: 2}    # the four documents against the document check: a check of the docs stage only
-  secrets: {time_limit: 3}      # detect-secrets over the files changed on the branch, the documents and journals that check's not_read leaves out
+  secrets: {time_limit: 3}      # detect-secrets over the files changed on the branch, the documents, and the journals that check's not_read leaves out
   sync: {time_limit: 5}         # v1.2: the checkout's tools after a checkout; the stage environment runs it, no stage lists it
 # The write paths keep v1's lanes. Every stage's own work item is written by the factory
 # (the journal, the state, the cost records); a role names it only when its agent edits the text.

@@ -41,6 +41,7 @@ The build order: the route must work before the agents choose it, and S0003 is t
 
   and `intake: {role: intake, next: [tests, docs-only]}`. `tests` stays the intake's forward decision; `docs-only` is the other one.
 - **At S0003's start:** nothing; S0003 is the first story the intake may send down the new route.
+- **Before S0008's start** (the human, 2026-11-06, from the third acceptance): `check`'s `not_read` in `factory/pipeline.yml` loses `"README.md"` and `"docs/*.md"` and gains `"docs/runs/*"`, which no test reads. The guide guards and other tests under `make test` read the documents, so a documents-only change must run `make check` again instead of reusing an earlier pass. Rejected: moving those tests into `make documents`, which is more work for the same gate; and keeping the reuse, which lets a broken guard through.
 
 ## Decisions taken for the human
 

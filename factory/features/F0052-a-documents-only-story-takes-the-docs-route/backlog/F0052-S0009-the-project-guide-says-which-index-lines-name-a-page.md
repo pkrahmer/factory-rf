@@ -1,6 +1,4 @@
 # The project guide says which lines of its index name a page
-<!-- proposed by feature acceptance of 2026-11-06; refine before starting -->
-
 ## Description
 
 The guard `tests/guards/test_project_guide_files.py` reads a line of `## The files` in `docs/project-guide/README.md` as a page entry when the line starts with `` - ` ``, a name in backticks, and goes on to a sentence with a full stop (`INDEX_LINE` in `tests/support/guide_files_support.py`). The index does not say so. In F0052-S0007 the documenter started a list item with `` `## The files` ``. The guard read it as a page named "## The files" and reported it missing, and the docs-only stage stalled and cost a second run. The next feature rewrites this index on the docs route, where no tester reads the guard first. This story adds that rule to the index, in one or two sentences next to the sentence on the guard, so that a writer starts every other list item in the section with a word. The guard and its pattern stay as they are.
