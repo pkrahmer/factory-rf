@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T10:07:00.691412Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T10:06:55.357047Z'
   stage: tests
   run: 703f8042058e417490395d077318ac88
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:07:00.691412Z'
+  stage: doing
 ---
 
 # The agents write and review documents against the code
@@ -137,3 +146,4 @@ Expect: `named`
    Run: `uv run pytest -q` on the two files. All nine rows of the new file fail because the agent texts do not hold the rules yet; the tail showed the reviewer and intake rows. A grep confirmed that no paragraph of documenter.md holds the documenter rows' words. The changed CRC test passes. No module failed to import, because the tests read only agent files. `make lint` is green.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
