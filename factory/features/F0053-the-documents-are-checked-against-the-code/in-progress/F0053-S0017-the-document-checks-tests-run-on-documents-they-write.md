@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T20:57:28.136936Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T20:57:25.533995Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:57:28.136936Z'
   stage: intake
 ---
 
@@ -100,3 +109,4 @@ Expect: `documents ok (<seconds> s)`
    2. Split as you propose, and drop the `sleep 30` check. (a) Criterion 5 becomes: no test module under `tests/entry/` that tests `check_documents` runs it on a path outside `tmp_path`, checked by the guard of criterion 4 (which already refuses the names that lead to the real repository). (b) The entry reports the `make test` time before and after; that is no criterion.
    3. Yes: the guard's failing side has one row for each of the four names (`support.operator_support.ROOT`, `tracked_files`, `documents_copy_support`, the repository's `docs/checked-documents.txt`).
    4. For those two, criterion 3 covers the passing side only. The skipped block gets one row each for `vm`, `github`, `model` and `suite`; the page listed once more gets a row for a page listed once and a page listed twice, both with one finding.
+5. factory: started intake as vm.
