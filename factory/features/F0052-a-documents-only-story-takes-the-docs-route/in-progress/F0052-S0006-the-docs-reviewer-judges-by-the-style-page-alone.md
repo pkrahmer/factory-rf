@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 579
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T00:50:47.404242Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T00:50:47.404242Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T00:51:03.971598Z'
+  stage: intake
+  run: 71ab526ab9ea4ca589b70a3b8a26b860
 ---
 
 # The docs reviewer judges by the style page alone
@@ -64,3 +66,10 @@ Expect: `1`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: it names the concrete file `agents/agents/reviewer.md`, `### docs-review` step 3, with the exact replacement sentence. It also names the test module `tests/agent_files/test_claude_agent_texts_docs_route.py` with what goes (`STYLE_RULES`, `test_the_reviewer_in_docs_review_lists_each_style_rule_once`) and what is added. Feature decision 8 gives the leave for that test change.
+   - Criteria: criterion 1 is one parametrized test, with one row for the sentence (count 1) and rows with count 0 for `until` and each of the seven old rules. Criterion 2 points at the existing rows of the docs-review test, which stay green. The `make check` and `docs:` criteria close the list. The only rule is the removal, and it has both sides: the sentence present, and the old text absent.
+   - Smoke test: the three commands are runnable. The pytest command adds no `-q`, and `addopts` in `pyproject.toml` already sets `-q`, so the last line is the summary line that `grep -c " passed"` counts. Each `Expect:` line is a count that can be checked.
+   - Architecture: the change touches agent text and a test under `tests/agent_files/`, which is where agent file tests belong. It adds no code and no layer.
+   - Scope: the story falls within F0052's goal and decision 8. It touches nothing in "Out of scope". The operator guide is explicitly left to the next feature.
+   Route: `tests`. `agents/agents/reviewer.md` is not a path the documenter may write.
