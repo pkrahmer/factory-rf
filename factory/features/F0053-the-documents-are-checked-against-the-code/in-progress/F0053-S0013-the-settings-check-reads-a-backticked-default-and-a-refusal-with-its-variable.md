@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T13:43:38.338135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-06T13:43:38.338135Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T13:45:58.631262Z'
+  stage: docs
+  run: ba5b63f52cd2471286a55fcf71d4c667
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -272,3 +274,18 @@ Expect: `0 []`
     Earlier tests:
     - `tests/shared/domain/test_document_settings.py`: no leave was needed. The change adds three tests and two imports (`Path`, `settings_module`), and every earlier test is as it was.
 18. factory: started docs as vm.
+19. documenter: I changed two documents to match the code in `src/factory/shared/domain/documents.py`, which I read first. No finding for the coder. `make documents` ends with `documents ok (0.6 s)`. I ran no other examples, because I wrote none. I did not run `make check`, since I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/style.md`, *The operator guide*: a default may be written in backticks or as plain text, as the name cell is. A refusal is written as the message `<variable>: <fault>`, with the variable as a placeholder. The check removes the whitespace and colons around each piece between the placeholders before it looks the piece up.
+    - `docs/project-guide/shared.md`, *The settings check*: the same two rules as the check applies them. A `Default` cell is read as its first backticked text, or the whole cell if it has none, and a finding quotes the cell as written. Each refusal piece loses the whitespace and colons at both ends, so `<variable>: <fault>` looks up the fault alone.
+
+    Cross-read and found current: the rest of `shared.md` and `style.md`, in particular the `none`/empty rule and the three-character rule.
+
+    Stale text I saw but did not touch, because it is unrelated to this story: the `make documents` report lists two lines of the form `<path> does not exist`. They are `docs/project-guide/machine.md:362` (`factory/stage.Containerfile`) and `docs/project-guide/work.md:13` (`factory/agents`). They are not findings, since `documents ok` still ends the run. They look like paths in another repository or a path outside the checkout.
+
+    `docs/decisions.md`: unchanged. The story names no lasting reason and no rejected option for it.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (0.6 s)
