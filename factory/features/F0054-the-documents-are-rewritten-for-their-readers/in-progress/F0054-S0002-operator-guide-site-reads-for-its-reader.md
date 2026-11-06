@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:15:51.143642Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-06T23:15:51.143642Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:16:26.093957Z'
+  stage: docs-review
+  run: 2147bf3b39404036af44acc99ccb19be
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -326,3 +328,21 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (2.2 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 docs review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff rewrites `docs/operator-guide/site.md` and adds one line to `docs/checked-documents.txt`. I read the whole file again against `docs/project-guide/style.md` (*Examples that are not run*, the fixture rules) and `operator/skill/kumpel/scripts/reset-to-tag.sh`.
+
+    Round-2 finding 1 is fixed as asked:
+    - The plain `sh` block with the two `reset-to-tag.sh` commands is gone, and so is the sentence that said they were not run.
+    - Steps 4 and 5 of *Repeating a trial* (`site.md:228-229`) now give the commands inline, in the same way as steps 1 and 2.
+    - "It prints the plan and exits 1" matches `reset-to-tag.sh:73-78`.
+
+    No unmarked command block is left. Every `console` block writes under `$HOME/site-example` or `$PWD/none`. Nothing else in the file changed since the round-2 review, which found the rest correct.
+
+    The criteria:
+    - Criterion 1 is met. There are no feature or story IDs and no version history. Glossary words are linked at their first use, and the round 0 to 2 style findings are fixed.
+    - Criterion 2 is still met. Nothing of the old file was dropped on purpose.
+    - Criterion 3: the checked-list line is present, and the journal records `documents ok (2.2 s)`. I did not run `make documents` myself.
+    - Criterion 4 is still met. No heading changed this round.
+
+    no findings
+
+    Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant, so I left the Description as it is.
