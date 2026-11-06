@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from factory.hosting.adapters.git_cli import GitCli
-from factory.hosting.adapters.instance_fixture import InstanceFixture
+from factory.hosting.adapters.instance_fixture import SETTINGS_FILE, InstanceFixture
 from factory.shared.adapters.document_examples import ProcessExampleRunner
 from factory.shared.application.document_examples import Fixture
 from factory.shared.domain.documents import INSTANCE_FIXTURE, examples
@@ -21,7 +21,6 @@ from factory.watching.adapters.health_file import HEALTH_FILE_NAME
 from support.document_texts import FENCE
 from support.git_support import run_git
 
-SETTINGS_FILE = "factory.env"
 FIRST_DOCUMENT = "docs/operator-guide/health.md"
 SECOND_DOCUMENT = "docs/operator-guide/configure.md"
 MARKER = "marker"

@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from support.check_documents_support import TIME_LINE
+from support.check_documents_support import REPORT_HEADING, TIME_LINE
 
 GUIDE = "docs/operator-guide"
 
@@ -90,7 +90,7 @@ def test_the_operator_guide_folder_is_checked_per_file(
             "".join(
                 line
                 for line in printed
-                if not line.endswith(" does not exist\n") and line != "Report (not checked yet):\n"
+                if not line.endswith(" does not exist\n") and line != f"{REPORT_HEADING}\n"
             )
             == output
         )

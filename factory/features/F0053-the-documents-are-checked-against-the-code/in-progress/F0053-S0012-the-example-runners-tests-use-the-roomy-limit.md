@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T12:57:32.795776Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T12:57:32.795776Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T12:58:55.146723Z'
+  stage: tests
+  run: 0463c8ac98944f2ead4689f376367908
 ---
 
 # The example runner's tests use the roomy limit
@@ -112,3 +114,23 @@ Expect: `1`
    - Architecture: test-only changes put shared helpers in `tests/support/`, as CLAUDE.md asks. No test module imports another.
    - Scope: within F0053 and not in its "Out of scope". Decision 6 gives the leave to change earlier tests, and the tester names each changed test. The route is `tests`.
 7. factory: started tests as vm.
+8. tester: This story changes tests only, so the tester did the repair itself and the tests are green, not red. The code stays as it is, and the coder's step is `make check`. Every test kept its name and what it checks. No test module was added or removed.
+
+   Criteria:
+   - criterion 1: `tests/shared/adapters/test_document_examples.py`. The shared `runner` fixture is now built with `ROOMY_LIMIT`. It is used by every test except the time-limit one: test_the_blocks_of_one_document_share_a_folder_and_the_next_document_starts_fresh, test_a_command_whose_output_differs_gives_one_finding_and_one_that_matches_none, test_the_output_compared_holds_stderr_too, test_a_block_naming_an_unknown_fixture_gives_a_finding, test_the_commands_never_run_in_the_current_directory, test_env_in_a_block_shows_the_fixed_variables_and_the_fixtures_and_not_the_callers, test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command, test_the_folder_and_the_home_are_gone_once_the_document_has_run (its past-the-limit row is now killed at 10 s; `sleep 30` still outlasts it) and test_a_fixtures_variable_does_not_replace_a_fixed_one.
+     - Only test_a_command_past_its_limit_gives_one_finding_and_the_later_blocks_do_not_run builds its own runner with `SHORT_LIMIT_SECONDS` (1 s), because its command must be killed.
+     - That test's elapsed-time check now uses `ROOMY_BOUND_SECONDS`.
+     - `ELAPSED_BOUND_SECONDS` is removed, and `grep -c` on the file prints 0.
+   - criterion 2: `REPORT_HEADING` now lives in `tests/support/check_documents_support.py`. The local copies in `tests/entry/test_check_documents_checked_files.py` and `tests/entry/test_check_documents_copies.py` are removed and those files import the shared one. The inline literals in `tests/entry/test_check_documents_operator_guide.py` (the filter in the output comparison) and `tests/entry/test_check_documents_references.py` (the expected head lines) are replaced by the constant. The smoke grep prints only `tests/support/check_documents_support.py:1`.
+   - criterion 3: `tests/entry/test_check_documents_checked_files.py`. `CHECKED_LIST` is removed. The test imports `CHECKED_DOCUMENTS` from `factory.shared.domain.documents` and uses it wherever `CHECKED_LIST` was used.
+   - criterion 4: `tests/hosting/adapters/test_instance_fixture.py`. The local `SETTINGS_FILE = "factory.env"` is removed, and `SETTINGS_FILE` is imported from `factory.hosting.adapters.instance_fixture`.
+   - criterion 5: I ran `uv run pytest -q` once over the six changed test modules. Every test passed, and none was renamed.
+   - criteria 6 and 7: these are the coder's `make check` and a docs-only criterion, so there is no test for them.
+
+   Files changed: tests/shared/adapters/test_document_examples.py (written by F0053-S0003; changed under the leave of feature decision 6), tests/entry/test_check_documents_checked_files.py, tests/entry/test_check_documents_copies.py, tests/entry/test_check_documents_operator_guide.py, tests/entry/test_check_documents_references.py, tests/hosting/adapters/test_instance_fixture.py and tests/support/check_documents_support.py (the `REPORT_HEADING` move falls under the standing leave in CLAUDE.md, *Tests*). I created no new files.
+
+   Every module imported. `make lint` is green. I did not run the type check, as the stage says.
+
+   Still open: `tests/entry/test_check_documents_copies.py:20` still writes the literal path `docs/checked-documents.txt`. No criterion covers it, so I left it.
+
+   `lint`: lint: green (0.1 s)

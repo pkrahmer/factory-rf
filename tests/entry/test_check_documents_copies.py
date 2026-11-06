@@ -6,12 +6,12 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
+from support.check_documents_support import REPORT_HEADING
 from support.document_texts import FENCE
 from support.git_support import commit_all, run_git
 
 LISTED = "docs/project-guide/style.md"
 UNLISTED = "docs/project-guide/shared.md"
-REPORT_HEADING = "Report (not checked yet):"
 
 
 def _append_block(root: Path, document: str, command: str, output: str) -> int:
