@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T22:00:47.638520Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -85,6 +89,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T22:00:45.151843Z'
+  stage: docs-only
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:00:47.638520Z'
   stage: docs-only
 ---
 
@@ -291,3 +300,4 @@ Expect: `1`
     Found in the check, for the coder and not part of this story: the documents check crashes on a fenced block that is indented under a numbered step (`documents.py:681`, `ValueError: zip() argument 2 is longer than argument 1`). So the blocks in `install.md` sit at column 0.
 14. 2026-11-06 human: (b): the two `make mutants` commands stay inline in the prose. A sweep is started only by the human, so there is no run to copy, and an inline mention is no example the check runs. Go on to `docs-review`.
     The crash on a fenced block indented under a numbered step is a fault in the code; it becomes its own story, outside this one. Keep the blocks at column 0 here. The stale texts you named belong to the stories of those files.
+15. factory: started docs-only as vm.
