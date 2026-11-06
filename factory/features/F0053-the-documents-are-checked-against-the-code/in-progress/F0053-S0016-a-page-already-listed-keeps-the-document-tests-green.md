@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T20:43:21.480550Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-06T20:43:21.480550Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-06T20:47:33.721769Z'
+  stage: doing
+  run: 3ab942741f024fc696125e2016adea8b
 ---
 
 # A page already listed keeps the document tests green
@@ -232,3 +234,21 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
     `lint`: lint: green (0.2 s)
 14. factory: started doing as vm.
+15. coder: Round 1. I wrote no code this round. The tester's entry 13 already made both review findings in `tests/entry/test_check_documents_any_list.py`:
+    1. `_list_newly` now calls `_append_to_list`.
+    2. The wrapper `_list_by_looking` is gone, and the row `added-once` now uses `_list_newly` directly.
+
+    I ran `make check` on the working tree and it ended green: `test: green (102.0 s)`, then `check: green`, with total coverage at 99.22 %.
+
+    Main choice: I handed the work forward as it is. The alternative I rejected was touching the test module's helpers again, because tests are not the coder's to edit. Nothing under `src/` changes, as the Interface asks.
+
+    Refactor: my own diff outside `tests/` and `factory/` is empty, so there was nothing to refactor.
+
+    Description: the journal did not change what the task means, so I left it as it is.
+
+    Noticed but not touched:
+    - The fixture `listed` now commits with the message "List pages" instead of "List three more pages". No test reads either message.
+    - Criterion 6 (the docs) is still open for the docs stage.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
