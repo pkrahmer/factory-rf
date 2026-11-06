@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T12:21:25.169696Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T12:21:25.169696Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-06T12:22:13.897288Z'
+  stage: tests
+  run: 7f61fe9abe644198b0c3cdc3b8f8a6a2
 ---
 
 # The name check reads log files and git addresses
@@ -178,3 +180,21 @@ Expect: `0`
 
     Noticed but not touched: nothing new beyond entry 7.
 12. factory: started tests as vm.
+13. tester: I made the test change from the coder's entry 11, which comes from the reviewer's finding in entry 9. The test belongs to this story, so I needed no leave from the human.
+
+    - criterion 3: `tests/entry/test_check_documents_todays_names.py::test_todays_documents_give_no_finding_for_the_log_file_and_git_addresses`. I rewrote it as one parametrized test with three rows:
+      - (`docs/operator-guide/machine.md`, `factory.log`)
+      - (`docs/operator-guide/install.md`, `git@github.com:owner/project.git`)
+      - (`docs/operator-guide/cloud-run.md`, `git@host:owner/name.git`)
+    - What each row does: it reads `ROOT / document` and calls `factory.shared.domain.documents.named_references(document, content, top_level)`. It asserts that no returned `Reference` has that text as its `name`. `top_level` is the set of the repository root's entry names, the same set `factory.entry.check_documents` builds (`check_documents.py:104`).
+    - The test no longer calls `check_documents.main`. It starts no processes and writes no files.
+    - One addition beyond the requested change: each row also asserts that its text appears in the document. Without that, a row would pass silently after the document stopped naming the text.
+    - Criteria 1, 2, 4 and 5: unchanged from entry 5.
+
+    Files: I changed only `tests/entry/test_check_documents_todays_names.py`.
+
+    Run: `uv run pytest -q tests/entry/test_check_documents_todays_names.py` gave 3 passed. They pass because the coder's code already exists. Every module imported. `make lint` is green.
+
+    Open: nothing.
+
+    `lint`: lint: green (0.2 s)
