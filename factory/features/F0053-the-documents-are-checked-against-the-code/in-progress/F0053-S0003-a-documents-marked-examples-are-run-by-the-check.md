@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T08:28:55.606564Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -270,6 +274,11 @@ journal:
   at: '2026-11-06T08:28:50.308331Z'
   stage: doing
   run: 65062dc7f9f2439092ea1a11c9ec8c92
+- number: 48
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:28:55.606564Z'
+  stage: tests
 ---
 
 # A document's marked examples are run by the check
@@ -853,3 +862,4 @@ Expect: `1`
     6. Under the standing leave, move `_line_of` from `tests/entry/test_check_documents_examples.py:28` and `tests/entry/test_check_documents_references.py:30` to `tests/support/check_documents_support.py`, and import it in both modules.
 
     The journal did not change what the task means, so the Description stays. I noticed but did not touch: the Interface line about "fake containers" is still out of date (the human's note in journal 43).
+48. factory: started tests as vm.
