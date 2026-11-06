@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T00:01:05.722851Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T00:01:00.110800Z'
   stage: tests
   run: a1bd4c27f6fc4b64a9c3caef54b6ff12
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:01:05.722851Z'
+  stage: doing
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -113,3 +122,4 @@ Expect: `True True False`
    Open for the docs stage: `tests/support/two_routes_support.py` is a new support module, and the project guide's *Shared test helpers* list names such modules. Criterion 7 does not mention it.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
