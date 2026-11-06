@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T12:40:47.113235Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T12:40:47.113235Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T12:42:04.285968Z'
+  stage: review
+  run: a91181c4c5564ed385c289b81d152c0a
 ---
 
 # A configuration section without its settings table is a finding
@@ -143,3 +145,25 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (4 files) against the work item. I found two findings, both about test structure in `tests/shared/domain/test_document_settings.py`. At round 0 such points still count as findings.
+
+   1. `tests/shared/domain/test_document_settings.py:19-21` (`_SETTING_TABLE`): it builds `GuideTable(heading="Configuration", header=..., rows=...)` by hand. That is what the file's existing helper `_table` (line 33) already does, and it is the same value as the `no-settings-table` row at line 122. Fix: define it through the helper, `_SETTING_TABLE = _table(("Setting", "Meaning"), ("`FACTORY_A`", "A."))`, placed after `_table`, and use it in that row too.
+   2. `tests/shared/domain/test_document_settings.py:168` (`test_guide_with_a_counting_table_gives_no_missing_table_finding`): this is the counting side of the rule that criterion 1's test pins ("when no table counts ... the one finding"), but it is written as a separate test function, not as a row. Criterion 2 also asks for "one row". Fix: make it a row of `test_guide_without_a_counting_table_is_one_finding_when_there_are_settings`, e.g. `pytest.param([_SETTING_TABLE, _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A."))], (_setting("FACTORY_A"),), [], id="counting-table-beside-another")`, and remove the separate function.
+
+   Checked and found sound:
+   - Group 1 (criteria): every limit of the Interface has a test on both sides:
+     - settings empty or not
+     - no table counts or one counts
+     - a table headed `Setting`
+   - Group 1, criterion 3: `test_todays_install_guide_gives_no_settings_finding` runs the domain functions on today's `install.md`.
+   - Group 1, the Interface's missing-section and missing-file rule: the coder's guard at `src/factory/entry/check_documents.py:121` is covered after all. The rows `no-configuration-section` and `no-install-file` of `tests/entry/test_check_documents_operator_guide.py` compare the whole output, so without the guard the new finding would fail them.
+   - Group 1, `make check`: the journal (entry 7) says it was green after the coder.
+   - Group 1, the coder's reading of "check_documents: unchanged": they read it as "its output for that case is unchanged" and explained it in entry 7. That reading is the one consistent with the Interface's own sentence that no settings finding is added for a missing section.
+   - Group 2 (architecture): the entry imports `factory.shared.domain.sections.first_section`, an existing helper on the same section notion as `guide_tables`. The domain stays pure.
+   - Group 3 (security): nothing relevant, and no suppression markers.
+   - Group 4 (quality): the docstring of `settings_findings` is updated, and the comment explains why.
+   - Group 5 (work item hygiene): the Description matches what was built. The docs criterion still names `docs/project-guide/shared.md`, *The settings check*: its sentence "A guide with no such table gives no finding." (line 146) is now false and is the documenter's to rewrite.
+
+   Earlier tests:
+   - tests/shared/domain/test_document_settings.py: one row of `test_guide_without_a_settings_table_gives_no_settings_finding` (`no-settings-table`) now expects the finding. The leave is the human's, through the story's Interface and feature decision 6; the test keeps its name.
+   - tests/support/document_texts.py: `operator_install` now carries a `Variable` settings table naming every `SETTINGS` entry, so `clean_texts` has one. The same leave from the story's Interface covers it; no test function changed.
