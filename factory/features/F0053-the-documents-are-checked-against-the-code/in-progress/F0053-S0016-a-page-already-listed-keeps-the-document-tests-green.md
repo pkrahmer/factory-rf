@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T20:43:21.480550Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-06T20:43:16.282575Z'
   stage: tests
   run: b3b0e47008594b5284448e79248eb12a
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:43:21.480550Z'
+  stage: doing
 ---
 
 # A page already listed keeps the document tests green
@@ -222,3 +231,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     Files created: none. Files changed: tests/entry/test_check_documents_any_list.py (an earlier test file of this story, changed under feature decision 9 at the human's approval through the review). Modules the test run could not import: none.
 
     `lint`: lint: green (0.2 s)
+14. factory: started doing as vm.
