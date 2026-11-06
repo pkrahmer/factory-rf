@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T21:45:12.897265Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T21:45:07.857042Z'
   stage: intake
   run: 164f6c5d5a854b05a13e83b7e52e6b90
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:45:12.897265Z'
+  stage: docs-only
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -68,3 +77,4 @@ Expect: `1`
    Architecture: documents only, inside the documenter's write paths (`docs/*`). No code area is touched.
    Scope: F0054 lists this file as S0001. The story changes no behaviour, which matches the feature's out of scope. `docs/decisions.md`, `docs/runs/` and the playbook are not touched.
    Route: docs-only, because every changed path is a document the documenter may write.
+4. factory: started docs-only as vm.
