@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T07:28:36.023479Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T07:28:33.633757Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:28:36.023479Z'
   stage: intake
 ---
 
@@ -86,3 +95,4 @@ Expect: `1`
       - `Fixture` and `ExampleRunner` stay in `factory.shared.application.document_examples`, and `factory.entry` wires the two classes.
       The adapter tests run real short commands (`echo`, `printf`, a file written in one block and read in the next) in `tmp_path`, with no network; the time-limit row uses `sleep` past a limit the test passes in.
    3. The existing `factory.entry.check_documents` (behind `make documents`) builds the report: today's findings, the name and settings findings, the example findings, then one `<document>:<line>: not run (<kind>)` line per skipped block, and last `documents ok (<seconds> s)` when nothing blocks. It measures the seconds with the clock it already uses, or with `time.monotonic` passed in from `main`.
+5. factory: started intake as vm.
