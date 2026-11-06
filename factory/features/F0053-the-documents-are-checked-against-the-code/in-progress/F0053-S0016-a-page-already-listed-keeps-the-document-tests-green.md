@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T20:36:41.018649Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T20:36:35.097251Z'
   stage: tests
   run: 67d3c5746847449a8e87d2c92301b9c0
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:36:41.018649Z'
+  stage: doing
 ---
 
 # A page already listed keeps the document tests green
@@ -114,3 +123,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    The factory left out changes outside the write paths: docs/checked-documents.txt.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
