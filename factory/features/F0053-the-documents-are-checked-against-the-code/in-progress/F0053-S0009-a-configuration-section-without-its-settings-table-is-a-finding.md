@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T12:42:09.798315Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T12:42:04.285968Z'
   stage: review
   run: a91181c4c5564ed385c289b81d152c0a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:42:09.798315Z'
+  stage: doing
 ---
 
 # A configuration section without its settings table is a finding
@@ -167,3 +176,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
    Earlier tests:
    - tests/shared/domain/test_document_settings.py: one row of `test_guide_without_a_settings_table_gives_no_settings_finding` (`no-settings-table`) now expects the finding. The leave is the human's, through the story's Interface and feature decision 6; the test keeps its name.
    - tests/support/document_texts.py: `operator_install` now carries a `Variable` settings table naming every `SETTINGS` entry, so `clean_texts` has one. The same leave from the story's Interface covers it; no test function changed.
+10. factory: started doing as vm.
