@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -87,6 +87,11 @@ journal:
   at: '2026-11-06T01:12:04.054887Z'
   stage: docs-review
   run: 6589ef4d94624e6c95d4ab3dcdaad0b7
+- number: 15
+  speaker: factory
+  kind: done
+  at: '2026-11-06T01:13:55.742618Z'
+  stage: docs-approval
 ---
 
 # The project guide names the headings a check still requires
@@ -204,3 +209,4 @@ Expect: `documents ok`
     Writing: no sentence in the change runs much past about 25 words. Each sentence has at most one parenthesis. There is no history wording. The paths are written in the page's own form, with code paths and no links.
 
     no findings
+15. factory: done (pull request merged); cost: 6 runs, 2.1 min, 38 turns, 130576 tokens in (608640 more from cache), 9111 out, $0.94
