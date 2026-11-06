@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T10:04:51.115348Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T10:04:51.115348Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T10:05:13.942470Z'
+  stage: intake
+  run: 820e3ea30f8c40c7baa7940b99b07a3e
 ---
 
 # The agents write and review documents against the code
@@ -57,16 +59,22 @@ The checks catch names, settings and examples; the rest of a document's truth de
 
 ## Acceptance criteria
 
-1. `agents/agents/documenter.md` holds the four rules of the Interface.
-2. `agents/agents/reviewer.md` holds the *Documents* item, naming the claims against the code and the examples.
-3. `agents/agents/intake.md` holds the rule on a docs criterion that dictates sentences, .
-4. `make check` stays green.
-5. docs: `docs/project-guide/agents.md`: how the documenter and the reviewer treat documents. `docs/decisions.md`: an entry, naming F0053 and the human's concern of 2026-11-05 that the stages' documents were not reliably true.
+1. `agents/agents/documenter.md` has the rule "read the code first": the documenter reads the code it describes before it writes a sentence about it (rule 8, facts from the code).
+2. `agents/agents/documenter.md` has the rule that detail is kept in a *Reference* section and not cut (rule 9).
+3. `agents/agents/documenter.md` has the rule that every example is runnable, or marked for the VM, GitHub or a model and then copied from a real run that the text names (rule 10, real or marked values).
+4. `agents/agents/documenter.md` has the rule that the documenter runs `make documents` and ends only on `documents ok` (rule 10).
+5. `agents/agents/reviewer.md` has the item *Documents* (heading `### Documents`) in its checklist, naming the changed documents' claims against the code and the examples.
+6. `agents/agents/reviewer.md` names a claim it cannot find in the code as a finding.
+7. `agents/agents/reviewer.md` names a command shown without a runnable or marked example as a finding.
+8. `agents/agents/intake.md` makes a docs criterion that dictates the sentences to write a question, and says the criterion names what the reader must know afterwards.
+9. `agents/agents/intake.md` tells the agent to end with `question` for such a criterion.
+10. `make check` stays green.
+11. docs: `docs/project-guide/agents.md`: how the documenter and the reviewer treat documents. `docs/decisions.md`: an entry, naming F0053 and the human's concern of 2026-11-05 that the stages' documents were not reliably true.
 
 ## Smoke test
 
 ```bash
-grep -c "make documents" agents/agents/documenter.md | awk '{print ($1 >= 1) ? "named" : "missing"}'
+grep -q "documents ok" agents/agents/documenter.md && grep -q "### Documents" agents/agents/reviewer.md && echo named
 ```
 Expect: `named`
 
@@ -87,3 +95,10 @@ Expect: `named`
    3. Confirmed: `intake.md` makes a docs criterion that dictates the sentences to write a question, and says the criterion names what the reader must know afterwards. Yes to the failing-side row: such a criterion ends the intake with `question`.
    4. Yes: `grep -q "documents ok" agents/agents/documenter.md && grep -q "### Documents" agents/agents/reviewer.md && echo named` with `Expect: named`, or the exact heading the tester gives the *Documents* item, so that the smoke test fails before the story.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) carried into the story.
+   - Interface: concrete. It names `agents/agents/documenter.md`, `reviewer.md` and `intake.md`, and the test file `tests/agent_files/test_claude_agent_texts_documents.py`. The human's leave to change the whole-text pinning tests is stated.
+   - Criteria: I rewrote the list from entry 4. Answer 1 splits the reviewer criterion into the *Documents* item, a claim not found in the code as a finding, and a command without a runnable or marked example as a finding. Answer 2 splits the documenter's rules by task, one criterion each: rule 8 is read the code first, rule 9 is *Reference*, rule 10 is runnable or marked examples copied from a named real run, and rule 10 also covers `make documents` ending on `documents ok`. Answer 3 repairs the cut-off intake criterion and adds a row for ending with `question`. The two closing criteria stay last. Each is now testable by one row, and each rule has its failing side. The Description is unchanged: its rules 8 to 10 sentence now holds.
+   - Smoke test: replaced by the grep from answer 4 (`documents ok` in `documenter.md` and `### Documents` in `reviewer.md`, then `echo named`). It fails before the story and is runnable. `Expect: named` is checkable. It runs no pytest.
+   - Architecture: the Interface changes only agent files and tests under `tests/agent_files/`, which fits the layout in CLAUDE.md.
+   - Scope: within F0053's "the agents' rules" scope. Nothing in Out of scope is touched. `factory/story-form.md` is a human change at merge and is not part of this story.
+   Route: `tests`, since the Interface changes `agents/agents/`, which the documenter may not write.
