@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T11:03:51.934245Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-11-06T11:03:51.934245Z'
   stage: docs
+- number: 41
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T11:06:32.157745Z'
+  stage: docs
+  run: 7b606c277b964a5cbec4419992109c6a
 ---
 
 # The agents write and review documents against the code
@@ -605,3 +607,26 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name; the only change is that it also strips the `### Documents` item.
     - `tests/agent_files/test_claude_agent_texts_mutants.py`: changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name; the only change is that it skips the `### Documents` item. Nothing else in that module changed.
 40. factory: started docs as vm.
+41. documenter: No findings. The code matches the Interface and the criteria. I read the diff of `agents/agents/documenter.md`, `reviewer.md` and `intake.md`, and the new test file's test names.
+
+    Files changed:
+    - `docs/project-guide/agents.md`: new section *How the agents treat documents*, before *The settings*. A table lists the six rules: the documenter's three (read the code first, runnable or marked examples, *Reference*), its `make documents` / `documents ok` rule, the reviewer's *Documents* item and the intake's docs-criterion question. It names the test file that pins them.
+    - `docs/decisions.md`: new entry *The agents write and review documents against the code* (F0053-S0005). It names the human's concern of 2026-11-05 that the stages' documents were not reliably true.
+
+    The decision entry has no "Rejected" line, because the story names no rejected option.
+
+    Checks run:
+    - `make documents` ended on `documents ok (0.4 s)`. It printed three report lines about `.venv/...`, `factory/stage.Containerfile` and `factory/agents`. They are in the unchecked report and are not part of this story.
+    - The new sections have no commands, so I ran no examples.
+    - I did not run `make check`: I changed only documents, and the factory runs it after this stage.
+
+    Cross-read and found current:
+    - `docs/project-guide/agents.md`: the sections on the docs route, the *Lessons* bullets and *The seven agents* table. The route section still holds, because the new rules leave the `docs-only` and `docs-review` subsections unchanged.
+    - `docs/project-guide/style.md`, I looked at it only to see whether it needed an edit. It did not.
+
+    Stale text I saw and left alone:
+    - `agents.md`, *The seven agents*, describes the reviewer's checklist as having six items and does not mention `### Documents`. The new section covers that item, so I left the older sentence as it was.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.9 s)
+    `documents`: documents ok (0.4 s)

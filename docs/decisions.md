@@ -1630,3 +1630,10 @@ Date: 2026-11-06 (F0053).
 - Decision: the checks of the documents run in `make documents`, and `make check` stays fast. `docs/checked-documents.txt` lists the documents whose findings of the name, settings and example checks fail the command; the findings in any other document are printed under `Report (not checked yet):`. The list is a document, so that a story on the docs route can add a line. A marked example runs in a check container, in a temporary folder that its fixture (`checkout` or `instance`) prepared; the blocks of one document run in order and share the folder, and each document starts fresh. A block marked for the VM, GitHub or a model, and a block that runs the test suite, is skipped and listed in the report. `docs/decisions.md` and `docs/runs/` are not checked.
 - Why: the docs stages already run `make documents` (decision 1); the human chose the fixtures and the skipped blocks on 2026-11-05, because the name and settings checks and the scripts' own tests already catch most of what those examples would; history keeps old names and paths on purpose (decision 4).
 - Rejected: blocking on all documents at once, which would stop every docs stage until all files are rewritten.
+
+## The agents write and review documents against the code
+
+Date: 2026-11-06 (F0053-S0005).
+
+- Decision: the documenter reads the code before it writes a sentence about it, writes every example runnable or marked for the VM, GitHub or a model and copied from a real run that the text names, keeps exact detail in a *Reference* section rather than cutting it, and ends only on `documents ok`. The reviewer's checklist has the item *Documents*: the changed documents' claims are found in the code, and a command is shown with a runnable or marked example; a failure is a finding. The intake asks about a docs criterion that dictates sentences.
+- Why: on 2026-11-05 the human's concern was that the stages' documents were not reliably true. The checks catch names, settings and examples; the rest depends on how the agents work, so their instructions carry the rules (rules 8 to 10 of the style drafts).

@@ -296,6 +296,21 @@ When the documenter finds that the story needs a change outside the documents, i
 
 `tests/agent_files/test_claude_agent_texts_docs_route.py` pins each sentence above in the shipped files. The reviewer's body is also pinned by a checksum (`test_claude_agent_texts_review_groups.py`), which leaves out the `### docs-review` subsection.
 
+### How the agents treat documents
+
+The checks of `make documents` catch names, settings and examples; the rest of a document's truth depends on how the agents work, so three agent files carry rules about it (F0053). `tests/agent_files/test_claude_agent_texts_documents.py` pins each rule in the shipped files, one row per rule.
+
+| Agent | Where | The rule |
+| --- | --- | --- |
+| `documenter` | *Role* | Read the code first: before it writes a sentence about a module, a setting, a command or a behaviour, it reads that code on the branch and writes only what it found. The story and the old text say where to look. |
+| `documenter` | *Role* | Every example is runnable, and the documenter ran it. An example that needs the VM, GitHub or a model is marked as such and copied from a real run, and the text names where that run took place. It never writes an output it did not see. |
+| `documenter` | *Role* | Exact detail (every option, field, limit and message) goes in a *Reference* section of the document and is moved there, never cut. |
+| `documenter` | *Stage* step 2 | When the Makefile has a `documents` target, it runs `make documents` in the same command as its last edit and ends only when the last line is `documents ok (<seconds> s)`. A finding the command prints is the documenter's to fix. Step 3 then runs `make check` after it. |
+| `reviewer` | *Role*, `### Documents` | A checklist item of every review whose diff changes a document the documenter may write. It reads each changed document against the code on the branch. A claim it cannot find in the code, or that the code contradicts, is a finding; so is a command shown with neither a runnable example nor a marked example that names its real run. The item holds in `docs-review` too. |
+| `intake` | *Stage* step 4 | A docs criterion names what the reader must know afterwards. One that dictates the sentences (quoted text, a paragraph to paste) is a question, and the agent ends with `question`. |
+
+These rules do not change the other stages, the allowed decisions or the opencode runtime.
+
 ### The settings
 
 `agents/settings.json` is the permissions and environment every agent run shares. It allows file tools, `uv run`, `uv sync`, `make`, `factory-check-story` and the read-only git commands `status`, `diff`, `log`, `show` and `rev-parse`. It denies `git add` and `git commit` (the agent leaves its changes in the working tree and the factory makes the result commit, R10; the agents' `## Rules` say "You do not commit either", and a denied command is refused by the runtime where an unlisted one would ask for a permission nobody can give), `git push`, `checkout`, `switch`, `merge`, `pull`, `rebase`, `reset`, `branch -D`, `gh` and `rm -rf`. `factory-check-story` is the only `factory-` command allowed: an agent may not run `factory-run`, `factory-watch` or `factory-bill`. The environment sets `CLAUDE_CODE_FORK_SUBAGENT` to `0`. A test compares the file with the expected document, so any change is a deliberate edit of both.
