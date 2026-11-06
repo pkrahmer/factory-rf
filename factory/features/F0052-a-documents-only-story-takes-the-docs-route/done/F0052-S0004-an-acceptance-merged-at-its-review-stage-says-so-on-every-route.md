@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-06T00:33:54.259423Z'
   stage: smoke-test
   run: 951f9792ada04abd87bc9c2f289a1176
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-06T00:35:46.283028Z'
+  stage: approval
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -467,3 +472,4 @@ Expect: `True True False`
     - The smoke test does not reach criteria 2 to 6: the other tables, the fake-world merge and `make check`. The factory's checks and the earlier stages cover those, and nothing I saw contradicts them.
 
     Findings: none.
+32. factory: done (pull request merged); cost: 14 runs, 23.1 min, 115 turns, 325029 tokens in (3069349 more from cache), 48277 out, $3.93
