@@ -1,17 +1,13 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
-crashes: 1
+crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:03:55.173901Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-06T07:03:55.173901Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-06T07:08:40.255775Z'
+  stage: doing
+  run: 3cf70e9220c74a60b2c1f9ec6ab3d036
 ---
 
 # The operator guide's settings agree with the settings code
@@ -199,3 +201,32 @@ Expect: `True`
 14. factory: started doing as vm.
 15. factory: Stage doing stalled (attempt 1 of 2): the agent run died without a result
 16. factory: started doing as vm.
+17. coder: The code was already in the commit the factory made when the earlier doing run stalled (5247baea2). I checked it against the tests and the Interface, refactored it once, and `make check` is green (`check: green`, coverage 99.21 %).
+
+    What is built:
+    - `src/factory/shared/domain/settings.py`:
+      - `SettingDoc` is a frozen model with `name`, `required` and `default: str | None`.
+      - `SETTINGS` has one row for each of the 36 variables `read_settings` reads, `FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included.
+      - Defaults come from the module's own constants (paths, `DEFAULT_GIT_IDENTITY`, the first entry of each choice tuple, minutes from the timedeltas), not from copied literals. So the table cannot drift from the code that applies the defaults.
+    - `src/factory/shared/domain/documents.py`:
+      - `GuideTable` (`heading`, `header`, `rows`).
+      - `guide_tables(text, section)` finds the tables of a section, each with its nearest heading.
+      - `settings_findings` compares names, and compares a default only in a table that has a `Default` column.
+      - `refusal_findings(guide_tables, settings_source)` cuts out the placeholders and checks each piece of three characters or more against the source.
+      - The existing `_table_rows` now shares `_is_table_row` and the block handling with the new parser, so there is no second copy.
+    - `src/factory/entry/check_documents.py`: reads the *Configuration* section of `docs/operator-guide/install.md`. It prints the settings and refusal findings after the name findings, prefixed with the guide's path, and leaves the exit status unchanged.
+
+    Main choice: the checks are pure functions in the domain layer, and the command passes them the source text of the settings module (`Path(settings.__file__)`). I rejected having `refusal_findings` read the module itself, because that would make the domain impure.
+
+    Refactor this round, with behaviour unchanged:
+    - `guide_tables` had its own `_section_range`, which duplicated the existing `_section_lines`. It now uses `_section_lines` and `_section_range` is gone.
+    - `refusal_findings` used an assignment expression inside a comprehension. That became a small helper, `_quoted_refusal`.
+
+    The journal changed nothing in the meaning of the task beyond what the Description already says. Entry 9 added `GuideTable.heading`, `refusal_findings` and `guide_tables`, and the Description does not name them. I am not allowed to edit the work item, so it is unchanged.
+
+    Noticed, not touched:
+    - Today's guide gives no settings findings: every name agrees, and there is no `Default` column and no refusal table. So `make documents` on the repository prints no settings line. Criterion 5 is tested on a copy in `tmp_path` with one row dropped, as entry 9 agreed.
+    - `make documents` reports name findings in the project guide, for example `docs/project-guide/README.md:111: support/settings_support.py does not exist`. A few of these are older, but `settings_support.py` may be the docs stage's to fix.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone

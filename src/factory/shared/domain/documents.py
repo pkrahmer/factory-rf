@@ -166,20 +166,13 @@ def _guide_table(heading: str, rows: Sequence[str]) -> GuideTable:
     )
 
 
-def _section_range(text: str, section: str) -> range:
-    for found in sections(text):
-        if found.heading == section:
-            return range(found.start, found.end)
-    return range(0)
-
-
 def guide_tables(text: str, section: str) -> list[GuideTable]:
     """The tables inside the `## ` section `section` and its subsections, in their order.
 
     Each carries the nearest heading above it; fenced blocks are left out.
     """
     lines = split_lines(text)
-    inside = _section_range(text, section)
+    inside = _section_lines(text, (section,))
     tables: list[GuideTable] = []
     heading = section
     current: list[str] = []
@@ -270,6 +263,13 @@ def _is_refusal_table(table: GuideTable) -> bool:
     )
 
 
+def _quoted_refusal(row: tuple[str, ...]) -> str | None:
+    if not row:
+        return None
+    quoted = _BACKTICKED.search(row[0])
+    return None if quoted is None else quoted.group(1)
+
+
 def _is_held(refusal: str, settings_source: str) -> bool:
     pieces = _PLACEHOLDER.split(refusal)
     return all(
@@ -285,16 +285,15 @@ def refusal_findings(guide_tables: list[GuideTable], settings_source: str) -> li
     remaining piece of three characters or more must occur in the source.
     """
     refusals = [
-        quoted.group(1)
+        _quoted_refusal(row)
         for table in guide_tables
         if _is_refusal_table(table)
         for row in table.rows
-        if row and (quoted := _BACKTICKED.search(row[0])) is not None
     ]
     return [
         f"refusal `{refusal}` is not held by the settings code"
         for refusal in refusals
-        if not _is_held(refusal, settings_source)
+        if refusal is not None and not _is_held(refusal, settings_source)
     ]
 
 
