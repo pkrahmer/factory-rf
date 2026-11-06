@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T12:27:09.802049Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-06T12:27:04.684784Z'
   stage: review
   run: 098a51a1fe2e41a7898ea7988a1b74e5
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:27:09.802049Z'
+  stage: docs
 ---
 
 # The name check reads log files and git addresses
@@ -250,3 +259,4 @@ Expect: `0`
 
     Earlier tests:
     - `tests/shared/domain/test_document_references.py`: none needed. The change only adds rows (two extensions in the loop, plus `file-name-log-bare` and `module-not-a-file-name`) and one new test function, and keeps every earlier row as it was.
+18. factory: started docs as vm.
