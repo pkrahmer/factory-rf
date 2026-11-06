@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T08:26:30.868378Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -257,6 +253,12 @@ journal:
   kind: started
   at: '2026-11-06T08:26:30.868378Z'
   stage: review
+- number: 45
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T08:28:06.387635Z'
+  stage: review
+  run: a57e15a5ef2d42f7b919af36f379d0b8
 ---
 
 # A document's marked examples are run by the check
@@ -293,8 +295,9 @@ An example that shows a command and what it prints is the claim a reader trusts 
 10. A fixture that cannot build its starting point gives one finding at the block's opening line, `<document>:<line>: fixture <name> could not be prepared`, and none of the document's commands on that fixture runs; `CheckoutFixture` outside a git repository raises `FixtureError`.
 11. The temporary folder and the home a document's commands ran in are gone once `run_document` returns, both after the commands ended and after one ran past its limit (rows of one test).
 12. `make documents` prints an example's finding before the `not run (<kind>)` lines, and the finding changes neither the exit status (0) nor the last line `documents ok (<seconds> s)`, until S0004.
-13. `make check` stays green.
-14. docs: `docs/project-guide/style.md` (from F0052) or, until it exists, `docs/project-guide/shared.md`: how to write a runnable example, name a fixture, use the placeholders, and mark one that needs the VM, GitHub or a model; that a block running the suite is skipped without a mark; that a `vm` example comes from a real run and says where it ran.
+13. A fixture's variable named `PATH`, `HOME`, `TZ` or `LANG` does not replace the fixed value: `env` inside the block shows the fixed one (rows per variable).
+14. `make check` stays green.
+15. docs: `docs/project-guide/style.md` (from F0052) or, until it exists, `docs/project-guide/shared.md`: how to write a runnable example, name a fixture, use the placeholders, and mark one that needs the VM, GitHub or a model; that a block running the suite is skipped without a mark; that a `vm` example comes from a real run and says where it ran.
 
 ## Smoke test
 
@@ -788,3 +791,42 @@ Expect: `1`
 42. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 43. 2026-11-06 human: One more round, by the human's decision. The findings of review journal 41 go on as written: the tester maps criterion 10 to the two existing tests and adds the tests for criteria 11 (the folder and the home are removed, rows `ended` and `past-the-limit`) and 12 (an example's finding in `main`'s output, before the `not run` line, status 0, ending with the time line). No new code. Add the row for the 60-second default too, since it is cheap: the finding a default runner gives names `60 s`. The out-of-date Interface line about fake containers is noted for the human; it changes nothing here.
 44. factory: started review as vm.
+45. reviewer: Findings:
+    1. `## Acceptance criteria` criterion 10 has no test named for it. The two tests already exist, and journal 43 asks the tester to name them for criterion 10. Fix: the tester maps criterion 10 to `tests/shared/adapters/test_document_examples.py::test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command` and `tests/hosting/adapters/test_checkout_fixture.py::test_the_checkout_fixture_outside_a_git_repository_raises_a_fixture_error`. No new test is needed.
+    2. Criterion 11 has no test. `tests/shared/adapters/test_document_examples.py` holds none that checks the work folder or the home is gone after `run_document`. The code removes them: `ProcessExampleRunner.run_document` in `src/factory/shared/adapters/document_examples.py` uses `tempfile.TemporaryDirectory`, also on the early `return` after a timeout. After journal 43 the factory went straight to review, so no tester run added the test. Fix: the tester adds one parametrized test with rows `ended` and `past-the-limit`. In each row a block writes `pwd` and `$HOME` into a file under `tmp_path`, then runs `true` or `sleep` past the short limit. The test then checks that neither folder exists.
+    3. Criterion 12 has no test. `tests/entry/test_check_documents_examples.py` has only skipped blocks, so no example finding is ever shown in `main`'s output (`src/factory/entry/check_documents.py` `main` and `_example_lines`). Fix: the tester adds a test to that module. It writes a README with a `console fixture=nowhere` block followed by a `console vm` block. It checks that `README.md:<n>: no fixture nowhere` is printed before the `not run (vm)` line, that the status is 0, and that the last line matches `TIME_LINE`. It needs no git root.
+    4. `tests/shared/adapters/test_document_examples.py` has no row for the 60-second default, which the human asked for in journal 43. `ProcessExampleRunner()` defaults to `EXAMPLE_TIME_LIMIT` in `src/factory/shared/adapters/document_examples.py`, and `_no_end` formats it. Fix: the tester adds a row or test showing that a runner built with its defaults gives a finding naming `60 s`, for example by checking the text `_no_end` builds from the default.
+    5. criterion 13 added: it needs its test. `_DocumentRun.environment` in `src/factory/shared/adapters/document_examples.py` puts the fixed environment last ("so that no fixture can lift it"). A fixture's `PATH`, `HOME`, `TZ` or `LANG` therefore never replaces the fixed value, and no criterion named this. I wrote it as criterion 13 and renumbered the closing two to 14 and 15. Fix: the tester adds a parametrized test to `tests/shared/adapters/test_document_examples.py`, one row per variable. Each row uses a fixture that returns that variable with another value, and `env | grep "^<name>="` must show the fixed value.
+    6. `tests/entry/test_check_documents_examples.py:28` `_line_of` is a second copy of `_line_of` in `tests/entry/test_check_documents_references.py:30`, from the earlier story F0053-S0001. Fix (tester, standing leave): move it to `tests/support/check_documents_support.py` and import it in both modules. Every earlier test keeps its name and what it checks.
+
+    Notes:
+    - The `## Interface` line "Tests: ... and an adapter test with the fake containers" is still out of date. The human noted it in journal 43 and said it changes nothing here, so it is not a finding.
+
+    Checked and in order:
+    - Criteria 1 to 9 each have a test that checks what they are named after. The rows cover vm, github, model, the suite forms through `uv run`, after `&&`, with a folder and with options only, and `pytest` with a file as run. `matches` covers `...` for no, one and many lines, the placeholders, and missing and extra lines.
+    - Journal 39 shows `make check` green after the coder.
+    - Architecture:
+      - The layers hold: `hosting.adapters` and `shared.adapters` import `shared.application` and `shared.domain`, and only `entry` wires.
+      - The only new importer of the process module is `factory.shared.adapters.document_examples`, with the human's leave (journal 17).
+      - `GitCli.export` goes through `_run` with `check_git_argument`, and its comment explains why it is not an operation of `Git`.
+      - `CheckoutFixture(git: GitCli)` follows journal 12. `FixtureError` derives from `BoundaryError`.
+    - Security: no secrets and no suppression markers. Commands run under `env -i` through `run_process` with a time limit and a kill. A command that fails to prepare its fixture is reported without a traceback.
+    - Quality:
+      - `_commands` builds each frozen `Command` complete.
+      - The leftover `_first_simple_command` and `_PATH_SEPARATOR` are gone.
+      - Comments say why.
+      - The one new `make duplicates` finding of this diff is `matches`, unused in `src`; the Interface asks for it.
+    - Hygiene:
+      - The Description matches what was built, including "Until S0004, a failed example is only printed".
+      - The docs criterion (now 15) still says what the reader needs. `docs/project-guide/style.md` now exists, so the documenter writes there.
+      - The journal carries the main decisions: `export` only on `GitCli`, and one finding per failed fixture.
+    - My only edit to the work item is criterion 13 and the renumbering of the closing two.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents.py`: the human's leave, journals 9 (1) and 12 (1).
+    - `tests/entry/test_check_documents_guide_files.py`: the human's leave, journal 17 (2).
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal 17 (2).
+    - `tests/guards/test_wrapper_search.py`: the human's leave, journal 17 (1).
+    - `tests/support/check_documents_support.py`: the standing leave to move a shared test helper (`TIME_LINE`).
+    - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`FENCE`).
+    - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper. Its local `FENCE` is replaced by the shared one, and every test keeps its name and what it checks.
