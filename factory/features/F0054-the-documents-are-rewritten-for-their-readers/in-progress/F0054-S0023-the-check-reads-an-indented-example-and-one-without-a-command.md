@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T22:46:41.158438Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-06T22:46:41.158438Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:47:52.267061Z'
+  stage: review
+  run: a5a9cf4cbb484b2295348678e8d9c90c
 ---
 
 # The check reads an indented example and one without a command
@@ -168,3 +170,21 @@ Expect: `1 echo hi`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    What I checked (the diff `git diff main...HEAD -- . ':!factory'` and the work item):
+    - Criterion 1: `tests/shared/domain/test_document_examples.py::test_a_block_indented_under_a_step_reads_as_at_column_0` has rows for three spaces, four spaces, a tab, column 0 and a line indented less than its fence (it keeps ` hi`). Every row expects fence line 5 and command line 6. In the code, `_block_lines` (`src/factory/shared/domain/documents.py:682`) applies `removeprefix` of the fence's own indentation, and the line numbers stay those of the raw lines.
+    - Criterion 2: `tests/entry/test_check_documents_examples.py::test_a_console_block_without_a_command_is_a_finding_at_its_fence` has a column-0 row and an indented row. It checks the finding at the fence line from `line_of`, and `main` does not raise. The domain side is `test_a_console_block_without_a_command_gives_no_example`. In the code, `_commands` returns `[]` when there is no prompt (documents.py:692), and `examples` records `block.start + 1`, which is the 1-based fence line.
+    - Criterion 3: one parametrized test covers three cases. The no-command finding blocks in a listed file (exit 1, no report heading, no time line). It is reported after the heading in an unlisted file (exit 0). An indented mismatch is reported in an unlisted file.
+    - Criterion 4: one parametrized test. An indented match prints only the time line with exit 0. An indented mismatch in a listed file prints one `the example printed` finding with exit 1.
+    - Interface limits: both sides are tested (indented and column 0, a tab, a less-indented line, a block with and without a command, a listed and an unlisted file). The tester's red run named the `zip` crash. The coder's `make check` was green (journal entry 10).
+    - Architecture: the domain change is pure, with no I/O. `Examples` is not in the records contract, so the contract needs no regeneration. Nothing else in `src` or `tests` builds `Examples(...)`. The entry change is wiring only.
+    - The coder asked whether changing `src/factory/entry/check_documents.py` is acceptable when the Interface says "No other module changes". I judge it acceptable, not a finding. The same Interface sends the finding "through the same path as the other example findings", and that path is `_example_results` in the entry module. Criteria 2 and 3 can only pass if `main` prints the finding. The change is four lines in `_example_results` and reuses the existing `GatedFinding` and `split_findings` path. The Description makes no claim about which modules change, so it is not stale.
+    - Security: there are no markers, secrets, strings that reach a shell, or new dependencies.
+    - Quality: I found no existing helper that `_fence_indentation` or `_block_lines` copies; `sections.py` only strips the indentation inside `_closes`. The docstrings of `Examples` and `examples` describe the new behaviour. I ran `make duplicates`: its 6 new findings are all outside this diff (`claude_runtime` and `opencode_runtime`, `hand_over` and `acceptance`, the fields of `cost_records`, and `matches`, which was already unused and only moved lines).
+    - Work item hygiene: the coder's journal entry 10 names the main decision (a `without_command` field rather than a new `Skipped` kind or finding strings built in the domain) and what it rejected. The Description matches what was built. The docs criterion still names what the reader must know.
+    - Smoke test: the coder did not run it, because the shell refused it. The domain rows cover the same case.
+
+    Earlier tests:
+    - tests/shared/domain/test_document_examples.py: none needed (rows added only; the Interface also allows them).
+    - tests/entry/test_check_documents_examples.py: none needed (tests and imports added only, every earlier test unchanged; the Interface also allows them).
