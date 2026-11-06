@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T02:36:45.656235Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-06T02:36:45.656235Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-06T02:42:13.030892Z'
+  stage: doing
+  run: ba32d5fbe7b847f3bfd913ba18fd673e
 ---
 
 # Every name a document writes in backticks exists
@@ -379,3 +381,21 @@ Expect: a number alone (the count of findings, possibly `0`)
 
     `lint`: lint: green (0.1 s)
 24. factory: started doing as vm.
+25. coder: Round 1, after the tester's change (entry 23). I changed nothing, because the tester's new and merged rows (review findings 1 to 5) pass against the code that is already committed. `make check` is green on the committed state, with the working tree clean.
+
+    What I built (unchanged since entries 17 and 21):
+    - `src/factory/shared/domain/documents.py`: `Reference`, `named_references`, `unresolved`, and `UNCHECKED_SECTIONS`, which now reuses `REPLACED_SECTION` (review finding 6).
+    - `src/factory/entry/check_documents.py`: reads `README.md`, `docs/operator-guide/` and `docs/project-guide/`, checks each name with `importlib` or against the checkout, prints the name findings after today's findings and leaves the exit status as today's findings set it.
+
+    Main design decision: link targets are resolved against the document's folder inside `named_references`, so the command checks paths and links the same way. I rejected resolving links in the command, because the Interface puts that rule in the pure function.
+
+    Refactor step: nothing left to change. Review finding 6 was the only code finding, and it was done in entry 21.
+
+    The journal did not change what the task means beyond the reviewer's criterion 5, which is already in the Description.
+
+    Noticed, not touched: about 152 name findings are still printed on the real repository, many of them false positives of the agreed path rule. The human left them for S0004 (entry 11).
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
