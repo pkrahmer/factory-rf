@@ -1,3 +1,76 @@
+---
+stage: docs-approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 582
+comments_read: []
+handed_over: docs-approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T01:29:00.528242Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:29:00.534908Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T01:29:16.805324Z'
+  stage: intake
+  run: ab9062fcb97d4c248f6f1e8be4ba1a2a
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:29:21.777039Z'
+  stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:32:30.300201Z'
+  stage: docs-only
+  run: 66dbc02f03014a8188a8924851a6b6a2
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:32:35.735638Z'
+  stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:33:28.010574Z'
+  stage: docs-review
+  run: 5f0f9f5f840d4223bb7ab5fe6a4c053a
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:33:33.301728Z'
+  stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:36:20.331575Z'
+  stage: docs-only
+  run: 27c8ca5533f94daba5f52f195d3aa2aa
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:36:25.360118Z'
+  stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:37:06.444420Z'
+  stage: docs-review
+  run: 65c8f9ab2e3846ed9e371b8ebe080131
+---
+
 # The operator guide says that the check reads the documents
 ## Description
 
@@ -36,3 +109,84 @@ make documents 2>&1 | tail -1
 Expect: `documents ok`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete places, all documenter paths (`docs/operator-guide/pipeline.md`, its "kumpel-factory's own definition" paragraph and yaml block, and *The docs route*; `docs/decisions.md`). No code or test changes, so the route is docs-only.
+   - Criteria: criteria 1 to 3 are each checkable by reading the document. Criterion 1 compares the `check:` line character for character with `factory/pipeline.yml`, and a block that still lists `"README.md"` or `"docs/*.md"` fails it, so both sides are covered. Criterion 2 has the positive side (names the tests) and the negative side (no longer says every Markdown file is left out). Criterion 3 is one sentence plus "rest unchanged". Criteria 4 and 5 are the gates.
+   - Smoke test: the commands are runnable. The grep expects `0` and the diff expects `same` against the real `check:` line, which `factory/pipeline.yml:10` already holds after the human's change; the guide still has the old block at line 62. `make documents` expects `documents ok`. No pytest command is involved.
+   - Architecture: documents only, inside the documenter's write paths. `docs/project-guide/` is rightly left alone.
+   - Scope: it matches `feature.md` *The human's changes* ("Before S0008's start"). The rewrite of the rest of `pipeline.md` is expressly left for the next feature.
+   - Note for the documenter: the live `check:` line is `{time_limit: 8, not_read: [...]}` and also lists `factory/archive/*`. The guide's block must copy the line exactly.
+4. factory: started docs-only as vm.
+5. documenter: Changed files:
+   - `docs/operator-guide/pipeline.md`: the paragraph "kumpel-factory's own definition" now says that only Markdown and JSON Lines files no test reads are left out. It names the guide guards under `tests/guards/` and the other `make test` tests as the reason `README.md` and `docs/` stay in the key, and says only `docs/runs/*` of `docs/` is left out. The `yaml` block now holds the `check:` line copied from `factory/pipeline.yml`.
+   - `docs/operator-guide/pipeline.md`, *The docs route*: one sentence added saying `make check` runs after `docs-only`, or is reused only when no document a test reads changed. The rest of the section is unchanged.
+   - `docs/operator-guide/pipeline.md`, the generic `not_read` example above the paragraph: it listed `"docs/*.md"`, which the smoke test's grep (expects 0) counts, and it would have read as advice to leave the documents out. I changed it to `["notes/*.md", "docs/runs/*"]`. This goes slightly beyond the Interface, so the reviewer should check it.
+   - `docs/decisions.md`: under *A known result is not checked again*, a Decision line that a test reads the documents so `not_read` keeps them in, and a `Rejected:` line for moving the guide guards into `make documents`. Both come from the criterion 6 text. The story gives no reason beyond that, so I wrote no "Reasons" line.
+
+   Checks run:
+   - The smoke test's grep returns 0.
+   - The diff of the `check:` line returns `same`.
+   - `make documents` prints `documents ok`.
+   - I did not run `make check`, as only documents changed.
+
+   Cross-read and found current: the other operator-guide files were not searched beyond a grep for `not_read` and `documents`. `docs/project-guide/` was not touched, as the criterion says it does not quote the definition.
+
+   Stale text I noticed but did not touch: the "Two warnings" bullet in `pipeline.md` says the docs stage runs `secrets` with nothing left out. The rewrite of the docs route is left for the next feature, so I did not check whether that bullet is still accurate.
+
+   `check`: check: green
+   `secrets`: secrets: green (1.3 s)
+   `documents`: documents ok
+6. factory: started docs-review as vm.
+7. reviewer: Docs review, round 0. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, then checked the text against `factory/pipeline.yml`, `git ls-files` of the folders `not_read` names, and `docs/project-guide/style.md`.
+
+   What holds:
+   - Criterion 1: the `yaml` block under "kumpel-factory's own definition" matches `factory/pipeline.yml:10` character for character, and `"docs/*.md"` no longer appears in `pipeline.md`.
+   - Criterion 2: the paragraph names the guide guards under `tests/guards/` as the reason, and it no longer says that every Markdown file is left out.
+   - Criterion 3: *The docs route* gains one true sentence. `docs-only` lists `check` among its checks, and every other sentence of the section is unchanged.
+   - `docs/decisions.md`: the Decision line and the `Rejected:` line meet criterion 6.
+   - The documenter also changed the generic example, beyond the Interface. That was needed, because the smoke test's grep for `"docs/*.md"` expects `0`. Finding 3 is about its new content.
+
+   Findings:
+   1. `docs/operator-guide/pipeline.md`, paragraph "kumpel-factory's own definition", first sentence. It says that the definition leaves out "only the Markdown and JSON Lines files that no test reads". That is false: `docs/runs/*` also leaves out a `.json` file and a `.log` file (`git ls-files docs/runs` lists 7 md, 3 jsonl, 1 json, 1 log). The sentence also runs to about 33 words, over style rule 2. Fix: say that the definition leaves out the Markdown and JSON Lines files no test reads, plus folders that hold no code and that no test reads (`docs/runs/`, `planning/`, `session-logs/`, `factory/archive/`). Split this into two sentences, keeping the `make lint` reason.
+   2. `docs/operator-guide/pipeline.md`, same paragraph, the sentence "`README.md` and `docs/` stay in the key: the guide guards … can turn `make check` red." It runs to about 31 words, over style rule 2. Fix: split it after "stay in the key", for example "… stay in the key. The guide guards under `tests/guards/` and other tests of `make test` read the real documents, so a documents-only change can turn `make check` red."
+   3. `docs/operator-guide/pipeline.md`, the generic `not_read` example, now `["notes/*.md", "docs/runs/*"]`. The whole-folder pattern `docs/runs/*` contradicts the advice two lines below it: "leave out file types it does not read, never a whole folder". Fix: give the example file-type patterns only, for example `["notes/*.md", "notes/*.jsonl"]`. Do not bring back `"docs/*.md"`, which the smoke test counts.
+
+   Open, outside this story's scope:
+   - The documenter flagged the "Two warnings" bullet about `secrets` as possibly stale. Its rewrite belongs to the next feature, so I did not judge it.
+   - The general advice "never a whole folder" already sat beside the project's own whole-folder patterns (`planning/*`, `session-logs/*`) before this diff. That is not a finding here.
+8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's three findings, all in `docs/operator-guide/pipeline.md`.
+   - Finding 1 and 2: rewrote the paragraph "kumpel-factory's own definition" as five short sentences. It now says the definition leaves out the Markdown and JSON Lines files no test reads, plus folders with no code that no test reads (`docs/runs/`, `planning/`, `session-logs/`, `factory/archive/`). It keeps the `make lint` reason and says `README.md` and `docs/` stay in the key because the guide guards under `tests/guards/` and other `make test` tests read the documents. It also says only `docs/runs/*` of `docs/` is left out.
+   - Finding 3: the generic `not_read` example is now `["notes/*.md", "notes/*.jsonl"]`, file-type patterns only, so it no longer contradicts the advice "never a whole folder".
+
+   Checks: the grep for `"docs/*.md"` returns 0, and `make documents` prints `documents ok`. The yaml block and `docs/decisions.md` are unchanged from round 0. I did not run `make check`, as only documents changed.
+
+   Cross-read and found current: the criterion-1 `check:` line against `factory/pipeline.yml:10`, and the rest of the paragraph's neighbours (the generic example and its advice).
+
+   Stale text not touched, outside this story: the "Two warnings" bullet about `secrets` in `pipeline.md` may be stale; the next feature rewrites the docs route. The advice "never a whole folder" sits beside the project's own whole-folder patterns (`planning/*`, `session-logs/*`), as the reviewer noted.
+
+   `check`: check: green
+   `secrets`: secrets: green (1.3 s)
+   `documents`: documents ok
+10. factory: started docs-review as vm.
+11. reviewer: Docs review, round 1. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked the text against `factory/pipeline.yml`, against the files tracked in the folders `not_read` names, against the tests that read files from the repository, and against `docs/project-guide/style.md`.
+
+    no findings
+
+    What holds:
+    - Criterion 1: the `yaml` block under "kumpel-factory's own definition" matches `factory/pipeline.yml:10` character for character; the smoke test's diff prints `same`. `"docs/*.md"` no longer appears in `pipeline.md`; the smoke test's grep prints `0`.
+    - Criterion 2: the paragraph names the guide guards under `tests/guards/` and the other `make test` tests as the reason `README.md` and `docs/` stay in the key. It says that only `docs/runs/*` of `docs/` is left out. It no longer says that every Markdown file is left out.
+    - Round 0's finding 1 is fixed. The paragraph now names the left-out folders apart from the file types. Those folders hold no code: `git ls-files` lists only md, jsonl, one json and one log file. I found no test that reads the real files under `factory/features/`, `factory/archive/`, `docs/runs/`, `planning/` or `session-logs/`. The tests that name those paths build them under `tmp_path`.
+    - Round 0's finding 2 is fixed. The sentences are split and each runs to about 25 words or fewer, within style rule 2. The paragraph has no history words, as rule 7 asks.
+    - Round 0's finding 3 is fixed. The generic example `["notes/*.md", "notes/*.jsonl"]` uses file-type patterns only, so it agrees with the advice "never a whole folder".
+    - Criterion 3: *The docs route* gains one sentence, and it is true. `docs-only` lists `check` among its checks (`factory/pipeline.yml:37`), and a passed result is reused only when nothing outside `not_read` changed. The other sentences of the section are unchanged.
+    - Criterion 6: `docs/decisions.md` has the Decision line and the `Rejected:` line under the known results' entry. Story IDs are allowed in the decision log. `docs/project-guide/` is unchanged, as the criterion says.
+    - Criteria 4 and 5: entry 9 shows `documents ok` and `check: green`.
+
+    Open, outside this story's scope, as entries 7 and 9 already say:
+    - The "Two warnings" bullet about `secrets` may be stale.
+    - The advice "never a whole folder" sits beside the project's own whole-folder patterns.
+    The next feature rewrites that part of `pipeline.md`.

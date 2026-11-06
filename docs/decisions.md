@@ -869,6 +869,8 @@ Date: 2026-10-19 (F0023-S0002). After an agent the factory ran every check and r
 - Decision: the store is a record log of its own in the state directory, not new fields on `CommandRecord`. No agent can write there, and `RecordingProjectCommands` sees no key.
 - Decision: only the factory's own runs are known. An agent's own `make check` would be the agent's word.
 - Rejected: a positive list of the paths a command reads; keying on the commit or the stage; fields on `CommandRecord`; counting an agent's run.
+- Decision (F0052-S0008): a test reads the documents (the guide guards under `tests/guards/`), so `check`'s `not_read` keeps `README.md` and `docs/*.md` in the key and leaves out only `docs/runs/*` of `docs/`. A documents-only change that turns `make check` red then runs it again.
+- Rejected (F0052-S0008): moving the guide guards into `make documents`.
 
 ## A mutation run's report is a line of its own, and a partial run is never complete
 
