@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T19:50:35.021066Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T19:50:35.021066Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T19:50:55.185729Z'
+  stage: intake
+  run: 1165b19bf69d45fca6bdd3fc38e05b1e
 ---
 
 # Listing a right document keeps the suite green
@@ -65,3 +67,10 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete modules and signatures: the new helper `write_checked_list(root: Path, paths: Sequence[str]) -> None` in `tests/support/check_documents_support.py`, the four earlier tests by path and name, and the new module `tests/entry/test_check_documents_any_list.py`. Nothing under `src/` changes. The leave for the earlier tests is feature decision 8.
+   - Criteria: each is testable by one parametrized test. Criterion 1 has one row per listed page, criterion 2 is the failing side (the extra line appears without the helper), criterion 3 covers the helper for an empty list and for a non-empty one, plus a clean `git status`. Criterion 4 keeps the old rows and ids. The helper's behaviours (one path per line, empty file, commit) each have a criterion.
+   - Smoke test: runnable. The pytest command passes `-o addopts=`, so there is no `-q` clash. Each Expect line is checkable: `documents ok`, a last line `<n> passed in`, and no `failed`. The before state is stated as `9 failed, 12 passed`.
+   - Docs criterion: names what the reader must know (a settings or refusal finding blocks in a listed `install.md` and is only reported in an unlisted one). It dictates no sentences. Naming the sentence to drop is a removal of a false claim, not text to write.
+   - Architecture: this is test support only, placed in `tests/support/` as CLAUDE.md requires. No test module imports another.
+   - Scope: within feature decision 8 and outside the feature's "Out of scope". Route: tests, because the Interface changes tests and support code, not only documents.
