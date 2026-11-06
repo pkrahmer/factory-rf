@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 577
-comments_read: []
+comments_read: [6672901695]
 handed_over: null
 claim: null
 journal:
@@ -48,6 +48,11 @@ journal:
   stage: doing
   run: 60d6aa07b9b14080ba22e925fc12cef8
   blocked: question
+- number: 8
+  speaker: human
+  kind: comment
+  at: '2026-11-06T00:09:15.238323Z'
+  stage: doing
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -151,3 +156,4 @@ Expect: `True True False`
    I would choose (a): the test is about `AcceptanceMerged` in the work area, so it belongs in the work area's test folder. If you agree, I will end the next round with `tests` and name that change.
 
    Not touched: `tests/support/two_routes_support.py` is a new support module that the project guide's shared-helper list does not name yet. The tester left that open for the docs stage.
+8. 2026-11-06 human: (a): end with `tests`. The tester makes `tests/work/application/test_acceptance_merged_on_two_routes.py` import a name from `factory.work` that the test really uses, for example the accepted outcome or the entry text checked against the work area's own names. No import that only satisfies the guard. The module stays beside `test_acceptance_merged_before_approval.py`. The docs stage names `tests/support/two_routes_support.py` in the shared-helper list.
