@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T10:35:17.553856Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,19 @@ journal:
   kind: started
   at: '2026-11-06T10:35:17.553856Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T10:36:33.346048Z'
+  stage: review
+  run: 41500be8fceb48bd9cf2f759b64ac1d9
+- number: 32
+  speaker: factory
+  kind: question
+  at: '2026-11-06T10:36:33.346048Z'
+  stage: review
+  run: 41500be8fceb48bd9cf2f759b64ac1d9
+  blocked: round_cap
 ---
 
 # The agents write and review documents against the code
@@ -464,3 +473,23 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 30. factory: started review as vm.
+31. reviewer: Findings:
+
+    1. `agents/agents/documenter.md`, Stage step 3 and the last bullet of `## Lessons`: the problem is where the rule sits. The rule that the documenter runs `make documents` and ends only on `documents ok (<seconds> s)` (criterion 4, rule 10) is in step 3. The Lessons bullet "When every file you changed is a document (`README.md` or a file under `docs/`), end without running `make check`, in place of step 3 of the stage" replaces all of step 3. That is the documenter's usual case, so in most stories the `make documents` rule is dropped with it. Only a documenter that changed a file outside the documents would still run it. The test row `make-documents-ends-on-ok` passes anyway, because it only counts the paragraph and does not see that the lesson overrides it. Fix: move the `make documents` sentence out of what the lesson replaces. One way is to keep step 3 for the documents check alone and put `make check` in its own step, then make the lesson say "end without running `make check`" and no longer "in place of step 3". The other way is to make the lesson name only the `make check` half of step 3. Either way, `make documents` and `documents ok` must stay in one paragraph so the test row still holds.
+
+    Checked and fine:
+    - Every criterion from 1 to 9 has a row in `tests/agent_files/test_claude_agent_texts_documents.py`. I read each row against the agent text it pins, and they hold. The sides of each rule are rows of one parametrized test.
+    - The coder's `make check` was green (journal entry 29).
+    - `make documents` prints `documents ok (<n> s)` as its last line (`src/factory/entry/check_documents.py:194`), which matches the wording in step 3.
+    - Round 1 finding 1 is fixed. The step 3 condition is now on the project's Makefile, which the documenter may read. Without the target, the step ends on `make check` alone.
+    - Round 1 finding 2 is fixed. The `### Documents` item now says it applies in `docs-review` too, so it no longer contradicts the docs-review sentence that replaces groups 1 to 6.
+    - Round 1 finding 3 is fixed. Intake step 7's list now has a line for the docs criterion of step 4.
+    - No other agent file names the intake's step numbers.
+    - Nothing changed under `src/`, so the architecture and security groups have nothing to check, and the diff adds no suppression markers.
+    - The Description matches what was built.
+    - Criterion 11, the docs criterion, still says what the reader must know.
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py` was changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name; the only change is that it also strips the `### Documents` item.
+    - `tests/agent_files/test_claude_agent_texts_mutants.py` was changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name; the only change is that it skips the `### Documents` item. Nothing else in that module changed.
+32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
