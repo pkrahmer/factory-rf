@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T19:21:16.486989Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-06T19:21:16.486989Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-06T19:21:38.634966Z'
+  stage: doing
+  run: 79017b9986894ba3ba59a2e705fd43c4
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -209,3 +211,15 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, feature decision 7, named in the story's Interface. The test keeps its name, row ids and expected outputs. Only its filter moved to `without_report_lines` and gained the `not run` rule.
     - `tests/support/check_documents_support.py`: none needed. The change only adds `NOT_RUN` and `without_report_lines` and leaves the existing names as they were.
 13. factory: started doing as vm.
+14. coder: Round 1. I changed no code. All three of the reviewer's findings (entry 12) are changes to test files. The coder never edits tests, so I am handing them to the tester. Two of them are moves of shared helpers under the standing leave in CLAUDE.md. Nothing under `src/` changes, and the Interface forbids it anyway.
+
+    I checked finding 1 myself and it holds. `copy_of` in `tests/support/documents_copy_support.py:24` and `clone` in `tests/support/git_support.py:129` both run `git clone -q <repo> <name>` in `target.parent`. The only difference is the `--local` flag, which git already uses for a local path.
+
+    The changes for the tester:
+    1. Remove `copy_of` from `tests/support/documents_copy_support.py` and use `support.git_support.clone` in its place, both in the `documents` fixture in `tests/conftest.py` and in `tests/entry/test_check_documents_suite_copy.py`. If you want `--local` spelled out, add it to `clone` rather than keeping a second helper.
+    2. Move one block-appending helper into `tests/support/check_documents_support.py`, under the standing leave. It should take the info string and the block's lines, and return the block's first line. Move the `machine.md` findings filter there as well (the `_findings_from` filter that keeps lines at or after a given first line). Then switch both modules to the shared helpers: `tests/entry/test_check_documents_copies.py` (its `_append_block` at line 17 and `_findings_from` at line 32) and `tests/entry/test_check_documents_suite_copy.py` (its `_append_block` at line 19 and its `ABOUT_MACHINE` / `>= first_line` filter). Every earlier test keeps its name and what it checks, and your entry names `tests/entry/test_check_documents_copies.py` as an earlier file you changed.
+    3. In `tests/support/check_documents_support.py`, rewrite the module docstring so it covers the output filter (`without_report_lines`) and the block helpers. Move `NOT_RUN` up to sit beside `TIME_LINE`.
+
+    What I rejected: making these edits myself. That would break the rule that the coder never touches tests.
+
+    Not touched: the `make test` timing from entry 10 (106.8 s before, 105.6 s after) still holds, since nothing has changed. The journal changed nothing in the Description.
