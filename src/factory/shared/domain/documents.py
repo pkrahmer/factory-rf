@@ -525,8 +525,10 @@ _FIXTURE_OPTION = "fixture="
 _SUITE_TARGETS = ("make check", "make test")
 _RUNNER_PREFIX = ("uv", "run")
 _PYTEST = "pytest"
-_SHELL_OPERATORS = frozenset("|&;<>")
-_PATH_SEPARATOR = "/"
+_LIST_OPERATORS = re.compile(r"\|\||&&|[|;&]")
+_REDIRECTION = re.compile(r"\d*[<>]+&?\d*")
+_OPTION_MARK = "-"
+_TEST_SELECTOR = "::"
 _TEST_FILE_SUFFIX = ".py"
 
 
@@ -588,30 +590,35 @@ def _commands(lines: Sequence[str], first: int) -> list[Command]:
     ]
 
 
-def _first_simple_command(command: str) -> str:
-    # What follows a pipe, a list operator or a redirection is not pytest's argument.
-    cut = next((index for index, char in enumerate(command) if char in _SHELL_OPERATORS), None)
-    return command if cut is None else command[:cut]
+def _simple_commands(command: str) -> list[tuple[str, ...]]:
+    # A redirection such as `2>&1` holds `&`, so it goes before the line is split at operators.
+    without_redirections = _REDIRECTION.sub(" ", command)
+    return [tuple(part.split()) for part in _LIST_OPERATORS.split(without_redirections)]
 
 
-def _names_a_test_path(word: str) -> bool:
-    return _PATH_SEPARATOR in word or _TEST_FILE_SUFFIX in word
+def _names_a_test_file(word: str) -> bool:
+    if word.startswith(_OPTION_MARK):
+        return False
+    return word.split(_TEST_SELECTOR, 1)[0].endswith(_TEST_FILE_SUFFIX)
 
 
-def runs_the_suite(command: str) -> bool:
-    """Whether `command` runs the whole test suite: `make check`, `make test`, a bare `pytest`.
-
-    A `pytest` runs the suite unless one of its words names a test path; an option's value,
-    such as the name after `-k`, names none.
-    """
-    words = tuple(_first_simple_command(command).split())
+def _simple_command_runs_the_suite(words: tuple[str, ...]) -> bool:
     if words[: len(_RUNNER_PREFIX)] == _RUNNER_PREFIX:
         words = words[len(_RUNNER_PREFIX) :]
     if " ".join(words[:2]) in _SUITE_TARGETS:
         return True
     if not words or words[0] != _PYTEST:
         return False
-    return not any(_names_a_test_path(word) for word in words[1:])
+    return not any(_names_a_test_file(word) for word in words[1:])
+
+
+def runs_the_suite(command: str) -> bool:
+    """Whether `command` runs the whole test suite: `make check`, `make test`, a bare `pytest`.
+
+    Every simple command of the line counts. A `pytest` runs the suite unless one of its
+    words names a test file; a folder, an option or an option's value names none.
+    """
+    return any(_simple_command_runs_the_suite(words) for words in _simple_commands(command))
 
 
 def _skipped_kind(options: Sequence[str], commands: Sequence[Command]) -> str | None:

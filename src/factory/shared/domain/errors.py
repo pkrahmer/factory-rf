@@ -136,6 +136,17 @@ class TokenError(BoundaryError):
         self.detail = detail
 
 
+class FixtureError(BoundaryError):
+    """A fixture could not build the starting point of a document's examples."""
+
+    detail: str
+
+    def __init__(self, detail: str) -> None:
+        """Say why the fixture could not be prepared."""
+        super().__init__(f"fixture could not be prepared: {detail}")
+        self.detail = detail
+
+
 class WorkItemFormatError(FactoryError):
     """A work item file cannot be read: its fault and, where known, its path."""
 

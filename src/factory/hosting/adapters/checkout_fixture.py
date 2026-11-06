@@ -4,6 +4,7 @@ from pathlib import Path
 
 from factory.hosting.adapters.git_cli import GitCli
 from factory.shared.application.document_examples import Fixture
+from factory.shared.domain.errors import FixtureError, GitError
 
 CHECKED_COMMIT = "HEAD"
 
@@ -17,5 +18,8 @@ class CheckoutFixture(Fixture):
 
     def prepare(self, folder: Path) -> dict[str, str]:
         """Write the tracked files at the checked commit into `folder`; no extra environment."""
-        self._git.export(CHECKED_COMMIT, folder)
+        try:
+            self._git.export(CHECKED_COMMIT, folder)
+        except GitError as error:
+            raise FixtureError(str(error)) from error
         return {}

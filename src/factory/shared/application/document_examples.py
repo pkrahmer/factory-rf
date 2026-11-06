@@ -12,7 +12,10 @@ class Fixture(ABC):
 
     @abstractmethod
     def prepare(self, folder: Path) -> dict[str, str]:
-        """Build the starting point in the empty `folder`; the extra environment of the commands."""
+        """Build the starting point in the empty `folder`; the extra environment of the commands.
+
+        Raises `FixtureError` when the starting point cannot be built.
+        """
 
 
 class ExampleRunner(ABC):

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T08:05:29.838301Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-11-06T08:05:29.838301Z'
   stage: doing
+- number: 35
+  speaker: coder
+  kind: result
+  at: '2026-11-06T08:08:45.402104Z'
+  stage: doing
+  run: bf01d06f9c6e41118e7e4b92583c0811
 ---
 
 # A document's marked examples are run by the check
@@ -615,3 +617,33 @@ Expect: `1`
     - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`FENCE`).
     - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper. Its local `FENCE` was replaced by the shared one, and every test keeps its name and what it checks.
 34. factory: started doing as vm.
+35. coder: I fixed both findings of review journal 33 in the code. `make check`: check: green (coverage 99.12 %). The new failure path still needs its test, so this goes to the tester.
+
+    Finding 1: a fixture that cannot be prepared now gives a finding instead of a traceback.
+    - `src/factory/shared/domain/errors.py`: new `FixtureError(BoundaryError)`.
+    - `src/factory/hosting/adapters/checkout_fixture.py`: `CheckoutFixture.prepare` translates `GitError` into `FixtureError`.
+    - `src/factory/shared/application/document_examples.py`: `Fixture.prepare` documents that it raises `FixtureError`.
+    - `src/factory/shared/adapters/document_examples.py`: on `FixtureError` the runner gives one finding at the block's fence line, `<document>:<line>: fixture <name> could not be prepared`. The document's later blocks on that fixture are not run and get no finding of their own. `_DocumentRun` now holds the document's findings.
+    - Main decision: one finding per failed fixture per document. I rejected one finding per block, which would repeat the same cause for every later block.
+
+    Finding 2: `runs_the_suite` in `src/factory/shared/domain/documents.py`.
+    - It drops redirections (`2>&1`), splits the line into simple commands at `||`, `&&`, `|`, `;` and `&`, and is true when any simple command runs the suite.
+    - A pytest word names a test file only when it does not start with `-` and its part before `::` ends in `.py`.
+    - Checked by hand:
+      - suite: `cd docs && make check`, `true; pytest`, `pytest tests/`, `pytest --cov=src/factory`, `pytest -q 2>&1 | tail -5`, `pytest -k name`, `uv run make test`.
+      - run: `uv run pytest tests/a/test_b.py`, `pytest tests/a/test_b.py::t -q`, `echo hi`, `make lint`.
+    - The duplicate `_PATH_SEPARATOR` definition in that module is gone.
+
+    For the tester:
+    1. `tests/shared/adapters/test_document_examples.py`: a fixture whose `prepare` raises `FixtureError` gives exactly the finding `<document>:<line>: fixture <name> could not be prepared` at the block's fence line, and no command of the document's blocks on that fixture runs (for example, a first block writes a marker file that is then absent, or a second block on the same fixture adds no second finding).
+    2. Optionally, `tests/hosting/adapters/test_checkout_fixture.py`: `CheckoutFixture` on a folder that is not a git repository raises `FixtureError`. `checkout_fixture.py:23-24` is uncovered now.
+    3. `tests/shared/domain/test_document_examples.py::test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind`: `suite` rows `cd docs && make check` and `pytest tests/`.
+
+    Refactor: I reread the diff and found nothing more to change.
+
+    Noticed, not touched:
+    - `make documents` is not read as running the suite. The reviewer mentioned it, but its fix did not ask for it.
+    - The stale "Tests: ... with the fake containers" line in `## Interface` is still open, for whoever may write the work item.
+    - The 60-second default limit still has no test (the reviewer's note).
+
+    `check`: check: green
