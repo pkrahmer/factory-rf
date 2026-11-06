@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T22:16:29.273501Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,19 @@ journal:
   kind: started
   at: '2026-11-06T22:16:29.273501Z'
   stage: docs-review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:17:47.427537Z'
+  stage: docs-review
+  run: 0de82178dd7247198d19862d3a0302b1
+- number: 31
+  speaker: factory
+  kind: question
+  at: '2026-11-06T22:17:47.427537Z'
+  stage: docs-review
+  run: 0de82178dd7247198d19862d3a0302b1
+  blocked: round_cap
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -494,3 +503,23 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (1.9 s)
 29. factory: started docs-review as vm.
+30. reviewer: Round 2 docs review, after the documenter's entry 28. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`. I checked them against `operator/vm/setup.sh`, `operator/vm/Dockerfile`, `docs/operator-guide/machine.md` (*The stage image*, *The two passes*, *The service*), `docs/operator-guide/cloud-run.md`, `docs/project-guide/style.md` and the old file on `main`.
+
+    What holds:
+    - Findings 1 to 3 of review entry 26 are fixed.
+    - Step 4 is `sudo systemctl start factory@<instance>`, which agrees with machine.md:336 and setup.sh:457-459 (the unit is enabled, not started).
+    - Step 2 says the image is built as the user `factory`, from the checkout (machine.md:125-128).
+    - Step 1 quotes the first-pass line, and that quote agrees with setup.sh:350-351.
+    - Rechecked against the code and true: the `factory.env` values (setup.sh:415-436), including `FACTORY_TRANSCRIPT_DIR`, `FACTORY_ZFS` and the version pins `2.1.318` and `1.19.5` (Dockerfile:4-5).
+    - Unchanged from earlier rounds: the kept headings (criterion 4), the line in `docs/checked-documents.txt` (criterion 3) and the inline `make mutants` commands (the human's entry 14).
+
+    Findings:
+    1. docs/operator-guide/install.md:11: "It is the way to run an instance" is not true. A Cloud Run job runs an instance without a VM: `operator/vm/job-start.sh` ends in `exec factory-run` (cloud-run.md, *On Cloud Run*). The sentence comes from the old text, but style rule 10 says a claim the code does not bear out is corrected. Fix: say the script prepares a VM for an instance, and point to [cloud-run.md](cloud-run.md) for a job.
+    2. docs/operator-guide/install.md:11: "put the token there, with the other login files" does not name the files. It also does not say that all three must exist whatever the runtime. machine.md (*The two passes*) says: place `hosting-token`, `claude-token` and `anthropic-api-key` in `/home/factory/.secrets`, readable by `factory`. With `claude` the key file stays empty. An operator who follows the step cannot know which files those are. Fix: name the three files, the folder, the owner rule and the empty key file under `claude`.
+    3. docs/operator-guide/install.md:11: step 1 breaks style rule 2 and style.md:77, which says each step is one action with its command and a reason in one sentence. The step has six sentences. One of them, "It prepares a fresh Ubuntu 24.04 machine: the packages, …, the systemd unit (enabled, not started)", is about 45 words long. Fix: split it into two steps, 1 run the script and 2 place the three files and run it again, then renumber the later steps. Cut the list of what the script prepares to a sentence under 25 words, or replace it with a pointer to "The steps" in machine.md.
+
+    Still open outside this diff, as entries 14 and 20 decided:
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*.
+    - `docs/operator-guide/README.md` keeps its version-history sections.
+31. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
