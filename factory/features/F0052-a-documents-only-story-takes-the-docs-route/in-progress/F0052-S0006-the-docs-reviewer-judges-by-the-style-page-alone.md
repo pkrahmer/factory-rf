@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T00:57:50.877536Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T00:57:50.877536Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T00:58:10.384031Z'
+  stage: docs
+  run: d3a15cb39f2b49669fb626a4fb4245e8
 ---
 
 # The docs reviewer judges by the style page alone
@@ -158,3 +160,16 @@ Expect: `1`
    Earlier tests:
    - `tests/agent_files/test_claude_agent_texts_docs_route.py`: changed under the human's leave, feature decision 8 (the human, 2026-11-06), which the story's Interface names. The change stays within the leave. It removes `STYLE_RULES` and `test_the_reviewer_in_docs_review_lists_each_style_rule_once`, and adds the one test that criterion 1 names, with its constant. Every other test in the module is unchanged.
 10. factory: started docs as vm.
+11. documenter: I changed one file: `docs/project-guide/agents.md`, *The docs route*. I removed the sentence "Until the style page exists, the reviewer's subsection lists the seven style rules itself." In its place the paragraph now says that on `docs-review` the reviewer judges the writing against `docs/project-guide/style.md` alone (its rules for all documents and the section for the kind of document the diff changes), and that the subsection holds no list of rules of its own. This is criterion 4. The table row above it already said the reviewer judges against the style page, so it stays.
+
+    Cross-read and found current: the rest of `docs/project-guide/agents.md`, and a search of `README.md` and `docs/` (leaving out the human's `docs/runs/`) for other copies of the fallback text. There are none. I checked the diff to `agents/agents/reviewer.md` step 3 against the new paragraph and they agree.
+
+    `docs/decisions.md`: I wrote nothing, as criterion 4 says, because the fallback was a stopgap and not a decision. I added no "Why" or "Rejected" line.
+
+    Not touched, stale but not mine: the operator guide's "once it exists" in *The docs route*. The Description leaves it to the rewrite of `pipeline.md` in the next feature.
+
+    I changed only documents, so I did not run `make check`; the factory's checks follow. No findings for the coder.
+
+    `check`: check: green (not run again: passed on tree 2503ea5b3c55 at 2026-11-06T00:54:40Z)
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok
