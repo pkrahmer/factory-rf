@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T01:43:57.339849Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T01:43:57.339849Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T01:46:40.260137Z'
+  stage: docs-only
+  run: d1e45b241d3e4d2286de38f7b3aa856b
 ---
 
 # The project guide says which lines of its index name a page
@@ -119,3 +121,8 @@ Expect: `documents ok`
    - The example "a heading such as `## The files` is never read as a page" can stay. It names the very case that stalled the earlier story, and the guard does not read it.
    - Criteria 2 to 4 are met. Entry 5 of the journal records `check: green`, `secrets: green` and `documents ok`, and the diff touches no code or test.
 8. factory: started docs-only as vm.
+9. documenter: Round 1, fixing the reviewer's two findings. Changed `docs/project-guide/README.md`, `## The files`, the paragraph that names the guard. (1) I split the long sentence at the semicolon: the first sentence says which list items the guard reads as a page entry, and the second says every other list item starts with a word. (2) The second sentence now says "a word, plain or in italics, never with a name in backticks". That matches the italic-led exception items below it and `INDEX_LINE`. I changed "a heading such as `## The files`" to "text such as `## The files`", because the offending case was a list item that began with that text, not a heading. I ran `tests/guards/test_project_guide_files.py` (3 passed) and `make documents` (documents ok). I did not run `make check`, because I changed only a document. I touched no code or test. Cross-read: the rest of `docs/project-guide/README.md` is current. I saw no stale text outside this story. No `docs/decisions.md` entry was written, so there is no Why or Rejected line to flag.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok
