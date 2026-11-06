@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 611
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:21:18.692790Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T23:21:18.692790Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:24:54.815015Z'
+  stage: docs-only
+  run: 6ffa8165bacc482880b8afb01093848d
 ---
 
 # The operator guide's the machine reads for the operator
@@ -77,3 +79,37 @@ Expect: `1`
    Architecture: documents only, no code, so CLAUDE.md's layers are not touched. Operator-guide docs sit in the documenter's write paths.
    Scope: this is S0003 of F0054, listed in `feature.md`. It touches nothing in the feature's Out of scope (`decisions.md`, `docs/runs/`, `operator-playbook.md`, no behaviour change).
 4. factory: started docs-only as vm.
+5. documenter: I rewrote `docs/operator-guide/machine.md` in place and did not rebuild it from scratch. `make documents` ends with `documents ok (2.0 s)`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/machine.md`:
+     - It now opens with the reader (an operator of an instance), links the glossary at the first use of the factory's words, and says that the `console vm` blocks are listed and not run.
+     - I removed the history and the planning references: "v1.2", "F0042", "F0043 decision 10", "decisions of 2026-10-24", "question 7 of planning/v1.2-plan.md", "the plan's measure", the `planning/cloud-sandbox/` and `planning/overnight/` paths, "unchanged", "as before", "no longer" and "a later version may use rsync". Three sentences were reworded for the same reason: "A machine set up before this change", "The old name `--ref`" and "as `vm` was".
+     - The measured seconds for the job overlay became "about" figures. I made these up by rounding, but they come from the old text: 601 s → about ten minutes, 182 s → about three, 199 s → about three, 107 s → about two.
+     - I turned every `bash` block into a `console vm` block with `$ ` prefixes. Their commands were not run: they need the VM, the cloud or the operator's own computer. They show no output, so I invented none.
+     - Project paths now use the `<project>/` placeholder (`<project>/factory/stage.Containerfile`, `<project>/factory/agents/`), and the `factory.image` label is written `factory.image=<ref>`, so the name check passes.
+   - `docs/checked-documents.txt`: added `docs/operator-guide/machine.md`.
+
+   I kept every heading that another file, `operator/vm/setup.sh` or a test points to: *The machine*, *The service*, *The two passes*, *The rebuild after a merge*, *On GCP, step by step* (with its step numbers 6, 8 and 11), *The idle shutdown*, *The job profile*, *The metadata server in a job*, *The code and the project apart*, *The image on the cost records*, *Without ZFS* and *The steps* (with its steps 14 and 16). So no link needed a change.
+
+   I did not add a *Reference* section, and I dropped no name, command, setting or rule. The option table, the layout table and the environment-file table stay where they are.
+
+   I did not restructure the stage-image-failed stop into the three parts "what you see / what it means / what you do". The text covers all three but not under those labels. The reviewer may ask for that.
+
+   I spot-checked these against the code or scripts:
+   - the pins `2.1.318` and `1.19.5` in `operator/vm/Dockerfile`;
+   - the `--ref` refusal in `operator/vm/setup.sh`;
+   - `--pids-limit=4096` and `--memory=4g` in `podman_runs.py`;
+   - the settings names in `settings.py`.
+
+   I did not re-verify every other claim line by line.
+
+   Cross-read and found current: `docs/operator-guide/README.md` and the links to `machine.md` headings in `install.md`, `health.md`, `cloud-run.md`, `agent-runtime.md`, `stops.md` and `docs/project-guide/machine.md`.
+
+   Stale text I saw and did not touch (outside this story):
+   - `docs/operator-guide/agent-runtime.md:181` names `planning/cloud-sandbox/`, a path the name check does not find.
+   - The other files in the `Report (not checked yet)` list, such as `health.md` and `pipeline.md`, have name findings. They belong to other stories.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.5 s)
+   `documents`: documents ok (2.2 s)
