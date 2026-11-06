@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 582
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:33:33.301728Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T01:33:28.010574Z'
   stage: docs-review
   run: 5f0f9f5f840d4223bb7ab5fe6a4c053a
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:33:33.301728Z'
+  stage: docs-only
 ---
 
 # The operator guide says that the check reads the documents
@@ -135,3 +144,4 @@ Expect: `documents ok`
    Open, outside this story's scope:
    - The documenter flagged the "Two warnings" bullet about `secrets` as possibly stale. Its rewrite belongs to the next feature, so I did not judge it.
    - The general advice "never a whole folder" already sat beside the project's own whole-folder patterns (`planning/*`, `session-logs/*`) before this diff. That is not a finding here.
+8. factory: started docs-only as vm.
