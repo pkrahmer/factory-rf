@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T08:40:00.279394Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -321,6 +325,11 @@ journal:
   stage: docs
   run: 4f3da81f74214116a2543dcd560ab0db
   reason: check_red
+- number: 57
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:40:00.279394Z'
+  stage: docs
 ---
 
 # A document's marked examples are run by the check
@@ -1027,3 +1036,4 @@ Expect: `1`
     FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-install-file] - AssertionError: assert 'docs/operato...be prepared\n' == 'docs/opera...
     FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-index] - AssertionError: assert 'docs/operato...be prepared\n' == 'docs/operato...md...
     make: *** [Makefile:89: test] Error 1
+57. factory: started docs as vm.
