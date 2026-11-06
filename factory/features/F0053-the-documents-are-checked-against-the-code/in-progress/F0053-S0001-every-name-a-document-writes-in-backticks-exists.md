@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T02:22:42.046756Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-06T02:22:06.576121Z'
   stage: tests
   run: 9e7046ad5408479b82453881bc9968e5
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:22:42.046756Z'
+  stage: doing
 ---
 
 # Every name a document writes in backticks exists
@@ -227,3 +236,4 @@ Expect: a number alone (the count of findings, possibly `0`)
     Test run: `uv run pytest -q` on both changed files plus `tests/guards/test_agent_folder_names.py`. All 22 tests passed against the coder's committed code. No module failed to import. `make lint`: green (0.2 s).
 
     `lint`: lint: green (0.2 s)
+16. factory: started doing as vm.
