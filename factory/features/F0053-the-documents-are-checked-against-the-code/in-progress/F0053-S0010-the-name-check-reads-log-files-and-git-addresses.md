@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T12:29:40.892650Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-06T12:29:35.624184Z'
   stage: docs
   run: 9221f1cfa7fb467598fd0beb93e13f65
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:29:40.892650Z'
+  stage: smoke-test
 ---
 
 # The name check reads log files and git addresses
@@ -285,3 +294,4 @@ Expect: `0`
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
+20. factory: started smoke-test as vm.
