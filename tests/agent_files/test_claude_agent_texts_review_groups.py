@@ -24,6 +24,12 @@ _EARLIER_BODY_CRC32 = 3903663111
 # The docs route's subsection, from its heading to the next heading, which a later story added.
 _DOCS_REVIEW_SUBSECTION = re.compile(r"^### docs-review\n(?:(?!#).*\n|\n)*", re.MULTILINE)
 
+# The checklist's documents item, from its heading to the paragraph after the checklist, which a
+# later story added.
+_DOCUMENTS_ITEM = re.compile(
+    r"^### Documents\n(?:(?!#|Write findings as a numbered list).*\n|\n)*", re.MULTILINE
+)
+
 
 def test_the_checklist_sentence_asks_for_all_five_groups_right_before_item_one() -> None:
     assert f"\n{_ALL_GROUPS}\n\n1. **Acceptance criteria**" in agent_body("reviewer")
@@ -39,7 +45,7 @@ def test_no_other_agent_asks_for_all_five_groups(name: str) -> None:
 
 
 def test_the_rest_of_the_reviewer_body_is_unchanged() -> None:
-    body = _DOCS_REVIEW_SUBSECTION.sub("", agent_body("reviewer"))
+    body = _DOCUMENTS_ITEM.sub("", _DOCS_REVIEW_SUBSECTION.sub("", agent_body("reviewer")))
     assert body.count(_ALL_GROUPS) == 1
 
     untested_side_is_a_note = (

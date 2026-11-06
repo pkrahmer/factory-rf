@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T10:05:19.372924Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T10:05:19.372924Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T10:06:55.357047Z'
+  stage: tests
+  run: 703f8042058e417490395d077318ac88
 ---
 
 # The agents write and review documents against the code
@@ -112,3 +114,26 @@ Expect: `named`
    - Scope: within F0053's "the agents' rules" scope. Nothing in Out of scope is touched. `factory/story-form.md` is a human change at merge and is not part of this story.
    Route: `tests`, since the Interface changes `agents/agents/`, which the documenter may not write.
 7. factory: started tests as vm.
+8. tester: Tests written for the agent texts. Each criterion's test looks for one paragraph (one non-blank line of the agent file, compared case-insensitively) that names the criterion's key words. The tests do not pin wording, because the Interface gives none.
+
+   - criterion 1: tests/agent_files/test_claude_agent_texts_documents.py::test_the_documenter_has_one_rule_for_each_way_a_document_stays_true[read-the-code-first] (read, code, before, sentence)
+   - criterion 2: …::test_the_documenter_has_one_rule_for_each_way_a_document_stays_true[detail-kept-in-reference] (`*Reference*`, cut)
+   - criterion 3: …::test_the_documenter_has_one_rule_for_each_way_a_document_stays_true[runnable-or-marked-examples] (runnable, marked, VM, GitHub, model, real run)
+   - criterion 4: …::test_the_documenter_has_one_rule_for_each_way_a_document_stays_true[make-documents-ends-on-ok] (`` `make documents` ``, `` `documents ok` ``)
+   - criterion 5: …::test_the_reviewer_checklist_has_a_documents_item_naming_claims_against_code_and_examples. The reviewer's `## Role` holds exactly one `### Documents` heading, and its text up to the next heading names claim, code and example.
+   - criterion 6: …::test_the_reviewer_documents_item_counts_an_untrue_document_as_a_finding[claim-not-in-the-code] (claim, cannot find, code, finding, inside the Documents item)
+   - criterion 7: …::test_the_reviewer_documents_item_counts_an_untrue_document_as_a_finding[command-without-example] (command, runnable, marked, finding, inside the Documents item)
+   - criterion 8: …::test_the_intake_asks_about_a_docs_criterion_that_dictates_sentences[dictated-sentences-are-a-question] (docs criterion, sentences, question, what the reader must know)
+   - criterion 9: …::test_the_intake_asks_about_a_docs_criterion_that_dictates_sentences[ends-with-question] (docs criterion, sentences, end with `question`)
+   - criteria 10 and 11: not tested here (the `make check` gate and the docs stage).
+
+   Files created: tests/agent_files/test_claude_agent_texts_documents.py.
+
+   Earlier test changed under the human's leave in the Interface (2026-11-05): tests/agent_files/test_claude_agent_texts_review_groups.py::test_the_rest_of_the_reviewer_body_is_unchanged.
+   - It now also strips the new `### Documents` item before checking the CRC. A new regex `_DOCUMENTS_ITEM` removes the text from that heading up to the next heading, or up to the paragraph "Write findings as a numbered list".
+   - The coder should put the item after checklist item 6 and before that paragraph, with blank lines around it. Otherwise the CRC pin fails.
+   - The test keeps its name and still pins the rest of the reviewer's body.
+
+   Run: `uv run pytest -q` on the two files. All nine rows of the new file fail because the agent texts do not hold the rules yet; the tail showed the reviewer and intake rows. A grep confirmed that no paragraph of documenter.md holds the documenter rows' words. The changed CRC test passes. No module failed to import, because the tests read only agent files. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
