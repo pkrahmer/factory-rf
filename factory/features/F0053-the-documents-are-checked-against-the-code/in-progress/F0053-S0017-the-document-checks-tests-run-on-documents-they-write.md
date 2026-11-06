@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 606
 comments_read: [6695295968]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T21:03:41.547198Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-06T21:03:41.547198Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-06T21:06:15.532935Z'
+  stage: doing
+  run: 54516e30c89e4f878643217754ebebaf
+  blocked: question
 ---
 
 # The document check's tests run on documents they write
@@ -199,3 +202,20 @@ Expect: `documents ok (<seconds> s)`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Question: the tester's tests fail `make types`, and the only code fix would break the Interface's "No module under `src/factory/` changes". I stopped before writing any code. The working tree is unchanged.
+
+    What I ran:
+    - `make test` is green (105.1 s, coverage 99.20 %). That is the "after" time. I did not measure a "before" time, because that needs a run on `main`.
+    - `make check` stops at `make types` with 7 errors in two of the tester's files. Each error reads like this: `Module "factory.shared.domain.documents" does not explicitly export attribute "STOP_TABLE"  [attr-defined]`.
+      - `tests/support/minimal_documents_support.py`: lines 38 (`documents.STOP_TABLE`), 43 (`documents.KILL_POINT_CASES`) and 44 (`documents.FAULT_PATHS`).
+      - `tests/entry/test_check_documents_minimal.py`: lines 35, 36, 40 and 41 (`documents.STOP_TABLE` and `documents.KILL_POINT_CASES`, read in `_one_more_stop` and `_one_more_kill_point`).
+
+    Why: `factory.shared.domain.documents` imports these three tables from `factory.pipeline.domain.stop_table`, `factory.shared.domain.kill_point_cases` and `factory.pipeline.domain.fault_paths`. It does not re-export them, so `mypy --strict` refuses `documents.<name>`. The test still has to patch the name inside `documents`, because the check reads `documents`' own copy of each name.
+
+    Options:
+    A. The tester changes the two files. They read the tables from the modules that define them (`stop_table.STOP_TABLE`, `kill_point_cases.KILL_POINT_CASES`, `fault_paths.FAULT_PATHS`). They keep `monkeypatch.setattr(documents, "STOP_TABLE", ...)` and `monkeypatch.setattr(documents, "KILL_POINT_CASES", ...)`, with the name as a string, which mypy accepts. Nothing in `src/` changes, and the tests check the same things.
+    B. I re-export the three names in `src/factory/shared/domain/documents.py` (`from ... import STOP_TABLE as STOP_TABLE`, and the same for the other two). That is a one-line change per name, but it goes against the Interface's "No module under `src/factory/` changes".
+
+    I would choose A. With your answer I end with `tests`, naming that change, and the tester makes it. Then I finish `make check` and the refactor step. The `docs:` criterion is the documenter's.
+
+    Noticed and left alone: the tester's entry says it skipped the type check, which is how these errors reached this stage.
