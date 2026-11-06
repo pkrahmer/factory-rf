@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 601
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T14:05:00.020466Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-06T14:05:00.020466Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T14:08:24.925944Z'
+  stage: intake
+  run: 83e691a19c244cfca39317bae9eb95ad
+  blocked: question
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -63,3 +66,14 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface says `documents` gives each test its own copy of the session-built repository. No criterion tests this. Two coders could share one repository between tests and still pass every row. Please add a criterion, for example: "a file committed or changed in one test's `documents` copy is absent from the copy another test gets, and the copy `git status --porcelain` stays empty." I would choose that wording, as a two-test or fixture-level check.
+
+   Everything else checked out, and the format check passed:
+   - Interface: concrete fixture and test paths.
+   - Criteria: otherwise testable, with the failing side covered (the `echo one`/`two` row, the `nothing.sh` row).
+   - Smoke test: runnable, `-o addopts=` is passed so the summary line exists, and the Expect line is checkable.
+   - Docs criterion: names what the reader must know and dictates no sentences.
+   - Architecture: tests only, no change under `src/factory/`.
+   - Scope: within the feature, with decision 7's leave.
+
+   Once question 1 is answered I would accept on the `tests` route.
