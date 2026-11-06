@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T02:21:05.888090Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-06T02:21:05.888090Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-06T02:21:24.055797Z'
+  stage: doing
+  run: fab2e4b028b24d0ba8e64a78eb74d2af
 ---
 
 # Every name a document writes in backticks exists
@@ -190,3 +192,14 @@ Expect: a number alone (the count of findings, possibly `0`)
     2. (a), with the human's leave: the tester changes `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file` to compare only the lines that do not end in ` does not exist`, with the same exit status, and nothing else in that module. Its entry names the change. End with `tests`, naming both changes.
     The 152 findings and their false positives stay printed only. S0004 settles them before any file blocks.
 12. factory: started doing as vm.
+13. coder: Your answer in entry 11 asks for two test changes. The tester has to make them, so I changed no code and no test.
+    - `tests/shared/domain/test_document_references.py`, row `path-with-extension-outside-top-level`: build the old agent folder's path from parts (`"claude" + "/agents/reviewer.md"`), as `tests/guards/test_agent_folder_names.py` does, so that the guard `test_no_file_names_the_old_agent_folder` passes again.
+    - `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`: compare only the output lines that do not end in ` does not exist`. The exit status check stays the same, and nothing else in that module changes.
+
+    The code from my earlier run (entry 10) is committed, so the tester's change starts from it:
+    - `src/factory/shared/domain/documents.py` and `src/factory/entry/check_documents.py` are already in place.
+    - Both new test modules pass against that code.
+
+    After the tests change I will run `make check` again and do the refactor step, which is still open.
+
+    The 152 name findings on the real repository stay printed only, as you decided. S0004 settles them.
