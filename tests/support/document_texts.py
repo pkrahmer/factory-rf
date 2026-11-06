@@ -3,8 +3,9 @@
 from collections.abc import Sequence
 from pathlib import Path
 
-from factory.pipeline.domain.fault_paths import FAULT_PATHS
-from factory.pipeline.domain.stop_table import STOP_TABLE, StopRow
+from factory.pipeline.domain import fault_paths, stop_table
+from factory.pipeline.domain.stop_table import StopRow
+from factory.shared.domain import kill_point_cases, settings
 from factory.shared.domain.documents import (
     DECISION_LOG,
     OPERATOR_GUIDE,
@@ -15,8 +16,6 @@ from factory.shared.domain.documents import (
     PROJECT_GUIDE_SECTIONS,
     README,
 )
-from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
-from factory.shared.domain.settings import SETTINGS
 
 DESTINATION_WORDS = {
     "health_status": "health status",
@@ -26,12 +25,16 @@ DESTINATION_WORDS = {
 FENCE = "```"
 INSTALL_SECTIONS = ("Install", "Configuration")
 STOPS_SECTIONS = ("The stops",)
-SETTINGS_TABLE = (
-    "| Variable | Meaning |",
-    "|---|---|",
-    *(f"| `{setting.name}` | A setting. |" for setting in SETTINGS),
-)
 PATH_7_TEST = "test_round_cap_question_killed_between_post_and_record_posts_once_and_waits"
+
+
+def _settings_table() -> list[str]:
+    # Read when called, so that a setting a test adds to the code's table is in it.
+    return [
+        "| Variable | Meaning |",
+        "|---|---|",
+        *(f"| `{setting.name}` | A setting. |" for setting in settings.SETTINGS),
+    ]
 
 
 def stop_row(row: StopRow) -> str:
@@ -63,7 +66,7 @@ def operator_install(
     *, sections: Sequence[str] = INSTALL_SECTIONS, prefix: str = "", suffix: str = ""
 ) -> str:
     """The guide's `install.md`: the given sections, the settings table in the last one."""
-    return _document("Install", sections, SETTINGS_TABLE, prefix, suffix)
+    return _document("Install", sections, _settings_table(), prefix, suffix)
 
 
 def operator_stops(
@@ -75,7 +78,7 @@ def operator_stops(
     suffix: str = "",
 ) -> str:
     """The guide's `stops.md`: the given sections and one row per stop but `without_stop`."""
-    rows = [stop_row(row) for row in STOP_TABLE if row.id != without_stop]
+    rows = [stop_row(row) for row in stop_table.STOP_TABLE if row.id != without_stop]
     return _document("The stops", sections, [*rows, *extra_rows], prefix, suffix)
 
 
@@ -106,10 +109,14 @@ def project_guide(
 ) -> str:
     """A project guide: the given sections and one row per case and per path but those left out."""
     rows = [
-        f"| `{case.id}` | {case.dies} |" for case in KILL_POINT_CASES if case.id != without_case
+        f"| `{case.id}` | {case.dies} |"
+        for case in kill_point_cases.KILL_POINT_CASES
+        if case.id != without_case
     ]
     rows += [
-        f"| {path.number} | `{path.test}` |" for path in FAULT_PATHS if path.number != without_path
+        f"| {path.number} | `{path.test}` |"
+        for path in fault_paths.FAULT_PATHS
+        if path.number != without_path
     ]
     return _document("Project guide", sections, [*rows, *extra_rows], prefix, suffix)
 

@@ -75,17 +75,17 @@ def _unchanged(root: Path) -> None:
     ],
 )
 def test_the_operator_guide_folder_is_checked_per_file(
-    documents: Path,
+    minimal: Path,
     capsys: pytest.CaptureFixture[str],
     *,
     change: Callable[[Path], None],
     output: str | None,
     exit_status: int,
 ) -> None:
-    write_checked_list(documents, [])
-    change(documents)
+    write_checked_list(minimal, [])
+    change(minimal)
 
-    status = main(["--root", str(documents)])
+    status = main(["--root", str(minimal)])
 
     printed = capsys.readouterr().out.splitlines(keepends=True)
     if output is None:

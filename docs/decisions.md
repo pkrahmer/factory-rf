@@ -1637,3 +1637,11 @@ Date: 2026-11-06 (F0053-S0005).
 
 - Decision: the documenter reads the code before it writes a sentence about it, writes every example runnable or marked for the VM, GitHub or a model and copied from a real run that the text names, keeps exact detail in a *Reference* section rather than cutting it, and ends only on `documents ok`. The reviewer's checklist has the item *Documents*: the changed documents' claims are found in the code, and a command is shown with a runnable or marked example; a failure is a finding. The intake asks about a docs criterion that dictates sentences.
 - Why: on 2026-11-05 the human's concern was that the stages' documents were not reliably true. The checks catch names, settings and examples; the rest depends on how the agents work, so their instructions carry the rules (rules 8 to 10 of the style drafts).
+
+## The check's tests run on documents they write
+
+Date: 2026-11-06 (F0053-S0017).
+
+- Decision: the tests of the document check run `factory.entry.check_documents` on documents they write. `minimal_documents` (`tests/support/minimal_documents_support.py`) writes the smallest documents the check accepts from the code's own tables, and each test adds the one block, row, page or list line its rule needs. No test reads or copies the real documents or the real list, and no real example runs in `make check`. The real documents are checked by `make documents` alone. A guard (`tests/guards/test_document_tests_write_their_documents.py`) refuses the names that lead to the repository's documents.
+- Why: `make check` must not grow with the documents, and a rewrite of a document must not break a test.
+- Rejected: copies of the real documents with one repair per page, since four acceptances each found one more coupling.

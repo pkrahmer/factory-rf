@@ -52,7 +52,6 @@ from support.container_runtime_support import make_workspace
 from support.container_support import Dataset, container_dataset, fake_dataset
 from support.definition_support import pipeline_definition
 from support.disk_support import FakeDiskSpace
-from support.documents_copy_support import tracked_files_repository
 from support.git_support import (
     CHECKOUT,
     PIPELINE_YAML,
@@ -64,6 +63,7 @@ from support.git_support import (
 )
 from support.human_clone import HumanClone
 from support.machine_readings_support import FakeMachineReadings
+from support.minimal_documents_support import minimal_documents
 from support.operator_skill_support import Operator, make_operator
 from support.podman_support import IMAGE, Podman, PodmanPlan, write_podman
 from support.podman_support import INSTANCE as PODMAN_INSTANCE
@@ -600,20 +600,7 @@ def result_case(
     )
 
 
-_REPOSITORY = Path(__file__).parents[1]
-
-
-@pytest.fixture(scope="session")
-def tracked_files(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    """A git repository, built once per session, with every tracked file of the repository."""
-    return tracked_files_repository(_REPOSITORY, tmp_path_factory.mktemp("tracked") / "root")
-
-
 @pytest.fixture
-def documents(tmp_path: Path, tracked_files: Path) -> Path:
-    """A git repository under `tmp_path` with every file `git ls-files` lists, in one commit.
-
-    It is a test's own local clone of the session's `tracked_files`: files git does not
-    track (`.venv/`, `.reports/`, `mutants/`) are not in it.
-    """
-    return clone(tracked_files, tmp_path / "root")
+def minimal(tmp_path: Path) -> Path:
+    """A git repository under `tmp_path` with the smallest documents the document check accepts."""
+    return minimal_documents(tmp_path / "root")
