@@ -11,6 +11,7 @@ from factory.pipeline.domain.fault_paths import FAULT_PATHS
 from factory.pipeline.domain.stop_table import STOP_TABLE, Destination
 from factory.shared.domain.kill_point_cases import KILL_POINT_CASES
 from factory.shared.domain.sections import lines_outside_blocks, sections, split_lines
+from factory.shared.domain.settings import SettingDoc
 
 README: Final = "README.md"
 OPERATOR_GUIDE_FOLDER: Final = "docs/operator-guide"
@@ -99,6 +100,17 @@ _FRAGMENT = "#"
 _PATH_SEPARATOR = "/"
 _HOME = "~"
 _MAIL_PREFIX = "mailto:"
+SETTINGS_SECTION: Final = "Configuration"
+_SETTINGS_FIRST_COLUMNS = ("Name", "Variable")
+_DEFAULT_COLUMN = "Default"
+_NO_DEFAULT_CELLS = ("", "none")
+REFUSALS_HEADING: Final = "The refusals"
+_REFUSAL_FIRST_COLUMN = "Refusal"
+_SHORTEST_CHECKED_PIECE = 3
+_HEADING_MARK = "#"
+# A pipe escaped with a backslash belongs to its cell's text.
+_CELL_SEPARATOR = re.compile(r"(?<!\\)\|")
+_PLACEHOLDER = re.compile(r"<[^>]*>")
 
 ReferenceKind = Literal["module", "path", "link"]
 
@@ -123,12 +135,165 @@ class Reference(BaseModel):
     kind: ReferenceKind
 
 
+class GuideTable(BaseModel):
+    """A Markdown table of a guide: the nearest heading above it, its header and its rows."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    heading: str
+    header: tuple[str, ...]
+    rows: tuple[tuple[str, ...], ...]
+
+
+def _is_table_row(line: str) -> bool:
+    return line.startswith(_TABLE_ROW_PREFIX)
+
+
 def _table_rows(text: str) -> list[str]:
     lines = split_lines(text)
+    return [lines[index] for index in lines_outside_blocks(lines) if _is_table_row(lines[index])]
+
+
+def _cells(row: str) -> tuple[str, ...]:
+    inner = row.strip().removeprefix(_TABLE_ROW_PREFIX).removesuffix(_TABLE_ROW_PREFIX)
+    return tuple(cell.strip() for cell in _CELL_SEPARATOR.split(inner))
+
+
+def _guide_table(heading: str, rows: Sequence[str]) -> GuideTable:
+    # The second row of a Markdown table is the line that separates the header from the body.
+    return GuideTable(
+        heading=heading, header=_cells(rows[0]), rows=tuple(_cells(row) for row in rows[2:])
+    )
+
+
+def guide_tables(text: str, section: str) -> list[GuideTable]:
+    """The tables inside the `## ` section `section` and its subsections, in their order.
+
+    Each carries the nearest heading above it; fenced blocks are left out.
+    """
+    lines = split_lines(text)
+    inside = _section_lines(text, (section,))
+    tables: list[GuideTable] = []
+    heading = section
+    current: list[str] = []
+    for index in lines_outside_blocks(lines):
+        if index not in inside:
+            continue
+        line = lines[index]
+        if _is_table_row(line):
+            current.append(line)
+            continue
+        if current:
+            tables.append(_guide_table(heading, current))
+            current = []
+        if line.startswith(_HEADING_MARK):
+            heading = line.lstrip(_HEADING_MARK).strip()
+    if current:
+        tables.append(_guide_table(heading, current))
+    return tables
+
+
+def _backticked_or_plain(cell: str) -> str:
+    quoted = _BACKTICKED.search(cell)
+    return cell if quoted is None else quoted.group(1)
+
+
+def _settings_tables(guide_tables: list[GuideTable]) -> list[GuideTable]:
     return [
-        lines[index]
-        for index in lines_outside_blocks(lines)
-        if lines[index].startswith(_TABLE_ROW_PREFIX)
+        table
+        for table in guide_tables
+        if table.header and table.header[0] in _SETTINGS_FIRST_COLUMNS
+    ]
+
+
+def _default_findings(table: GuideTable, settings: Mapping[str, SettingDoc]) -> list[str]:
+    if _DEFAULT_COLUMN not in table.header:
+        return []
+    column = table.header.index(_DEFAULT_COLUMN)
+    messages: list[str] = []
+    for row in table.rows:
+        setting = settings.get(_backticked_or_plain(row[0]))
+        if setting is None or column >= len(row):
+            continue
+        cell = row[column]
+        written = None if cell in _NO_DEFAULT_CELLS else cell
+        if written != setting.default:
+            messages.append(
+                f"setting {setting.name} has the default {cell!r} in the guide, "
+                f"{setting.default!r} in the settings code"
+            )
+    return messages
+
+
+def settings_findings(
+    guide_tables: list[GuideTable], settings: tuple[SettingDoc, ...]
+) -> list[str]:
+    """The settings the guide's settings tables and `settings` disagree on, one finding each.
+
+    A table counts when its first column is `Name` or `Variable`. A setting the code reads
+    that no such table names, a name no setting has, and, in a table with a `Default`
+    column, a default other than the setting's (`None` written empty or `none`) are findings.
+    Without such a table there is nothing to compare, and no finding.
+    """
+    tables = _settings_tables(guide_tables)
+    if not tables:
+        return []
+    by_name = {setting.name: setting for setting in settings}
+    named = [_backticked_or_plain(row[0]) for table in tables for row in table.rows if row]
+    messages = [
+        f"setting {setting.name} is read by the settings code and missing from the guide"
+        for setting in settings
+        if setting.name not in named
+    ]
+    messages += [
+        f"setting {name} is named by the guide and not read by the settings code"
+        for name in named
+        if name not in by_name
+    ]
+    for table in tables:
+        messages += _default_findings(table, by_name)
+    return messages
+
+
+def _is_refusal_table(table: GuideTable) -> bool:
+    return (
+        table.heading == REFUSALS_HEADING
+        and bool(table.header)
+        and table.header[0] == _REFUSAL_FIRST_COLUMN
+    )
+
+
+def _quoted_refusal(row: tuple[str, ...]) -> str | None:
+    if not row:
+        return None
+    quoted = _BACKTICKED.search(row[0])
+    return None if quoted is None else quoted.group(1)
+
+
+def _is_held(refusal: str, settings_source: str) -> bool:
+    pieces = _PLACEHOLDER.split(refusal)
+    return all(
+        piece in settings_source for piece in pieces if len(piece) >= _SHORTEST_CHECKED_PIECE
+    )
+
+
+def refusal_findings(guide_tables: list[GuideTable], settings_source: str) -> list[str]:
+    """The refusal texts the guide quotes that `settings_source` does not hold, one each.
+
+    Only tables headed `The refusals` whose first column is `Refusal` count; a refusal is
+    the backticked text of its first cell. Its `<placeholder>`s are cut out, and every
+    remaining piece of three characters or more must occur in the source.
+    """
+    refusals = [
+        _quoted_refusal(row)
+        for table in guide_tables
+        if _is_refusal_table(table)
+        for row in table.rows
+    ]
+    return [
+        f"refusal `{refusal}` is not held by the settings code"
+        for refusal in refusals
+        if refusal is not None and not _is_held(refusal, settings_source)
     ]
 
 

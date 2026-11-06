@@ -1,6 +1,5 @@
 """The documents command checks the operator guide's index and topic files in the repository."""
 
-import shutil
 from collections.abc import Callable
 from pathlib import Path
 
@@ -8,7 +7,6 @@ import pytest
 
 from factory.entry.check_documents import main
 
-ROOT = Path(__file__).parents[2]
 GUIDE = "docs/operator-guide"
 
 
@@ -32,18 +30,6 @@ def _without_file(name: str) -> Callable[[Path], None]:
 
 def _unchanged(root: Path) -> None:
     del root
-
-
-@pytest.fixture
-def documents(tmp_path: Path) -> Path:
-    """A copy of the repository's documents under `tmp_path`."""
-    root = tmp_path / "root"
-    (root / "docs").mkdir(parents=True)
-    shutil.copy(ROOT / "README.md", root / "README.md")
-    shutil.copy(ROOT / "docs" / "decisions.md", root / "docs" / "decisions.md")
-    shutil.copytree(ROOT / "docs" / "project-guide", root / "docs" / "project-guide")
-    shutil.copytree(ROOT / GUIDE, root / GUIDE)
-    return root
 
 
 @pytest.mark.parametrize(
