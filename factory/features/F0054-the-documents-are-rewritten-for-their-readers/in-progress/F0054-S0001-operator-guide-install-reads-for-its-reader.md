@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T22:08:40.760310Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-06T22:08:40.760310Z'
   stage: docs-review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:09:34.881238Z'
+  stage: docs-review
+  run: 020209377a264e93aea820232803a417
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -374,3 +376,15 @@ Expect: `1`
 19. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 20. 2026-11-06 human: One more round, by the human's decision. The documenter fixes findings 1 to 5 of review entry 18 as the reviewer proposes: setup.sh first (it installs uv and the packages), with `uv sync` and `make check` only as the check of a development clone; the build command in step 4; "prepares", the narrowed sentence about the examples and `factory-stage:<instance>`; and the two dropped rules for `FACTORY_IDLE_SHUTDOWN_ACTION` and `FACTORY_CONTAINER_ENV`. The open points outside this diff stay with their own stories.
 21. factory: started docs-review as vm.
+22. reviewer: Docs review after the human's entry 20. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`. Entry 20 asks the documenter to fix findings 1 to 5 of review entry 18. No documenter run came between entry 20 and this review (entry 21 starts docs-review directly). The file on the branch still has none of those five fixes. I checked each one again against the code on the branch, which now includes the merge from `origin/main`, and each still stands.
+
+    What holds: everything that entry 18 found true is unchanged. That covers the order of faults, the refusal table, the relative-path row, the step 3 description, the kept headings (criterion 4) and the line in `docs/checked-documents.txt` (criterion 3). The two `make mutants` commands stay inline, as the human decided in entry 14.
+
+    Findings:
+    1. docs/operator-guide/install.md:11-27: steps 1 and 2 still run `uv sync` and `make check` before step 3 prepares the "fresh" machine. setup.sh installs uv itself (setup.sh:388-396) and runs `uv sync --frozen --no-dev` in the checkout (setup.sh:398). Fix (as entry 20 says): put the setup.sh step first and say that it installs uv and the factory's packages. Keep `uv sync` and `make check` only as the check of a development clone, and say so.
+    2. docs/operator-guide/install.md:29: step 4 "Build the stage image" still names no command (style.md: one action with its command per step). Fix: give the command from machine.md:128 inline: `podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>`.
+    3. docs/operator-guide/install.md:39 and :103: "The examples below are from the VM that `operator/vm/setup.sh` makes" is still untrue. setup.sh prepares the machine; it does not make it (setup.sh:2). setup.sh also writes `FACTORY_STAGE_IMAGE=factory-stage:<instance>` (setup.sh:20, :95, :422), not `factory-stage:1`, and it sets neither `FACTORY_SNAPSHOTS` `copy` nor `FACTORY_CONTAINER_PROFILE` `job`. Fix: say "prepares", and narrow the sentence to "where setup.sh sets a variable, the example is the value it writes". Make the `FACTORY_STAGE_IMAGE` example `factory-stage:<instance>`.
+    4. docs/operator-guide/install.md:117: the dropped rule is still missing: `FACTORY_IDLE_SHUTDOWN_ACTION` is read, and an invalid value refused, even while the shutdown is off. settings.py:394 and :527-529 read it unconditionally. Fix: add "It is read, and an invalid value refused, also while the shutdown is off." to the row.
+    5. docs/operator-guide/install.md:107: the dropped rule for `FACTORY_CONTAINER_ENV` is still missing: each part is stripped and blank parts are left out (settings.py:480-482). Fix: add that sentence to the row.
+
+    Open, outside this diff (entries 14 and 20 give these to their own stories): `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table. `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
