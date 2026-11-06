@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T22:14:01.892842Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-06T22:13:56.594636Z'
   stage: docs-review
   run: efc036c342114102ac4507d2f6225bfe
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:14:01.892842Z'
+  stage: docs-only
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -453,3 +462,4 @@ Expect: `1`
     3. docs/operator-guide/install.md:11, step 1 says the script prepares the factory's checkout, but setup.sh's first run stops before the checkout and waits for the hosting token (setup.sh:5-6; machine.md:433 quotes `setup: checkout: waiting for /home/factory/.secrets/hosting-token`). An operator who follows the steps as written stops there without knowing why. Fix: add to step 1 that the first run stops waiting for the token: put the token in `/home/factory/.secrets/hosting-token` and run the script again (see "The two passes" in machine.md).
 
     Still open outside this diff, and given to their own stories by entries 14 and 20: `docs/project-guide/shared.md` (no `Default` column), `docs/operator-guide/agent-runtime.md:57` ("The stage environment" under *Configuration*), and the version-history sections of `docs/operator-guide/README.md`.
+27. factory: started docs-only as vm.
