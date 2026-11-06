@@ -6,17 +6,25 @@ An instance runs one project. It is told what it needs through environment varia
 
 ## Install
 
-Install the factory on a repository that holds no work items from an older version of the factory, or whose old work items are archived or discarded. The factory starts fresh and does not detect old work items.
+Install the factory on a repository that holds no [work items](../project-guide/glossary.md) from an older version of the factory, or whose old work items are archived or discarded. The factory starts fresh and does not detect old work items.
 
-1. Install the factory's packages:
+1. Install the factory's packages. This ran on the VM:
 
-       uv sync
+```console vm
+$ uv sync
+Resolved 107 packages in 3ms
+Bytecode compiled 4164 files in 49ms
+```
 
 2. Check the installation. The last line must be `check: green`:
 
-       make check
+```console
+$ make check
+...
+check: green
+```
 
-3. Prepare the machine. `operator/vm/setup.sh` is the way to run an instance: it makes the VM, installs the factory and its service, and builds the stage image, which carries the agent runtime and the pinned tools. See "The machine" in [machine.md](machine.md).
+3. Prepare the machine with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`. It is the way to run an instance: it makes the VM with the dataset, installs the factory and its service, and builds the stage image, which carries the agent runtime and the pinned tools. The preflight checks the dataset and the image (see "The preflight's items" in [health.md](health.md)). See "The machine" in [machine.md](machine.md).
 
 4. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
 
@@ -28,7 +36,7 @@ The tables below list every variable the factory reads. A variable that is unset
 
 Every path is absolute. The examples below are from the VM that `operator/vm/setup.sh` makes, where `<instance>` is the instance's name.
 
-The factory reports the first fault it finds, in this order: the repository, the instance, `FACTORY_CHECKOUT`, `FACTORY_STATE`, the image identity file, the faults of `FACTORY_WORKSPACE`, then the other variables.
+The factory reports the first fault it finds. The order is in the *Reference*, under *The order of faults*.
 
 ### The instance
 
@@ -40,7 +48,7 @@ The factory reports the first fault it finds, in this order: the repository, the
 | `FACTORY_STATE` | The state directory: `health.json`, the factory log and the runs. `factory-health --state-directory <it>` reads the same place. | `/state` | `/srv/factory/<instance>/state` |
 | `GIT_USER_NAME` | The name of the factory's commits. | `factory` | `factory` |
 | `GIT_USER_EMAIL` | The email of the factory's commits. | `factory@noreply.invalid` | `factory@noreply.invalid` |
-| `FACTORY_MIN_FREE_GB` | The least free space, in whole gigabytes of 10^9 bytes, at least 1. When the work directory (the checkout's parent) or the state directory has less, the tick stops with `disk_low` (see "The stops of the tick" in [stops.md](stops.md)). | `5` | `10` |
+| `FACTORY_MIN_FREE_GB` | The least free space, in whole gigabytes of 10^9 bytes, at least 1. When the checkout's parent directory or the state directory has less, the tick stops with `disk_low`. See "The stops of the tick" in [stops.md](stops.md). | `5` | `10` |
 | `FACTORY_TRANSCRIPT_DIR` | The folder that keeps each agent run's transcript (see "Transcripts" in [health.md](health.md)). It lies outside the workspace, the checkout, the state directory and the agent home. Unset keeps no transcript, and is no fault. | none | `/srv/factory/<instance>/transcripts` |
 
 The two commit-identity variables are decided one by one: a half that is unset falls back to its own default. No preflight item checks the identity.
@@ -49,7 +57,7 @@ The two commit-identity variables are decided one by one: a half that is unset f
 
 | Name | What it does | Default | Example |
 |---|---|---|---|
-| `FACTORY_TOKEN_FILE` | The file that holds the hosting-service token. It is needed for `factory-run` to build its boundaries. See "The hosting-service token" in [health.md](health.md). | none | `/home/factory/.secrets/hosting-token` |
+| `FACTORY_TOKEN_FILE` | The file that holds the hosting-service token. It is needed for `factory-run` to start. See "The hosting-service token" in [health.md](health.md). | none | `/home/factory/.secrets/hosting-token` |
 | `FACTORY_CLAUDE_LOGIN_FILE` | The file that holds the agent's login token, made with `claude setup-token`, as plain ASCII text. See "The agent runtime" in [agent-runtime.md](agent-runtime.md). | none | `/home/factory/.secrets/claude-token` |
 | `FACTORY_API_LOGIN_FILE` | The file that holds the agent's Anthropic API key, as plain ASCII text. A key in it wins over the token. | none | `/home/factory/.secrets/anthropic-api-key` |
 | `FACTORY_IMAGE_ID_FILE` | Required for `factory-run` and `factory-watch`. The file that holds the identity of the stage image the instance runs on. Renew it after every build of the image (see "The stage image" and "The rebuild after a merge" in [machine.md](machine.md)). | none | `/srv/factory/<instance>/image-id` |
@@ -80,7 +88,7 @@ See "A provider's spend limit" in [agent-runtime.md](agent-runtime.md) for what 
 
 ### The machine and the containers
 
-Every stage runs its commands in throwaway Podman containers on a folder whose base is kept and reset before every stage. By default that folder is a ZFS dataset. With `FACTORY_SNAPSHOTS=copy` it is a plain directory whose base is a copy of it (see *Without ZFS* in [machine.md](machine.md)).
+Every stage runs its commands in throwaway Podman containers on a folder whose [base](../project-guide/glossary.md) is kept and reset before every stage. By default that folder is a ZFS [dataset](../project-guide/glossary.md). With `FACTORY_SNAPSHOTS=copy` it is a plain directory whose base is a copy of it (see *Without ZFS* in [machine.md](machine.md)).
 
 An instance needs `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE`, and with `zfs` also `FACTORY_DATASET`, with `copy` also `FACTORY_SNAPSHOT_BASE`.
 
@@ -112,7 +120,7 @@ See *The idle shutdown* under "The machine" in [machine.md](machine.md).
 
 | Refusal | When it happens |
 |---|---|
-| `<variable>: missing` | A required variable is unset or blank. For `FACTORY_DATASET`, `FACTORY_SNAPSHOT_BASE`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` it is raised when `factory-run` builds its boundaries, in this order: with `zfs` the dataset, the workspace, the image; with `copy` the base, the workspace, the image. |
+| `<variable>: missing` | A required variable is unset or blank. For `FACTORY_DATASET`, `FACTORY_SNAPSHOT_BASE`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` it is raised when `factory-run` starts. The order is: with `zfs` the dataset, the workspace, the image. With `copy` it is the base, the workspace, the image. |
 | `<variable>: is not an absolute path` | A path variable holds a relative path. |
 | `<variable>: names more than one repository` | `FACTORY_REPOSITORY_URL` holds whitespace or a comma. |
 | `<variable>: holds a password; use the token file` | `FACTORY_REPOSITORY_URL` holds a user name and a password before the `@`. |
@@ -192,23 +200,21 @@ The factory runs a project's build through make. It calls four targets, which th
 | `check` | The full gate. It must be green before a stage hands forward. |
 | `lint` | Run after the tester stage. |
 | `test` | The tests. |
-| `sync` | Brings a checkout's tools up to date: `uv sync --frozen` in a Python project, the project's own command in another stack. The stage environment runs it before every agent run and before every check. No stage lists it in `checks` or `reports`. |
+| `sync` | Brings a checkout's tools up to date: `uv sync --frozen` in a Python project, the project's own command in another stack. The [stage environment](../project-guide/glossary.md) runs it before every agent run and before every check. No stage lists it in `checks` or `reports`. |
 
 Each target is judged by its exit status alone. A target that does not exist counts as a failed command. A target that runs past its time limit is killed and counts as failed for that reason. The factory reads only the exit status, the last line and the last 30 lines of the output.
 
-The factory does not remove ignored paths such as `.venv` and the caches. The checks run on a rolled-back copy of the dataset, and only the paths the role may write reach the checkout. So each target should build what it needs. The `uv run` of kumpel-factory and of the template creates `.venv` from `uv.lock`, and the first check after a rebuild of the image downloads the packages once. A target that relies on an ignored file another stage left fails.
+The factory does not remove ignored paths such as `.venv` and the caches. The checks run on a rolled-back copy of the dataset, and only the paths the [role](../project-guide/glossary.md) may write reach the checkout. So each target should build what it needs. The `uv run` of kumpel-factory and of the template creates `.venv` from `uv.lock`, and the first check after a rebuild of the image downloads the packages once. A target that relies on an ignored file another stage left fails.
 
 A project whose `check` scans for secrets, with the template's `make secrets` or a scanner of its own, must leave out the factory's cost records (`*.costs.jsonl`, beside each work item). Otherwise the first agent run of every work item makes `check` red.
 
 ### Mutation testing by sweep
 
-No stage and no agent runs `make mutants`. Mutation testing runs only as sweeps outside the factory, which the human starts on a fresh copy in a throwaway container. Every run makes `mutants/` anew. The template's `CLAUDE.md` and `Makefile` say the same: `make mutants` is for a sweep by hand. A coder's entry has no `mutants` line, and the acceptance's check 3, *Mutation testing*, says `By sweep, not run here.`
+No stage and no agent runs `make mutants`. Mutation testing runs only as sweeps outside the factory, which the human starts on a fresh copy in a throwaway container. Every run makes `mutants/` anew. The template's `CLAUDE.md` and `Makefile` say the same: `make mutants` is for a sweep by hand. A coder's entry has no `mutants` line, and the [acceptance](../project-guide/glossary.md)'s check 3, *Mutation testing*, says `By sweep, not run here.`
 
 A sweep's command is:
 
-```sh
-make mutants MODULES=factory.pipeline.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2
-```
+Run `make mutants MODULES=factory.pipeline.application MUTANTS_SECONDS=7200 MUTANTS_CHILDREN=2`. It is not run in the documents, and no real sweep backs it.
 
 | Name | What it does | Default | Example |
 |---|---|---|---|
@@ -220,15 +226,13 @@ Every run starts with mutmut's stats over the whole suite in one process. That i
 
 A `MUTANTS_SECONDS` below the stats checks no mutant, and the run then fails with `mutants: stopped after <n> s, so the mutants it did not reach are not checked`. So `MUTANTS_SECONDS` must cover the stats plus the mutants' time:
 
-```sh
-make mutants MODULES=<module> MUTANTS_SECONDS=1500
-```
+Run `make mutants MODULES=<module> MUTANTS_SECONDS=1500`. It is not run in the documents, and no real sweep backs it.
 
 ## Reference
 
 The exact detail behind the sections above.
 
-**The order of faults.** `read_settings` reads the repository, the instance, `FACTORY_CHECKOUT`, `FACTORY_STATE`, the image identity file, `FACTORY_SNAPSHOTS`, then the faults of `FACTORY_WORKSPACE` (a relative path, a checkout or state directory inside it), of `FACTORY_SNAPSHOT_BASE` and of `FACTORY_TRANSCRIPT_DIR`, and last the other variables. `factory-run` reads the settings first. `factory-watch` reads the same environment and, on a fault, writes `factory-watch: settings invalid: <variable>: <fault>` to standard error.
+**The order of faults.** The factory reads the repository, the instance, `FACTORY_CHECKOUT`, `FACTORY_STATE`, the image identity file, `FACTORY_SNAPSHOTS` and a relative `FACTORY_SNAPSHOT_BASE`. Then come the faults of `FACTORY_WORKSPACE` (a relative path, a checkout or state directory inside it), then the faults of `FACTORY_SNAPSHOT_BASE`, `FACTORY_CLAUDE_HOME` and `FACTORY_TRANSCRIPT_DIR`, in that order, and last the other variables. `factory-run` reads the settings first. `factory-watch` reads the same environment and, on a fault, writes `factory-watch: settings invalid: <variable>: <fault>` to standard error.
 
 **The stage environment.** The container is the boundary. The agent's `HOME` is `/work/home` on the dataset. A checkout or a state directory inside the workspace is refused, because every rollback of the dataset would reset the factory's own checkout, and the agent's container would reach the health file and the runs.
 
@@ -236,7 +240,7 @@ The exact detail behind the sections above.
 
 **The image identity.** The identity is read from the file `FACTORY_IMAGE_ID_FILE` names and stripped, so that a rebuild of the image with the same build argument cannot keep an old preflight stamp valid. The variable `FACTORY_IMAGE` is only a label of the build and is never read as the identity. `operator/vm/setup.sh` makes the file.
 
-**The hosting-service token.** The token is read once, when the boundaries are built, from the file `FACTORY_TOKEN_FILE` names, stripped of surrounding whitespace. An unset variable, a missing or unreadable file, and a file that holds only spaces are each refused with `FACTORY_TOKEN_FILE` as the variable. The message names the path and never the token. The token reaches the hosting service from the factory process. Git gets it only through its credential helper, `/usr/local/bin/git-credential-factory`, which reads the same file.
+**The hosting-service token.** The token is read once, when `factory-run` starts, from the file `FACTORY_TOKEN_FILE` names, stripped of surrounding whitespace. An unset variable, a missing or unreadable file, and a file that holds only spaces are each refused with `FACTORY_TOKEN_FILE` as the variable. The message names the path and never the token. The token reaches the hosting service from the factory process. Git gets it only through its credential helper, `/usr/local/bin/git-credential-factory`, which reads the same file.
 
 **The repository's name.** The hosting service needs `owner/name`. It is taken from `FACTORY_REPOSITORY_URL` in one of the three forms `https://host/owner/name(.git)`, `ssh://git@host/owner/name(.git)` and `git@host:owner/name(.git)`.
 

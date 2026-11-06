@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 608
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T21:52:51.055560Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T21:52:51.055560Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T21:55:59.789288Z'
+  stage: docs-only
+  run: 666f74ff0552425ba93f9442865d21ab
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -169,3 +171,33 @@ Expect: `1`
 
    Open, outside this story's diff: `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table, which is now false. The documenter named this too, so it is for the story of that file or for the human.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's findings 1 to 10 in `docs/operator-guide/install.md`, except finding 4, which I handled differently (see below). `make documents` ends `documents ok (1.8 s)`. I ran no `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/install.md`: the fixes below. `docs/checked-documents.txt` is unchanged.
+
+   Findings by number:
+   1. *Configuration* no longer states an order of faults. It points to *The order of faults* in the *Reference*, which is now the only place.
+   2. *The order of faults* now follows `settings.py:337-359`:
+      - the repository, the instance, `FACTORY_CHECKOUT`, `FACTORY_STATE`, the image identity file, `FACTORY_SNAPSHOTS`, and a relative `FACTORY_SNAPSHOT_BASE`;
+      - then the workspace faults;
+      - then the `FACTORY_SNAPSHOT_BASE`, `FACTORY_CLAUDE_HOME` and `FACTORY_TRANSCRIPT_DIR` faults, in that order;
+      - then the other variables.
+   3. The name `read_settings` is gone; the text says "the factory reads".
+   4. Not done as the finding asks, because I have no real sweep to copy. The two `make mutants` commands are now inline code in prose. The text says they are not run in the documents and that no real sweep backs them. `uv sync` is a `console vm` block. I ran `uv sync` on this machine, which is the instance `vm`, and copied its last two lines (`Resolved 107 packages in 3ms`, `Bytecode compiled 4164 files in 49ms`); this is the output of a second run. `make check` is a `console` block that the check skips as `suite`. Open question for the reviewer or the human: is inline code acceptable for a command with no real run behind it?
+   5. Both blocks have an info string now. They sit at column 0 instead of indented under their steps, because an indented fence made the check crash (`documents.py:681`, `ValueError: zip() argument 2 is longer than argument 1`). That crash on indented fences is a bug in the check, for the coder. It is outside this story.
+   6. Step 3 now gives `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`, taken from the usage in `setup.sh`.
+   7. I restored the dropped sentence. Step 3 says the setup prepares the VM with the dataset and the stage image, and that the preflight checks them, with the link to "The preflight's items" in `health.md`.
+   8. I linked "work items", "base", "dataset", "stage environment", "role" and "acceptance" to the glossary at their first use.
+   9. "Boundaries" is gone. The text now says "when `factory-run` starts".
+   10. I split the sentences of the `FACTORY_MIN_FREE_GB` row and of the `missing` refusal row. The parenthesis in the `FACTORY_MIN_FREE_GB` row is removed.
+
+   Cross-read and found current: the links from `stops.md`, `machine.md` and the other operator-guide files to the headings of `install.md`. I kept all four of those headings.
+
+   Stale text that is not mine to fix:
+   - `docs/operator-guide/README.md` still has the "Replaced in v1.2" and "Replaced from v1" sections.
+   - `docs/project-guide/shared.md` says the operator guide has no `Default` column and no refusal table, which is false now.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (1.9 s)
