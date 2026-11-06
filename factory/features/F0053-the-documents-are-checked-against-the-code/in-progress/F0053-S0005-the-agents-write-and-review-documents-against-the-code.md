@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T10:57:34.160752Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-11-06T10:57:28.623470Z'
   stage: review
   run: f825670dd4bc4bf1819518e888df31bf
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:57:34.160752Z'
+  stage: doing
 ---
 
 # The agents write and review documents against the code
@@ -525,3 +534,4 @@ Expect: `named`
     Earlier tests:
     - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name. The only change is that it also strips the `### Documents` item.
     - `tests/agent_files/test_claude_agent_texts_mutants.py`: changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name and only skips the `### Documents` item. Nothing else in the module changed.
+36. factory: started doing as vm.
