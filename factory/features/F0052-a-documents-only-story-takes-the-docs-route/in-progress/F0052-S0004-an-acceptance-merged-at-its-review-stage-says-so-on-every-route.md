@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T00:33:29.815005Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-06T00:33:24.429883Z'
   stage: docs
   run: 4a5c9298ab5446d6b3bb0f5c7e0fb6af
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:33:29.815005Z'
+  stage: smoke-test
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -439,3 +448,4 @@ Expect: `True True False`
     `check`: check: green (not run again: passed on tree e8cf3ac1367b at 2026-11-06T00:28:14Z)
     `secrets`: secrets: green (2.0 s)
     `documents`: documents ok
+30. factory: started smoke-test as vm.
