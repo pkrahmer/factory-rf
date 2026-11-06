@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T12:27:09.802049Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-06T12:27:09.802049Z'
   stage: docs
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T12:29:35.624184Z'
+  stage: docs
+  run: 9221f1cfa7fb467598fd0beb93e13f65
 ---
 
 # The name check reads log files and git addresses
@@ -260,3 +262,26 @@ Expect: `0`
     Earlier tests:
     - `tests/shared/domain/test_document_references.py`: none needed. The change only adds rows (two extensions in the loop, plus `file-name-log-bare` and `module-not-a-file-name`) and one new test function, and keeps every earlier row as it was.
 18. factory: started docs as vm.
+19. documenter: I changed one file, `docs/project-guide/shared.md`, *The name check*, to match the code in `src/factory/shared/domain/documents.py` (`_FILE_NAME_EXTENSIONS`, `_is_address`, `named_references`).
+    - The module bullet now lists `.jsonl` and `.log` among the file-name extensions. Its examples are `factory.log` and `factory.records.jsonl`.
+    - The repository-path bullet now says a text with a `:` before its first `/` is no path. That covers a web address and a scp-style git address such as `git@github.com:owner/project.git`. A `:` after the first `/` changes nothing. This replaces the old "holds no `://`" wording.
+
+    I ran `make documents`. It ends `documents ok (0.5 s)`. Its report prints no line for `factory.log` or the two git addresses, and no line for `shared.md`. My first wording put `docs/a:b.md` in backticks, and that gave a report line ("does not exist"). I rewrote the sentence without it.
+
+    I did not run `make check`, because I changed only a document.
+
+    I read the code on the branch before writing: `documents.py:104-115` for the extensions and `documents.py:458-470` for `_is_address` and `_is_path`.
+
+    I cross-read the rest of `shared.md`, including *The checked documents and the report*, and found it current. I made no change to `style.md` rule 8, as the docs criterion says. `docs/decisions.md` is not mine to touch here, since the story names no lasting decision.
+
+    Stale text I saw but did not touch, because it is unrelated to this story: `make documents` still reports these non-blocking lines.
+    - `docs/project-guide/machine.md:298`: `.venv/...` does not exist.
+    - `docs/project-guide/machine.md:362`: `factory/stage.Containerfile` does not exist.
+    - `docs/project-guide/work.md:13`: `factory/agents` does not exist.
+    - `docs/operator-guide/machine.md:58`: `planning/cloud-sandbox/` does not exist.
+
+    I have no findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (0.6 s)
