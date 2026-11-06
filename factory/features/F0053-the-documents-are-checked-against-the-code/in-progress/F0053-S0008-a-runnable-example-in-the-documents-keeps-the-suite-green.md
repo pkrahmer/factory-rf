@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T11:56:42.610835Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-11-06T11:56:42.610835Z'
   stage: doing
+- number: 23
+  speaker: coder
+  kind: result
+  at: '2026-11-06T12:00:51.690773Z'
+  stage: doing
+  run: cac43530a8824a6d999023deed5e5bce
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -337,3 +339,17 @@ Expect: `1`
 
     `lint`: lint: green (0.2 s)
 22. factory: started doing as vm.
+23. coder: Round 1. I changed no code. The finding from entries 14 and 16 was a test change. The human approved it in entry 19, and the tester made it in entry 21 in `tests/entry/test_check_documents_checked_files.py`: the test's copy of the repository becomes a git repository with one commit. The Interface says no module under `src/` changes, so I had nothing to build.
+
+    - What I built: nothing. The branch diff holds only the tester's test files (`tests/conftest.py`, `tests/entry/test_check_documents_copies.py`, `tests/entry/test_check_documents_checked_files.py`) and the documenter's change to `docs/project-guide/style.md`.
+    - Main choice: I left `src/` untouched, as the Interface requires. I rejected adding a helper on the product side that makes a copy into a git repository. The tests' copies are a fixture's job, and it already does this with `run_git` and `commit_all` from `tests/support/git_support.py`.
+    - Refactor: I had no diff of my own, so nothing to change.
+    - Description: the journal did not change what the task means. Entry 19 only widened the leave of feature decision 6 to the S0004 test. I did not rewrite the Description.
+    - Noticed but not touched: nothing new.
+
+    `make check`: green, with `console` blocks back in `docs/project-guide/style.md` (test: green, 102.2 s, coverage 99.22 %).
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
