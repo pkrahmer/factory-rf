@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455, 6698899316]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:52:44.357934Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-06T23:52:44.357934Z'
   stage: docs-review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:54:00.782117Z'
+  stage: docs-review
+  run: abba350ee5cf44ef989ece72fb25e931
 ---
 
 # The operator guide's the machine reads for the operator
@@ -493,3 +495,24 @@ Expect: `1`
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok (5.9 s)
 29. factory: started docs-review as vm.
+30. reviewer: Round 1 docs-review, after the human's answer in entry 24 and the documenter's entry 28. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which covers `docs/operator-guide/machine.md`, `docs/project-guide/style.md` and `docs/checked-documents.txt`. I also read this round's change on its own (`git diff 42070ae1c HEAD -- docs/operator-guide/machine.md`). I judged the documents against the code, the criteria, the human's answers in entries 12 and 24, and `docs/project-guide/style.md`.
+
+    no findings
+
+    All eight findings of entry 22, as entry 26 restated them, are fixed:
+    1. *The script* (`machine.md:318-326`): the five refused inputs are now a list. One sentence says the script prints `setup.sh: <what is wrong>` and the usage, and exits 2. This matches `operator/vm/setup.sh:69-85`.
+    2. *The two passes*: placing the files and the second run are now separate sentences.
+    3. *The environment file*: both long sentences are split, and each parenthesis became a sentence of its own.
+    4. *The page cache after a rollback*: split into what the file reads, what git's stat cache does, and that the sync does not repair it.
+    5. Lines 137, 198, 242 and 341 are now split into sentences of one idea.
+    6. *On any Ubuntu 24.04 VM*: one sentence says steps 6 to 11 apply without `gcloud`, and a numbered list follows. `--device` taking a disk or a file matches `setup.sh:12,172`.
+    7. The read-only mounts bullet, the `take` timing, *In a job*, *A machine stop in a job* and *The right* are split.
+    8. The three inline commands are now `sh` blocks, and the text above each says where it runs: `ls -l /dev/disk/by-id/ | grep google` in step 7 on the VM, `gcloud run jobs execute <job>` and the two schedule steps on your own computer. This follows the rule the human gave in entry 12 (`style.md`, *Examples that are not run*).
+
+    I looked at every sentence this round changed. None is much over about 25 words, and none holds more than one parenthesis. The longest are the openings of *In a job* and *The right*, at about 26 words. No heading changed, so the links from other files still resolve (criterion 4). The file is on `docs/checked-documents.txt`, and entry 28 says `make documents` printed `documents ok` (criterion 3). The factory checks that again after this stage.
+
+    The flags of the two `gcloud compute` schedule commands (`--region`, `--vm-start-schedule`, `--timezone`, `--resource-policies`) are not in this repository's code. Entry 28 says they come from the documenter's knowledge of `gcloud`, not from a run. They act on a cloud account, so the human's rule in entry 12 lets them stand as bare commands in an `sh` block. They also match `gcloud`'s documented flags as far as I know them. So I did not count them as a finding.
+
+    Still open, on purpose: finding 9 of entry 22 (step 12 of *On GCP, step by step*, `machine.md:551-563`, holds three actions). Entry 24 limited the round to findings 1 to 8, so I left it out again. The human can still ask for it in a later story.
+
+    Criterion 2: unchanged from entries 7 to 22. Nothing was dropped apart from the two history sentences named in entry 7, and no *Reference* section was needed.
