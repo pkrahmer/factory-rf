@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:04:44.431481Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T01:04:39.265523Z'
   stage: intake
   run: 77da8bd4626f4feab22947f9ebb9f5f1
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:04:44.431481Z'
+  stage: docs-only
 ---
 
 # The project guide names the headings a check still requires
@@ -69,3 +78,4 @@ Expect: `documents ok`
    - Smoke test: both commands run as written. `make documents` is not pytest, so the `-q` rule does not apply. Each `Expect:` can be checked (a count of at least 1; `documents ok`). The first Expect is weak, since it counts matching lines and not all nine headings, but it is checkable.
    - Architecture: documents only, no layer or area is touched.
    - Scope: within F0052's goal (the docs route and the guide's rewrite). It is the proposed S0007 from the acceptance, and it is not in "Out of scope". Route: docs-only, because the only path the Interface changes is `docs/project-guide/README.md`.
+4. factory: started docs-only as vm.
