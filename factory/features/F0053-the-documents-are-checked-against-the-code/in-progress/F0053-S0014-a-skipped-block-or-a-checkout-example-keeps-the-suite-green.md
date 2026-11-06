@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T19:28:42.488097Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-06T19:28:37.229022Z'
   stage: review
   run: c597677ab842491a8766d4a6a73d8835
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:28:42.488097Z'
+  stage: docs
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -327,3 +336,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, feature decision 7, which the story's Interface names for that test. It keeps its name, its row ids and its expected outputs; the only change is the `not run` filter, through `without_report_lines`.
     - `tests/entry/test_check_documents_copies.py`: the standing leave to move a shared test helper. `_append_block` and `_findings_from` moved to `tests/support/check_documents_support.py`, and every test keeps its name, rows and assertions.
     - `tests/support/check_documents_support.py`: none needed. The change only adds `NOT_RUN`, `without_report_lines`, `append_block` and `findings_from`, and rewrites the module docstring. The existing names stay as they were.
+21. factory: started docs as vm.
