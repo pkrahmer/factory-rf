@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T01:50:29.105957Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-06T01:50:29.105957Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:50:55.127359Z'
+  stage: docs-review
+  run: a3b68eadaea44a8b9e54de9ad051f580
 ---
 
 # The project guide says which lines of its index name a page
@@ -173,3 +175,15 @@ Expect: `documents ok`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
 14. factory: started docs-review as vm.
+15. reviewer: Round 2. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes only the paragraph that names the guard in `docs/project-guide/README.md`, `## The files`. I checked it against `INDEX_LINE` and `index_problems` in `tests/support/guide_files_support.py` and against `docs/project-guide/style.md`.
+
+    Facts: every new sentence is true of the branch.
+    - The guard reads a line as a page entry only when it matches `^- `([^`]+)`[^.]*\w[^.]*\.`. That is a list item that starts with a name in backticks and goes on to text with a word and a full stop.
+    - A named page that does not exist is reported as `missing: <name>`. So "the guard fails when no such page exists" is right, and so is the `## The files` example.
+    - The four exception items below the paragraph start with "The heading" or with an italic title. They obey the stated rule.
+
+    Criteria: criterion 1 and the docs criterion are met. Journal entry 13 records `check: green`, `secrets: green (0.4 s)` and `documents ok`, and the diff touches no code or test. That covers criteria 2 to 4. No `docs/decisions.md` or operator-guide change was due, and none was made.
+
+    Writing: round 1's finding is fixed. The 35-word sentence is split, and the backwards "so that" clause is gone. The last sentence ("A list item that starts with a name in backticks, … and the guard fails when no such page exists.") is about 27 words. It has a cause and its effect, close to the wording round 1 proposed. I did not count it as a finding. The first new sentence has one idea and was accepted in rounds 0 and 1.
+
+    no findings
