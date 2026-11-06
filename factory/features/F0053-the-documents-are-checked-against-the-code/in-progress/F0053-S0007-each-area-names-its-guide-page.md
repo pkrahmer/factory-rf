@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T11:22:04.369002Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T11:22:04.369002Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T11:22:27.491693Z'
+  stage: smoke-test
+  run: 9a50393479f84c2093402fa284836e93
 ---
 
 # Each area names its guide page
@@ -172,3 +174,18 @@ Expect: `8`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.4 s)
 12. factory: started smoke-test as vm.
+13. smoke-tester: I ran the smoke test from the repository root as written. It passed and I found nothing wrong.
+
+    Command 1: `grep -l "^Guide: docs/project-guide/" src/factory/*/__init__.py | wc -l`
+    ```
+    8
+    ```
+    Expect: `8`. Met.
+
+    Checked against the acceptance criteria (read-only, nothing changed):
+    - Criterion 1: `grep -n "^Guide:" src/factory/*/__init__.py` shows line 3 of each of the seven areas' packages naming `docs/project-guide/<area>.md`, and `entry` naming `docs/project-guide/README.md`. Every page it names exists under `docs/project-guide/`. Not contradicted.
+    - Criterion 2: `uv run pytest -q tests/guards/test_area_guides.py` passed all 11 rows. Not contradicted.
+    - Criterion 3: the smoke test does not cover `make check`. I did not run it here; the factory's check after the docs stage recorded `check: green`. Not contradicted.
+    - Criterion 4: line 11 of `docs/project-guide/README.md` has the sentence that each area's package names its page. Not contradicted.
+
+    Findings: none.
