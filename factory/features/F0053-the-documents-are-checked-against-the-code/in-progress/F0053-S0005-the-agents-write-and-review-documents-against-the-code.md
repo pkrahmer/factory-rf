@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T10:12:42.698016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-06T10:12:42.698016Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-06T10:13:40.098358Z'
+  stage: doing
+  run: f294d23edf764475ba858b55d95c148a
 ---
 
 # The agents write and review documents against the code
@@ -195,3 +197,20 @@ Expect: `named`
 11. 2026-11-06 human: (a), with the human's leave: end with `tests`. The tester changes `tests/agent_files/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph` so that a `### Documents` item between item 6 and the "Write findings" paragraph is skipped. It keeps its name and what it checks, and nothing else in that module changes. The entry names it. The item stays in the checklist after item 6.
     On the last line: say "ends with `documents ok (<seconds> s)`" in `documenter.md`, so that the rule names the line exactly as `make documents` prints it.
 12. factory: started doing as vm.
+13. coder: Test change for the tester, with the human's leave (journal entry 11, option a): change `tests/agent_files/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph` so that it skips a `### Documents` item between checklist item 6 and the "Write findings as a numbered list" paragraph. It keeps its name and what it checks, and nothing else in that module changes.
+
+    What I did in this run:
+    - I carried in the human's second answer from entry 11. Step 3 of `agents/agents/documenter.md` now reads: run `make documents` after the last edit, and end only when its last line is `documents ok (<seconds> s)`. That is the line exactly as `make documents` prints it.
+    - I kept the literal `` `documents ok` `` in the same sentence ("without `documents ok` there, the documents are not done"). The `make-documents-ends-on-ok` row of `tests/agent_files/test_claude_agent_texts_documents.py` looks for that string with its backticks, and the human did not ask to change that row.
+    - I left everything else from the previous run as it was:
+      - `documenter.md`: three new Role rules (read the code first; runnable or marked examples copied from a named real run; detail kept in *Reference*) and the `make documents` step.
+      - `intake.md`: the new step 4, with the later steps renumbered.
+      - `reviewer.md`: the `### Documents` item, after item 6 and before "Write findings".
+
+    Main choice: one sentence holds both the exact printed line and the literal the test looks for. I rejected asking the tester to loosen the `make-documents-ends-on-ok` row, because the human named only the mutants test.
+
+    State: `uv run pytest -q tests/agent_files` has one failure, the mutants test named above (AssertionError at line 85, `'### Documents'.startswith(...)`). All other tests in that folder pass. I did not run `make check` because that test is still red. It should be run once the tester has made the change.
+
+    Refactor: I re-read the diff against `main` for `agents/` and found nothing to change.
+
+    Description: entry 11 does not change the meaning of the task, so it stays as it is.
