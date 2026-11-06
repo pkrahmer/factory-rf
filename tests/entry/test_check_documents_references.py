@@ -12,7 +12,7 @@ from factory.shared.domain.documents import (
     PROJECT_GUIDE,
     README,
 )
-from support.check_documents_support import line_of
+from support.check_documents_support import REPORT_HEADING, line_of
 from support.document_texts import (
     clean_texts,
     decision_log,
@@ -208,4 +208,4 @@ def test_name_findings_follow_todays_findings_and_leave_the_exit_status(
     )
     assert status == exit_status
     if today is not None:
-        assert lines[: len(lines) - len(findings)] == [today, "Report (not checked yet):"]
+        assert lines[: len(lines) - len(findings)] == [today, REPORT_HEADING]

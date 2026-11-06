@@ -9,12 +9,13 @@ import pytest
 from factory.entry.check_documents import main
 from factory.pipeline.domain.stop_table import STOP_TABLE
 from factory.shared.domain.documents import (
+    CHECKED_DOCUMENTS,
     OPERATOR_INSTALL,
     OPERATOR_STOPS,
     PROJECT_GUIDE,
     read_checked_documents,
 )
-from support.check_documents_support import TIME_LINE, line_of
+from support.check_documents_support import REPORT_HEADING, TIME_LINE, line_of
 from support.document_texts import (
     FENCE,
     clean_texts,
@@ -26,10 +27,8 @@ from support.document_texts import (
 from support.git_support import commit_all, run_git
 from support.operator_support import ROOT
 
-CHECKED_LIST = "docs/checked-documents.txt"
 STYLE = "docs/project-guide/style.md"
 GLOSSARY = "docs/project-guide/glossary.md"
-REPORT_HEADING = "Report (not checked yet):"
 MISSING_NAME = "factory.nothing_here"
 OTHER_MISSING_NAME = "factory.still_missing"
 UNKNOWN_SETTING = "FACTORY_NOTHING_HERE"
@@ -57,7 +56,7 @@ def _write(root: Path, extra: dict[str, str], listed: list[str] | None) -> None:
     texts = clean_texts()
     texts.update(extra)
     if listed is not None:
-        texts[CHECKED_LIST] = "".join(f"{path}\n" for path in listed)
+        texts[CHECKED_DOCUMENTS] = "".join(f"{path}\n" for path in listed)
     write_documents(root, texts)
 
 
@@ -150,7 +149,7 @@ def test_todays_documents_with_the_first_list_give_a_report_and_pass(
 ) -> None:
     copy = tmp_path / "checkout"
     shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns(*_NOT_COPIED))
-    (copy / CHECKED_LIST).write_text(f"{STYLE}\n{GLOSSARY}\n", encoding="utf-8")
+    (copy / CHECKED_DOCUMENTS).write_text(f"{STYLE}\n{GLOSSARY}\n", encoding="utf-8")
     run_git(copy, "init", "-q")
     commit_all(copy, "The copied repository")
 

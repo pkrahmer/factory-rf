@@ -14,14 +14,15 @@ from factory.shared.application.document_examples import Fixture
 from factory.shared.domain.documents import examples
 from factory.shared.domain.errors import FixtureError
 from support.document_texts import FENCE
+from support.time_limits import ROOMY_BOUND_SECONDS, ROOMY_LIMIT
 
 DOCUMENT = "docs/project-guide/shared.md"
 FIXTURE_VARIABLE = "EXAMPLE_FIXTURE"
 LIFTED_VALUE = "from-the-fixture"
+# The command of the time-limit test must be killed, not start, so it may keep a short limit.
 SHORT_LIMIT_SECONDS = 1
 # What the stand-in waits is far longer than the bound, so a missed kill fails.
 SLEEP_SECONDS = 30
-ELAPSED_BOUND_SECONDS = 15
 
 
 class EmptyFixture(Fixture):
@@ -56,7 +57,7 @@ def fixtures() -> Mapping[str, Fixture]:
 
 @pytest.fixture
 def runner() -> ProcessExampleRunner:
-    return ProcessExampleRunner(time_limit=timedelta(seconds=SHORT_LIMIT_SECONDS))
+    return ProcessExampleRunner(time_limit=ROOMY_LIMIT)
 
 
 def test_the_blocks_of_one_document_share_a_folder_and_the_next_document_starts_fresh(
@@ -110,8 +111,9 @@ def test_the_output_compared_holds_stderr_too(
 
 
 def test_a_command_past_its_limit_gives_one_finding_and_the_later_blocks_do_not_run(
-    runner: ProcessExampleRunner, fixtures: Mapping[str, Fixture]
+    fixtures: Mapping[str, Fixture],
 ) -> None:
+    runner = ProcessExampleRunner(time_limit=timedelta(seconds=SHORT_LIMIT_SECONDS))
     text = _document(
         _block(f"$ sleep {SLEEP_SECONDS}"),
         _block("$ echo later", "not what it prints"),
@@ -120,7 +122,7 @@ def test_a_command_past_its_limit_gives_one_finding_and_the_later_blocks_do_not_
 
     findings = runner.run_document(DOCUMENT, examples(text).runnable, fixtures)
 
-    assert time.monotonic() - started < ELAPSED_BOUND_SECONDS
+    assert time.monotonic() - started < ROOMY_BOUND_SECONDS
     assert findings == [f"{DOCUMENT}:4: the example did not end in {SHORT_LIMIT_SECONDS} s"]
 
 

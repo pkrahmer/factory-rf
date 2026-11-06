@@ -19,6 +19,7 @@ MISSING_LINES = (
     + "docs/project-guide/README.md: missing\n"
     "docs/decisions.md: missing\n"
 )
+REPORT_HEADING = "Report (not checked yet):"
 TIME_LINE = r"documents ok \(\d+(\.\d+)? s\)"
 
 
