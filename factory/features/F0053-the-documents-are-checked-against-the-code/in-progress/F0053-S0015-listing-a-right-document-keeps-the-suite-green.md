@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T19:52:58.727994Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T19:52:53.080087Z'
   stage: tests
   run: a695e6f7919840baa3ae30109fd95a27
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:52:58.727994Z'
+  stage: doing
 ---
 
 # Listing a right document keeps the suite green
@@ -112,3 +121,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    Open: there is nothing for the coder to write under `src/`, and the type check was not run in this stage. The coder's `make check` covers it, and the docs criterion is left to the docs stage.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
