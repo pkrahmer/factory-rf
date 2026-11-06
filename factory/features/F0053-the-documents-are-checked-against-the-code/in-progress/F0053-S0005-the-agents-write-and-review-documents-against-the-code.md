@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T11:06:37.516420Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-11-06T11:06:37.516420Z'
   stage: smoke-test
+- number: 43
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T11:07:08.848647Z'
+  stage: smoke-test
+  run: 166ccb92fd0346a98c31d5e115c0ab04
 ---
 
 # The agents write and review documents against the code
@@ -640,3 +642,19 @@ Expect: `named`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok (0.4 s)
 42. factory: started smoke-test as vm.
+43. smoke-tester: I ran the smoke test exactly as written, from the repository root. It printed what its `Expect:` line asks for, and none of the acceptance criteria is contradicted.
+
+    Command 1: `grep -q "documents ok" agents/agents/documenter.md && grep -q "### Documents" agents/agents/reviewer.md && echo named`
+    ```
+    named
+    ```
+    Met `Expect: named`: yes. The exit code was 0.
+
+    Read against the acceptance criteria (no contradiction found):
+    - Criteria 1 to 4: `agents/agents/documenter.md` has the four rules. Lines 56 to 58 hold read the code first, runnable or marked examples copied from a named real run, and detail kept in *Reference*. Lines 65, 79 and 81 hold `make documents` and ending only on `documents ok (<seconds> s)`.
+    - Criteria 5 to 7: `agents/agents/reviewer.md:62` is `### Documents`. Lines 64 to 66 name the changed documents' claims against the code, a claim not found in the code as a finding, and a command with neither a runnable nor a marked example as a finding.
+    - Criteria 8 and 9: `agents/agents/intake.md:55` says the docs criterion names what the reader must know afterwards. It also says a criterion that dictates the sentences is a question, and that the agent ends with `question`.
+    - Criterion 11: `docs/project-guide/agents.md` has the section "How the agents treat documents" at line 299 and following. `docs/decisions.md` has the entry "The agents write and review documents against the code" (F0053-S0005), which names the human's concern of 2026-11-05 that the stages' documents were not reliably true.
+    - Criterion 10 (`make check`): I did not run it, because it is not one of the smoke test's commands. The factory runs it as the stage's check.
+
+    Findings: none.
