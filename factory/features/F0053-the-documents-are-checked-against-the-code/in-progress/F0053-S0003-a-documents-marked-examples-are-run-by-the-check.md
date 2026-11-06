@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T08:30:48.828021Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -281,6 +285,11 @@ journal:
   at: '2026-11-06T08:30:43.213830Z'
   stage: tests
   run: 9ca54e5343f14d9ca169adc11cf3a958
+- number: 50
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:30:48.828021Z'
+  stage: doing
 ---
 
 # A document's marked examples are run by the check
@@ -882,3 +891,4 @@ Expect: `1`
     Run: `uv run pytest -q` over the three test files passed every test, because the code already exists, so these tests are green rather than red. The test runner imported every module. `make lint` is green. I skipped the type check, as this stage says.
 
     `lint`: lint: green (0.1 s)
+50. factory: started doing as vm.
