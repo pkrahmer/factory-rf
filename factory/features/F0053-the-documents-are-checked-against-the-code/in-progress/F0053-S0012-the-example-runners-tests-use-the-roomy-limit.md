@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T13:04:04.442247Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-06T13:03:59.149679Z'
   stage: review
   run: 79202f18656848c4a15a2868058a6ad2
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:04:04.442247Z'
+  stage: docs
 ---
 
 # The example runner's tests use the roomy limit
@@ -193,3 +202,4 @@ Expect: `1`
     - tests/entry/test_check_documents_references.py: the human's leave, journal 4 answer 3 and feature decision 6 (inline literal replaced by the shared constant)
     - tests/hosting/adapters/test_instance_fixture.py: the human's leave, journal 4 answer 1 and feature decision 6 (`SETTINGS_FILE` imported)
     - tests/support/check_documents_support.py: the standing leave to move a shared test helper (`REPORT_HEADING` added as the shared place)
+13. factory: started docs as vm.
