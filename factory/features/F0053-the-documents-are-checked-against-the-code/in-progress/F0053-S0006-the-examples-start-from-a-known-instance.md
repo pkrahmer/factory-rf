@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T08:49:17.620701Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T08:49:17.613833Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:49:17.620701Z'
+  stage: intake
+---
+
 # The examples start from a known instance
 
 ## Description
@@ -28,3 +55,6 @@ uv run pytest tests/shared/adapters/test_document_fixtures.py 2>&1 | tail -1 | g
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
