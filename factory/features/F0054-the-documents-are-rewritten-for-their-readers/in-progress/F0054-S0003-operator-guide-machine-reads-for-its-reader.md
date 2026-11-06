@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455, 6698899316]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:49:42.078044Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-06T23:49:36.944606Z'
   stage: docs-review
   run: 390e768268284c12aeb4427c53eb737a
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:49:42.078044Z'
+  stage: docs-only
 ---
 
 # The operator guide's the machine reads for the operator
@@ -441,3 +450,4 @@ Expect: `1`
     - Criterion 2: nothing was dropped except the two history sentences that entry 7 named, and no *Reference* section was added.
     - Criterion 3: the file is on `docs/checked-documents.txt`, and entry 20 says `make documents` printed `documents ok`.
     - Criterion 4: the links that entry 22 followed still resolve. No linked file changed since that review.
+27. factory: started docs-only as vm.
