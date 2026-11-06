@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T10:28:57.982898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-06T10:28:57.982898Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T10:30:21.785931Z'
+  stage: review
+  run: 396ee71df20e4b729345dfdce1ebee27
 ---
 
 # The agents write and review documents against the code
@@ -406,3 +408,21 @@ Expect: `named`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 26. factory: started review as vm.
+27. reviewer: Findings:
+
+    1. `agents/agents/documenter.md`, Stage step 3: this round's fix makes `make documents` depend on "when the pipeline definition lists a `documents` command". Step 1 of the same file forbids reading `factory/` ("not `factory/`"), so the documenter cannot check that condition. The next sentence, "End only when the last line of `make documents` is `documents ok (<seconds> s)`", is also unconditional, so a documenter in a project without the target still cannot end. Fix: base the condition on something the documenter may read, for example "when the project's Makefile has a `documents` target". Put the "End only when … `documents ok`" sentence inside that same condition, and keep `make documents` and `documents ok` in the one paragraph the test row reads.
+    2. `agents/agents/reviewer.md`, `### docs-review`: the first paragraph says the subsection "replaces the Role's scope, its checklist (groups 1 to 6) and its decisions". The new `### Documents` item says it stands "beside groups 1 to 6", so on the docs route it is unclear whether it applies. Step 2 there only asks that every sentence be true of the code. It has nothing on a command shown without a runnable or marked example. The docs route is where the documenter wrote the whole change, and the Description says the reviewer counts such a command as a finding. Fix: in docs-review step 2, add that the *Documents* item's two findings apply there too. Or say in the *Documents* item that it holds in `docs-review` as well. Keep the change inside what `test_the_rest_of_the_reviewer_body_is_unchanged` already strips.
+    3. `agents/agents/intake.md`, Stage step 7: it now asks for "one line per check of steps 2 to 5", but the list after the colon still names five lines: the Interface; the criteria; the smoke test; the architecture; the scope. Nothing covers the new step 4, the docs criterion. The step's own rule, "A check you cannot write a line for is one you did not do", then leaves step 4 without a line. Fix: add a line to that list, for example "the docs criterion (names what the reader must know, dictates no sentences)".
+
+    Checked and fine:
+    - Criteria 1 to 9 each have a row in `tests/agent_files/test_claude_agent_texts_documents.py`. I read each row against the agent text it pins, and the rows hold. Each rule's sides are rows of one parametrized test. `_reviewer_checklist` now uses `section_text` (round 0 finding 5, entry 23).
+    - Round 0 findings 3 and 4 are fixed in the `### Documents` item. It now says "with neither … nor …", and it names every document the documenter may write.
+    - The coder's `make check` was green (entries 21 and 25).
+    - Nothing changed under `src/`, so the architecture and security groups have nothing to check. The diff adds no suppression markers.
+    - The Description matches what was built.
+
+    Withdrawn: round 0 finding 6, which asked criterion 11 to also name the intake's new step. No stage but the human can amend that criterion, and the coder could not (entry 25). The step is about the docs criterion itself, not about how the documenter or the reviewer treat documents. The documenter's cross-read already has to fix the step number this story moves in `docs/project-guide/agents.md:291` ("Step 6: chooses `docs-only`" is now step 7). The human may still widen criterion 11 at the approval.
+
+    Earlier tests:
+    - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name, and now also strips the `### Documents` item.
+    - `tests/agent_files/test_claude_agent_texts_mutants.py`: changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name and only skips the `### Documents` item. Nothing else in that module changed.
