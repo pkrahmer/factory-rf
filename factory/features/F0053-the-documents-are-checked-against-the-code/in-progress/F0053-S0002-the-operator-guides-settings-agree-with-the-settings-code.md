@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T03:03:34.833748Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-06T03:03:29.701779Z'
   stage: tests
   run: e925fd185fac4606b8cb728fa76e0aed
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T03:03:34.833748Z'
+  stage: doing
 ---
 
 # The operator guide's settings agree with the settings code
@@ -163,3 +172,4 @@ Expect: `True`
     Modules the runner could not import: the names `GuideTable`, `guide_tables`, `settings_findings`, `refusal_findings` from `factory.shared.domain.documents`, and `SETTINGS`, `SettingDoc` from `factory.shared.domain.settings`.
 
     `lint`: lint: green (0.2 s)
+12. factory: started doing as vm.
