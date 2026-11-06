@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T19:48:02.659642Z'
   stage: acceptance
   run: c2168c47f9474dedb16f729a0d14686c
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T19:49:56.652131Z'
+  stage: done
 stories: [F0053-S0001, F0053-S0002, F0053-S0003, F0053-S0004, F0053-S0005, F0053-S0006, F0053-S0007, F0053-S0008, F0053-S0009, F0053-S0010, F0053-S0011, F0053-S0012, F0053-S0013, F0053-S0014]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents are checked against the code
@@ -198,3 +203,4 @@ Human interventions: 20 questions answered (18 questions, 2 round caps), 1.4 h w
    6. Decisions: feature decisions 1 to 7 and the earlier defaults stand (listed). From S0014: criterion 5 from the human's answer, the reading of criterion 2, `\d+` for `<line>`, no `--local`. S0014's earlier-test changes each have a named leave (decision 7, or the standing leave). S0015 needs a new decision 8 leave for four earlier tests.
    7. Slow checks: none beyond `make check` (green, `test: green (108.4 s)`, 99.22 %, 10,749 cases). Slowest tests are 10.0 s `ROOMY_LIMIT` waits, and the feature's document tests total 33.5 s. Disk: used stays at 1.4 GB, free 22.7 → 21.9 GB on the shared filesystem. S0014 (tests only) explains none of it, and the clones that S0014's agents could not remove may explain some.
    8. Cost: 173 runs, 228.1 min, $49.02 plus 1 unknown. S0014 cost 11 runs and $3.23, nearly double S0013, from an intake question and a review round over three duplicate test helpers. S0003 still stands out ($10.23). 20 answers (18 questions, 2 round caps), 1.4 h waited, one more since A0003 (S0014's intake). S0003 needed the human most.
+3. factory: done (pull request merged); cost: 1 runs, 13.6 min, 46 turns, 116512 tokens in (3130267 more from cache), 34758 out, $2.25
