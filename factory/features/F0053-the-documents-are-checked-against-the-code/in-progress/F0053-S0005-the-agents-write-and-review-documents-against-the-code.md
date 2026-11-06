@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T10:00:36.463722Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T10:00:36.456939Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:00:36.463722Z'
+  stage: intake
+---
+
 # The agents write and review documents against the code
 
 ## Description
@@ -27,3 +54,6 @@ grep -c "make documents" agents/agents/documenter.md | awk '{print ($1 >= 1) ? "
 Expect: `named`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
