@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T00:25:07.662549Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-06T00:25:02.378701Z'
   stage: tests
   run: b0bf8f8aaad043e19a1c60514975b865
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:25:07.662549Z'
+  stage: doing
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -344,3 +353,4 @@ Expect: `True True False`
     **For the docs stage:** besides `tests/support/two_routes_support.py` (entry 8), the *Shared test helpers* list in `docs/project-guide/README.md` should also name the new `tests/support/before_approval_support.py`.
 
     `lint`: lint: green (0.2 s)
+24. factory: started doing as vm.
