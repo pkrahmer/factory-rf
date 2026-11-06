@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T09:57:01.127087Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-06T09:56:55.824330Z'
   stage: docs
   run: 071ef49e0da54c2f860a5bc9648946a3
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:57:01.127087Z'
+  stage: smoke-test
 ---
 
 # The checks block the listed files and report on the others
@@ -489,3 +498,4 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `secrets`: secrets: green (1.7 s)
     `documents`: documents ok (0.4 s)
+30. factory: started smoke-test as vm.
