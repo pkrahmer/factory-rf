@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T00:50:47.404242Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T00:50:47.397675Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:50:47.404242Z'
+  stage: intake
+---
+
 # The docs reviewer judges by the style page alone
 
 ## Description
@@ -34,3 +61,6 @@ uv run pytest tests/agent_files/test_claude_agent_texts_docs_route.py tests/agen
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
