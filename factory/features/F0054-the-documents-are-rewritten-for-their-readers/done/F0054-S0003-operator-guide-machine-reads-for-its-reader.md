@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -175,6 +175,11 @@ journal:
   at: '2026-11-06T23:54:00.782117Z'
   stage: docs-review
   run: abba350ee5cf44ef989ece72fb25e931
+- number: 31
+  speaker: factory
+  kind: done
+  at: '2026-11-06T23:57:53.704105Z'
+  stage: docs-approval
 ---
 
 # The operator guide's the machine reads for the operator
@@ -516,3 +521,4 @@ Expect: `1`
     Still open, on purpose: finding 9 of entry 22 (step 12 of *On GCP, step by step*, `machine.md:551-563`, holds three actions). Entry 24 limited the round to findings 1 to 8, so I left it out again. The human can still ask for it in a later story.
 
     Criterion 2: unchanged from entries 7 to 22. Nothing was dropped apart from the two history sentences named in entry 7, and no *Reference* section was needed.
+31. factory: done (pull request merged); cost: 13 runs, 17.6 min, 143 turns, 601651 tokens in (5075896 more from cache), 103116 out, $6.21
