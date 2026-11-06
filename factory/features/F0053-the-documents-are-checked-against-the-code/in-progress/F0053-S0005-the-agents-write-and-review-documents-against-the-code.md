@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T10:24:26.291992Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-06T10:24:21.072795Z'
   stage: tests
   run: 45e7aca838364211a30ef8f7cfe1b6e6
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:24:26.291992Z'
+  stage: doing
 ---
 
 # The agents write and review documents against the code
@@ -363,3 +372,4 @@ Expect: `named`
     Open: this was the last open finding from the review. The work item can go back to review.
 
     `lint`: lint: green (0.1 s)
+24. factory: started doing as vm.
