@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T00:57:50.877536Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T00:57:45.700080Z'
   stage: review
   run: b631747d208f467db9186b5dd366ff75
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:57:50.877536Z'
+  stage: docs
 ---
 
 # The docs reviewer judges by the style page alone
@@ -148,3 +157,4 @@ Expect: `1`
 
    Earlier tests:
    - `tests/agent_files/test_claude_agent_texts_docs_route.py`: changed under the human's leave, feature decision 8 (the human, 2026-11-06), which the story's Interface names. The change stays within the leave. It removes `STYLE_RULES` and `test_the_reviewer_in_docs_review_lists_each_style_rule_once`, and adds the one test that criterion 1 names, with its constant. Every other test in the module is unchanged.
+10. factory: started docs as vm.
