@@ -58,9 +58,11 @@ from support.git_support import (
     PIPELINE_YAML,
     TEST_IDENTITY,
     clone,
+    commit_all,
     copy_remote,
     install_agents,
     make_remote,
+    run_git,
 )
 from support.human_clone import HumanClone
 from support.machine_readings_support import FakeMachineReadings
@@ -606,11 +608,13 @@ _OPERATOR_GUIDE = "docs/operator-guide"
 
 @pytest.fixture
 def documents(tmp_path: Path) -> Path:
-    """A copy of the repository's documents under `tmp_path`."""
+    """A git repository under `tmp_path` that holds a copy of the documents in one commit."""
     root = tmp_path / "root"
     (root / "docs").mkdir(parents=True)
     shutil.copy(_REPOSITORY / "README.md", root / "README.md")
     shutil.copy(_REPOSITORY / "docs" / "decisions.md", root / "docs" / "decisions.md")
     shutil.copytree(_REPOSITORY / "docs" / "project-guide", root / "docs" / "project-guide")
     shutil.copytree(_REPOSITORY / _OPERATOR_GUIDE, root / _OPERATOR_GUIDE)
+    run_git(root, "init", "-q")
+    commit_all(root, "The copied documents")
     return root

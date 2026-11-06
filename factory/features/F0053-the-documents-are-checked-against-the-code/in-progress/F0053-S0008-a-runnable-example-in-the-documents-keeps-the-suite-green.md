@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T11:41:17.936338Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T11:41:17.936338Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T11:44:00.957162Z'
+  stage: tests
+  run: e8bf4ac35c474b4c98dab6cdd0925518
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -85,3 +87,24 @@ Expect: `1`
    - Architecture: only test code changes. The fixture stays in `tests/conftest.py` and reuses the shared git helpers instead of a new copy.
    - Scope: it is within F0053 (runnable examples, S0003/S0006) and outside its "Out of scope". The changes to the S0002 and S0003 tests are covered by decision 6.
 4. factory: started tests as vm.
+5. tester: Wrote the tests for criteria 1–3. I also made the fixture change from the Interface myself, because it is test code: the coder's write paths are `src/*`, and the coder never edits tests. So these tests are **green, not red**. The coder has no code to write. Their `make check` (criterion 4) is the only thing left before docs.
+
+   Criterion → test:
+   - criterion 1: `tests/entry/test_check_documents_copies.py::test_a_matching_example_in_a_copied_document_gives_no_finding`, with the rows `unlisted` (shared.md) and `listed` (style.md). The "every row of `test_the_operator_guide_folder_is_checked_per_file` passes" part is covered by that test itself, which is unchanged and still green, and which will run style.md's real `console` blocks once the docs stage restores them.
+   - criterion 2: `tests/entry/test_check_documents_copies.py::test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one`, with the rows `unlisted-reported` (the finding comes after `Report (not checked yet):`, exit 0) and `listed-fails` (the finding comes before the heading, exit 1). `<line>` is matched as any number, because the criterion does not say whether it is the block's line or the command's.
+   - criterion 3: `tests/entry/test_check_documents_copies.py::test_the_copied_documents_are_a_clean_git_work_tree`.
+   - criterion 4: `make check`, the coder's run.
+
+   Files:
+   - Created: `tests/entry/test_check_documents_copies.py`.
+   - Changed: `tests/conftest.py`. The fixture `documents` now runs `run_git(root, "init", "-q")` and `commit_all(root, ...)` after copying. It keeps its name and returns the same folder. Feature decision 6 gives the leave to change it.
+
+   Setup choices I had to make:
+   - The fixture does not copy `docs/checked-documents.txt`, so nothing is listed in the copy. For the `listed` rows the test writes a list holding only `docs/project-guide/style.md` and commits it with the block. The `unlisted` rows write no list. If I list style.md there too, its existing name findings block (the copy has no `src/` or `tests/`), and the run exits 1.
+   - For the same reason, the `listed` row of criterion 2 leaves out the ` does not exist` lines before it checks the output, as the operator-guide test already does. Its exit status 1 comes from the example finding and from those name findings together.
+
+   Earlier tests: none needed an edit. `test_the_operator_guide_folder_is_checked_per_file` and `test_settings_findings_are_printed_without_changing_the_exit_status` change files only for the name, section and settings checks, which read the root directly. The fixture's commit is enough for the examples, which run on the committed state.
+
+   One run: `uv run pytest -q` of the new file plus the two earlier `documents` test files gave 12 passed. `make lint` is green. Every module imported; nothing was missing.
+
+   `lint`: lint: green (0.1 s)
