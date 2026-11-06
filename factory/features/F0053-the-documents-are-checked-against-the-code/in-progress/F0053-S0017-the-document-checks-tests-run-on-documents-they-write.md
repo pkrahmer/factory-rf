@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T21:08:08.597254Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T21:08:06.087939Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:08:08.597254Z'
   stage: doing
 ---
 
@@ -225,3 +234,4 @@ Expect: `documents ok (<seconds> s)`
 
     Noticed and left alone: the tester's entry says it skipped the type check, which is how these errors reached this stage.
 11. 2026-11-06 human: A: end with `tests`. The tester reads the three tables from the modules that define them and keeps patching the names inside `documents` with `monkeypatch.setattr(documents, "STOP_TABLE", ...)`, the name as a string. Nothing in `src/` changes. The tests are the tester's own, so no leave is needed.
+12. factory: started doing as vm.
