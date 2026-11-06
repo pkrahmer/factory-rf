@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T22:00:47.638520Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-06T22:00:47.638520Z'
   stage: docs-only
+- number: 16
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T22:03:06.125151Z'
+  stage: docs-only
+  run: 7e6f97bf1a4248af88f4fcf55cdabab6
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -301,3 +303,17 @@ Expect: `1`
 14. 2026-11-06 human: (b): the two `make mutants` commands stay inline in the prose. A sweep is started only by the human, so there is no run to copy, and an inline mention is no example the check runs. Go on to `docs-review`.
     The crash on a fenced block indented under a numbered step is a fault in the code; it becomes its own story, outside this one. Keep the blocks at column 0 here. The stale texts you named belong to the stories of those files.
 15. factory: started docs-only as vm.
+16. documenter: Round 2, after the human's answer (b) on finding 3. I changed no file in this run. `docs/operator-guide/install.md` already held the round 2 fixes: findings 1, 2, 4 and 5, and the removal of the dangling colon and the two meta sentences from finding 3. Under (b) the two `make mutants` commands stay inline in the prose, so nothing more is needed for finding 3. I kept the blocks at column 0, as the human said, because of the crash of the documents check on a fence indented under a numbered step (a separate story).
+
+    I ran `make documents`. It ends `documents ok (1.9 s)`, and its only line on install.md is `install.md:21: not run (suite)`, the `make check` block, which is expected. I ran no `make check`, because I changed only documents (none this run).
+
+    Cross-read: the headings of install.md (Install, Configuration, When the process refuses to start, The loop and its pauses, The checkout is cloned when it is missing, Mutation testing by sweep) are all kept. The links to them from the other operator-guide files still resolve.
+
+    Stale text I did not touch, and the human said it belongs to the stories of those files:
+    - `docs/operator-guide/README.md`: the "Replaced in v1.2" and "Replaced from v1" sections.
+    - `docs/project-guide/shared.md`: says the operator guide has no `Default` column and no refusal table, which is false now.
+    - `docs/operator-guide/agent-runtime.md:57`: names "F0043" and says "see "The stage environment" under *Configuration* in install.md". That text is now under *Reference* in install.md, as the paragraph "The stage environment". It is a pointer in prose, not an anchor link, so no link breaks.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (1.9 s)
