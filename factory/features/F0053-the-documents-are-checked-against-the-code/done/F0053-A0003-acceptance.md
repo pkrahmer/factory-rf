@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-06T13:59:22.296410Z'
   stage: acceptance
   run: 11d55e7382104c358e8c76cff18f771d
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-06T14:03:20.179913Z'
+  stage: done
 stories: [F0053-S0001, F0053-S0002, F0053-S0003, F0053-S0004, F0053-S0005, F0053-S0006, F0053-S0007, F0053-S0008, F0053-S0009, F0053-S0010, F0053-S0011, F0053-S0012, F0053-S0013]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents are checked against the code
@@ -169,3 +174,4 @@ Human interventions: 19 questions answered (17 questions, 2 round caps), 1.2 h w
    7. Slow checks: none beyond `make check` (green, 101.1 s, 99.22 %). Slowest tests are 10.0 s (`ROOMY_LIMIT` waits). Disk: used space unchanged at 1.4 GB, free 22.2 → 22.1 GB on the shared filesystem, nothing the feature explains or needs to.
    8. Cost: 162 runs, 209.9 min, $45.79 plus 1 unknown. S0013 cost 10 runs and $1.72 with one review round. S0003 still stands out ($10.23). 19 answers (17 questions, 2 round caps), 1.2 h waited, none since A0002. S0003 needed the human most.
    Note: a first smoke run gave a one-off `fixture instance could not be prepared`. It came from git's background `gc --auto` in my throwaway clone, not from the feature, and the final run sets `gc.auto 0`.
+3. factory: done (pull request merged); cost: 1 runs, 10.9 min, 49 turns, 95515 tokens in (3390775 more from cache), 36476 out, $2.17
