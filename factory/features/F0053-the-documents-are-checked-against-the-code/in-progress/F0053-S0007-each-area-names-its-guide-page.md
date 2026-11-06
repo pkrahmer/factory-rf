@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T11:22:04.369002Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T11:21:58.689793Z'
   stage: docs
   run: 6439c20fb5514c1aad48d5212ea65f52
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:22:04.369002Z'
+  stage: smoke-test
 ---
 
 # Each area names its guide page
@@ -162,3 +171,4 @@ Expect: `8`
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.4 s)
+12. factory: started smoke-test as vm.
