@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 611
 comments_read: [6698650455, 6698899316]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:48:50.054657Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-06T23:48:50.054657Z'
   stage: docs-review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:49:36.944606Z'
+  stage: docs-review
+  run: 390e768268284c12aeb4427c53eb737a
 ---
 
 # The operator guide's the machine reads for the operator
@@ -418,3 +420,24 @@ Expect: `1`
 23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 24. 2026-11-06 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes findings 1 to 8 of the last review as written. Before it ends, it counts the words of every sentence it changed with a short script and splits each one over about 25 words, so that rule 2 needs no further round.
 25. factory: started docs-review as vm.
+26. reviewer: Round 0 docs-review, after the human's answer in entry 24. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`.
+
+    The documenter has not run since entry 22. Entry 24 answered the question at the round cap, and that answer restarted this docs-review stage, not docs-only. `git log` shows that `docs/operator-guide/machine.md`, `docs/project-guide/style.md` and `docs/checked-documents.txt` last changed in 42070ae1c, the commit entry 22 reviewed. `git diff --stat 42070ae1c HEAD` over `README.md`, `docs`, `operator`, `agents` and the code these documents describe shows only `docs/runs/2026-11-05-f0052/log.md`, which is the human's file. So nothing the findings rest on has moved.
+
+    I read each line entry 22 named again. Every finding still stands at the same line. Entry 24 tells the documenter to fix findings 1 to 8 of entry 22 as written, and to count the words of every sentence it changes with a short script, splitting each one over about 25 words. Below are those eight findings, restated so the documenter can work from this entry.
+
+    1. `docs/operator-guide/machine.md:318`: wrong: "A missing required option, … prints `setup.sh: <what is wrong>` and the usage to standard error and exits 2" is about 45 words (rule 2). Fix: put the five refused inputs in a short list, then say in a sentence of its own what the script prints and that it exits 2.
+    2. `machine.md:347`: wrong: "Place all three files, …, readable by `factory`, and run the same command again: steps 1 to 11 report `found` and the rest completes" is about 33 words with two ideas (rule 2). Fix: one sentence for placing the files, and one for the second run and what it reports.
+    3. `machine.md:377` and `:379`: wrong: "Every run rewrites `factory.env` … (the Claude Code and opencode versions and the opencode model ids), and writes it only when its text differs" is about 34 words, and "For values the script does not know (…), make a second file …" is about 37 (rule 2). Fix: split each, and give the parenthesis its own sentence.
+    4. `machine.md:385`: wrong: "After the rollback the file has the snapshot's size but may still read the newer page: … so the sync does not repair it" is about 45 words (rule 2). Fix: split it into three sentences: what the file reads, what git's stat cache does, and that the sync does not repair it.
+    5. `machine.md:137`, `:198`, `:242` and `:341`: wrong: each holds one sentence of about 33 to 42 words (rule 2). They are "It holds no user of its own … and mounts the dataset", "Without the file, every container runs in the base image, … only when it configures none)", "It has no file of the repository, … as `operator/vm/Dockerfile` does" and "The script writes the files … root's `/dev/stdin`". Fix: split each into sentences of one idea.
+    6. `machine.md:555`: wrong: "Take the steps of *On GCP, step by step* from step 6 on, without `gcloud`: copy …, run it …, place the three secrets, run the script again, build the image, start the service" is about 50 words, and it is a task written as prose (rule 2, and the operator guide's numbered steps). Fix: one sentence saying that steps 6 to 11 apply without `gcloud`, then what differs as a short numbered list or as sentences of its own.
+    7. `machine.md:571`, `:595`, `:612`, `:614` and `:616`: wrong: each holds one sentence of about 38 to 42 words (rule 2). They are the read-only mounts bullet, "The time from the start of a stage … `take` is the copy back", "With `FACTORY_IDLE_SHUTDOWN_ACTION=exit` the factory, … ends the job's execution", "On a VM a machine stop waits … with other settings" and "The setup script gives `factory` the right … both from the same run". Fix: split each at its `:` or `;` into sentences of one idea, with at most one parenthesis each.
+    8. `machine.md:491`, `:612` and `:647`: wrong: commands the reader is to run still stand inline in prose, against rule 6 and the `sh`-block rule at `style.md:73`. They are `ls -l /dev/disk/by-id/ | grep google` (491), `gcloud run jobs execute <job>` (612), and `gcloud compute resource-policies create instance-schedule` with `gcloud compute instances add-resource-policies` (647). Fix: put each in an `sh` block, with the text above saying where it runs. At 647, write it as numbered steps: make the schedule, then attach it.
+
+    What I left out on purpose: finding 9 of entry 22 says step 12 of *On GCP, step by step* (`machine.md:539-551`) holds three actions. I did not repeat it, because entry 24 limits this round to findings 1 to 8. If the human wants step 12 split into steps 12 to 14, it stays open for a later round.
+
+    Criteria 2 to 4 are unchanged from entry 22:
+    - Criterion 2: nothing was dropped except the two history sentences that entry 7 named, and no *Reference* section was added.
+    - Criterion 3: the file is on `docs/checked-documents.txt`, and entry 20 says `make documents` printed `documents ok`.
+    - Criterion 4: the links that entry 22 followed still resolve. No linked file changed since that review.
