@@ -1,4 +1,4 @@
-"""The documents command runs a real example in the git repository of the `documents` copy."""
+"""The documents command runs a real example in the git repository of the minimal documents."""
 
 import re
 from pathlib import Path
@@ -6,15 +6,17 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
+from factory.hosting.adapters.instance_fixture import INSTANCE_NAME
+from factory.shared.domain.documents import INSTANCE_FIXTURE
+from factory.shared.domain.settings import INSTANCE_VARIABLE
 from support.check_documents_support import (
     REPORT_HEADING,
     append_block,
     findings_from,
     write_checked_list,
 )
-from support.git_support import run_git
 
-LISTED = "docs/project-guide/style.md"
+LISTED = "docs/project-guide/machine.md"
 UNLISTED = "docs/project-guide/shared.md"
 
 
@@ -26,11 +28,11 @@ def _append_example(root: Path, document: str, command: str, output: str) -> int
 
 @pytest.mark.parametrize("document", [UNLISTED, LISTED], ids=["unlisted", "listed"])
 def test_a_matching_example_in_a_copied_document_gives_no_finding(
-    documents: Path, capsys: pytest.CaptureFixture[str], document: str
+    minimal: Path, capsys: pytest.CaptureFixture[str], document: str
 ) -> None:
-    first_line = _append_example(documents, document, "echo hi", "hi")
+    first_line = _append_example(minimal, document, "echo hi", "hi")
 
-    main(["--root", str(documents)])
+    main(["--root", str(minimal)])
 
     lines = capsys.readouterr().out.splitlines()
     assert findings_from(lines, document, first_line) == []
@@ -44,16 +46,16 @@ def test_a_matching_example_in_a_copied_document_gives_no_finding(
     ],
 )
 def test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one(
-    documents: Path,
+    minimal: Path,
     capsys: pytest.CaptureFixture[str],
     *,
     document: str,
     blocks: bool,
     exit_status: int,
 ) -> None:
-    first_line = _append_example(documents, document, "echo one", "two")
+    first_line = _append_example(minimal, document, "echo one", "two")
 
-    status = main(["--root", str(documents)])
+    status = main(["--root", str(minimal)])
 
     printed = capsys.readouterr().out.splitlines()
     lines = [line for line in printed if not line.endswith(" does not exist")]
@@ -65,6 +67,26 @@ def test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one(
     assert status == exit_status
 
 
-def test_the_copied_documents_are_a_clean_git_work_tree(documents: Path) -> None:
-    assert run_git(documents, "status", "--porcelain") == ""
-    assert run_git(documents, "rev-parse", "--is-inside-work-tree") == "true\n"
+@pytest.mark.parametrize(
+    ("output", "findings"),
+    [
+        pytest.param(INSTANCE_NAME, [], id="matching"),
+        pytest.param("another", [f"the example printed {INSTANCE_NAME}"], id="wrong"),
+    ],
+)
+def test_an_instance_example_runs_in_a_valid_instance(
+    minimal: Path, capsys: pytest.CaptureFixture[str], *, output: str, findings: list[str]
+) -> None:
+    write_checked_list(minimal, [LISTED])
+    first_line = append_block(
+        minimal,
+        LISTED,
+        f"console fixture={INSTANCE_FIXTURE}",
+        [f"$ printenv {INSTANCE_VARIABLE}", output],
+    )
+
+    status = main(["--root", str(minimal)])
+
+    lines = findings_from(capsys.readouterr().out.splitlines(), LISTED, first_line)
+    assert [line.split(": ", 1)[1] for line in lines] == findings
+    assert status == (1 if findings else 0)

@@ -1,9 +1,11 @@
-"""Today's documents name no missing file for the log file and git addresses."""
+"""The log file and git addresses in a document are no missing file."""
+
+from pathlib import Path
 
 import pytest
 
 from factory.shared.domain.documents import named_references
-from support.operator_support import ROOT
+from support.minimal_documents_support import add_and_commit
 
 
 @pytest.mark.parametrize(
@@ -23,11 +25,11 @@ from support.operator_support import ROOT
     ],
 )
 def test_todays_documents_give_no_finding_for_the_log_file_and_git_addresses(
-    document: str, text: str
+    minimal: Path, document: str, text: str
 ) -> None:
-    top_level = frozenset(entry.name for entry in ROOT.iterdir())
-    content = (ROOT / document).read_text(encoding="utf-8")
-    assert text in content
+    add_and_commit(minimal, {document: f"# A topic\n\n## Running it\n\nSee `{text}`.\n"})
+    top_level = frozenset(entry.name for entry in minimal.iterdir())
+    content = (minimal / document).read_text(encoding="utf-8")
 
     references = named_references(document, content, top_level)
 

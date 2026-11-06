@@ -1,7 +1,6 @@
 """The documents command blocks on the new checks' findings in the listed files only."""
 
 import re
-import shutil
 from pathlib import Path
 
 import pytest
@@ -18,14 +17,11 @@ from factory.shared.domain.documents import (
 from support.check_documents_support import REPORT_HEADING, TIME_LINE, line_of
 from support.document_texts import (
     FENCE,
-    clean_texts,
     operator_install,
     operator_stops,
     project_guide,
-    write_documents,
 )
-from support.git_support import commit_all, run_git
-from support.operator_support import ROOT
+from support.minimal_documents_support import add_and_commit, minimal_documents
 
 STYLE = "docs/project-guide/style.md"
 GLOSSARY = "docs/project-guide/glossary.md"
@@ -33,17 +29,6 @@ MISSING_NAME = "factory.nothing_here"
 OTHER_MISSING_NAME = "factory.still_missing"
 UNKNOWN_SETTING = "FACTORY_NOTHING_HERE"
 SETTINGS_TABLE = f"| Variable | Meaning |\n|---|---|\n| `{UNKNOWN_SETTING}` | nothing |\n"
-_NOT_COPIED = (
-    ".git",
-    ".venv",
-    ".cache",
-    ".ruff_cache",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".reports",
-    "mutants",
-    "__pycache__",
-)
 EXAMPLE_BLOCK = f"{FENCE}console fixture=nowhere\n$ echo hi\nhi\n{FENCE}"
 VM_BLOCK = f"{FENCE}console vm\n$ factory status\n...\n{FENCE}"
 
@@ -53,11 +38,13 @@ def _guide_page(body: str) -> str:
 
 
 def _write(root: Path, extra: dict[str, str], listed: list[str] | None) -> None:
-    texts = clean_texts()
-    texts.update(extra)
+    minimal_documents(root)
+    files = dict(extra)
     if listed is not None:
-        texts[CHECKED_DOCUMENTS] = "".join(f"{path}\n" for path in listed)
-    write_documents(root, texts)
+        files[CHECKED_DOCUMENTS] = "".join(f"{path}\n" for path in listed)
+    add_and_commit(root, files)
+    if listed is None:
+        (root / CHECKED_DOCUMENTS).unlink()
 
 
 def _run(root: Path, capsys: pytest.CaptureFixture[str]) -> tuple[int, list[str]]:
@@ -142,22 +129,6 @@ def test_a_finding_of_the_checks_of_before_fails_for_every_file(
     assert any(line.startswith(f"{document}: ") and message in line for line in lines)
     assert REPORT_HEADING not in lines
     assert not any(re.fullmatch(TIME_LINE, line) for line in lines)
-
-
-def test_todays_documents_with_the_first_list_give_a_report_and_pass(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    copy = tmp_path / "checkout"
-    shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns(*_NOT_COPIED))
-    (copy / CHECKED_DOCUMENTS).write_text(f"{STYLE}\n{GLOSSARY}\n", encoding="utf-8")
-    run_git(copy, "init", "-q")
-    commit_all(copy, "The copied repository")
-
-    status, lines = _run(copy, capsys)
-
-    assert REPORT_HEADING in lines
-    assert re.fullmatch(TIME_LINE, lines[-1])
-    assert status == 0
 
 
 @pytest.mark.parametrize(

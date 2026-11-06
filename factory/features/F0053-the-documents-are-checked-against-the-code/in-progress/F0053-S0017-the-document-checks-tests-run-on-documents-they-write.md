@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T20:57:55.535565Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T20:57:55.535565Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T21:03:36.319382Z'
+  stage: tests
+  run: 02f9739596c94ef699951f25502c6230
 ---
 
 # The document check's tests run on documents they write
@@ -130,3 +132,60 @@ Expect: `documents ok (<seconds> s)`
    - Architecture: tests and support modules sit under `tests/`, as `CLAUDE.md` says. The guard goes in `tests/guards/`. The `tests/conftest.py` fixtures go as `CLAUDE.md` allows.
    - Scope: it is inside feature decision 10, which gives the human's leave to change, merge or remove the named earlier tests and fixtures. It is not in "Out of scope". The route is `tests`, because the Interface changes test paths.
 7. factory: started tests as vm.
+8. tester: Tests written. No module under `src/factory/` changes in this story, so the new and rewritten tests already pass. The support module they call sits under `tests/`, which is my write path, so I wrote it. The coder still has the `docs:` criterion and `make check`, and must report the `make test` time before and after the story. I did not measure that time.
+
+   Criterion → test:
+   - criterion 1: tests/entry/test_check_documents_minimal.py::test_the_minimal_documents_pass_the_check_in_a_clean_work_tree
+   - criterion 2: tests/entry/test_check_documents_minimal.py::test_the_minimal_documents_follow_one_more_row_of_the_codes_tables (rows stop, kill-point, setting, each set through `monkeypatch` on `factory.shared.domain.documents` or `factory.shared.domain.settings`)
+   - criterion 3, one test per behaviour, all on minimal documents:
+     - a finding blocks in a listed page and is reported in an unlisted one: test_check_documents_checked_files.py::test_a_new_finding_blocks_in_a_listed_file_and_is_reported_in_any_other
+     - the output order and the report heading: test_check_documents_checked_files.py::test_the_output_is_the_blocking_findings_then_the_report_and_nothing_more and ::test_the_report_heading_is_left_out_when_there_is_nothing_to_report
+     - a page listed once more gives no second finding: test_check_documents_any_list.py::test_a_page_listed_once_more_gives_no_second_finding (rows listed-once and twice)
+     - a skipped block adds only its `not run` line: test_check_documents_suite_copy.py::test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_its_line (rows vm, github, model, suite, and wrong). It now compares the exact output.
+     - a `checkout` example reads a tracked file: test_check_documents_suite_copy.py::test_an_example_reads_a_file_git_tracks_in_the_repository (rows tracked-file and missing-file)
+     - an `instance` example runs in a valid instance: test_check_documents_copies.py::test_an_instance_example_runs_in_a_valid_instance (new; rows matching and wrong)
+     - a wrong example blocks a listed page and is reported in an unlisted one: test_check_documents_copies.py::test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one
+     - a dropped settings row gives its finding: test_check_documents_settings.py::test_settings_findings_are_printed_without_changing_the_exit_status
+     - a missing operator-guide file or section gives its finding: test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file
+   - criterion 4: tests/guards/test_document_tests_write_their_documents.py::test_no_document_check_test_names_the_repositorys_documents (passing side) and ::test_a_document_check_test_that_names_the_repositorys_documents_is_found (one row for each of the four names, on a module written under `tmp_path`)
+   - criterion 5: the same guard, test_no_document_check_test_names_the_repositorys_documents
+   - criterion 6: tests/entry/test_check_documents_minimal.py::test_added_files_are_committed_and_tracked (rows existing-folder and new-subfolder)
+   - criteria 7 and 8: no test (`make check` and the docs belong to the coder and the documenter)
+
+   Files created:
+   - tests/support/minimal_documents_support.py: `minimal_documents` and `add_and_commit`. The settings rows, stop rows, sections, kill-point and fault-path rows are read when the function is called from `factory.shared.domain.documents` and `.settings`. The area pages come from the folders of the `factory` package. `add_and_commit` commits only when the work tree changed.
+   - tests/entry/test_check_documents_minimal.py
+   - tests/guards/test_document_tests_write_their_documents.py
+
+   Earlier tests changed under the leave of feature decision 10:
+   - tests/conftest.py: the fixtures `tracked_files` and `documents` are removed. The new fixture `minimal` (minimal documents under `tmp_path`) replaces them.
+   - tests/support/documents_copy_support.py: deleted.
+   - test_check_documents_copies.py, _settings.py, _operator_guide.py: they now run on `minimal`, and every test keeps its name. The listed page is now `machine.md`, because the minimal documents have no `style.md`. The dropped setting is `SETTINGS[0]` instead of the literal `FACTORY_ZFS`.
+   - test_check_documents_todays_names.py: it writes the text into a minimal document instead of reading the repository's documents. Same test name.
+   - test_check_documents_checked_files.py: `_write` now builds the minimal documents and adds the test's files through `add_and_commit`.
+   - test_check_documents_suite_copy.py: rewritten on `minimal`.
+   - test_check_documents_any_list.py: rewritten.
+
+   Tests removed or renamed, with what covers them now:
+   - any_list::test_a_test_that_writes_its_list_keeps_its_outcome_when_the_repository_lists_more_pages (only the coupling): its three outcomes are covered by the settings, operator_guide and copies tests.
+   - any_list::test_without_its_own_list_the_repository_list_reaches_the_output (only the coupling): removed.
+   - any_list::test_listing_the_three_pages_names_each_once_whatever_the_list_already_names (it tested a helper of the repository's list): removed.
+   - any_list::test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again: replaced by test_a_page_listed_once_more_gives_no_second_finding.
+   - any_list: the two tests of the written list are kept and run on `minimal`.
+   - checked_files::test_todays_documents_with_the_first_list_give_a_report_and_pass (it used the copy of `ROOT`): covered by ::test_without_a_list_file_every_new_finding_is_reported_and_none_blocks and ::test_an_example_not_run_is_reported_after_the_reported_findings_and_never_blocks.
+   - copies::test_the_copied_documents_are_a_clean_git_work_tree: covered by minimal::test_the_minimal_documents_pass_the_check_in_a_clean_work_tree.
+   - suite_copy::test_the_copy_holds_the_tracked_files_and_nothing_untracked and ::test_two_copies_of_the_session_repository_are_separate (only the coupling): removed.
+   - suite_copy::test_an_example_reads_the_tracked_files_of_the_repository: renamed to test_an_example_reads_a_file_git_tracks_in_the_repository. The story's smoke test greps `tests/entry` for `tracked_files` without word boundaries, and the old name would make it print 1.
+
+   Runs:
+   - Every module the test run needed imported; none was missing.
+   - I ran pytest on the changed test modules and the new guard. After two fixes to my own tests (a `StopRow` built without its required `test` field, and an off-by-one in the wrong-example row), all passed.
+   - `make lint` is green.
+   - The smoke grep prints 0.
+   - I skipped the type check, as the stage says.
+
+   Open:
+   - I set aside nothing of a skill.
+   - The listed rewrite of the Interface was clear enough that I needed no interpretation.
+
+   `lint`: lint: green (0.1 s)

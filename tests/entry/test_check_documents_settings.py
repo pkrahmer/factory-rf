@@ -5,9 +5,10 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
+from factory.shared.domain.settings import SETTINGS
 from support.check_documents_support import drop_settings_row, write_checked_list
 
-_DROPPED = "FACTORY_ZFS"
+_DROPPED = SETTINGS[0].name
 
 
 def _lines_naming(output: str, name: str) -> list[str]:
@@ -15,14 +16,14 @@ def _lines_naming(output: str, name: str) -> list[str]:
 
 
 def test_settings_findings_are_printed_without_changing_the_exit_status(
-    documents: Path, capsys: pytest.CaptureFixture[str]
+    minimal: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    write_checked_list(documents, [])
-    status_with_row = main(["--root", str(documents)])
+    write_checked_list(minimal, [])
+    status_with_row = main(["--root", str(minimal)])
     output_with_row = capsys.readouterr().out
-    drop_settings_row(documents, _DROPPED)
+    drop_settings_row(minimal, _DROPPED)
 
-    status_without_row = main(["--root", str(documents)])
+    status_without_row = main(["--root", str(minimal)])
     output_without_row = capsys.readouterr().out
 
     assert _lines_naming(output_with_row, _DROPPED) == []
