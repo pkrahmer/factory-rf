@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T22:09:40.436959Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -131,6 +135,11 @@ journal:
   at: '2026-11-06T22:09:34.881238Z'
   stage: docs-review
   run: 020209377a264e93aea820232803a417
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:09:40.436959Z'
+  stage: docs-only
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -388,3 +397,4 @@ Expect: `1`
     5. docs/operator-guide/install.md:107: the dropped rule for `FACTORY_CONTAINER_ENV` is still missing: each part is stripped and blank parts are left out (settings.py:480-482). Fix: add that sentence to the row.
 
     Open, outside this diff (entries 14 and 20 give these to their own stories): `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table. `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
+23. factory: started docs-only as vm.
