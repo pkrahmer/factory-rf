@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-06T19:32:21.510694Z'
   stage: smoke-test
   run: 1eb4d826aad044abb1b0f560d52660c9
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-06T19:34:14.449633Z'
+  stage: approval
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -396,3 +401,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
 
     Left open: the sandbox also turned down `rm -rf /tmp/tmp.feI3YSB3Un`, so the throwaway clone with one uncommitted edit to `docs/project-guide/machine.md` is still in `/tmp` on the machine that ran this stage. The human may want to delete it.
     ```
+25. factory: done (pull request merged); cost: 11 runs, 18.2 min, 89 turns, 316392 tokens in (1935455 more from cache), 37303 out, $3.23
