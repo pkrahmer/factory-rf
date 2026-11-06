@@ -84,9 +84,11 @@ table inet factory_block {
 
 Do not call a chain `fwd`: `nft` reads it as a reserved word and refuses the file. The names above are free of it.
 
-With the profile `job` the preflight proves that the rule is in force. Its item `metadata-block` runs one container, right after `stage-image`. The container has no mounts and an empty environment, and it has 30 seconds. It asks the server for the instance id:
+With the profile `job` the preflight proves that the rule is in force. Its item `metadata-block` runs one container, right after `stage-image`. The container has no mounts and an empty environment, and it has 30 seconds. It asks the server for the instance id. The command runs in a container of the stage image, not on the host:
 
-    curl -sS -m 5 -o /dev/null -w %{http_code} http://169.254.169.254/computeMetadata/v1/instance/id
+```sh
+curl -sS -m 5 -o /dev/null -w %{http_code} http://169.254.169.254/computeMetadata/v1/instance/id
+```
 
 The item reads the last non-blank line of the output:
 
@@ -164,11 +166,20 @@ The Debian packages carry no version, so a security or point update needs no edi
 
 1. Edit the pin you want to change:
 
-   - Base image: run `podman pull <image>`, then `podman inspect --format '{{index .RepoDigests 0}}' <image>`, and put the digest after `@sha256:` in the `BASE_IMAGE` default.
+   - Base image: read its digest as shown below, and put the digest after `@sha256:` in the `BASE_IMAGE` default. On the VM as `factory`:
+
+     ```sh
+     podman pull <image>
+     podman inspect --format '{{index .RepoDigests 0}}' <image>
+     ```
    - `uv`: the `UV_VERSION` default.
    - Node: `NODE_VERSION` and `NODE_SHA256` together (see above).
    - Claude Code: the `CLAUDE_CODE_VERSION` default, three numbers. It is installed from its npm package, `@anthropic-ai/claude-code`, with its auto-update off (`DISABLE_AUTOUPDATER=1`). The version is in the environment as `FACTORY_CLAUDE_VERSION`, so the preflight can read it.
-   - opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with `opencode models anthropic`.
+   - opencode: the `OPENCODE_VERSION` default and the `FACTORY_OPENCODE_MODELS` value. Check the model ids with the command below, on a computer where opencode is installed:
+
+     ```sh
+     opencode models anthropic
+     ```
 
 2. Run the test. It reports any reference that floats:
 
@@ -265,7 +276,7 @@ sudo sh operator/vm/setup.sh --device /dev/sdb \
 - **The project brings its own files.** The factory reads `<project>/factory/pipeline.yml`, `<project>/factory/story-form.md` and `<project>/factory/feature-form.md`, and optionally `<project>/factory/agents/`. Its `Makefile` has the targets `check`, `lint`, `test` and `sync`.
 - **The stage image comes from the code.** `operator/vm/Dockerfile` is the one in the code checkout, not the project's.
 - **An update of the code is a new ref and a rebuild.** Run `operator/vm/setup.sh` again with the new `--code-ref`, as *The rebuild after a merge* describes. A checkout that exists is not cloned again, so a changed `--code-url` alone changes nothing on a machine that has one.
-- **The helper answers only the project's host.** With `FACTORY_REPOSITORY_URL` set, `git-credential-factory` gives the token only when git asks for the host of that URL, so the token is never offered to the code repository's host or to any other (see *The hosting-service token* in [health.md](health.md)).
+- **The helper answers only the project's host.** With `FACTORY_REPOSITORY_URL` set, `git-credential-factory` gives the token only when git asks for the host of that URL. The token is never offered to the code repository's host or to any other. See *The hosting-service token* in [health.md](health.md).
 
 ### The script
 
@@ -317,9 +328,9 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 5. `datasets`: `<pool>/factory` and `<pool>/factory/<instance>`, both with `compression=lz4` and `atime=off`, the second mounted at `/srv/factory/<instance>/work` with the quota and owned by `factory`. Then the first base `<pool>/factory/<instance>@base` is taken, while the dataset is still empty and before the delegation of step 6. A dataset that already has a base keeps it, and the script never touches it. A dataset that exists without a base gets one.
 6. `delegation`: `zfs allow -u factory snapshot,destroy,rollback,diff,mount` on the instance's dataset, unless all five are already delegated.
 7. `sudoers`: only with `--sudoers`, see below. Without it the line says `not asked` and neither file is touched.
-8. `caches`: on every run, with or without `--sudoers`, the helper `/usr/local/bin/factory-drop-caches` (mode `0755`; it runs `sync`, then writes `1` to `/proc/sys/vm/drop_caches`) and `/etc/sudoers.d/factory-drop-caches` (mode `0440`), which holds the one rule `factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches`. Each is written only when its text differs. The rule is checked with `visudo -cf`; if `visudo` refuses it, the script removes the file, prints `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` to standard error and exits 1. See *The page cache after a rollback*.
-9. `poweroff`: with `--idle-shutdown`, `/etc/sudoers.d/factory-poweroff` (mode `0440`, owner root), which holds the one rule `factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff`, written only when its text differs and checked with `visudo -cf`; if `visudo` refuses it, the script removes the file, prints `setup: poweroff: visudo -cf refused /etc/sudoers.d/factory-poweroff; removed it` to standard error and exits 1. Without the option it runs `rm -f` on that file, so a right an earlier run gave is taken back, and the line says `setup: poweroff: not asked; the factory gets no power-off right`. See *The idle shutdown*.
-10. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
+8. `caches`: on every run, with or without `--sudoers`, the helper `/usr/local/bin/factory-drop-caches` (it runs `sync`, then writes `1` to `/proc/sys/vm/drop_caches`) and `/etc/sudoers.d/factory-drop-caches`, which holds the one rule `factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches`. The helper has mode `0755` and the rule file `0440`. Each is written only when its text differs. The rule is checked with `visudo -cf`. If `visudo` refuses it, the script removes the file, prints `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` to standard error and exits 1. See *The page cache after a rollback*.
+9. `poweroff`: with `--idle-shutdown`, `/etc/sudoers.d/factory-poweroff`, which holds the one rule `factory ALL=(root) NOPASSWD: /usr/bin/systemctl poweroff`. The file has mode `0440` and owner root. It is written only when its text differs, and checked with `visudo -cf`. If `visudo` refuses it, the script removes the file, prints `setup: poweroff: visudo -cf refused /etc/sudoers.d/factory-poweroff; removed it` to standard error and exits 1. Without the option it runs `rm -f` on that file, so a right an earlier run gave is taken back, and the line says `setup: poweroff: not asked; the factory gets no power-off right`. See *The idle shutdown*.
+10. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` with mode `0755`, and `/home/factory/.secrets` with mode `0700`. If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
 11. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
 12. `checkout`: the factory at `--code-ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
 13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `operator/vm/Dockerfile`. Then `uv sync --frozen --no-dev` in the checkout makes the factory's own `.venv`. Last, `/usr/local/bin/git-credential-factory` is copied from the checkout's [git-credential-factory](../../operator/vm/git-credential-factory) (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
@@ -373,7 +384,7 @@ Every name in `factory.local.env` is in the factory process's own environment, b
 
 A page that a stage wrote through `mmap` survives `zfs rollback` in the kernel's page cache. After the rollback the file has the snapshot's size but may still read the newer page: a file the stage made shorter reads as zero bytes past its end, and git's stat cache calls it clean, so the sync does not repair it. The factory therefore drops the clean page cache after every reset, right after a rollback that succeeded, by running `sudo -n /usr/local/bin/factory-drop-caches`. This is not a setting and does not depend on `--sudoers` or `FACTORY_ZFS`: step 8 installs the helper and its `sudoers` rule on every run.
 
-The drop is machine-wide. It also empties the cache of other files, so the next sync reads from the disk and is a little slower. A drop that fails (no helper, no rule so that `sudo` asks for a password, or the time limit of ten minutes) stops the stage before it starts, as a failed `zfs` command does, and the factory log names the command that failed. A machine set up by hand with the same two files is found unchanged by step 8.
+The drop is machine-wide. It also empties the cache of other files, so the next sync reads from the disk and is a little slower. A drop can fail for three reasons: there is no helper, there is no rule so that `sudo` asks for a password, or the time limit of ten minutes passes. The stage then does not start, as with a failed `zfs` command. The factory log names the command that failed. A machine set up by hand with the same two files is found unchanged by step 8.
 
 #### The `sudoers` fallback
 
@@ -468,7 +479,7 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
      --disk=name=factory-data,device-name=factory-data,mode=rw,auto-delete=no
    ```
 
-6. Copy the script to the VM through the tunnel, and open a shell there. Copy it from a checkout of the ref you will run.
+6. On your own computer, copy the script to the VM through the tunnel, and open a shell there. Copy it from a checkout of the ref you will run.
 
    ```sh
    gcloud compute scp --zone=europe-west3-a --tunnel-through-iap operator/vm/setup.sh factory-vm:
@@ -497,14 +508,14 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
 
    All three files must exist, whatever the runtime is. The factory mounts every login file the environment file names, and podman refuses to mount a missing one. Every agent run would then stop with exit status 125. Under `claude` the file `anthropic-api-key` may be empty, which means no key. Under `opencode` the file `claude-token` may be empty, since opencode does not read it, and `anthropic-api-key` holds the key.
 
-9. Run the script a second time with the same arguments. It clones the factory, installs the tools, writes the environment file and installs and enables the unit.
+9. On the VM from your own account, run the script a second time with the same arguments. It clones the factory, installs the tools, writes the environment file and installs and enables the unit.
 
    ```sh
    sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
      --repository-url https://github.com/pkrahmer/kumpel-factory.git --code-ref <the tag or branch to run>
    ```
 
-10. Build the stage image as `factory`, from the checkout the script made. `<ref>` labels the image; any text will do.
+10. On the VM as `factory`, build the stage image from the checkout the script made. `<ref>` labels the image; any text will do.
 
     ```sh
     sudo -iu factory
@@ -513,7 +524,7 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
     exit
     ```
 
-11. Start the instance and look at it:
+11. On the VM from your own account, start the instance. Then, as `factory`, look at it:
 
     ```sh
     sudo systemctl start factory@vm
@@ -537,7 +548,7 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
     gcloud compute instances stop factory-vm --zone=europe-west3-a
     ```
 
-    A stopped VM costs only its disks and NAT (see *The costs*). Start it again on your own computer with `gcloud compute instances start factory-vm --zone=europe-west3-a`; the service is enabled and comes up with it, because `systemctl stop` does not disable it.
+    A stopped VM costs only its disks and NAT (see *The costs*). The service is enabled and comes up with the VM, because `systemctl stop` does not disable it. Start the VM again as *Starting the machine again* describes.
 
 ### On any Ubuntu 24.04 VM
 
@@ -581,7 +592,7 @@ Every GCP VM reaches a metadata server at `169.254.169.254`, and so does every c
 ### Where the logs are
 
 - `sudo journalctl -u factory@vm`: what `factory-run` prints, and the unit's own starts and exits. The `systemctl` commands are in *The service*.
-- `/srv/factory/vm/state/factory.log`: the factory log (see "The factory log and the health status file" in [health.md](health.md)). After every stage it holds a line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`. The time from the start of a stage to the agent's first step (the target is under 20 s with a warm base, the reset under 2 s) is `reset` plus `sync` plus `advance`; `take` is the copy back.
+- `/srv/factory/vm/state/factory.log`: the factory log (see *The factory log* in [health.md](health.md)). After every stage it holds a line `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`. The time from the start of a stage to the agent's first step (the target is under 20 s with a warm base, the reset under 2 s) is `reset` plus `sync` plus `advance`; `take` is the copy back.
 - `health.json` in the state directory, through `factory-health --state-directory /srv/factory/vm/state`.
 - `sudo -iu factory podman ps`: a stage container that is running now. Containers run with `--rm`, so a finished one leaves nothing to look at.
 
@@ -596,7 +607,7 @@ A VM costs money for every hour it runs, also while the factory has nothing to d
 - `idle shutdown: idle for <n> minutes, powering the machine off` is written right after the idle tick that ends a stretch of at least the limit, just before the factory asks the machine to power off.
 - `idle shutdown: power off failed: <detail>; the factory runs on` follows it when the machine refused or could not be asked.
 
-**A refused power-off.** The factory runs `sudo -n /usr/bin/systemctl poweroff`, the one command it needs. Four things refuse it: `factory` has no right to the command, `sudo` is missing, the call reaches its time limit of one minute, or the instance does not run on the VM. The second line then holds the last line `sudo` printed, for example `sudo: a password is required`, or `exit status <n>`. It is not a stop. The instance runs on, starts a new stretch, and asks again only after another full limit. Read the line with `grep 'idle shutdown' /srv/factory/vm/state/factory.log`. No preflight item checks the right.
+**A refused power-off.** The factory runs `sudo -n /usr/bin/systemctl poweroff`, the one command it needs. Four things refuse it: `factory` has no right to the command, `sudo` is missing, the call reaches its time limit of one minute, or the instance does not run on the VM. The second line then holds the last line `sudo` printed, for example `sudo: a password is required`, or `exit status <n>`. It is not a stop. The instance runs on, starts a new stretch, and asks again only after another full limit. Read the line as the next step shows. No preflight item checks the right.
 
 **In a job.** A Cloud Run job has no `systemctl` and no `sudo`, so `poweroff` would only be refused and the job billed until its task timeout. With `FACTORY_IDLE_SHUTDOWN_ACTION=exit` the factory, after the idle tick that ends the stretch, stops its own loop the way a `SIGTERM` does: the tick in progress is the last, and `factory-run` ends with status 0, which ends the job's execution. The job's schedule starts it again, or you do (`gcloud run jobs execute <job>`), as you start a stopped VM. The log line says what happens, `idle shutdown: idle for <n> minutes, ending the factory's process`; with `poweroff` it is `idle shutdown: idle for <n> minutes, powering the machine off`. The idle rule and `FACTORY_IDLE_SHUTDOWN_MINUTES` work as on a VM (`0` is off). A VM keeps `poweroff`.
 
@@ -617,6 +628,12 @@ A VM costs money for every hour it runs, also while the factory has nothing to d
 
    ```sh
    sudo systemctl restart factory@vm
+   ```
+
+3. To see whether the right works, read the log lines of the idle shutdown on the VM from your own account:
+
+   ```sh
+   grep 'idle shutdown' /srv/factory/vm/state/factory.log
    ```
 
 To turn it off, run the script again with the arguments of the first run and without the option, and restart the same way. It removes `/etc/sudoers.d/factory-poweroff` and the line in the environment file. The script never starts or stops the service and never powers the machine off itself.
@@ -645,7 +662,7 @@ An agent run lasts up to its role's `time_limit`, so a running instance may be i
 
    The stop also ends the instance's running agent and check containers. The unit runs `podman stop --filter label=factory.instance=%i` as `factory` after every end of `factory-run`, a stop or a crash. Every container the factory starts carries that label, so containers of another instance, or without the label, are left alone. The next start takes a cut-off stage up again.
 
-   If your machine has a unit that does not stop containers, install the current one by hand: copy [factory.service](../../operator/vm/factory.service) from your checkout to the VM, then run `sudo install -m 0644 factory.service /etc/systemd/system/factory@.service` and `sudo systemctl daemon-reload`. The script prints that the file differs and leaves it (see *The two passes*).
+   If your machine has a unit that does not stop containers, install the current one by hand: copy [factory.service](../../operator/vm/factory.service) from your checkout to the VM, then install it as steps 1 and 2 of *The two passes* describe. The script prints that the file differs and leaves it.
 
 3. Bring the checkout and the image up to date. On the VM as `factory` (`sudo -iu factory`):
 

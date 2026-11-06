@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:41:59.922278Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-06T23:41:59.922278Z'
   stage: docs-only
+- number: 20
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:44:48.565823Z'
+  stage: docs-only
+  run: 4032198f2eda42668b4941f20fb0360f
 ---
 
 # The operator guide's the machine reads for the operator
@@ -337,3 +339,25 @@ Expect: `1`
 
     Criterion 2: unchanged from entries 7, 11 and 14. Nothing was dropped except the two history sentences, and no *Reference* section was added. Criterion 4: the links I followed (`health.md`, `work-items.md`, `stops.md`, `install.md`, the repository files) resolve.
 19. factory: started docs-only as vm.
+20. documenter: Round 3: I fixed the five findings of entry 18 in `docs/operator-guide/machine.md`. The last line of `make documents` is `documents ok (5.6 s)`. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/operator-guide/machine.md`:
+      1. The metadata probe's `curl` command was an indented block. It is now a fenced `sh` block, and the text above it says it runs in a container of the stage image.
+      2. Steps 6, 9, 10 and 11 of *On GCP, step by step* now open with where they run: your own computer, the VM from your own account, or the VM as `factory`.
+      3. Commands that stood inline in prose are now `sh` blocks under their steps. They are `podman pull` and `podman inspect` and `opencode models anthropic` in *Update the pins*, and the `grep 'idle shutdown'` command, which is a new step 3 of *Turning it on and off*. The inline `gcloud compute instances start` now points to *Starting the machine again*. The inline `sudo install` and `daemon-reload` now point to steps 1 and 2 of *The two passes*.
+      4. The reference to the factory log in `health.md` is now one italic heading, *The factory log*.
+      5. I split the sentence of the helper's `git-credential-factory` bullet and the sentence about a failed cache drop. I also rewrote the parentheses of steps 8, 9 and 10 of *The steps* so that each sentence holds at most one.
+
+    I did not check every sentence in the file by hand. A script found no sentence over 36 words outside code blocks and tables after my edits. It splits at `;` and `:`, so a long sentence with those marks would not show.
+
+    Cross-read and found current: `docs/project-guide/style.md` (the new paragraph from the last round), and the links to `machine.md` headings in the other operator-guide files. I kept every heading that another file links to.
+
+    Stale text I saw and did not touch, because it is outside this story:
+    - `docs/operator-guide/agent-runtime.md:181` names `planning/cloud-sandbox/`.
+    - `docs/operator-guide/stops.md:235` is a very long paragraph.
+    - `make documents` reports `docs/project-guide/work.md:13: factory/agents does not exist` in its report-only list.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (5.8 s)
