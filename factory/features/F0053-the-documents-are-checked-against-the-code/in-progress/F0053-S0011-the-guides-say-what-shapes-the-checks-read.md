@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 597
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T13:14:02.851082Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T13:14:02.851082Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T13:16:38.676127Z'
+  stage: docs-only
+  run: 8392ae0e5a574b00b8568eefd3d5546d
 ---
 
 # The guides say what shapes the checks read
@@ -125,3 +127,20 @@ Expect: a number greater than `0`
    5. `docs/project-guide/style.md:80`, "in the settings source": the term is not explained anywhere on the page (rule 3). The code reads `Path(settings.__file__)`, the source of `src/factory/shared/domain/settings.py`. Fix: name that file and link it relatively (rule 8).
    6. `docs/project-guide/style.md:79-80`: breaks style.md rule 2. Three sentences run to about 28–30 words with two ideas each: "The settings check reads only … (`Variable` also counts).", "It compares the defaults only … has no default." and "The check looks up each piece … is a finding." Fix: split each into two sentences.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's six findings.
+
+   Files changed:
+   - `README.md`: I split the long `check_documents` sentence into short ones, which fixes findings 1 to 3. The contract command now has its own sentence. The document checks (missing document, not in its own words, unnamed stop, kill point or fault-injection path) are described apart from the name check. The name check finds a module, path or link that does not exist. The settings check and the example check each have a sentence. The text now says the document checks block in every file. Only a name, settings or example finding blocks just in a file listed in `docs/checked-documents.txt`; other files' findings are printed under `Report (not checked yet):`. The text ends with `documents ok (<seconds> s)`. I dropped the version name.
+   - `docs/project-guide/style.md` (operator guide section): this fixes findings 4 to 6. The settings bullet is now two bullets of shorter sentences. The refusal rule is now two bullets of shorter sentences. It says the `The refusals` table must be a subsection of *Configuration* in `docs/operator-guide/install.md`. "The settings source" is now a relative link to `src/factory/shared/domain/settings.py`.
+
+   Checks: I ran `make documents`; it ends with `documents ok (0.6 s)`. The style page has no finding. I ran no `make check`, since only documents changed. I wrote no new examples.
+
+   Cross-read and found current: `docs/project-guide/shared.md` (*The settings check*), as in round 0. I did not recheck the code facts the reviewer confirmed.
+
+   Stale text I saw and did not touch: report-only lines remain for `README.md:28` (`factory/stage.Containerfile`) and for `docs/project-guide/README.md`. They are outside this story.
+
+   I wrote no "Rejected" line, because no `docs/decisions.md` entry changed.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (0.6 s)

@@ -76,8 +76,10 @@ The guide is in `docs/operator-guide/`. Its reader runs an [instance](glossary.m
 
 - A task is a list of numbered steps. Each step is one action with its command. If the step needs a reason, give it in one sentence after the step.
 - Every [stop](glossary.md) has the same three parts: what you see, what it means, what you do.
-- Settings are tables with four columns, headed `Name`, `What it does`, `Default` and `Example`. The settings check reads only the tables in the section *Configuration* of `docs/operator-guide/install.md`, and counts a table only when its first header cell is `Name` (`Variable` also counts). It compares the defaults only in a table with a header cell spelled exactly `Default`: write `none` or leave the cell empty where the code has no default. A table with another first header cell is skipped without a finding, unless no table in the section counts.
-- Write a refusal so that the check reads it: a table under a heading `The refusals` whose first header cell is `Refusal`. The first cell holds the message in backticks, with a `<placeholder>` for what varies. The check looks up each piece of three characters or more between the placeholders in the settings source, and a text it does not find is a finding.
+- Settings are tables with four columns, headed `Name`, `What it does`, `Default` and `Example`. The settings check reads only the tables in the section *Configuration* of `docs/operator-guide/install.md`. A table counts only when its first header cell is `Name`; `Variable` also counts.
+- The check compares defaults only in a table with a header cell spelled exactly `Default`. Write `none` or leave the cell empty where the code has no default. A table with another first header cell is skipped without a finding, unless no table in the section counts.
+- Write a refusal so that the check reads it. Put it in a table under a heading `The refusals`, which must be a subsection of *Configuration* in `docs/operator-guide/install.md`. The first header cell is `Refusal`.
+- The first cell of a refusal row holds the message in backticks, with a `<placeholder>` for what varies. The check looks up each piece of three characters or more between the placeholders in [settings.py](../../src/factory/shared/domain/settings.py). A text it does not find is a finding.
 - Name no module or class. Name a source path only if the operator edits or runs that file.
 
 Example:
