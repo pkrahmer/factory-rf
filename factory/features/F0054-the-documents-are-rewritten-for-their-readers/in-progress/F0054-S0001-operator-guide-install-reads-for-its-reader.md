@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T21:52:51.055560Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T21:52:45.619599Z'
   stage: docs-review
   run: 0391712758604a539dbb58f2f409895f
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:52:51.055560Z'
+  stage: docs-only
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -159,3 +168,4 @@ Expect: `1`
    10. docs/operator-guide/install.md:43, :31 and :115 break style rule 2. Line 43 has two parentheses in one sentence. The sentence at :115 has about 35 words and the one at :31 about 30. Fix: split them.
 
    Open, outside this story's diff: `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table, which is now false. The documenter named this too, so it is for the story of that file or for the human.
+8. factory: started docs-only as vm.
