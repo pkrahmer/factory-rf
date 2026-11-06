@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T11:51:57.131538Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -76,6 +80,11 @@ journal:
   stage: docs
   run: bd4c0308c1ee4347aa4ac85600b0bf8f
   reason: check_red
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:51:57.131538Z'
+  stage: docs
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -213,3 +222,4 @@ Expect: `1`
     ======================================================================================= short test summary info ========================================================================================
     FAILED tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass - AssertionError: assert None
     make: *** [Makefile:89: test] Error 1
+13. factory: started docs as vm.
