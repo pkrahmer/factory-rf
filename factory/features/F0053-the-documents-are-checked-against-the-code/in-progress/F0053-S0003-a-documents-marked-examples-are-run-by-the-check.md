@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T07:28:36.023479Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T07:28:36.023479Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T07:28:58.724938Z'
+  stage: intake
+  run: c850745622914b23b18a92712af5e125
 ---
 
 # A document's marked examples are run by the check
@@ -51,14 +53,14 @@ An example that shows a command and what it prints is the claim a reader trusts 
 ## Interface
 
 - `factory.shared.domain.documents` (pure):
-  - `examples(text) -> list[Example]`: the runnable blocks of one document in order, each with its line, fixture name, commands and expected output, and the marked blocks it skips, with their kind.
+  - `examples(text) -> Examples`: a frozen DTO with `runnable: list[Example]` (the runnable blocks of one document in order, each with its line, fixture name, commands and expected output) and `skipped: list[Skipped]` (`line` and `kind`).
   - `matches(expected, actual) -> bool`, with the two placeholders.
 - `factory.shared.application.document_examples`:
   - `Fixture`, an interface: `prepare(folder) -> dict[str, str]` builds the starting point in an empty folder and gives the extra environment the commands get.
   - `ExampleRunner`, an interface: `run_document(document, examples, fixtures) -> list[str]` gives the findings of one document.
-  - The fixture `checkout`: a copy of the repository's tracked files at the checked commit, as a git checkout.
-- An adapter runs a document's commands through the project commands' container environment (the container a check runs in), in a temporary folder that the fixture prepared, with `env -i` and `TZ=UTC`, `LANG=C.UTF-8`, `HOME` a temporary folder, `PATH` the container's; each command has a time limit of 60 seconds. The folder is removed afterwards.
-- `make documents` runs the examples; `make check` does not. Its last line gives its time, `documents ok (<seconds> s)`, so that the time shows in every docs stage's output.
+- `factory.shared.adapters.document_examples`: `ProcessExampleRunner(ExampleRunner)` runs each command through `factory.shared.adapters.process` (no container of its own: `make documents` already runs in the check container), in a temporary folder that the fixture prepared, with `env -i` and `TZ=UTC`, `LANG=C.UTF-8`, `HOME` a temporary folder, `PATH` the container's; each command has a time limit of 60 seconds (the test passes a shorter one in). The folder is removed afterwards.
+- `factory.hosting.adapters.checkout_fixture`: `CheckoutFixture(Fixture)`, the fixture `checkout`: a copy of the repository's tracked files at the checked commit, built through `GitCli`. `factory.entry` wires the two classes.
+- `make documents` runs the examples; `make check` does not. `factory.entry.check_documents` builds the report: today's findings, the name and settings findings, the example findings, one `<document>:<line>: not run (<kind>)` line per skipped block, and last `documents ok (<seconds> s)` when nothing blocks, so that the time shows in every docs stage's output.
 - A `console` block with a command that runs the suite (`make check`, `make test`, `pytest` without a file) is skipped as kind `suite`, so that the examples never make the docs stage grow with the suite (the human, 2026-11-05).
 - Tests: `tests/shared/domain/test_document_examples.py` (pure), and an adapter test with the fake containers.
 
@@ -96,3 +98,9 @@ Expect: `1`
       The adapter tests run real short commands (`echo`, `printf`, a file written in one block and read in the next) in `tmp_path`, with no network; the time-limit row uses `sleep` past a limit the test passes in.
    3. The existing `factory.entry.check_documents` (behind `make documents`) builds the report: today's findings, the name and settings findings, the example findings, then one `<document>:<line>: not run (<kind>)` line per skipped block, and last `documents ok (<seconds> s)` when nothing blocks. It measures the seconds with the clock it already uses, or with `time.monotonic` passed in from `main`.
 5. factory: started intake as vm.
+6. intake: accepted
+   - Interface: concrete after the human's answer (journal 4). I wrote it into `## Interface`: `examples(text) -> Examples` (frozen DTO with `runnable` and `skipped`, `Skipped` holds `line` and `kind`), `factory.shared.adapters.document_examples.ProcessExampleRunner`, `factory.hosting.adapters.checkout_fixture.CheckoutFixture` (through `GitCli`), and `factory.entry.check_documents` for the report and time line. The smoke test is unchanged and now matches the return type.
+   - Criteria: each is testable by one test function. Both sides are covered: the match and no-match cases (2, 4), the timeout (4), the unknown fixture (5) and the skipped and run kinds (1, including `pytest` with a file). I found no Interface rule without a criterion.
+   - Smoke test: the python one-liner is runnable and `Expect: 1` is checkable. It runs no pytest, so the `-q` rule does not apply.
+   - Architecture: this fits. Pure code is in shared domain, interfaces in shared application, the process adapter in shared adapters, git in hosting adapters, wiring in entry. Processes start only through `factory.shared.adapters.process`.
+   - Scope: this is within the feature's S0003. It leaves out the `instance` fixture (S0006) and blocking (S0004). The route is `tests` because the Interface changes `src` code.
