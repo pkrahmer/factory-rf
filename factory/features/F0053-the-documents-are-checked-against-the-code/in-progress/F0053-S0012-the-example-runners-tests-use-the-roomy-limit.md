@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 596
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T12:54:40.010596Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-06T12:54:40.010596Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T12:55:06.232263Z'
+  stage: intake
+  run: b20fd69000c547eaa43c284c74840480
+  blocked: question
 ---
 
 # The example runner's tests use the roomy limit
@@ -62,3 +65,9 @@ Expect: `1`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so there are no form findings):
+   1. The Interface says `CHECKED_LIST` imports `CHECKED_DOCUMENTS` and `SETTINGS_FILE` is imported from `factory.hosting.adapters.instance_fixture`. No criterion tests either. Criteria 1 to 4 cover only the roomy limit, the elapsed bound and `REPORT_HEADING`. Please add one criterion for each, for example "`tests/entry/test_check_documents_checked_files.py` holds no literal `CHECKED_LIST` and imports `CHECKED_DOCUMENTS`" and the same for `SETTINGS_FILE` in `tests/hosting/adapters/test_instance_fixture.py`. I would add them.
+   2. The same line says "unless the human prefers that a test keep the criterion's own literal". That leaves two readings for the coder and the tester. Please decide now. I would choose to import both.
+   3. The Interface lists three modules for `REPORT_HEADING`: checked_files, operator_guide and references. Criterion 2 says the text appears once under `tests/`. Today `tests/entry/test_check_documents_copies.py:14` also defines `REPORT_HEADING`. In `test_check_documents_operator_guide.py:93` and `test_check_documents_references.py:211` the text is an inline literal, not a constant. Criterion 2 and the smoke test need `copies` changed too. Please add `test_check_documents_copies.py` to the Interface, or confirm that the count should exclude it. I would add it.
+   4. "A command that must be killed may keep a short limit" has no criterion, and neither does "every runner whose commands must print or write ... is built with `ROOMY_LIMIT`". The criterion cannot be checked by one test as written. Please name the tests or runners that take `ROOMY_LIMIT` (for example the folder-removal test with `pwd > record`) and the ones that keep a short limit.
+   5. Criterion 3 says "the three changed modules", but the Interface changes more than three: the example-runner test, three or four entry tests, the instance-fixture test and the support module. Please list the modules.
