@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T20:57:28.136936Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T20:57:28.136936Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T20:57:50.290016Z'
+  stage: intake
+  run: 73753c31dd2447658e9b68c610703d3f
 ---
 
 # The document check's tests run on documents they write
@@ -74,11 +76,12 @@ The tests of the document check run `factory.entry.check_documents` on copies of
 
 1. `minimal_documents(tmp_path / "root")` gives a repository on which `main(["--root", ...])` prints only `documents ok (<seconds> s)` and returns 0, and whose `git status --porcelain` is empty.
 2. The minimal documents follow the code: with one more stop, kill point or setting added to the code's table in a test (through `monkeypatch`), `minimal_documents` still gives a repository that passes (one row each).
-3. Each behaviour listed in the Interface has a test on minimal documents that checks its passing and its failing side (rows of one parametrized test where they share a rule).
-4. The guard of the Interface passes, and fails on a test module written under `tmp_path` that names `support.operator_support.ROOT` (rows of one test).
-5. No runnable example of the real documents runs in `make test`: with a `console` block `$ sleep 30` / no output added to `docs/project-guide/style.md` in the working tree, the document check's tests still pass in under their usual time. The entry gives the `make test` time before and after the story.
-6. `make check` stays green.
-7. docs: `docs/project-guide/shared.md`, the document check: the reader learns that its tests run on minimal documents written from the code's tables, how a test adds what its rule needs, and that the real documents are checked only by `make documents` in the docs stages. `docs/project-guide/style.md`, *Runnable examples*: the reader learns that a wrong example blocks `make documents` in a listed file and is reported in any other, and that the test suite does not run the documents' examples. `docs/decisions.md`: one entry. It says that the check's tests run on documents they write. The reason: `make check` must not grow with the documents, and a rewrite of a document must not break a test. Rejected: copies of the real documents with one repair per page, since four acceptances each found one more coupling.
+3. Each behaviour listed in the Interface has a test on minimal documents that checks its passing and its failing side (rows of one parametrized test where they share a rule). Two behaviours have the passing side only: a page listed once more gives no second finding (rows: a page listed once and a page listed twice, both with one finding) and a skipped block adds only its `not run` line (one row each for `vm`, `github`, `model` and `suite`).
+4. The guard of the Interface passes, and fails on a test module written under `tmp_path` that names each of `support.operator_support.ROOT`, `tracked_files`, `documents_copy_support` and the repository's `docs/checked-documents.txt` (one row for each of the four).
+5. No test module under `tests/entry/` that tests `check_documents` runs it on a path outside `tmp_path`, checked by the guard of criterion 4. The entry reports the `make test` time before and after the story; that is no criterion.
+6. After `add_and_commit(root, {...})` the `git status --porcelain` is empty and every written file is tracked (rows: a file in an existing folder, a file in a new subfolder).
+7. `make check` stays green.
+8. docs: `docs/project-guide/shared.md`, the document check: the reader learns that its tests run on minimal documents written from the code's tables, how a test adds what its rule needs, and that the real documents are checked only by `make documents` in the docs stages. `docs/project-guide/style.md`, *Runnable examples*: the reader learns that a wrong example blocks `make documents` in a listed file and is reported in any other, and that the test suite does not run the documents' examples. `docs/decisions.md`: one entry. It says that the check's tests run on documents they write. The reason: `make check` must not grow with the documents, and a rewrite of a document must not break a test. Rejected: copies of the real documents with one repair per page, since four acceptances each found one more coupling.
 
 ## Smoke test
 
@@ -110,3 +113,10 @@ Expect: `documents ok (<seconds> s)`
    3. Yes: the guard's failing side has one row for each of the four names (`support.operator_support.ROOT`, `tracked_files`, `documents_copy_support`, the repository's `docs/checked-documents.txt`).
    4. For those two, criterion 3 covers the passing side only. The skipped block gets one row each for `vm`, `github`, `model` and `suite`; the page listed once more gets a row for a page listed once and a page listed twice, both with one finding.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) carried into the story. In the criteria I changed: criterion 3 now says which two behaviours have the passing side only, with their rows. Criterion 4 has one row for each of the four names. Criterion 5 is replaced by "no `check_documents` test module under `tests/entry/` runs it outside `tmp_path`, checked by the guard", and the `make test` time is reported in the entry, not as a criterion; the `sleep 30` check is dropped. A new criterion 6 tests `add_and_commit`. The closing two criteria are now 7 (`make check`) and 8 (`docs:`). The Description needed no change.
+   - Interface: concrete. It names `tests/support/minimal_documents_support.py` with the signatures of `minimal_documents` and `add_and_commit`, the seven test modules, the fixtures and support module to remove, and the guard module. No `src/factory` module changes.
+   - Criteria: each is testable by one test function, with rows where the sides differ. Each Interface behaviour has a criterion, and each rule has both sides except the two the human marked as passing-side only. "Follows the code" is criterion 2.
+   - Smoke test: both commands are runnable (`grep ... | wc -l` expects `0`; `check_documents | tail -1` expects `documents ok (<seconds> s)`). Neither runs pytest, so the `-q` rule does not apply.
+   - Docs criterion: it names what the reader must know in `shared.md`, `style.md` and `decisions.md`, including the decision's reason and the rejected option. It does not dictate sentences.
+   - Architecture: tests and support modules sit under `tests/`, as `CLAUDE.md` says. The guard goes in `tests/guards/`. The `tests/conftest.py` fixtures go as `CLAUDE.md` allows.
+   - Scope: it is inside feature decision 10, which gives the human's leave to change, merge or remove the named earlier tests and fixtures. It is not in "Out of scope". The route is `tests`, because the Interface changes test paths.
