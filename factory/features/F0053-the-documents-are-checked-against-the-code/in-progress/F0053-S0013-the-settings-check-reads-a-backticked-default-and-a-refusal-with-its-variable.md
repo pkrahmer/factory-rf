@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T13:46:04.288459Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -113,6 +117,11 @@ journal:
   at: '2026-11-06T13:45:58.631262Z'
   stage: docs
   run: ba5b63f52cd2471286a55fcf71d4c667
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:46:04.288459Z'
+  stage: smoke-test
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -289,3 +298,4 @@ Expect: `0 []`
     `check`: check: green
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (0.6 s)
+20. factory: started smoke-test as vm.
