@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -343,6 +343,11 @@ journal:
   at: '2026-11-06T08:43:57.084340Z'
   stage: smoke-test
   run: c3188f4405f34bddbd388362d21f6cec
+- number: 61
+  speaker: factory
+  kind: done
+  at: '2026-11-06T08:47:52.713289Z'
+  stage: approval
 ---
 
 # A document's marked examples are run by the check
@@ -1088,3 +1093,4 @@ Expect: `1`
     Judged against the acceptance criteria: `examples` read a bare `console` block as one runnable example, which agrees with criterion 1 (a `console` block with no mark is run, with the default fixture `checkout`). The output contradicts no other criterion. It does not test criteria 2–15 (matching, running in order in one folder, time limits, fixtures, the environment, the `make documents` report, the docs), so this stage confirms nothing about them. The factory's checks cover `make check`.
 
     Findings: none.
+61. factory: done (pull request merged); cost: 26 runs, 45.2 min, 253 turns, 816160 tokens in (7589688 more from cache), 139692 out, $10.23
