@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T13:43:00.655268Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-06T13:43:00.655268Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T13:43:32.794501Z'
+  stage: review
+  run: eebbd792a725438b905b1767f54189c5
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -233,3 +235,30 @@ Expect: `0 []`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 16. factory: started review as vm.
+17. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item. The diff changes `src/factory/shared/domain/documents.py` and `tests/shared/domain/test_document_settings.py`.
+
+    no findings
+
+    What I checked:
+    - **Group 1, acceptance criteria:**
+      - Criterion 1: `test_backticked_default_is_read_through_its_backticks` covers it with the rows `backticked-equal`, `plain-equal` and `backticked-differs`. The last row checks the full finding text, which quotes the cell as written (`{cell!r}` at `documents.py:251`).
+      - Criteria 2 and 4: `test_refusal_pieces_are_checked_without_their_colons_and_spaces` covers both. The rows `message-held`, `message-not-held` (full text) and `stripped-piece-of-two-unchecked` are criterion 2. The row `frame-at-both-ends` is criterion 4 and would fail under a left-only strip.
+      - Criterion 3: `test_real_settings_written_with_backticks_and_variable_give_no_finding` uses the real `SETTINGS` and the source file of `factory.shared.domain.settings`.
+      - The three-character limit is tested on both sides: `qz` is shorter and not checked, and the earlier row `piece-of-three-checked` is checked.
+      - The empty cell and `none` keep their earlier rows, and every earlier row is unchanged.
+      - The coder's `make check` was green (entry 15), and the tester ran 37 tests on that file, all passing (entry 13).
+    - **Group 2, architecture:** the change is pure rules in the shared domain layer, with no I/O and no new import.
+    - **Group 3, security:** nothing relevant, and no markers that silence a check.
+    - **Group 4, quality:**
+      - The `Default` cell reuses `_backticked_or_plain` (`documents.py:247`) instead of copying it.
+      - `_PIECE_EDGES` has a comment that says why.
+      - The docstrings of `settings_findings` and `refusal_findings` state the new rules.
+      - A two-line code change cannot account for the 6 new findings of `make duplicates`.
+    - **Group 5, work item hygiene:**
+      - The journal names the main choice (reusing the helper) and what was rejected (stripping only the `": "` after a placeholder).
+      - The Description matches what was built.
+      - The docs criterion (now 6) still says what the reader of `style.md` and `shared.md` must learn.
+      - A backticked `` `none` `` also counts as no default, as the coder noted. That follows from the Interface, which reads the cell's backticked text and treats `none` as no default, so I did not add a criterion for it.
+
+    Earlier tests:
+    - `tests/shared/domain/test_document_settings.py`: no leave was needed. The change adds three tests and two imports (`Path`, `settings_module`), and every earlier test is as it was.
