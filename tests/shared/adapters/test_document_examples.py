@@ -11,6 +11,7 @@ import pytest
 from factory.shared.adapters.document_examples import ProcessExampleRunner
 from factory.shared.application.document_examples import Fixture
 from factory.shared.domain.documents import examples
+from factory.shared.domain.errors import FixtureError
 from support.document_texts import FENCE
 
 DOCUMENT = "docs/project-guide/shared.md"
@@ -28,6 +29,14 @@ class EmptyFixture(Fixture):
         """Check the folder is there and give the one variable."""
         assert folder.is_dir()
         return {FIXTURE_VARIABLE: "set"}
+
+
+class FailingFixture(Fixture):
+    """A fixture that cannot build its starting point."""
+
+    def prepare(self, folder: Path) -> dict[str, str]:
+        """Refuse, as a fixture whose source is missing does."""
+        raise FixtureError(f"nothing to copy into {folder}")
 
 
 def _block(*lines: str, info: str = "console") -> list[str]:
@@ -172,3 +181,20 @@ def test_env_in_a_block_shows_the_fixed_variables_and_the_fixtures_and_not_the_c
     )
 
     assert runner.run_document(DOCUMENT, examples(text).runnable, fixtures) == []
+
+
+def test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command(
+    tmp_path: Path, runner: ProcessExampleRunner
+) -> None:
+    marker = tmp_path / "ran"
+    text = _document(
+        _block(f"$ touch {marker}"),
+        _block(f"$ touch {marker}", "not what it prints"),
+    )
+
+    findings = runner.run_document(
+        DOCUMENT, examples(text).runnable, {"checkout": FailingFixture()}
+    )
+
+    assert findings == [f"{DOCUMENT}:3: fixture checkout could not be prepared"]
+    assert not marker.exists()

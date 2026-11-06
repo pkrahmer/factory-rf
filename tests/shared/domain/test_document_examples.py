@@ -71,6 +71,8 @@ def test_a_console_block_gives_its_fixture_commands_and_expected_output_in_order
         pytest.param("console", "pytest -q", "suite", id="pytest-with-options-only"),
         pytest.param("console", "pytest -q 2>&1 | tail -5", "suite", id="pytest-piped"),
         pytest.param("console", "pytest -k name", "suite", id="pytest-with-an-option-value"),
+        pytest.param("console", "cd docs && make check", "suite", id="after-and-and"),
+        pytest.param("console", "pytest tests/", "suite", id="pytest-with-a-folder"),
     ],
 )
 def test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind(

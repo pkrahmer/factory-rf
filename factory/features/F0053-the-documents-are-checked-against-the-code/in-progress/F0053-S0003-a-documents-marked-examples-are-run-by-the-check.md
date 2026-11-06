@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T08:08:50.919800Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-11-06T08:08:50.919800Z'
   stage: tests
+- number: 37
+  speaker: tester
+  kind: result
+  at: '2026-11-06T08:09:45.786752Z'
+  stage: tests
+  run: 0355ca0fef8f499e989d7d4428bbc828
 ---
 
 # A document's marked examples are run by the check
@@ -657,3 +659,25 @@ Expect: `1`
 
     `check`: check: green
 36. factory: started tests as vm.
+37. tester: I wrote the tests the coder named in journal 35. They cover review journal 33: finding 1, the fixture that cannot be prepared, and finding 2, the suite rows. The code was already in place, so the one run was green: 42 passed (`uv run pytest -q` over the three files below). `make lint`: lint: green.
+
+    What I added, per finding:
+    - Finding 1, the runner: `tests/shared/adapters/test_document_examples.py::test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command`.
+      - A `FailingFixture(Fixture)` whose `prepare` raises `FixtureError`.
+      - Two blocks on that fixture, each touching a marker file under `tmp_path`.
+      - The test expects exactly one finding, `<document>:3: fixture checkout could not be prepared` at the first block's fence line, and no marker file, so no command ran.
+    - Finding 1, `CheckoutFixture` translating `GitError` (the coder's optional item 2, which covers `checkout_fixture.py:23-24`): `tests/hosting/adapters/test_checkout_fixture.py::test_the_checkout_fixture_outside_a_git_repository_raises_a_fixture_error`. `CheckoutFixture(GitCli(<folder that is not a repository>))` raises `FixtureError`.
+    - Finding 2: two new `suite` rows, `cd docs && make check` (`after-and-and`) and `pytest tests/` (`pytest-with-a-folder`). They go in `tests/shared/domain/test_document_examples.py::test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind`, the criterion 1 and 9 tests.
+
+    Files changed, all written by this story's tester; no other story's tests were touched:
+    - `tests/shared/adapters/test_document_examples.py`
+    - `tests/hosting/adapters/test_checkout_fixture.py`
+    - `tests/shared/domain/test_document_examples.py`
+
+    Every module imported.
+
+    Left out:
+    - The 60-second default-limit row, the reviewer's note: no criterion asks for it beyond criterion 4, which is already tested.
+    - `make documents` as a suite command: neither the Interface nor the review's fix asks for it.
+
+    `lint`: lint: green (0.1 s)
