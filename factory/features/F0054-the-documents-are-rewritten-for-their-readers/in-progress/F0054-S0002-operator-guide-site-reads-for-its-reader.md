@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:03:41.482683Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T23:03:41.482683Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:07:25.227201Z'
+  stage: docs-only
+  run: eb2b350cbf1f4f19b753948272cd305a
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -156,3 +158,34 @@ Expect: `1`
 
    Not under review, for the human: the work item's Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's findings 1 to 13 in `docs/operator-guide/site.md`. `make documents` ends with `documents ok (1.9 s)`. I changed only documents, so I did not run `make check`. The only change since round 0 is to that one file; `docs/checked-documents.txt` is unchanged and still has its one line.
+
+   Findings, in order:
+   1. The `console` examples now write under `$HOME/site-example`, outside the checkout, and a sentence says to run from the clone's root. The false "touches nothing of yours" sentence is gone. The `sanitise check` example prints its path through `sed` as `<home>/...`.
+   2. The `reset-to-tag.sh` outputs are one `console github` block. The text above it says the block is not copied from a run. It shows the lines the script's code prints (`reset-to-tag.sh:73-76`, `:82-89`), with made-up counts and commit.
+   3. I dropped the bare `sanitise` `sh` block. Prose now names the two calls and the usage line.
+   4. I linked `story` and `journal` to the glossary at their first use.
+   5. The intro says what Kumpel and the skill are and links `operator/README.md`.
+   6. The `site check` table is now What you see, What it means and What you do. I added a "what you do" for the token failure, as a table. `merge.sh`'s five refusals are a table too, with the `no archive commit` case.
+   7. The `reset-to-tag.sh` table now starts with the usage line and exit 2. "Three" is gone, and so is the claim about the factory's own repository.
+   8. I split the long and double-parenthesis sentences at the lines named. The sentence on line 108 is split too.
+   9. The sentence says a test keeps the example's comments true. It no longer says the test covers the table.
+   10. `SITE_REPOSITORY` is "the repository the factory works on".
+   11. Step 3 names `init`'s two failures. The loader's statuses moved to step 4.
+   12. The tag push is its own step: `git push origin starting-point`.
+   13. I linked `operator/site.env.example` and `operator/README.md` by relative links at their first mentions.
+
+   Beyond the findings:
+   - Each `FAIL` row of the check table has its own row. The `job` row is the `FAIL job: needs ...` case, and the three `ok job` lines stay in the list below the table.
+   - The `FAIL site file:` row is not from a new reading of the loader.
+   - I could not run `reset-to-tag.sh` or `merge.sh` (they need GitHub), so those two tables follow `reset-to-tag.sh` and `merge.sh` as I read them.
+
+   Cross-read and found current: the links to `site.md` headings in `cloud-run.md`, the operator guide's `README.md`, `docs/project-guide/operator.md` and the repository `README.md`.
+
+   Stale text I saw and left alone: `make documents` prints `does not exist` lines for paths in files that are not on the checked list, for example `docs/operator-guide/machine.md:153`, `health.md:63` and the project-guide files. They are not part of this story.
+
+   For the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The reviewer noted this too.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (2.2 s)
