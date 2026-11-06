@@ -13,6 +13,7 @@ from factory.shared.adapters.document_examples import ProcessExampleRunner
 from factory.shared.application.document_examples import ExampleRunner, Fixture
 from factory.shared.domain import settings
 from factory.shared.domain.documents import (
+    CHECKED_DOCUMENTS,
     DEFAULT_FIXTURE,
     DOCUMENT_PATHS,
     INSTANCE_FIXTURE,
@@ -21,20 +22,25 @@ from factory.shared.domain.documents import (
     PROJECT_GUIDE_FOLDER,
     README,
     SETTINGS_SECTION,
+    NewFinding,
     Reference,
     check_documents,
+    checked_list_findings,
     examples,
     guide_tables,
     is_guide_file,
     named_references,
+    read_checked_documents,
     refusal_findings,
     settings_findings,
+    split_findings,
     unresolved,
 )
 
 _PROGRAM = "check-documents"
 _CLEAN = 0
 _FINDINGS = 1
+_REPORT_HEADING = "Report (not checked yet):"
 
 
 def _read(path: Path) -> str | None:
@@ -94,49 +100,66 @@ def _existence(root: Path) -> Callable[[Reference], bool]:
     return exists
 
 
-def _name_findings(root: Path) -> list[str]:
+def _name_findings(root: Path, documents: Sequence[str]) -> list[NewFinding]:
     top_level = frozenset(entry.name for entry in root.iterdir())
-    references = [
-        reference
-        for document in _named_documents(root)
-        for reference in named_references(
-            document, (root / document).read_text(encoding="utf-8"), top_level
+    exists = _existence(root)
+    return [
+        NewFinding(document=document, line=line)
+        for document in documents
+        for line in unresolved(
+            named_references(document, (root / document).read_text(encoding="utf-8"), top_level),
+            exists,
         )
     ]
-    return unresolved(references, _existence(root))
 
 
-def _settings_guide_findings(root: Path) -> list[str]:
+def _settings_guide_findings(root: Path) -> list[NewFinding]:
     text = _read(root / OPERATOR_INSTALL)
     if text is None:
         return []
     tables = guide_tables(text, SETTINGS_SECTION)
     source = Path(settings.__file__).read_text(encoding="utf-8")
-    return [
+    messages = [
         *settings_findings(tables, settings.SETTINGS),
         *refusal_findings(tables, source),
     ]
+    return [
+        NewFinding(document=OPERATOR_INSTALL, line=f"{OPERATOR_INSTALL}: {message}")
+        for message in messages
+    ]
 
 
-def _example_lines(root: Path, runner: ExampleRunner, fixtures: Mapping[str, Fixture]) -> list[str]:
-    findings: list[str] = []
+def _example_lines(
+    root: Path,
+    documents: Sequence[str],
+    runner: ExampleRunner,
+    fixtures: Mapping[str, Fixture],
+) -> tuple[list[NewFinding], list[str]]:
+    findings: list[NewFinding] = []
     not_run: list[str] = []
-    for document in _named_documents(root):
+    for document in documents:
         found = examples((root / document).read_text(encoding="utf-8"))
         if found.runnable:
-            findings += runner.run_document(document, found.runnable, fixtures)
+            lines = runner.run_document(document, found.runnable, fixtures)
+            findings += [NewFinding(document=document, line=line) for line in lines]
         not_run += [f"{document}:{block.line}: not run ({block.kind})" for block in found.skipped]
-    return [*findings, *not_run]
+    return findings, not_run
+
+
+def _checked_documents(root: Path) -> list[str]:
+    text = _read(root / CHECKED_DOCUMENTS)
+    return [] if text is None else read_checked_documents(text)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """Print one line per finding, the examples' findings and skipped blocks, then the time.
+    """Print the blocking findings, then the report, then the time when nothing blocks.
 
-    The document findings come first and alone decide the exit status: 1 when there is one,
-    else 0 and a last line `documents ok (<seconds> s)`. The names, paths and links the
-    documents name that do not exist follow, then where the operator guide's settings
-    disagree with the settings code, then what the runnable examples printed otherwise and
-    one line per example not run.
+    Blocking are the document findings of every file, the listed paths of
+    `docs/checked-documents.txt` that are no document of the check, and the findings of the
+    name, settings and example checks in a listed document; each fails the command with
+    exit status 1. The other findings of those three checks and one line per example not
+    run follow under `Report (not checked yet):`, a heading left out when there is nothing
+    to report. When nothing blocks, the last line is `documents ok (<seconds> s)`.
     """
     started = time.monotonic()
     parser = argparse.ArgumentParser(prog=_PROGRAM)
@@ -145,20 +168,36 @@ def main(argv: Sequence[str] | None = None) -> int:
     root: Path = arguments.root
     paths = [*DOCUMENT_PATHS, *_guide_files(root)]
     findings = check_documents({path: _read(root / path) for path in paths})
-    for finding in findings:
-        print(f"{finding.document}: {finding.message}")
-    for name_finding in _name_findings(root):
-        print(name_finding)
-    for settings_finding in _settings_guide_findings(root):
-        print(f"{OPERATOR_INSTALL}: {settings_finding}")
+    documents = _named_documents(root)
+    listed = _checked_documents(root)
     git = GitCli(root)
     fixtures = {DEFAULT_FIXTURE: CheckoutFixture(git), INSTANCE_FIXTURE: InstanceFixture(git)}
-    for example_line in _example_lines(root, ProcessExampleRunner(), fixtures):
-        print(example_line)
-    if findings:
+    example_findings, not_run = _example_lines(root, documents, ProcessExampleRunner(), fixtures)
+    new_findings = [
+        *_name_findings(root, documents),
+        *_settings_guide_findings(root),
+        *example_findings,
+    ]
+    split = split_findings(new_findings, frozenset(listed))
+    blocking = [
+        *(f"{finding.document}: {finding.message}" for finding in findings),
+        *checked_list_findings(listed, documents),
+        *split.blocking,
+    ]
+    _print_lines(blocking)
+    reported = [*split.reported, *not_run]
+    if reported:
+        print(_REPORT_HEADING)
+        _print_lines(reported)
+    if blocking:
         return _FINDINGS
     print(f"documents ok ({time.monotonic() - started:.1f} s)")
     return _CLEAN
+
+
+def _print_lines(lines: Sequence[str]) -> None:
+    for line in lines:
+        print(line)
 
 
 if __name__ == "__main__":

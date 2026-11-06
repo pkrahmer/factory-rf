@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 589
 comments_read: [6681611113]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:29:25.114973Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-06T09:29:25.114973Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-06T09:35:04.710279Z'
+  stage: doing
+  run: 625cd5fbb848407a8376555c7bf1bda7
+  blocked: question
 ---
 
 # The checks block the listed files and report on the others
@@ -160,3 +163,35 @@ Expect: `documents ok (<seconds> s)`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Stopped before handing forward. The code is in the working tree and the tester's two files pass (61 cases), but `make check` is red: six tests from earlier stories rule out the report heading this story's Interface requires.
+
+    Built (not committed):
+    - `src/factory/shared/domain/documents.py`:
+      - The name check reads three kinds of text more exactly. A backticked text with `$` is skipped as a whole. A pytest node id is read up to its `::`. A dotted `factory.` name ending in `.env`, `.service`, `.yml`, `.yaml`, `.json`, `.toml`, `.md` or `.txt` is a file name, not a module.
+      - New: `CHECKED_DOCUMENTS`, `read_checked_documents(text)`, `checked_list_findings(listed, documents)` (one blocking finding for each listed path that is not a document the check reads), the models `NewFinding` and `SplitFindings`, and `split_findings(findings, checked)`.
+    - `src/factory/entry/check_documents.py`:
+      - Each finding of the name, settings and example checks carries its document.
+      - Blocking: today's findings, the list's findings and the new findings in listed files. They print first.
+      - Then `Report (not checked yet):` and the other new findings plus the lines for examples not run. The heading is left out when the report is empty.
+      - `documents ok (<s> s)` is printed only when nothing blocks; otherwise the exit status is 1.
+      - A missing list file is an empty list.
+    - `docs/checked-documents.txt`: the style page and the glossary. Neither has a blocking finding. On today's documents the command prints a report and ends with `documents ok (0.3 s)`.
+
+    The contradiction (R9):
+    - `tests/entry/test_check_documents_references.py::test_name_findings_follow_todays_findings_and_leave_the_exit_status[one-today]` asserts `lines[: len(lines) - len(findings)] == [today]`. The output is now `[today, "Report (not checked yet):", findings...]`.
+    - `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`, rows `no-stops-section`, `no-install-section`, `no-configuration-section`, `no-install-file` and `no-index`. Each filters out only the lines ending in ` does not exist` and compares the rest exactly. The heading line is left over, for example `E   docs/operator-guide/README.md: missing` / `E + Report (not checked yet):`.
+    - Criterion 1 requires the heading whenever a finding is in a file not on the list, so no code passes both.
+
+    Options:
+    - A (my choice): the human allows the tester two changes. In the operator-guide test, also filter the line `Report (not checked yet):` before comparing. In the `one-today` row, expect `[today, "Report (not checked yet):"]` before the findings. Both tests keep their names and what they check.
+    - B: change the Interface so the report has no heading (criteria 1, 7, 8 and 9 and the new tests change with it).
+
+    Main decision: each new finding carries its document, and the list decides what blocks by document. Rejected: parsing the `doc:line:` prefix of the printed lines, which is fragile.
+
+    Open:
+    - Lines for examples not run are not findings. I put them at the end of the report, never blocking; the criteria are silent on them.
+    - The refactor step is still to do.
+    - I could not confirm that `docs/checked-documents.txt` lies within the coder's write paths. If it does not, the take drops it.
+    - The docs criterion (12) is the documenter's.
+
+    The factory left out changes outside the write paths: docs/checked-documents.txt.
