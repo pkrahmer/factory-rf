@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T12:48:31.778320Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-06T12:48:26.491928Z'
   stage: review
   run: f1b5f8c28670419abda777cdffb94cf0
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:48:31.778320Z'
+  stage: docs
 ---
 
 # A configuration section without its settings table is a finding
@@ -287,3 +296,4 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
 
     Notes:
     - `tests/shared/domain/test_document_settings.py:19`: `_NO_SETTINGS_TABLE` repeats the text of `NO_SETTINGS_TABLE` as a literal. This is acceptable, because it pins the exact text that criterion 1 states.
+18. factory: started docs as vm.
