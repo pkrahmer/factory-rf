@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T12:42:30.618459Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T12:42:30.618459Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-06T12:43:23.237473Z'
+  stage: tests
+  run: 09a033458e8349108151671ed89d42b9
 ---
 
 # A configuration section without its settings table is a finding
@@ -195,3 +197,19 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
 
     Neither change affects `src/factory/shared/domain/documents.py` or `src/factory/entry/check_documents.py`; the code from round 0 stays as it is. The journal did not change the meaning of the task, so the Description is unchanged. I did not run `make check` in this round because I changed nothing; entry 7 records it green on the current code.
 12. factory: started tests as vm.
+13. tester: I made the two test changes that the coder's entry 11 names, which carry out the reviewer's findings in entry 9. Both are in `tests/shared/domain/test_document_settings.py`, the only file I changed. No code changed.
+
+    1. `_SETTING_TABLE` no longer builds a `GuideTable(...)` by hand. It is now `_SETTING_TABLE = _table(("Setting", "Meaning"), ("`FACTORY_A`", "A."))`, placed after the helper `_table`. The `no-settings-table` row of `test_guide_without_a_settings_table_gives_no_settings_finding` now uses `_SETTING_TABLE` instead of its own copy of that table. The row checks the same thing as before.
+    2. The counting-table case is now a row of `test_guide_without_a_counting_table_is_one_finding_when_there_are_settings`: `id="counting-table-beside-another"`, with a `Setting` table next to a `Variable` table naming `FACTORY_A`, the setting `FACTORY_A`, and the expected result `[]`. I removed the separate function `test_guide_with_a_counting_table_gives_no_missing_table_finding`.
+
+    The criteria now map to these tests:
+    - criterion 1: tests/shared/domain/test_document_settings.py::test_guide_without_a_counting_table_is_one_finding_when_there_are_settings (rows `no-table-one-setting`, `no-table-two-settings`, `setting-column`, `no-table-no-settings`, `setting-column-no-settings`)
+    - criterion 2: tests/shared/domain/test_document_settings.py::test_guide_without_a_counting_table_is_one_finding_when_there_are_settings (row `counting-table-beside-another`)
+    - criterion 3: tests/shared/domain/test_document_settings.py::test_todays_install_guide_gives_no_settings_finding
+    - criteria 4 and 5 (`make check`, docs): no test.
+
+    Files created: none. Every module imported.
+
+    Test run: `uv run pytest -q tests/shared/domain/test_document_settings.py`. All 29 tests passed; the code from round 0 already does what they check. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)

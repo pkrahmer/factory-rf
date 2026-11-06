@@ -17,9 +17,6 @@ _VARIABLE_HEADER = ("Variable", "Required", "Meaning")
 _DEFAULT_HEADER = ("Name", "Required", "Default")
 _REFUSALS = "The refusals"
 _NO_SETTINGS_TABLE = "no settings table (first column Name or Variable) in Configuration"
-_SETTING_TABLE = GuideTable(
-    heading="Configuration", header=("Setting", "Meaning"), rows=(("`FACTORY_A`", "A."),)
-)
 _SOURCE = (
     'raise SettingsInvalid(variable, "is neither zfs nor copy")\n'
     'return f"holds {name}, which the factory sets itself"\n'
@@ -32,6 +29,9 @@ def _setting(name: str, default: str | None = None) -> SettingDoc:
 
 def _table(header: tuple[str, ...], *rows: tuple[str, ...]) -> GuideTable:
     return GuideTable(heading="Configuration", header=header, rows=rows)
+
+
+_SETTING_TABLE = _table(("Setting", "Meaning"), ("`FACTORY_A`", "A."))
 
 
 @pytest.mark.parametrize(
@@ -119,7 +119,7 @@ def test_table_with_another_first_column_is_ignored(first_column: str, counted: 
     ("table", "named"),
     [
         pytest.param(
-            _table(("Setting", "Meaning"), ("`FACTORY_A`", "A.")),
+            _SETTING_TABLE,
             (_NO_SETTINGS_TABLE,),
             id="no-settings-table",
         ),
@@ -157,20 +157,18 @@ def test_guide_without_a_settings_table_gives_no_settings_finding(
         ),
         pytest.param([], (), [], id="no-table-no-settings"),
         pytest.param([_SETTING_TABLE], (), [], id="setting-column-no-settings"),
+        pytest.param(
+            [_SETTING_TABLE, _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A."))],
+            (_setting("FACTORY_A"),),
+            [],
+            id="counting-table-beside-another",
+        ),
     ],
 )
 def test_guide_without_a_counting_table_is_one_finding_when_there_are_settings(
     tables: list[GuideTable], settings: tuple[SettingDoc, ...], expected: list[str]
 ) -> None:
     assert settings_findings(tables, settings) == expected
-
-
-def test_guide_with_a_counting_table_gives_no_missing_table_finding() -> None:
-    tables = [_SETTING_TABLE, _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A."))]
-
-    findings = settings_findings(tables, (_setting("FACTORY_A"),))
-
-    assert findings == []
 
 
 def test_todays_install_guide_gives_no_settings_finding() -> None:
