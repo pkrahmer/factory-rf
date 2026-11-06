@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T21:15:48.207991Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-06T21:15:48.207991Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T21:17:44.863387Z'
+  stage: review
+  run: 14462b901df54777bf65a2c0f5a4647c
 ---
 
 # The document check's tests run on documents they write
@@ -306,3 +308,32 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 18. factory: started review as vm.
+19. reviewer: Review, round 0. I read the work item, the diff's stat and name-status, and the whole diff of `tests/`. Nothing under `src/` or the documents changed. I checked the diff against `src/factory/shared/domain/documents.py`, `src/factory/entry/check_documents.py` and `tests/support/document_texts.py`. The tests read the tables when they run: `documents.py` looks up `STOP_TABLE`, `KILL_POINT_CASES` and `FAULT_PATHS` as module globals inside its functions, and `check_documents.py:126` reads `settings.SETTINGS`. So criterion 2's `monkeypatch` rows really test what they say. Every criterion from 1 to 6 has its test, and the coder's `make check` was green (journal entry 17). Two findings send the work item back.
+
+    Findings:
+    1. `tests/support/minimal_documents_support.py:16-46` copies existing helpers in `tests/support/document_texts.py`:
+       - `_page` copies `_document`.
+       - `_settings_rows` copies `SETTINGS_TABLE` (the same text).
+       - `_stops` copies the rows of `operator_stops`.
+       - `_project_guide` copies the rows of `project_guide`.
+       - `_texts` copies `clean_texts`, plus the area pages and the list.
+
+       The copy exists because `document_texts` binds `STOP_TABLE`, `KILL_POINT_CASES`, `FAULT_PATHS` and `SETTINGS` when it is imported, so a monkeypatch does not reach it.
+
+       Fix: make `document_texts` read the tables through their modules when it is called (`stop_table.STOP_TABLE`, `settings.SETTINGS`, and so on). Then build `minimal_documents` from `clean_texts()`, adding only the area pages and the empty `docs/checked-documents.txt`. If the tester finds that changing `document_texts` (another story's support module) is beyond feature decision 10, that is a question to the human, not a reason to keep the copy.
+    2. `tests/guards/test_document_tests_write_their_documents.py:14` misses a parenthesized import. The `ROOT` pattern `from support\.operator_support import [^\n]*\bROOT\b` does not match `from support.operator_support import (\n    ROOT,\n)`, which is the form ruff format writes once an import gets long. A module importing `ROOT` that way would pass the guard of criteria 4 and 5.
+
+       Fix: let the pattern match across the parentheses, for example `import \(?[^)]*?\bROOT\b` with re.S on that pattern. Add a row with the parenthesized form to `test_a_document_check_test_that_names_the_repositorys_documents_is_found`.
+
+    Earlier tests that the diff changes, renames or deletes, with the leave each was changed under. Each is the human's leave: feature decision 10, which the story names in its Interface, given for the modules, fixtures and support module listed there:
+    - `tests/conftest.py`: the fixtures `tracked_files` and `documents` are removed, and `minimal` is added.
+    - `tests/entry/test_check_documents_any_list.py`: three coupling tests are removed and named in entry 8. `test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again` is replaced by `test_a_page_listed_once_more_gives_no_second_finding`.
+    - `tests/entry/test_check_documents_checked_files.py`: `test_todays_documents_with_the_first_list_give_a_report_and_pass` is removed, and entry 8 names the tests that now cover it.
+    - `tests/entry/test_check_documents_copies.py`: `test_the_copied_documents_are_a_clean_git_work_tree` is removed, and criterion 1's test now covers it.
+    - `tests/entry/test_check_documents_operator_guide.py`: it runs on `minimal`.
+    - `tests/entry/test_check_documents_settings.py`: it runs on `minimal`.
+    - `tests/entry/test_check_documents_suite_copy.py`: two coupling tests are removed. `test_an_example_reads_the_tracked_files_of_the_repository` is renamed to `test_an_example_reads_a_file_git_tracks_in_the_repository`, for the smoke test's grep, as entry 8 says.
+    - `tests/entry/test_check_documents_todays_names.py`: it runs on `minimal`.
+    - `tests/support/documents_copy_support.py`: deleted.
+
+    Nothing else is open. Criterion 8 (`docs:`) is the documenter's.
