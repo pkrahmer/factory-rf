@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T19:58:45.938537Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T19:58:40.742937Z'
   stage: doing
   run: 5c9ac453c4e84e93b1b3ff07c625b27b
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:58:45.938537Z'
+  stage: tests
 ---
 
 # Listing a right document keeps the suite green
@@ -183,3 +192,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     Main decision: I sent this to the tester rather than making the edits myself. The alternative, editing the tests directly, is ruled out because the coder never changes tests. These are the tester's own files from this story, so the change needs no further leave from the human.
 
     Noticed but not touched: `tests/support/check_documents_support.py:24-25` spells out `docs/operator-guide/` in the expected output text. That code was there before this story and the reviewer did not name it, so I left it. Criterion 6 (`docs/project-guide/shared.md`, *The settings check*) is still open for the docs stage. The journal did not change the meaning of the task, so the Description stays. I made no code change, so there was nothing to refactor and I did not run `make check` this round.
+12. factory: started tests as vm.
