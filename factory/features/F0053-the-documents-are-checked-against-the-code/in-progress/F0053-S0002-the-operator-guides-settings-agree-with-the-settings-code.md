@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:12:39.267319Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-06T07:12:39.267319Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-06T07:16:45.426079Z'
+  stage: doing
+  run: 65cdd356331a4916a4146afef5e983cb
 ---
 
 # The operator guide's settings agree with the settings code
@@ -322,3 +324,26 @@ Expect: `True`
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: Round 1. The two tests from the reviewer's findings in entry 19 are in place (tester entry 23). They pass against the existing code, so I changed no code this round.
+    - tests/shared/domain/test_settings_table.py::test_settings_table_holds_the_default_read_settings_applies covers criterion 1, "with their defaults".
+    - tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding covers criterion 6.
+
+    What is built is unchanged from entry 17:
+    - src/factory/shared/domain/settings.py: `SettingDoc` and `SETTINGS`.
+    - src/factory/shared/domain/documents.py: `GuideTable`, `guide_tables`, `settings_findings` and `refusal_findings`.
+    - src/factory/entry/check_documents.py: prints the settings and refusal findings and leaves the exit status unchanged.
+
+    Main choice, unchanged: the checks are pure domain functions, and the command passes them the source text of the settings module. I rejected having `refusal_findings` read the module itself, because that would make the domain impure.
+
+    Refactor: nothing to change. The diff did not change this round, and entry 17 already refactored it.
+
+    `make check`: green (`check: green`, coverage 99.21 %).
+
+    Description: not rewritten, because my write paths do not include the work item. The `## Interface` still predates the human's answer in entry 9. It does not name `GuideTable.heading`, `guide_tables(text, section)` or `refusal_findings(guide_tables, settings_source)`, and it still has refusals checked by `settings_findings`. The code and tests follow entry 9.
+
+    Noticed, not touched:
+    - Under criterion 6, a settings table that loses its `Variable`/`Name` header passes silently. The reviewer suggested raising this with S0004's gate.
+    - `make documents` reports older name findings in the project guide (for example `docs/project-guide/README.md:111: support/settings_support.py does not exist`).
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
