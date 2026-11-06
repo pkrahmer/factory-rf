@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 587
-comments_read: []
+comments_read: [6679620269]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 0e468b2cbdfc4a20b7506215dbc3eaa3
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T07:28:33.633757Z'
+  stage: intake
 ---
 
 # A document's marked examples are run by the check
@@ -74,3 +79,10 @@ Expect: `1`
 3. intake: 1. The smoke test and the Interface disagree. The Interface gives `examples(text) -> list[Example]`, but the smoke test calls `examples(...).runnable`, which a list does not have, so the command fails and `Expect: 1` can't be met. It also says "the runnable blocks ... and the marked blocks it skips, with their kind" but not how they are returned. Options: (a) `examples` returns a frozen DTO `Examples` with `runnable: list[Example]` and `skipped: list[Skipped]` (each with line and kind). The smoke test stays as written. (b) It returns a list and the smoke test uses `len(examples(...))`. I would choose (a), since criterion 1 and `make documents` (criterion 7) need both lists. Please name the return type in the Interface either way.
    2. The Interface names no concrete module for the adapter that runs the commands in the container ("An adapter runs a document's commands ..."). It also doesn't say where the `checkout` fixture class lives, or what `ExampleRunner`'s and `Fixture`'s implementing classes are called. The architecture puts adapters in `factory.shared.adapters` or a named area's `adapters` layer, and the tests need the module path. Please give module and class names. I would choose `factory.shared.adapters.document_examples` with `ContainerExampleRunner(ExampleRunner)` and `CheckoutFixture(Fixture)`.
    3. The Interface says `make documents` ends with `documents ok (<seconds> s)`, and criterion 7 tests that. Nothing says which module prints the line, nor how the report is built from the findings and the skipped blocks. Please say whether the report and the time line come from an existing module (name it) or a new one. I would choose the existing document-check module behind `make documents`; please name it.
+4. 2026-11-06 human: 1. (a): `examples(text) -> Examples`, a frozen DTO with `runnable: list[Example]` and `skipped: list[Skipped]`; `Skipped` holds `line` and `kind`. The smoke test stays as written.
+   2. `make documents` already runs inside the factory's check container, so the runner starts no container of its own: it runs each command as a process in that container. Names:
+      - `factory.shared.adapters.document_examples`: `ProcessExampleRunner(ExampleRunner)`. It runs each command through `factory.shared.adapters.process`, the one module that starts processes (R5), with `env -i`, the fixed environment, the 60-second limit and the folder the fixture prepared.
+      - `factory.hosting.adapters.checkout_fixture`: `CheckoutFixture(Fixture)`, since git belongs to hosting. It builds the copy of the tracked files at the checked commit through the git wrapper `GitCli`, not by its own `git` call.
+      - `Fixture` and `ExampleRunner` stay in `factory.shared.application.document_examples`, and `factory.entry` wires the two classes.
+      The adapter tests run real short commands (`echo`, `printf`, a file written in one block and read in the next) in `tmp_path`, with no network; the time-limit row uses `sleep` past a limit the test passes in.
+   3. The existing `factory.entry.check_documents` (behind `make documents`) builds the report: today's findings, the name and settings findings, the example findings, then one `<document>:<line>: not run (<kind>)` line per skipped block, and last `documents ok (<seconds> s)` when nothing blocks. It measures the seconds with the clock it already uses, or with `time.monotonic` passed in from `main`.
