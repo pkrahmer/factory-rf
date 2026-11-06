@@ -35,7 +35,7 @@ stages:
   docs: {role: documenter, next: [smoke-test, doing], checks: [check, secrets, documents], round_cap: 2}
   smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 2}
   docs-only: {role: documenter, next: [docs-review, tests], checks: [check, secrets, documents]}   # the docs route (the human, 2026-11-05)
-  docs-review: {role: reviewer, next: [docs-approval, docs-only], round_cap: 2}
+  docs-review: {role: reviewer, next: [docs-approval, docs-only], round_cap: 3}   # 3 for the rewrite of whole pages (the human, 2026-11-06)
   docs-approval: {approval: true, next: [done, docs-only]}   # the human: a merge accepts, a close sends back to the documenter
   acceptance: {role: acceptance-reviewer, next: [approval]}
   approval: {approval: true, next: [done, doing]}   # the human: a merge accepts, a close sends back
