@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T01:46:48.656428Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T01:46:48.656428Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:47:22.303458Z'
+  stage: docs-review
+  run: 43c1f6358c1f4a908610983dfc12dd21
 ---
 
 # The project guide says which lines of its index name a page
@@ -136,3 +138,11 @@ Expect: `documents ok`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok
 10. factory: started docs-review as vm.
+11. reviewer: Round 1. I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `INDEX_LINE` in `tests/support/guide_files_support.py` (`^- `([^`]+)`[^.]*\w[^.]*\.`) and `docs/project-guide/style.md`.
+
+    Facts: true of the branch. A list item is read as a page entry only when it starts with `` - ` `` and a name in backticks, followed by text that holds a word and ends in a full stop. The four exception items below the paragraph start with "The heading" or with an italic title, so the new rule matches them. Both of round 0's findings are fixed: the 55-word sentence is split, and italics are now allowed. Criterion 1 and the docs criterion are met. Journal entry 9 records `check: green`, `secrets: green` and `documents ok` for criteria 2 to 4.
+
+    1. `docs/project-guide/README.md:15`, the sentence "Every other list item in this section starts with a word, plain or in italics, never with a name in backticks, so that text such as `## The files` is never read as a page." It has about 35 words and three ideas: what an item starts with, what it never starts with, and why. Style rule 2 says one idea per sentence and to split a sentence of more than about 25 words. The "so that" clause also reads backwards: a list item that starts with `## The files` in backticks is exactly the one that is read as a page. Fix: split it into two sentences, for example "Every other list item in this section starts with a word, plain or in italics. A list item that starts with a name in backticks, such as `## The files`, is read as a page and fails the guard when no such page exists."
+
+    Rejected as findings:
+    - The first new sentence ("It reads a list item … ends in a full stop.") has about 30 words but only one idea. It stood unchanged in round 0, where it was not flagged.
