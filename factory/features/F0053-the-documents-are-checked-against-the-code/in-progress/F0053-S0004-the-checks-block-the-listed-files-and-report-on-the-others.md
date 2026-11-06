@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T09:26:22.445613Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T09:26:17.282299Z'
   stage: intake
   run: adb14e06a0d04bca9410b86cb5469efd
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:26:22.445613Z'
+  stage: tests
 ---
 
 # The checks block the listed files and report on the others
@@ -109,3 +118,4 @@ Expect: `documents ok (<seconds> s)`
    - Smoke test: runnable, and the pytest `-q` rule does not apply. `Expect:` now reads `documents ok (<seconds> s)` (entry 4, item 7).
    - Architecture: the pure logic goes in `shared.domain`, and the command stays in `factory.entry`. That fits.
    - Scope: it is within F0053 scope, "the checked-files list and a report" (S0004). `docs/decisions.md` is not checked, as the feature's out-of-scope section says. The route is `tests`, because the Interface changes `src/` and `tests/`.
+7. factory: started tests as vm.
