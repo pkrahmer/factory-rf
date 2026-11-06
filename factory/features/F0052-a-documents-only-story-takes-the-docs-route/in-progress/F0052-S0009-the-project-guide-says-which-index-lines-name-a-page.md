@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:47:30.468956Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T01:47:22.303458Z'
   stage: docs-review
   run: 43c1f6358c1f4a908610983dfc12dd21
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:47:30.468956Z'
+  stage: docs-only
 ---
 
 # The project guide says which lines of its index name a page
@@ -146,3 +155,4 @@ Expect: `documents ok`
 
     Rejected as findings:
     - The first new sentence ("It reads a list item … ends in a full stop.") has about 30 words but only one idea. It stood unchanged in round 0, where it was not flagged.
+12. factory: started docs-only as vm.
