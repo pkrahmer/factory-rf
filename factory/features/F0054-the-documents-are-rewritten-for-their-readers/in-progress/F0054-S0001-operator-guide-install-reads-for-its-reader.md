@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T21:58:17.600265Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T21:58:12.182786Z'
   stage: docs-review
   run: bc42d74bba66402a8b4f86b23e1e021a
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:58:17.600265Z'
+  stage: docs-only
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -245,3 +254,4 @@ Expect: `1`
     5. docs/operator-guide/install.md:190: "A checkout that has a `.git` is kept as it is: the factory does not check it, …" is about 30 words (style rule 2). Fix: split it after "kept as it is".
 
     Open, outside this diff: `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table. That is now false. It belongs to that file's story or to the human.
+12. factory: started docs-only as vm.
