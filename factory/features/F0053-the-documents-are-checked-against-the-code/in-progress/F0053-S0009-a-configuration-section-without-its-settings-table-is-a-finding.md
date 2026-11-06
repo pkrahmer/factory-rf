@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T12:43:28.552594Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-06T12:43:28.552594Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-06T12:47:36.095894Z'
+  stage: doing
+  run: 97674953013f4cda982e6b617011cd1c
 ---
 
 # A configuration section without its settings table is a finding
@@ -223,3 +225,25 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
 
     `lint`: lint: green (0.2 s)
 14. factory: started doing as vm.
+15. coder: I changed no code in this round. The reviewer had two findings (entry 9), and both were about the structure of the tester's tests. The tester made those two changes in `tests/shared/domain/test_document_settings.py` (entry 13):
+    - `_SETTING_TABLE` is now built through the helper `_table`.
+    - The counting-table case is now the row `counting-table-beside-another` of the criterion 1 test.
+
+    The tests pass against the code from round 0, so there was nothing left for me to implement.
+
+    The code is the same as round 0 built it (entry 7):
+    - `src/factory/shared/domain/documents.py`: the new constant `NO_SETTINGS_TABLE`. `settings_findings` returns that one finding when no table counts and the settings are not empty.
+    - `src/factory/entry/check_documents.py`: `_settings_guide_findings` returns early when `install.md` has no *Configuration* section. It uses `first_section` to do so. A missing section therefore keeps only today's finding.
+
+    Main decision (round 0): the guard for a missing section goes in the entry, not in the domain function. The rejected alternative was a "section present" flag on `settings_findings`, because that would change the signature the Interface fixes.
+
+    Refactor: there was nothing to change, because the diff to `src` is the same as in round 0.
+
+    Description: no journal entry changed the meaning of the task, so I left it as it is.
+
+    Noticed, not touched: line 146 of `docs/project-guide/shared.md` still says that a guide without a settings table gives no finding. That sentence is now false. Rewriting it is the documenter's job under criterion 5.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
