@@ -36,6 +36,7 @@ from factory.shared.domain.documents import (
     split_findings,
     unresolved,
 )
+from factory.shared.domain.sections import first_section
 
 _PROGRAM = "check-documents"
 _CLEAN = 0
@@ -115,7 +116,9 @@ def _name_findings(root: Path, documents: Sequence[str]) -> list[GatedFinding]:
 
 def _settings_guide_findings(root: Path) -> list[GatedFinding]:
     text = _read(root / OPERATOR_INSTALL)
-    if text is None:
+    # A missing guide or section is already the operator guide's finding; a settings
+    # finding on top of it would only repeat it.
+    if text is None or first_section(text, SETTINGS_SECTION) is None:
         return []
     tables = guide_tables(text, SETTINGS_SECTION)
     source = Path(settings.__file__).read_text(encoding="utf-8")

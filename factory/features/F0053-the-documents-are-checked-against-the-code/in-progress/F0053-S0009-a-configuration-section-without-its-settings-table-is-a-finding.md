@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T12:35:50.513461Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T12:35:50.513461Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T12:40:41.251960Z'
+  stage: doing
+  run: 296d6432f5094c87ac1335e0f6e6b45d
 ---
 
 # A configuration section without its settings table is a finding
@@ -107,3 +109,27 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Made a guide without a counting settings table one finding, while a missing *Configuration* section still gives no settings finding. `make check` is green.
+
+   Built:
+   - `src/factory/shared/domain/documents.py`:
+     - New constant `NO_SETTINGS_TABLE`: `no settings table (first column Name or Variable) in Configuration`, built from `SETTINGS_SECTION`.
+     - `settings_findings` returns `[NO_SETTINGS_TABLE]` when no table counts and `settings` is not empty, and `[]` when it is empty. Its docstring says so. The comparison of names and defaults is unchanged.
+   - `src/factory/entry/check_documents.py`: `_settings_guide_findings` now also returns early when `install.md` has no *Configuration* section. It uses the existing helper `factory.shared.domain.sections.first_section`, so the missing section stays only the operator guide's finding.
+
+   Main decision: I put that early return in the entry. The tester's open point was right: left as it was, the entry would add the new finding on top of the "section 'Configuration' is missing" finding. The Interface asks for both "check_documents: unchanged" and "no settings finding is added for it". I read "unchanged" as its output for that case staying what it is today, and a two-line guard keeps that output. The guard also skips the refusal check for a missing section; that check returned nothing there anyway.
+
+   Rejected: passing a "section present" flag into `settings_findings`. It would change the domain signature the Interface fixes, and it pushes knowledge of sections into a function that only gets tables.
+
+   Verified:
+   - The smoke-test command prints `['no settings table (first column Name or Variable) in Configuration']`.
+   - `make documents` prints no settings finding on today's `install.md` and ends `documents ok`.
+
+   Refactor: I read the diff and nothing needed changing.
+
+   Noticed, not touched: no test covers the missing-section guard in the entry. No criterion asks for one; the reviewer may want a row for it.
+
+   Journal: no entry changed the meaning of the task, and I did not rewrite the Description.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
