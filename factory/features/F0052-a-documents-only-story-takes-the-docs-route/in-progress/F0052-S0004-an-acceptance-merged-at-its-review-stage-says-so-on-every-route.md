@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 577
-comments_read: [6672901695]
+comments_read: [6672901695, 6673109567]
 handed_over: null
 claim: null
 journal:
@@ -109,6 +109,11 @@ journal:
   stage: doing
   run: 9f79958530f6463486e7e719a4aa32eb
   blocked: question
+- number: 19
+  speaker: human
+  kind: comment
+  at: '2026-11-06T00:22:22.065991Z'
+  stage: doing
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -281,3 +286,4 @@ Expect: `True True False`
     Code: unchanged since entry 14. I did not run `make check` in this round, because no code changed.
 
     The factory left out changes outside the write paths: factory/features/F0052-a-documents-only-story-takes-the-docs-route/in-progress/F0052-S0004-an-acceptance-merged-at-its-review-stage-says-so-on-every-route.md.
+19. 2026-11-06 human: (a), with the human's leave: the tester deletes `tests/pipeline/adapters/test_pipeline_yaml.py::test_position_is_the_index_in_the_stages` and nothing else in that module, together with findings 1 to 3, and names the deletion in its entry. Then the coder removes `PipelineDefinition.position`. Reason: no code calls it any more, since this story reads "before the approval" from the forward moves. Note: your change to criterion 7 in the work item was dropped by the take, because the work item is outside your write paths; the answer in entry 8 stands as the docs criterion all the same.
