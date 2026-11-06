@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-06T20:51:44.826260Z'
   stage: smoke-test
   run: b0254d59163b412db1547fcb7d7ae4c0
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-06T20:52:36.904549Z'
+  stage: approval
 ---
 
 # A page already listed keeps the document tests green
@@ -351,3 +356,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     - Criterion 6: the smoke test does not read the docs, and nothing in it contradicts them.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 14.2 min, 57 turns, 196765 tokens in (1083866 more from cache), 24172 out, $2.08
