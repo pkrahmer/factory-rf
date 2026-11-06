@@ -23,8 +23,8 @@ from support.document_texts import (
     project_guide,
     write_documents,
 )
+from support.operator_support import ROOT
 
-REPOSITORY = Path(__file__).parents[2]
 CHECKED_LIST = "docs/checked-documents.txt"
 STYLE = "docs/project-guide/style.md"
 GLOSSARY = "docs/project-guide/glossary.md"
@@ -45,16 +45,18 @@ _NOT_COPIED = (
     "__pycache__",
 )
 EXAMPLE_BLOCK = f"{FENCE}console fixture=nowhere\n$ echo hi\nhi\n{FENCE}"
+VM_BLOCK = f"{FENCE}console vm\n$ factory status\n...\n{FENCE}"
 
 
 def _guide_page(body: str) -> str:
     return f"# A page\n\n{body}\n\nThe end.\n"
 
 
-def _write(root: Path, extra: dict[str, str], listed: list[str]) -> None:
+def _write(root: Path, extra: dict[str, str], listed: list[str] | None) -> None:
     texts = clean_texts()
     texts.update(extra)
-    texts[CHECKED_LIST] = "".join(f"{path}\n" for path in listed)
+    if listed is not None:
+        texts[CHECKED_LIST] = "".join(f"{path}\n" for path in listed)
     write_documents(root, texts)
 
 
@@ -146,7 +148,7 @@ def test_todays_documents_with_the_first_list_give_a_report_and_pass(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     copy = tmp_path / "checkout"
-    shutil.copytree(REPOSITORY, copy, ignore=shutil.ignore_patterns(*_NOT_COPIED))
+    shutil.copytree(ROOT, copy, ignore=shutil.ignore_patterns(*_NOT_COPIED))
     (copy / CHECKED_LIST).write_text(f"{STYLE}\n{GLOSSARY}\n", encoding="utf-8")
 
     status, lines = _run(copy, capsys)
@@ -277,3 +279,39 @@ def test_file_names_node_ids_and_shell_texts_are_read_exactly(
 )
 def test_a_comment_line_and_a_blank_line_give_no_entry(text: str, expected: list[str]) -> None:
     assert read_checked_documents(text) == expected
+
+
+@pytest.mark.parametrize(
+    "document",
+    [pytest.param(STYLE, id="no-list-file")],
+)
+def test_without_a_list_file_every_new_finding_is_reported_and_none_blocks(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], document: str
+) -> None:
+    text = _guide_page(f"See `{MISSING_NAME}`.")
+    _write(tmp_path, {document: text}, None)
+
+    status, lines = _run(tmp_path, capsys)
+
+    finding = _name_finding(document, text, MISSING_NAME)
+    assert finding in lines
+    assert lines.index(REPORT_HEADING) < lines.index(finding)
+    assert re.fullmatch(TIME_LINE, lines[-1])
+    assert status == 0
+
+
+@pytest.mark.parametrize("listed", [True, False], ids=["listed", "not-listed"])
+def test_an_example_not_run_is_reported_after_the_reported_findings_and_never_blocks(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], listed: bool
+) -> None:
+    style = _guide_page(VM_BLOCK)
+    glossary = _guide_page(f"See `{MISSING_NAME}`.")
+    _write(tmp_path, {STYLE: style, GLOSSARY: glossary}, [STYLE] if listed else [PROJECT_GUIDE])
+
+    status, lines = _run(tmp_path, capsys)
+
+    finding = _name_finding(GLOSSARY, glossary, MISSING_NAME)
+    not_run = f"{STYLE}:{line_of(style, f'{FENCE}console vm')}: not run (vm)"
+    assert lines.index(REPORT_HEADING) < lines.index(finding) < lines.index(not_run)
+    assert re.fullmatch(TIME_LINE, lines[-1])
+    assert status == 0

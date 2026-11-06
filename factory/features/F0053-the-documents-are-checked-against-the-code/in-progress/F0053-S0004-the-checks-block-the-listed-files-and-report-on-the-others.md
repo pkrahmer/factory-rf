@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T09:47:13.381244Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-06T09:47:13.381244Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-06T09:47:58.450308Z'
+  stage: tests
+  run: c5fc039889fb4298a4a95cbd150ef40a
 ---
 
 # The checks block the listed files and report on the others
@@ -358,3 +360,20 @@ Expect: `documents ok (<seconds> s)`
 
     The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0004-the-checks-block-the-listed-files-and-report-on-the-others.md.
 22. factory: started tests as vm.
+23. tester: I made the three test changes the coder listed in entry 21, which come from the review findings in entry 19. All of them are in `tests/entry/test_check_documents_checked_files.py`, a module this story wrote. I changed no earlier story's test file.
+
+    What I did:
+    - criterion 11: `tests/entry/test_check_documents_checked_files.py::test_without_a_list_file_every_new_finding_is_reported_and_none_blocks`. It has one row, `no-list-file`. No `docs/checked-documents.txt` is written and a missing module name is planted in the style page. The test expects the finding after `Report (not checked yet):`, the time line last and exit status 0.
+    - criterion 12: `tests/entry/test_check_documents_checked_files.py::test_an_example_not_run_is_reported_after_the_reported_findings_and_never_blocks`. It has two rows, `listed` and `not-listed`, for the style page. The style page holds a `console vm` block and the glossary holds a name finding that is reported. The test expects this order: the heading, then the glossary finding, then `<style>:<line>: not run (vm)`. It also expects the time line last and exit status 0.
+    - Finding 4, moving a shared test helper under the standing leave in `CLAUDE.md`: I dropped the module's `REPOSITORY = Path(__file__).parents[2]`. The copy test for criterion 3 now uses `ROOT` from `tests/support/operator_support.py`. The test keeps its name and checks the same thing.
+    - I changed `_write` so that `listed=None` writes no list file. The tests that already used it work as before.
+
+    The mapping of criteria 1 to 10 is unchanged from entries 8 and 15.
+
+    Files: I changed `tests/entry/test_check_documents_checked_files.py` and created no file.
+
+    Run: `uv run pytest -q tests/entry/test_check_documents_checked_files.py` passed with no failures. The new tests pass against the existing code (2b6135a73), as entry 21 expected: criteria 11 and 12 pin behaviour that is already there. No module was left unimported. `make lint` is green.
+
+    Open: the factory dropped the coder's rewrite of criterion 14 from entry 21, because it was outside the coder's write paths. The `## Description` still does not name `docs/checked-documents.txt` (review finding 3). I did not edit the work item's Description, since that is not the tester's job. Whoever owns the Description has to add it, or the documenter may never write the list file that criterion 3 relies on.
+
+    `lint`: lint: green (0.1 s)
