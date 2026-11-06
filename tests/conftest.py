@@ -3,6 +3,7 @@
 import contextlib
 import os
 import shlex
+import shutil
 import signal
 from collections.abc import Iterator
 from dataclasses import replace
@@ -597,3 +598,19 @@ def result_case(
         agent_runtime=agent_runtime,
         kill_points=kill_points,
     )
+
+
+_REPOSITORY = Path(__file__).parents[1]
+_OPERATOR_GUIDE = "docs/operator-guide"
+
+
+@pytest.fixture
+def documents(tmp_path: Path) -> Path:
+    """A copy of the repository's documents under `tmp_path`."""
+    root = tmp_path / "root"
+    (root / "docs").mkdir(parents=True)
+    shutil.copy(_REPOSITORY / "README.md", root / "README.md")
+    shutil.copy(_REPOSITORY / "docs" / "decisions.md", root / "docs" / "decisions.md")
+    shutil.copytree(_REPOSITORY / "docs" / "project-guide", root / "docs" / "project-guide")
+    shutil.copytree(_REPOSITORY / _OPERATOR_GUIDE, root / _OPERATOR_GUIDE)
+    return root

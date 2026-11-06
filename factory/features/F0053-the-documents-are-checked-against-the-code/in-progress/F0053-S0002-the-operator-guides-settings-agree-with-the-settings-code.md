@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T03:00:57.953996Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-06T03:00:57.953996Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-06T03:03:29.701779Z'
+  stage: tests
+  run: e925fd185fac4606b8cb728fa76e0aed
 ---
 
 # The operator guide's settings agree with the settings code
@@ -140,3 +142,24 @@ Expect: `True`
    2. Yes: `guide_tables(text: str, section: str) -> list[GuideTable]`, the tables inside `section` and its subsections, each with its nearest heading. Give it one test of its own: two tables under two headings come back with their headings.
    3. Yes, as you propose: a finding is one string containing the setting's name or the refusal text. Criterion 5 runs on a copy in `tmp_path` whose `install.md` drops one setting's row, and checks that a printed line names that setting and that the exit status is the same as with the row present.
 10. factory: started tests as vm.
+11. tester: Wrote the tests from the Interface and criteria, with the human's answer in entry 9: `GuideTable.heading`, a separate `refusal_findings(guide_tables, settings_source)`, `guide_tables(text, section)` with a test of its own, and criterion 5 run on a copy in `tmp_path`.
+
+    Criteria to test functions:
+    - criterion 1: tests/shared/domain/test_settings_table.py::test_settings_table_names_what_read_settings_reads (a recording `Mapping` notes every key `read_settings` looks up; the environment is `BASE` from `tests/support/settings_support.py` plus `FACTORY_IMAGE_ID_FILE`, with a file reader, so every read is reached; the names in `SETTINGS` must equal the noted keys, each name once)
+    - criterion 2: tests/shared/domain/test_document_settings.py::test_name_and_default_mismatches_are_findings (rows: omitted by the guide, not read by the code, default differs, a default where the code has none, default equal, `None` as an empty cell, `None` as `none`, no `Default` column so no default finding)
+    - criterion 3: tests/shared/domain/test_document_settings.py::test_table_with_another_first_column_is_ignored (rows: `Name` and `Variable` are counted, `Setting` is ignored)
+    - criterion 4: tests/shared/domain/test_document_settings.py::test_refusal_texts_are_checked_against_the_settings_source (rows: held, not held, placeholder with its pieces held, placeholder with a piece not held, a two-character piece not checked, a three-character piece checked, a `Refusal` table under another heading, a table under `The refusals` with another first column); the parser rule from entry 9: tests/shared/domain/test_document_settings.py::test_guide_tables_keep_their_nearest_heading
+    - criterion 5: tests/entry/test_check_documents_settings.py::test_settings_findings_are_printed_without_changing_the_exit_status (on the copy, with the `FACTORY_ZFS` row present no printed line names it; with the row dropped one does, and the exit status is unchanged)
+
+    Test data: settings rows build `GuideTable` directly with raw cells, so names are backticked as in the guide (`` `FACTORY_A` ``) and default cells are plain (`5`, empty, `none`). A refusal is the backticked text of the first cell. A finding must be one string that contains the setting's name or the refusal text.
+
+    Not tested: criterion 1's "with their defaults". The Interface defines the table test as a comparison of names, and nothing pins how a default is written as text, so the test checks names and that each appears once. The Description still predates entry 9 (`heading`, `refusal_findings`, `guide_tables`); I left it unchanged and the tests follow entry 9.
+
+    Files created: tests/shared/domain/test_settings_table.py, tests/shared/domain/test_document_settings.py, tests/entry/test_check_documents_settings.py.
+    Earlier test files changed under the standing leave to move a shared helper: the `documents` fixture moved from tests/entry/test_check_documents_operator_guide.py to tests/conftest.py, with the same name and body. The earlier test module lost its local copy and the now-unused `shutil` import and `ROOT`; its tests keep their names and checks.
+
+    One run, `uv run pytest -q` on the files above plus the changed one: collection was interrupted by 2 errors, in test_settings_table.py and test_document_settings.py, because `factory.shared.domain.documents` has no `GuideTable` (and `factory.shared.domain.settings` has no `SETTINGS`/`SettingDoc` yet). The interruption meant the entry test and the changed operator-guide test did not run. The entry test imports only existing code, so it will fail on its assertion until the check exists. `make lint`: green.
+
+    Modules the runner could not import: the names `GuideTable`, `guide_tables`, `settings_findings`, `refusal_findings` from `factory.shared.domain.documents`, and `SETTINGS`, `SettingDoc` from `factory.shared.domain.settings`.
+
+    `lint`: lint: green (0.2 s)
