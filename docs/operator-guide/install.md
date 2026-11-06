@@ -6,9 +6,9 @@ An instance runs one project. It is told what it needs through environment varia
 
 ## Install
 
-Install the factory on a repository that holds no [work items](../project-guide/glossary.md) from an older version of the factory, or whose old work items are archived or discarded. The factory starts fresh and does not detect old work items.
+Install the factory on a repository that holds no [work items](../project-guide/glossary.md) from an older version of the factory, or whose old work items are archived or discarded. The factory starts fresh and does not detect old work items. To run an instance without a VM, see [cloud-run.md](cloud-run.md).
 
-1. Prepare a fresh Ubuntu 24.04 machine for an instance with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`; the script sets up the packages, the ZFS dataset, the checkout, `factory.env` and the systemd unit, which is enabled, not started (see "The machine" in [machine.md](machine.md)). To run an instance without a VM, see [cloud-run.md](cloud-run.md). The first run stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token`, because the private repository needs the token.
+1. Prepare a fresh Ubuntu 24.04 machine for an instance with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`. The first run stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token`, because the private repository needs the token.
 
 2. Place `hosting-token`, `claude-token` and `anthropic-api-key` in `/home/factory/.secrets`, readable by the user `factory`, and run the same command again (see "The two passes" in [machine.md](machine.md)). All three files must exist whatever the runtime; under `claude` the key file stays empty.
 
@@ -16,7 +16,9 @@ Install the factory on a repository that holds no [work items](../project-guide/
 
 4. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
 
-5. Start the instance with `sudo systemctl start factory@<instance>`. The unit runs `factory-run` with `factory.env` loaded (see "The service" in [machine.md](machine.md)). It reads the same environment as `factory-watch`, and its preflight checks the dataset and the stage image (see "The preflight's items" in [health.md](health.md)). If it refuses, see "When the process refuses to start".
+5. Start the instance with `sudo systemctl start factory@<instance>`. If it refuses, see "When the process refuses to start".
+
+The script sets up the packages, the ZFS pool and datasets, the checkout, `factory.env` and the systemd unit (see "The machine" in [machine.md](machine.md)). The unit is enabled, not started, and runs `factory-run` with `factory.env` loaded (see "The service" in [machine.md](machine.md)). Its preflight checks the dataset and the stage image (see "The preflight's items" in [health.md](health.md)).
 
 To check a development clone instead of an instance, install the packages in the clone and run the checks. This ran on the VM:
 

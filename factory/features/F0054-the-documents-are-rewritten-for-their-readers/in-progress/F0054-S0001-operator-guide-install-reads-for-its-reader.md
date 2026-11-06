@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433, 6697301221]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T22:28:34.582655Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -229,6 +225,12 @@ journal:
   kind: started
   at: '2026-11-06T22:28:34.582655Z'
   stage: docs-only
+- number: 40
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T22:31:01.880594Z'
+  stage: docs-only
+  run: 9a7fcbde3a05479584588fd2d2e40dfc
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -631,3 +633,21 @@ Expect: `1`
     - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*.
     - `docs/operator-guide/README.md` keeps its version-history sections.
 39. factory: started docs-only as vm.
+40. documenter: Fixed findings 1 and 2 of review entry 38, all in `docs/operator-guide/install.md`, in *Install*. I read the steps and the reviewer's cited text first.
+
+    - Finding 1: step 1 now ends its first sentence after the `setup.sh` command. The list of what the script sets up is a sentence of its own, under 25 words, and it says "the ZFS pool and datasets" as setup.sh:2-3 does. It points to "The machine" in machine.md.
+    - Finding 2, step 1: it has the action, then one sentence, the first-pass line `setup: checkout: waiting for /home/factory/.secrets/hosting-token`. The Cloud Run pointer moved into the paragraph above the list.
+    - Finding 2, step 5: it is the action and one sentence, "If it refuses, see ...". The unit sentence (enabled, not started, runs `factory-run` with `factory.env`; pointer to "The service") and the preflight sentence (pointer to "The preflight's items") are now a short paragraph after the list.
+
+    `make documents` ends `documents ok (1.8 s)`. It prints the expected "not run" notes for install.md:25 (vm) and install.md:33 (suite). It also prints "does not exist" lines for paths in other files outside this diff (`docs/project-guide/hosting.md:170`, `machine.md:264`, `machine.md:298`, `machine.md:362` and `work.md:13`). I ran no `make check`, because I changed only a document.
+
+    Cross-read: the headings that other files link to are unchanged, and step numbers are referenced nowhere else. `docs/checked-documents.txt` is unchanged and correct.
+
+    Stale text I saw and did not touch, because entries 14 and 20 gave them to their own stories:
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
+    - `docs/operator-guide/README.md` keeps its version-history sections.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (1.8 s)
