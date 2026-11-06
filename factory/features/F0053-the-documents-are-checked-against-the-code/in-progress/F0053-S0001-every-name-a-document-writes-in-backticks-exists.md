@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T02:43:57.699077Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-06T02:43:52.463655Z'
   stage: review
   run: c06120c3af744379b117d012f9e040bb
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:43:57.699077Z'
+  stage: docs
 ---
 
 # Every name a document writes in backticks exists
@@ -437,3 +446,4 @@ Expect: a number alone (the count of findings, possibly `0`)
 
     Notes:
     - `tests/entry/test_check_documents_references.py`: the Interface's "a path found under the checkout" has no row for a link or path that exists but resolves outside the checkout (for example `[x](../../../outside.md)` with a file planted in `tmp_path`). The code handles that side in `src/factory/entry/check_documents.py` `_path_exists` (`is_relative_to(root.resolve())`). The missing row is one row in `test_each_missing_name_path_or_link_target_gets_one_finding`, expecting one finding.
+28. factory: started docs as vm.
