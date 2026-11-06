@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 582
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T01:32:35.735638Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T01:32:35.735638Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:33:28.010574Z'
+  stage: docs-review
+  run: 5f0f9f5f840d4223bb7ab5fe6a4c053a
 ---
 
 # The operator guide says that the check reads the documents
@@ -116,3 +118,20 @@ Expect: `documents ok`
    `secrets`: secrets: green (1.3 s)
    `documents`: documents ok
 6. factory: started docs-review as vm.
+7. reviewer: Docs review, round 0. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, then checked the text against `factory/pipeline.yml`, `git ls-files` of the folders `not_read` names, and `docs/project-guide/style.md`.
+
+   What holds:
+   - Criterion 1: the `yaml` block under "kumpel-factory's own definition" matches `factory/pipeline.yml:10` character for character, and `"docs/*.md"` no longer appears in `pipeline.md`.
+   - Criterion 2: the paragraph names the guide guards under `tests/guards/` as the reason, and it no longer says that every Markdown file is left out.
+   - Criterion 3: *The docs route* gains one true sentence. `docs-only` lists `check` among its checks, and every other sentence of the section is unchanged.
+   - `docs/decisions.md`: the Decision line and the `Rejected:` line meet criterion 6.
+   - The documenter also changed the generic example, beyond the Interface. That was needed, because the smoke test's grep for `"docs/*.md"` expects `0`. Finding 3 is about its new content.
+
+   Findings:
+   1. `docs/operator-guide/pipeline.md`, paragraph "kumpel-factory's own definition", first sentence. It says that the definition leaves out "only the Markdown and JSON Lines files that no test reads". That is false: `docs/runs/*` also leaves out a `.json` file and a `.log` file (`git ls-files docs/runs` lists 7 md, 3 jsonl, 1 json, 1 log). The sentence also runs to about 33 words, over style rule 2. Fix: say that the definition leaves out the Markdown and JSON Lines files no test reads, plus folders that hold no code and that no test reads (`docs/runs/`, `planning/`, `session-logs/`, `factory/archive/`). Split this into two sentences, keeping the `make lint` reason.
+   2. `docs/operator-guide/pipeline.md`, same paragraph, the sentence "`README.md` and `docs/` stay in the key: the guide guards … can turn `make check` red." It runs to about 31 words, over style rule 2. Fix: split it after "stay in the key", for example "… stay in the key. The guide guards under `tests/guards/` and other tests of `make test` read the real documents, so a documents-only change can turn `make check` red."
+   3. `docs/operator-guide/pipeline.md`, the generic `not_read` example, now `["notes/*.md", "docs/runs/*"]`. The whole-folder pattern `docs/runs/*` contradicts the advice two lines below it: "leave out file types it does not read, never a whole folder". Fix: give the example file-type patterns only, for example `["notes/*.md", "notes/*.jsonl"]`. Do not bring back `"docs/*.md"`, which the smoke test counts.
+
+   Open, outside this story's scope:
+   - The documenter flagged the "Two warnings" bullet about `secrets` as possibly stale. Its rewrite belongs to the next feature, so I did not judge it.
+   - The general advice "never a whole folder" already sat beside the project's own whole-folder patterns (`planning/*`, `session-logs/*`) before this diff. That is not a finding here.
