@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T22:47:58.338963Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-06T22:47:58.338963Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T22:50:24.695313Z'
+  stage: docs
+  run: 3eebbff62cc245d7ade27b8dfffb69b8
 ---
 
 # The check reads an indented example and one without a command
@@ -198,3 +200,20 @@ Expect: `1 echo hi`
     - tests/shared/domain/test_document_examples.py: none needed (rows added only; the Interface also allows them).
     - tests/entry/test_check_documents_examples.py: none needed (tests and imports added only, every earlier test unchanged; the Interface also allows them).
 13. factory: started docs as vm.
+14. documenter: Docs written from the story's docs criterion and the code on the branch (`src/factory/shared/domain/documents.py`, `src/factory/entry/check_documents.py`). `make documents` ends with `documents ok (1.8 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/style.md`, *Runnable examples*: a `console` block must hold at least one `$ ` command, or it gives the finding `<document>:<line>: the example has no command` at its fence line. An example may stand indented under its numbered step and is read as at column 0. A line indented less than its fence keeps its indentation.
+    - `docs/project-guide/shared.md`, *The examples*: the fence's indentation is removed before the block is read, and line numbers do not change. A block with no command lands in `Examples.without_command`. `factory.entry.check_documents` turns it into the `NO_COMMAND` finding, which blocks in a listed document and is reported in any other.
+
+    `docs/decisions.md`: none, as the criterion says.
+
+    I did not run the story's smoke test; the tester's and reviewer's rows cover it.
+
+    Cross-read and found current: the rest of `style.md` and `shared.md`'s example section.
+
+    Stale text I saw and did not touch: `make documents` reports `docs/project-guide/machine.md:362: factory/stage.Containerfile does not exist` and `docs/project-guide/work.md:13: factory/agents does not exist`. Both are unrelated to this story and not blocking.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (1.9 s)
