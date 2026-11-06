@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T07:17:57.653442Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-06T07:17:57.653442Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T07:20:41.507770Z'
+  stage: docs
+  run: 38100c65864649918edd994522bad156
 ---
 
 # The operator guide's settings agree with the settings code
@@ -394,3 +396,36 @@ Expect: `True`
     - tests/conftest.py: standing leave to move a shared test helper. The `documents` fixture moved here with the same name and body.
     - tests/entry/test_check_documents_operator_guide.py: standing leave to move a shared test helper. Its local `documents` fixture, `ROOT` and the `shutil` import were removed, and its tests keep their names and checks.
 28. factory: started docs as vm.
+29. documenter: Wrote the documentation for the settings table and the settings check. No findings for the coder. I ran no `make check`: I changed only documents, so the factory's checks decide.
+
+    Files changed:
+    - `docs/project-guide/shared.md`: new section *The settings check*, under *The document check*, before the paragraph on the docs-stage gate.
+      - It covers `SETTINGS` and `SettingDoc` (`required` is kept for the guide's writer and never compared), and the test that keeps the table equal to what `read_settings` reads.
+      - It covers `guide_tables`, `GuideTable` with its `heading`, `settings_findings` and `refusal_findings`, as entry 9 and the code have them.
+      - It states the rules: which tables count, a default is compared only in a table with a `Default` column, and the refusal pieces of three characters or more are checked against the settings source.
+      - It says the findings are only printed and the exit status is unchanged.
+      - It says today's guide gives no settings finding.
+    - `docs/project-guide/README.md`: the `shared.md` index line now names the two subsections and `SETTINGS`.
+
+    `docs/operator-guide/install.md` is unchanged, as criterion 8 says.
+
+    Checks I ran:
+    - The smoke command prints `True`.
+    - `uv run python -m factory.entry.check_documents` prints no settings line on the repository.
+    - `make documents` still prints name findings unrelated to this story. Its exit status is unchanged, because they are only printed.
+
+    Cross-read and found current: `README.md` (it describes the command only in general terms), the document-check paragraphs in `shared.md`, and the `check_documents` lines in the project guide index.
+
+    Stale text I saw and did not touch:
+    - `docs/project-guide/README.md:27` says the settings are described in `hosting.md` and `machine.md`. I did not check that claim.
+    - `docs/project-guide/README.md:111` names `support/settings_support.py`. The file exists as `tests/support/settings_support.py`; the name check reports the relative path. This predates the story, so I left it as a note.
+    - `docs/decisions.md:379` still names the old `docs/operator-guide.md` and `factory.domain.documents` paths. It is the decision log and not mine to edit.
+    - Other name findings the check prints (`operator.md:21`, `work.md:13`, `work.md:186`) are unrelated to this story.
+
+    The story's `## Interface` still predates entry 9: it does not name `GuideTable.heading`, `guide_tables` or `refusal_findings`. The reviewer already noted this. The documentation follows the code and entry 9.
+
+    The reviewer's two test findings from round 1 (the defaults test for criterion 1, and the criterion 6 test) have no test files in the diff against `main`. Entry 21 handed them to the tester, but I saw no later tester entry. I did not check this against the working tree, and I did not rerun the tests.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.8 s)
+    `documents`: docs/project-guide/work.md:186: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones does not exist
