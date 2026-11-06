@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 585
-comments_read: []
+comments_read: [6674965185]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 416fb2a0fb164644bdf623d0c0bed8ba
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T02:12:05.409785Z'
+  stage: intake
 ---
 
 # Every name a document writes in backticks exists
@@ -69,3 +74,10 @@ Expect: `counted`
    6. The checked document set (`README.md`, the operator guide, the project guide) is in the Description only. Criterion 3 covers `docs/decisions.md` and `docs/runs/`, but nothing tests that the command reads the operator-guide and project-guide folders and `README.md`. I would add that to criterion 4's test in `tests/entry/test_check_documents_references.py`.
 
    Format check passed. Architecture (pure rules in `shared.domain.documents`, I/O in `entry`) and scope (within feature scope, S0001) are fine. The smoke test is runnable, but its `Expect: counted` holds for any output, even if the command crashes in a pipeline; I would make it `grep -c "does not exist"` exit 0 and print a number, e.g. `Expect:` the digits alone.
+4. 2026-11-06 human: 1. Yes: a frozen model `Reference(document, line, name, kind)`, with `kind` one of module, path and link, and `named_references(document, text, top_level)`. The command fills in `document` (the path relative to the checkout) and `top_level` (point 2).
+   2. A backticked text is a repository path when it contains `/`, has no whitespace, does not start with `/` or `~`, holds no `://`, and either its first segment is in `top_level` (a `frozenset[str]` of the checkout's top-level entries, which the command passes) or its last segment has a file extension. The second half catches a path whose first folder was renamed, such as `claude/agents/reviewer.md`. `origin/main` and `pkrahmer/kumpel-factory` are not paths. One row each in criterion 1: `operator/vm/setup.sh` (path), `claude/agents/reviewer.md` with `top_level` lacking `claude` (path), `origin/main` (not a path), `/srv/factory` (not a path).
+   3. Yes to all three rows: `os.path` (not checked), a path under `/srv` or `/etc` (not checked), `[x](a.md#h)` (the link target is `a.md`).
+   4. Yes to both rows: `[x](a.md#h)` with `a.md` missing is one finding; `../` is resolved from the document's folder (`docs/project-guide/`).
+   5. Yes: a *Replaced* section ends at the next `##` heading, and a missing name after it is reported again.
+   6. Yes: criterion 4's test also shows that the command reads `README.md`, `docs/operator-guide/` and `docs/project-guide/`, with one planted missing name in each.
+   Smoke test: yes, make it print the number of findings, with `Expect:` a number alone.
