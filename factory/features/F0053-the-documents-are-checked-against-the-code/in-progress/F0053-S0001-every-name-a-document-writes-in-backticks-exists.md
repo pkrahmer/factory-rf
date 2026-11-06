@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T02:42:18.552969Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,13 +152,19 @@ journal:
   kind: started
   at: '2026-11-06T02:42:18.552969Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T02:43:52.463655Z'
+  stage: review
+  run: c06120c3af744379b117d012f9e040bb
 ---
 
 # Every name a document writes in backticks exists
 
 ## Description
 
-A document that names a module, a function or a file the code no longer has misleads its reader, and F0051's moves showed how fast such names go stale. This story adds a name check to the document check: in `README.md`, the operator guide and the project guide, every backticked dotted name that starts with `factory.` must be an importable module or an attribute of one, and every backticked repository path must exist. A relative Markdown link to a file must point to a file that exists, read from the document's folder (the human, 2026-11-05); a link to a web address or to a heading alone (`#...`) is not checked here. A placeholder in angle brackets (`<instance>`), a glob (`*`), a path under `/srv`, `/etc` or another absolute place, and a name inside a fenced code block are not checked. `docs/decisions.md` and `docs/runs/` are not read. Until S0004, the findings are only printed.
+A document that names a module, a function or a file the code no longer has misleads its reader, and F0051's moves showed how fast such names go stale. This story adds a name check to the document check: in `README.md`, the operator guide and the project guide, every backticked dotted name that starts with `factory.` must be an importable module or an attribute of one, and every backticked repository path must exist. A relative Markdown link to a file must point to a file that exists, read from the document's folder (the human, 2026-11-05); a link to a web address, to a `mailto:` address or to a heading alone (`#...`) is not checked here. A placeholder in angle brackets (`<instance>`), a glob (`*`), a path under `/srv`, `/etc` or another absolute place, and a name inside a fenced code block are not checked. `docs/decisions.md` and `docs/runs/` are not read. Until S0004, the findings are only printed.
 
 ## Interface
 
@@ -409,3 +411,29 @@ Expect: a number alone (the count of findings, possibly `0`)
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 26. factory: started review as vm.
+27. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`: `src/factory/shared/domain/documents.py`, `src/factory/entry/check_documents.py` and the three test files. The journal shows `make check` green after the coder (entry 25). I also ran `make duplicates` to read its new findings. All 5 new ones are in `claude_runtime`/`opencode_runtime`, `hand_over`/`acceptance` and `cost_records`, and none is in a file this diff touches.
+
+    no findings
+
+    All six findings from round 0 are fixed:
+    - 1: the four rows of criterion 5 are in `test_named_references_finds_backticked_names_paths_and_links`.
+    - 2: criterion 2's two sides are now rows of `test_each_missing_name_path_or_link_target_gets_one_finding`.
+    - 3: the link rows assert the whole line, with the resolved names `src/factory/nothing.py`, `docs/project-guide/a.md` and `docs/README.md`.
+    - 4: the row `missing-top-level-path-without-extension` shows the command passes `top_level`.
+    - 5: the rows `whitespace`, `home` and `web-address-in-backticks` are in place.
+    - 6: `UNCHECKED_SECTIONS` reuses `REPLACED_SECTION`.
+
+    Checked, by group:
+    - Criteria 1 to 5 each have their rows, and every row tests its criterion. `os.path` covers both the non-`factory.` side and the no-`/` side of the path rule, because it would match by extension if `/` were not required. Criterion 4's row `one-today` checks that today's line comes first and that the exit status is unchanged.
+    - Architecture: the pure rules are in `shared.domain`. `importlib` and the file system are in `entry`, as the Interface says. No new module, so the area table is unaffected.
+    - Security: no marker, no shell or string-built command. Only names matching `factory(\.\w+)+` are imported, and paths are checked to resolve under the root.
+    - Quality: the names are clear. `_section_lines` replaces the two copies of the exempt-line loop, and there is no dead code.
+    - Docs: criterion 7 still names `docs/project-guide/shared.md`, *The document check*, and that section exists.
+
+    description corrected: "a link to a web address or to a heading alone (`#...`) is not checked here" -> "a link to a web address, to a `mailto:` address or to a heading alone (`#...`) is not checked here" (criterion 5 settles the `mailto:` side).
+
+    Earlier tests:
+    - `tests/entry/test_check_documents_operator_guide.py`: changed under the human's leave in journal entry 11, answer 2(a). Only the output comparison changed, to leave out the lines ending in ` does not exist`, which is within that leave.
+
+    Notes:
+    - `tests/entry/test_check_documents_references.py`: the Interface's "a path found under the checkout" has no row for a link or path that exists but resolves outside the checkout (for example `[x](../../../outside.md)` with a file planted in `tmp_path`). The code handles that side in `src/factory/entry/check_documents.py` `_path_exists` (`is_relative_to(root.resolve())`). The missing row is one row in `test_each_missing_name_path_or_link_target_gets_one_finding`, expecting one finding.
