@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T10:30:27.338290Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-06T10:30:27.338290Z'
   stage: doing
+- number: 29
+  speaker: coder
+  kind: result
+  at: '2026-11-06T10:35:12.210695Z'
+  stage: doing
+  run: d74f05cd7f7c4fd08b189354c5462c28
 ---
 
 # The agents write and review documents against the code
@@ -436,3 +438,19 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name, and now also strips the `### Documents` item.
     - `tests/agent_files/test_claude_agent_texts_mutants.py`: changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name and only skips the `### Documents` item. Nothing else in that module changed.
 28. factory: started doing as vm.
+29. coder: Round 2: I fixed review findings 1 to 3 from entry 27. `make check` is green (`check: green`, `test: green (102.3 s)`, coverage 99.22 %), and `uv run pytest -q tests/agent_files` passes.
+
+    - **Finding 1**, `agents/agents/documenter.md` Stage step 3: the condition is now "when the project's Makefile has a `documents` target". The documenter may read the Makefile; it may not read `factory/`. The end condition now sits inside that condition too: "With that target, end only when the last line of `make documents` is `documents ok (<seconds> s)` …; without that target, `make check` alone." `make documents` and `documents ok` stay in one paragraph, so the `make-documents-ends-on-ok` row still holds.
+    - **Finding 2**, `agents/agents/reviewer.md` `### Documents` item: it has a new last line, "This item holds in the stage `docs-review` as well, beside its step 2: the two findings above are findings there too." I put the fix in the item and not in docs-review step 2, so the change stays inside what `_DOCUMENTS_ITEM` strips in `test_the_rest_of_the_reviewer_body_is_unchanged`. The item still has the shape the mutants test skips: heading, blank line, paragraph lines, blank line.
+    - **Finding 3**, `agents/agents/intake.md` Stage step 7: the list of lines for the accepted entry now includes "the docs criterion (names what the reader must know, dictates no sentences)". It sits between the smoke test and the architecture, in step order.
+
+    Main choice: for finding 2, one sentence in the *Documents* item says it also holds in docs-review. I rejected editing docs-review step 2, because two places would then have to say the same rule, and other tests pin that subsection.
+
+    Refactor: I re-read the three-line diff and found nothing to change.
+
+    Description: no journal entry in this round changes what the task means.
+
+    Noticed, not touched: the docs criterion (11) still names only the documenter and the reviewer, and the reviewer withdrew that point (entry 27). `docs/project-guide/agents.md:291` names the intake's route step as step 6, and it is now step 7. The documenter's cross-read should fix that.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone

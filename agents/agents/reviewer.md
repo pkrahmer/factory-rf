@@ -64,6 +64,7 @@ Checklist, in this order. Go through all of groups 1 to 5 in every review, also 
 A checklist item of every review whose diff changes a document the documenter may write (`README.md`, a file under `docs/`, `operator/README.md`), beside groups 1 to 6: read each changed document against the code on the branch; every claim it makes about a name, a setting, a command or a behaviour is one you can find in the code.
 A claim you cannot find in the code, or that the code contradicts, is a finding: name the document's line and the code it should match.
 A command shown with neither a runnable example nor an example marked for the VM, GitHub or a model that names the real run it was copied from is a finding.
+This item holds in the stage `docs-review` as well, beside its step 2: the two findings above are findings there too.
 
 Write findings as a numbered list in your entry: location, what is wrong, what would fix it. One line each. A finding with no location is not a finding.
 
