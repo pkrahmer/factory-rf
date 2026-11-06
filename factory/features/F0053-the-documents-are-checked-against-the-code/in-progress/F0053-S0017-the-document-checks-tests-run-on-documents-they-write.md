@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T21:29:01.731821Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-06T21:29:01.731821Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T21:29:31.856669Z'
+  stage: smoke-test
+  run: 0e635cd1b0bd43ff89b4a3b221980034
 ---
 
 # The document check's tests run on documents they write
@@ -499,3 +501,27 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok (0.6 s)
 30. factory: started smoke-test as vm.
+31. smoke-tester: Smoke test, round 1. I ran both commands under `## Smoke test` from the repository root, exactly as written and in order. Nothing was fixed.
+
+    Command 1: `grep -rlE "tracked_files|documents_copy_support|operator_support import ROOT" tests/entry | wc -l`
+    ```
+    0
+    ```
+    Expect: `0`. Met.
+
+    Command 2: `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 49ms
+    documents ok (0.6 s)
+    ```
+    The first line is uv's own message on standard error; the pipe's last line is `documents ok (0.6 s)`, and check_documents exited with 0. Expect: `documents ok (<seconds> s)`. Met.
+
+    Against the acceptance criteria:
+    - `tests/support/minimal_documents_support.py` and `tests/guards/test_document_tests_write_their_documents.py` exist.
+    - `tests/support/documents_copy_support.py` is gone, and `tests/conftest.py` no longer defines `tracked_files` or `documents` (Interface).
+    - No module under `src/` differs from `origin/main`.
+    - For criterion 8, `docs/project-guide/shared.md` has the section on how the check is tested (minimal documents built from the code's tables, tests that add what their rule needs, the real documents checked only by `make documents`). `docs/project-guide/style.md`, *Runnable examples*, says a wrong example blocks in a listed file, is reported in any other, and that the test suite runs none of the documents' examples. `docs/decisions.md` has the entry "The check's tests run on documents they write".
+    - Command 1 is consistent with criterion 5.
+    - The smoke test contradicts no criterion. Criteria 1–4 and 6–7 are left to the tests and to the factory's `make check`; I did not run them here.
+
+    Findings: none.
