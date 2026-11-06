@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T21:09:33.724382Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-06T21:09:33.724382Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-06T21:15:42.984747Z'
+  stage: doing
+  run: 20c8a464ef5b41749012cbd051b38706
 ---
 
 # The document check's tests run on documents they write
@@ -280,3 +282,17 @@ Expect: `documents ok (<seconds> s)`
 
     `lint`: lint: green (0.1 s)
 16. factory: started doing as vm.
+17. coder: I wrote no code, and the working tree is unchanged. Nothing under `src/factory/` changes in this story. The tests and the support module (`tests/support/minimal_documents_support.py`, `tests/entry/test_check_documents_minimal.py`, `tests/guards/test_document_tests_write_their_documents.py` and the rewritten `tests/entry/test_check_documents_*.py`) are the tester's. The tester made the type fix the human chose in entry 11 (entry 15). This round, all I had to do was run `make check` and the refactor step.
+
+    - `make check`: green. The test step reports `test: green (106.7 s)` and coverage of 99.20 %.
+    - Refactor: I had no diff of my own to read, so nothing changed.
+    - `make test` time, before and after the story (asked for in the Description, not a criterion):
+      - After the story: 106.7 s in this run's `make check`, and 105.1 s in entry 10.
+      - Before the story: no `make check` figure. I ran the plain pytest suite (`-n auto --dist worksteal`, no coverage) on a temporary `--shared` clone of the local `main` branch. That branch's tip is `4d108428c`, which already holds this story's tests, so the figure does not show the time before them. That run took 87 s. Two tests in `tests/hosting/adapters/test_instance_fixture.py` failed there (the rows `healthy` and `a-wrong-instance-name-is-refused` of `test_the_commands_of_a_block_on_the_instance_print_what_a_valid_instance_prints`). They are likely caused by running from a clone with `PYTHONPATH`, outside the project's environment, not by the code. They pass in `make check` here.
+      - A second measurement on `origin/main` and on the branch with the same method was refused at the permission prompt, so I have no like-for-like "before" figure. Whoever needs it can run `make test` on `main` against `make test` on this branch.
+    - Main choice: I left the code alone and made no `src/` change, as the Interface says (option A, which the human chose). Rejected: re-exporting `STOP_TABLE`, `KILL_POINT_CASES` and `FAULT_PATHS` from `factory.shared.domain.documents`.
+    - Open: criterion 8 (`docs:` in `docs/project-guide/shared.md`, `docs/project-guide/style.md` and `docs/decisions.md`) is the documenter's.
+    - Noticed and not touched: the local `main` branch in the checkout ends at a journal commit of this work item (`4d108428c`), not at a clean `main`.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
