@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T11:56:42.610835Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -126,6 +130,11 @@ journal:
   at: '2026-11-06T11:56:37.291198Z'
   stage: tests
   run: 1963c68abea243f59b39e54ba90cb668
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:56:42.610835Z'
+  stage: doing
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -327,3 +336,4 @@ Expect: `1`
     - No module failed to import.
 
     `lint`: lint: green (0.2 s)
+22. factory: started doing as vm.
