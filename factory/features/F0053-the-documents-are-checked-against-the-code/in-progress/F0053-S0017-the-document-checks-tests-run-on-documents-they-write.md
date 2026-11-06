@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 606
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T20:53:15.118416Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-06T20:53:15.118416Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T20:53:33.150269Z'
+  stage: intake
+  run: c1038a76837244ee9914156042a2648e
+  blocked: question
 ---
 
 # The document check's tests run on documents they write
@@ -79,3 +82,12 @@ Expect: `documents ok (<seconds> s)`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, so there are no form findings):
+
+   1. The Interface says `add_and_commit` "leaves `git status --porcelain` empty", but criterion 1 checks the status only for `minimal_documents`. No criterion tests `add_and_commit`. Please add one, with a passing case and a case that adds a file in a new subfolder. I would choose a criterion saying that after `add_and_commit(root, {...})` the status is empty and the new file is tracked.
+
+   2. Criterion 5 is not testable by one test function. "Under their usual time" has no number, and "the `make test` time before and after" is a measurement for the entry, not something a test can check. Please split it into two parts. (a) A testable criterion. I would choose this: "the document check's tests do not run the real documents' examples", checked by a guard or test that fails if a module under `tests/entry/` that tests `check_documents` runs on a path outside `tmp_path`. (b) A note that the entry reports the `make test` times, not as a criterion. If you keep the `sleep 30` check, please give it a bound, for example "finishes within `ROOMY_BOUND_SECONDS`", and say which test module shows it.
+
+   3. Criterion 4 covers the guard's failing side only for `support.operator_support.ROOT`. The Interface's rule names four things: `ROOT`, `tracked_files`, `documents_copy_support` and the path `docs/checked-documents.txt`. Please say that the failing-side test has one row for each of the four. I would choose that.
+
+   4. Criterion 3 asks for "a test for each behaviour listed", with the passing and failing sides. But the Interface list has no failing side for some behaviours: "a page listed once more gives no second finding" and "a skipped block adds only its `not run` line". Please say what the failing side is for each, or say that the criterion applies to the passing side only for them. For the skipped block, I would choose one row for each of `vm`, `github`, `model` and `suite`.
