@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T10:05:19.372924Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T10:05:13.942470Z'
   stage: intake
   run: 820e3ea30f8c40c7baa7940b99b07a3e
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:05:19.372924Z'
+  stage: tests
 ---
 
 # The agents write and review documents against the code
@@ -102,3 +111,4 @@ Expect: `named`
    - Architecture: the Interface changes only agent files and tests under `tests/agent_files/`, which fits the layout in CLAUDE.md.
    - Scope: within F0053's "the agents' rules" scope. Nothing in Out of scope is touched. `factory/story-form.md` is a human change at merge and is not part of this story.
    Route: `tests`, since the Interface changes `agents/agents/`, which the documenter may not write.
+7. factory: started tests as vm.
