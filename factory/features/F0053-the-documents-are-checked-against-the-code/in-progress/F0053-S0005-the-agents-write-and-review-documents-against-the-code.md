@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T10:56:45.803263Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -191,6 +195,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T10:56:43.191142Z'
+  stage: review
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:56:45.803263Z'
   stage: review
 ---
 
@@ -499,3 +508,4 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_mutants.py` was changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name; the only change is that it skips the `### Documents` item. Nothing else in that module changed.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 33. 2026-11-06 human: One more round, by the human's decision. The coder fixes finding 1 of review entry 31 in `agents/agents/documenter.md` only: the lesson names only the `make check` half of step 3 ("end without running `make check`"), and no longer says "in place of step 3", so the `make documents` sentence and its `documents ok (<seconds> s)` stay in force for every documenter. Keep `make documents` and `documents ok` in one paragraph, so the test row holds unchanged. No test change.
+34. factory: started review as vm.
