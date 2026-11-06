@@ -7,7 +7,11 @@ crashes: 1
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T03:15:23.586691Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -79,6 +83,11 @@ journal:
   speaker: factory
   kind: crash
   at: '2026-11-06T03:15:21.530305Z'
+  stage: doing
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T03:15:23.586691Z'
   stage: doing
 ---
 
@@ -175,3 +184,4 @@ Expect: `True`
     `lint`: lint: green (0.2 s)
 12. factory: started doing as vm.
 13. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit df6343e7ddca4349c3708f34958ec6be5a0308fe.
+14. factory: started doing as vm.
