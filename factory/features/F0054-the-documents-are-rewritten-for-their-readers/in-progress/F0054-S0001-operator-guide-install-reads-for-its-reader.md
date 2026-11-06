@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433, 6697301221]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T22:27:04.201457Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -218,6 +214,12 @@ journal:
   kind: started
   at: '2026-11-06T22:27:04.201457Z'
   stage: docs-review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:28:29.102754Z'
+  stage: docs-review
+  run: 53adfc491171412a86435b383fdb5ff5
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -601,3 +603,21 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (1.8 s)
 37. factory: started docs-review as vm.
+38. reviewer: Docs review after the documenter's entry 36. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`. I checked the rewritten *Install* steps against `operator/vm/setup.sh`, `docs/operator-guide/machine.md` (*The two passes*, *The steps*, *The service*), `docs/operator-guide/health.md` (*The preflight's items*), `docs/operator-guide/cloud-run.md` and `docs/project-guide/style.md`.
+
+    What holds:
+    - Finding 1 of entry 34 is fixed. "The way to run an instance" is gone, and step 1 links to cloud-run.md for running without a VM.
+    - Finding 2 of entry 34 is fixed. Step 2 names `hosting-token`, `claude-token` and `anthropic-api-key` in `/home/factory/.secrets`, readable by `factory`. It says all three must exist and that the key file stays empty under `claude`. This agrees with machine.md:288 and setup.sh:336-338 and 428-430.
+    - The quoted first-pass line is a true prefix of setup.sh:351, and the script exits 0 there (setup.sh:352).
+    - Step 5's claims are true. The unit is enabled but not started (setup.sh:457-459). The unit runs `factory-run` with `factory.env` (machine.md:336). The preflight has the items `dataset` and `stage-image` (health.md:39-58).
+    - The headings that the steps link to all exist: "The machine", "The two passes", "The stage image" and "The service" in machine.md, "The preflight's items" in health.md, and *When the process refuses to start* in this file.
+    - Unchanged and still correct: `docs/checked-documents.txt` (criterion 3), the kept headings (criterion 4), the tables, and the inline `make mutants` commands (entry 14).
+
+    Findings:
+    1. docs/operator-guide/install.md:11: finding 3 of entry 34 is only half fixed. Step 1's first sentence still runs to about 40 words: the command, a semicolon, then the list of what the script sets up, then a parenthesis. That breaks style rule 2 (split a sentence of more than about 25 words), and entry 32 asked for the list as one short sentence or a pointer. Entry 36 says "a short sentence" names the list, but it is a clause of that long sentence. The list also says "the ZFS dataset" where setup.sh:2-3 makes "the ZFS pool and datasets". Fix: end the first sentence after the command. Make the list a sentence of its own under 25 words, with "the ZFS pool and datasets" and the pointer to "The steps" in machine.md. Move "which is enabled, not started" to step 5.
+    2. docs/operator-guide/install.md:11 and :19: steps 1 and 5 each have three sentences after their action. style.md:77 allows one action with its command and at most one sentence of reason. In step 1 the Cloud Run pointer is no reason for the step. In step 5 the unit sentence and the preflight sentence came in with entry 36. Fix: move the sentence "To run an instance without a VM, see cloud-run.md" into the paragraph before the list (line 9). Keep one sentence after step 1, the first-pass line. Keep one after step 5, "If it refuses, see …". Move the unit and preflight sentences into a short paragraph after the list.
+
+    Still open outside this diff, as entries 14 and 20 decided:
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*.
+    - `docs/operator-guide/README.md` keeps its version-history sections.
