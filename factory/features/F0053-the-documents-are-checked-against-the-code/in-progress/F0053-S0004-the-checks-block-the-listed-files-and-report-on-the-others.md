@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T09:37:33.617343Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-06T09:37:28.343874Z'
   stage: doing
   run: 5f289285080748c29677ac2d1410e235
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:37:33.617343Z'
+  stage: tests
 ---
 
 # The checks block the listed files and report on the others
@@ -227,3 +236,4 @@ Expect: `documents ok (<seconds> s)`
     Still open:
     - The refactor step is left for the next doing round, once all tests are green.
     - `docs/checked-documents.txt` and criterion 12 belong to the documenter.
+14. factory: started tests as vm.
