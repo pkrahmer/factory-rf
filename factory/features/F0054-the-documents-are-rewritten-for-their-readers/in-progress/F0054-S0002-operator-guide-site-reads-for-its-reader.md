@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T22:56:30.294569Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T22:56:25.002334Z'
   stage: intake
   run: 97a9d5fcadaa4232aa87610a67507be2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:56:30.294569Z'
+  stage: docs-only
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    - Docs criterion: criterion 6 asks for criteria 1 to 4 and names no sentences to write. It dictates no text. It says what the reader must know only through the Description: an operator who runs an instance and does not read the code.
    - Architecture: nothing in `src` changes. This is a document rewrite on the docs route, checked by the F0053 document checks.
    - Scope: it is S0002 of F0054, which lists it. It stays inside the feature's scope (one file rewritten and added to the checked list). It touches none of the feature's out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`) and changes no behaviour.
+4. factory: started docs-only as vm.
