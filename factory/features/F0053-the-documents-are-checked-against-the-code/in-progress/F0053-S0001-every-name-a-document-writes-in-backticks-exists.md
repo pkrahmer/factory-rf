@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T02:35:58.656674Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-06T02:35:50.457050Z'
   stage: doing
   run: f9166a4733784068b67dd3c5ef290204
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:35:58.656674Z'
+  stage: tests
 ---
 
 # Every name a document writes in backticks exists
@@ -334,3 +343,4 @@ Expect: a number alone (the count of findings, possibly `0`)
     Noticed, not touched: on the real repository the command still prints about 152 name findings. The human has left those for S0004.
 
     `check`: check: green
+22. factory: started tests as vm.
