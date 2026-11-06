@@ -7,7 +7,8 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from factory.shared.domain import documents, settings
+from factory.pipeline.domain import stop_table
+from factory.shared.domain import documents, kill_point_cases, settings
 from support.check_documents_support import TIME_LINE
 from support.git_support import run_git
 from support.minimal_documents_support import add_and_commit, minimal_documents
@@ -32,13 +33,17 @@ def test_the_minimal_documents_pass_the_check_in_a_clean_work_tree(
 
 
 def _one_more_stop(monkeypatch: pytest.MonkeyPatch) -> None:
-    added = documents.STOP_TABLE[0].model_copy(update={"id": "a_stop_of_the_test"})
-    monkeypatch.setattr(documents, "STOP_TABLE", (*documents.STOP_TABLE, added))
+    added = stop_table.STOP_TABLE[0].model_copy(update={"id": "a_stop_of_the_test"})
+    extended = (*stop_table.STOP_TABLE, added)
+    monkeypatch.setattr(stop_table, "STOP_TABLE", extended)
+    monkeypatch.setattr(documents, "STOP_TABLE", extended)
 
 
 def _one_more_kill_point(monkeypatch: pytest.MonkeyPatch) -> None:
-    added = documents.KILL_POINT_CASES[0].model_copy(update={"id": "a_case_of_the_test"})
-    monkeypatch.setattr(documents, "KILL_POINT_CASES", (*documents.KILL_POINT_CASES, added))
+    added = kill_point_cases.KILL_POINT_CASES[0].model_copy(update={"id": "a_case_of_the_test"})
+    extended = (*kill_point_cases.KILL_POINT_CASES, added)
+    monkeypatch.setattr(kill_point_cases, "KILL_POINT_CASES", extended)
+    monkeypatch.setattr(documents, "KILL_POINT_CASES", extended)
 
 
 def _one_more_setting(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -4,7 +4,8 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import factory
-from factory.shared.domain import documents, settings
+from factory.pipeline.domain import fault_paths, stop_table
+from factory.shared.domain import documents, kill_point_cases, settings
 from support.document_texts import decision_log, readme, stop_row, write_documents
 from support.git_support import commit_all, run_git
 
@@ -35,13 +36,13 @@ def _install() -> str:
 
 
 def _stops() -> str:
-    rows = [stop_row(row) for row in documents.STOP_TABLE]
+    rows = [stop_row(row) for row in stop_table.STOP_TABLE]
     return _page("The stops", documents.OPERATOR_GUIDE_SECTIONS, {}) + "\n".join(["", *rows, ""])
 
 
 def _project_guide() -> str:
-    rows = [f"| `{case.id}` | {case.dies} |" for case in documents.KILL_POINT_CASES]
-    rows += [f"| {path.number} | `{path.test}` |" for path in documents.FAULT_PATHS]
+    rows = [f"| `{case.id}` | {case.dies} |" for case in kill_point_cases.KILL_POINT_CASES]
+    rows += [f"| {path.number} | `{path.test}` |" for path in fault_paths.FAULT_PATHS]
     return _page("Project guide", documents.PROJECT_GUIDE_SECTIONS, {}) + "\n".join(["", *rows, ""])
 
 

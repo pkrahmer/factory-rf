@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T21:08:32.548119Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-06T21:08:32.548119Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-06T21:09:28.244344Z'
+  stage: tests
+  run: 60f2fee00b534d52acb07e097bb43c15
 ---
 
 # The document check's tests run on documents they write
@@ -250,3 +252,21 @@ Expect: `documents ok (<seconds> s)`
 
     After this change, `make check` must be green. The tester should also run `make types` on these two files, because skipping it is how these errors reached the doing stage. When the work item comes back, I will run `make check`, do the refactor step, and report the `make test` time. Last run, after the story: 105.1 s. There is no before time yet, because that needs a run on `main`.
 14. factory: started tests as vm.
+15. tester: I made the test change the human approved in entry 11, as entry 13 describes it. Nothing under `src/` changed.
+
+    Files changed (both are my own tests from this story):
+    - `tests/support/minimal_documents_support.py`: `STOP_TABLE`, `KILL_POINT_CASES` and `FAULT_PATHS` are now read from the modules that define them: `factory.pipeline.domain.stop_table`, `factory.shared.domain.kill_point_cases` and `factory.pipeline.domain.fault_paths`. They are no longer read through `factory.shared.domain.documents`.
+    - `tests/entry/test_check_documents_minimal.py`: `_one_more_stop` and `_one_more_kill_point` build the extended table from the defining module. They still patch the name inside `documents` with `monkeypatch.setattr(documents, "STOP_TABLE", ...)` and `monkeypatch.setattr(documents, "KILL_POINT_CASES", ...)`, the name given as a string.
+
+    One addition beyond the literal wording, needed to keep the test checking the same thing: each helper also patches the same extended table into its defining module (`monkeypatch.setattr(stop_table, "STOP_TABLE", ...)` and `monkeypatch.setattr(kill_point_cases, "KILL_POINT_CASES", ...)`). The support module now reads the defining modules. Without this second patch, the minimal documents would not contain the added row, while the check, which reads `documents`' copy, would expect it. Then `test_the_minimal_documents_follow_one_more_row_of_the_codes_tables[stop]` and `[kill-point]` would fail for a reason in the test, not in the code. Test names and what they check are unchanged.
+
+    Criterion mapping: unchanged from my earlier entry.
+
+    Runs:
+    - `uv run pytest -q tests/entry/test_check_documents_minimal.py tests/support/minimal_documents_support.py`: 6 passed. Every module imported; none was missing.
+    - `make lint`: green.
+    - `make types`: green (1029 source files). That clears the 7 `attr-defined` errors the coder reported.
+
+    I set aside no skill step.
+
+    `lint`: lint: green (0.1 s)
