@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T11:19:44.398515Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T11:19:44.398515Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T11:21:58.689793Z'
+  stage: docs
+  run: 6439c20fb5514c1aad48d5212ea65f52
 ---
 
 # Each area names its guide page
@@ -147,3 +149,16 @@ Expect: `8`
    - Earlier tests: the diff changes no test file that `main` already holds. Its only test file, `tests/guards/test_area_guides.py`, is new (status `A`).
    - Documents: the diff changes none.
 10. factory: started docs as vm.
+11. documenter: Files changed: `docs/project-guide/README.md`. I added one paragraph under "The code's layout". It says that each area's package docstring ends with `Guide: docs/project-guide/<area>.md`, that `entry` names the index, and that `tests/guards/test_area_guides.py` fails for a missing line or a missing page. I wrote it after reading the eight `__init__.py` diffs and the guard test on the branch.
+
+    `docs/decisions.md`: unchanged, as the docs criterion says. I wrote no "Why" or "Rejected" line.
+
+    Cross-read and found current: `README.md` and the operator guide say nothing on package docstrings. The rest of the project guide README's layout section still matches the code.
+
+    `make documents` ended with `documents ok (0.4 s)`. Before that last line it printed two notes that I did not touch: `docs/project-guide/machine.md:362: factory/stage.Containerfile does not exist` and `docs/project-guide/work.md:13: factory/agents does not exist`. Neither comes from this story. I did not run `make check`, because I changed only a document.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (0.4 s)
