@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T14:18:28.779159Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-06T14:18:28.779159Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-06T14:18:50.392648Z'
+  stage: intake
+  run: eac0b28babd0497982510fce80ee4043
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -62,8 +64,9 @@ The suite runs the examples of every document on a copy of the documents (the `d
 2. In the `documents` copy, a committed `console` block in `docs/project-guide/machine.md` with `$ ls operator/vm/setup.sh` and the expected line `operator/vm/setup.sh` gives no line about `machine.md` in the output of `main`. The same block with `operator/vm/nothing.sh` gives the line `docs/project-guide/machine.md:<line>: the example printed ls: cannot access 'operator/vm/nothing.sh': No such file or directory` (rows of one test).
 3. The `documents` copy holds `pyproject.toml` and `src/factory/shared/domain/documents.py`, holds no `.venv`, and `git status --porcelain` in it prints nothing.
 4. Every row of `test_the_operator_guide_folder_is_checked_per_file` passes with today's documents, as before.
-5. `make check` stays green.
-6. docs: `docs/project-guide/style.md`, *Runnable examples*: the reader learns that the suite runs the examples on a copy of the repository's tracked files. So an example that passes `make documents` also passes the suite, and a block that is not run never fails either of them.
+5. Two copies taken from the one session repository are separate: a file committed or changed in one test's `documents` copy is absent from the copy another test gets, and a fresh copy's `git status --porcelain` is empty (tested at fixture level, two copies from the one session repository).
+6. `make check` stays green.
+7. docs: `docs/project-guide/style.md`, *Runnable examples*: the reader learns that the suite runs the examples on a copy of the repository's tracked files. So an example that passes `make documents` also passes the suite, and a block that is not run never fails either of them.
 
 ## Smoke test
 
@@ -93,3 +96,11 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
    Once question 1 is answered I would accept on the `tests` route.
 4. 2026-11-06 human: Yes, with your wording: a file committed or changed in one test's `documents` copy is absent from the copy another test gets, and a fresh copy's `git status --porcelain` is empty. One criterion, tested at fixture level (two copies from the one session repository).
 5. factory: started intake as vm.
+6. intake: accepted. Carried in from journal entry 4 (the human's answer to my question 1): I added one criterion, now 5, before the two closing ones (so `make check` is now 6 and `docs:` 7). It says a file committed or changed in one test's `documents` copy is absent from another copy, and a fresh copy's `git status --porcelain` is empty, tested at fixture level with two copies from the one session repository. Nothing else in the story changed.
+   - Interface: concrete. It names the `documents` fixture in `tests/conftest.py` and the test in `tests/entry/test_check_documents_operator_guide.py`, with the session-scoped repository plus a per-test copy, the tracked-files rule and the `not run` filter.
+   - Criteria: each is testable by one test function. Criterion 1 has the `not run` filter and the `echo one`/`two` failing side. Criterion 2 has both sides (`setup.sh` and `nothing.sh`). Criterion 3 covers the copy's contents and the clean status. Criterion 5 covers the per-test isolation. Criterion 4 is the existing rows.
+   - Smoke test: runnable. It passes `-o addopts=` so the summary line exists, and the Expect line (`<n> passed`, no `failed`) is checkable.
+   - Docs criterion: names what the reader must know (the suite runs examples on a copy of the tracked files, so a passing example passes both, and a skipped block never fails either) and dictates no sentences.
+   - Architecture: tests only. No module under `src/factory/` changes.
+   - Scope: within feature F0053, not in its out-of-scope list. Decision 7 gives the human's leave for the fixture and the test.
+   - Route: tests, because the Interface changes only test files and the docs criterion needs a documenter run later.
