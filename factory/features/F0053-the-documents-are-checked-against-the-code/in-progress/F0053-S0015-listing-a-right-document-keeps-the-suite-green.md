@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T20:04:01.777420Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-06T20:04:01.777420Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T20:05:08.506068Z'
+  stage: review
+  run: 4384604b4d3c4736b1d7fe9ca523499b
 ---
 
 # Listing a right document keeps the suite green
@@ -251,3 +253,36 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 16. factory: started review as vm.
+17. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`. It covers six test files and nothing under `src/`.
+
+    The three findings from entry 9 are fixed. `tests/support/check_documents_support.py` and `tests/entry/test_check_documents_any_list.py` now import `CHECKED_DOCUMENTS`, `OPERATOR_INSTALL` and `OPERATOR_GUIDE` from `factory.shared.domain.documents`, and the copied constants `CHECKED_LIST`, `INSTALL` and `_INDEX` are gone.
+
+    - **Group 1 (criteria):**
+      - Criterion 1 is one parametrized test on the `listed` fixture, which adds the three pages to the copy's list and commits it. It has three rows:
+        - `install`: two runs, same exit status.
+        - `operator-guide-index`: exactly `docs/operator-guide/README.md: missing\n`, exit status 1.
+        - `shared`: an `echo one` / `two` finding after the report heading, exit status 0.
+
+        Each row writes an empty list first.
+      - Criterion 2 runs on the same copy without the helper and expects the extra `docs/checked-documents.txt: docs/operator-guide/README.md is no document of the check` line.
+      - Criterion 3 has the rows `empty` and `one` and checks that `git status --porcelain` prints nothing. Both sides of the helper's one rule (empty and non-empty list) are tested.
+      - Criterion 4: the four earlier tests keep their names, ids and expectations. Each one only gains a `write_checked_list` call before its steps.
+      - The coder's `make check` was green (entry 15).
+    - **Group 2 (architecture):** the helpers sit in `tests/support/`, and no test module imports another.
+    - **Group 3 (security):** nothing under `src/` changed, and there is no silencing marker, secret or baseline entry.
+    - **Group 4 (quality):** clean apart from the notes below.
+    - **Group 5 (work item):** the Description and Interface match what was built. Criterion 6 still says what `docs/project-guide/shared.md` *The settings check* must tell the reader.
+
+    no findings
+
+    Earlier tests:
+    - tests/entry/test_check_documents_copies.py: the human's leave, feature decision 8 (`feature.md` line 54), named in the story's Interface.
+    - tests/entry/test_check_documents_operator_guide.py: the human's leave, feature decision 8, named in the story's Interface.
+    - tests/entry/test_check_documents_settings.py: the human's leave, feature decision 8, named in the story's Interface. Moving `_drop_row` unchanged to the support module as `drop_settings_row` falls under the standing leave to move a shared test helper.
+    - tests/entry/test_check_documents_suite_copy.py: the human's leave, feature decision 8, named in the story's Interface.
+    - tests/support/check_documents_support.py: none needed. The change adds `write_checked_list` and the moved `drop_settings_row`, and leaves every helper the file already held as it was.
+
+    Notes:
+    1. `tests/entry/test_check_documents_any_list.py:40-75`: `_settings_steps`, `_no_index_steps` and `_shared_example_steps` re-state the steps of the earlier tests instead of sharing them. `_shared_example_steps` repeats the body of `test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one` in `tests/entry/test_check_documents_copies.py:47-63`, including its ` does not exist` filter. These step functions could live in `tests/support/check_documents_support.py` and both modules could use them.
+    2. `tests/entry/test_check_documents_any_list.py:21-23`: two constants copy constants of other test modules. `_SHARED` repeats `UNLISTED` (`tests/entry/test_check_documents_copies.py:18`), and `_NO_INDEX` repeats the expected `no-index` line of `tests/entry/test_check_documents_operator_guide.py`. Both could be shared constants in the support module.
+    3. `tests/support/check_documents_support.py:74-78`: `write_checked_list` commits through `commit_all`, which runs a plain `git commit`. If the text it writes equals what the copy's list already holds, the commit is empty and fails. The repository's list starts with comment lines, so no test hits this today. Writing the list and leaving the commit to the caller's next commit, or committing only when the text changed, would remove that dependency on the repository's list.
