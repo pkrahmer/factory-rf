@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-11-06T22:50:50.803664Z'
   stage: smoke-test
   run: 7b7d2f5935274450986d4dddf7ba32e8
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-11-06T22:54:44.768953Z'
+  stage: approval
 ---
 
 # The check reads an indented example and one without a command
@@ -244,3 +249,4 @@ Expect: `1 echo hi`
     Against the acceptance criteria: the output agrees with criterion 1 (a block indented three spaces under a numbered step gives one `Example` with the command `echo hi`) and contradicts none of the others. The command did not exercise criteria 2 to 6: the `the example has no command` finding, the blocking in listed and unlisted files through `main(["--root", ...])`, `make check` and the docs. I did not judge those beyond what the output shows.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 7.6 min, 63 turns, 213199 tokens in (1628663 more from cache), 25856 out, $2.27
