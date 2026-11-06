@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T08:53:34.042028Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T08:53:31.534026Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:53:34.042028Z'
   stage: intake
 ---
 
@@ -78,3 +87,4 @@ Expect: `1`
    3. Yes: 1a (`factory-health --state-directory "$FACTORY_STATE"` prints `healthy`) and 1b (`FACTORY_INSTANCE=Factory-1` makes `factory-run` print `settings invalid: FACTORY_INSTANCE: is not a name` and exit 2), one row each of one parametrized test if they share the setup.
    4. Yes: 3a, every path the fixture creates lies under its folder; 3b, the remote URL is a path under the folder and `git rev-parse --is-bare-repository` in it prints `true`.
    5. Yes: two `prepare` calls for two documents give two different folders, and a file written into the first is absent from the second.
+5. factory: started intake as vm.
