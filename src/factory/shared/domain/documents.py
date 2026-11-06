@@ -101,13 +101,25 @@ _LINK_TARGET = re.compile(r"\]\(([^)\s]+)")
 _MODULE_NAME = re.compile(r"factory(\.\w+)+")
 _FILE_EXTENSION = re.compile(r".+\.\w+")
 # A dotted `factory.` name that ends in one of these is a file, such as `factory.env`.
-_FILE_NAME_EXTENSIONS = (".env", ".service", ".yml", ".yaml", ".json", ".toml", ".md", ".txt")
+_FILE_NAME_EXTENSIONS = (
+    ".env",
+    ".service",
+    ".yml",
+    ".yaml",
+    ".json",
+    ".jsonl",
+    ".toml",
+    ".md",
+    ".txt",
+    ".log",
+)
 _SHELL_EXPRESSION_MARK = "$"
 _NODE_ID_SEPARATOR = "::"
 _PLACEHOLDER_OR_GLOB = ("<", ">", "*")
 _WEB_ADDRESS = "://"
 _FRAGMENT = "#"
 _PATH_SEPARATOR = "/"
+_ADDRESS_SEPARATOR = ":"
 _HOME = "~"
 _MAIL_PREFIX = "mailto:"
 SETTINGS_SECTION: Final = "Configuration"
@@ -443,10 +455,17 @@ def check_documents(texts: Mapping[str, str | None]) -> list[DocumentFinding]:
     ]
 
 
+def _is_address(text: str) -> bool:
+    # A web address (`https://host/x`) or a scp-style git address (`git@host:owner/name.git`)
+    # names its scheme or host before the first `/`.
+    before_first_separator = text.split(_PATH_SEPARATOR, 1)[0]
+    return _ADDRESS_SEPARATOR in before_first_separator
+
+
 def _is_path(text: str, top_level: frozenset[str]) -> bool:
     if _PATH_SEPARATOR not in text or any(character.isspace() for character in text):
         return False
-    if text.startswith((_PATH_SEPARATOR, _HOME)) or _WEB_ADDRESS in text:
+    if text.startswith((_PATH_SEPARATOR, _HOME)) or _is_address(text):
         return False
     segments = text.rstrip(_PATH_SEPARATOR).split(_PATH_SEPARATOR)
     return segments[0] in top_level or _FILE_EXTENSION.fullmatch(segments[-1]) is not None
@@ -507,8 +526,10 @@ def named_references(document: str, text: str, top_level: frozenset[str]) -> lis
     when its first segment is in `top_level` or its last segment has a file extension, and
     a link's target is resolved against the document's folder, without its fragment. A
     backticked text that holds `$` is a shell expression and left out, a pytest node id
-    names the path before its `::`, and a dotted `factory.` name that ends in a file
-    extension, such as `factory.env`, is a file name and no module.
+    names the path before its `::`, a text whose first `:` comes before its first `/`, such
+    as `git@host:owner/name.git`, is an address and no path, and a dotted `factory.` name
+    that ends in a file extension, such as `factory.env` or `factory.log`, is a file name
+    and no module.
     """
     lines = split_lines(text)
     return [

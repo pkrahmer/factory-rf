@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T12:14:34.361572Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T12:14:34.361572Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T12:19:07.570815Z'
+  stage: doing
+  run: ccea0efcf262477ba52b43cfb7c9e572
 ---
 
 # The name check reads log files and git addresses
@@ -100,3 +102,17 @@ Expect: `0`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Built the name check's two new rules in `src/factory/shared/domain/documents.py`. The tester's tests now pass without any change to them, and `make check` is green.
+
+   - `_FILE_NAME_EXTENSIONS` gains `.jsonl` and `.log`. It is now one name per line because it no longer fits on one. So `factory.log` and `factory.x.jsonl` are file names, while `factory.shared.domain.nothing_here` still gives a module reference.
+   - New `_is_address(text)`: true when the text before its first `/` holds a `:`. `_is_path` refuses such a text. A pytest node id is still split at `::` in `_line_references` before this test, so `tests/x.py::test_y` stays the path `tests/x.py`, and `docs/a:b.md` stays a path.
+   - The docstring of `named_references` now names the address rule and `factory.log`.
+
+   Main decision: one colon-before-first-slash test (`_is_address`) replaces the old `_WEB_ADDRESS in text` check inside `_is_path`, because `https://host/x` already has its `:` before its first `/`. That leaves one rule instead of two overlapping ones. I rejected keeping a separate git-address check next to the `://` test, because the two would be redundant. `_WEB_ADDRESS` stays in use in `_link_name`, which this story does not touch.
+
+   Refactor: I did it once. I merged the first version's separate helper into the `_is_path` guard and simplified the helper to one `split`. Behaviour is the same and `make check` is green after it.
+
+   Not touched: `_link_name` still uses its own `://` and `mailto:` checks for link targets. Those links are outside this story's interface.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
