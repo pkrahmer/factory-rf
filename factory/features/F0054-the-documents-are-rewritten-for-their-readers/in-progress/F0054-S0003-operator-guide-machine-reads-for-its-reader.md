@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 611
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:27:32.508934Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T23:27:32.508934Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:31:34.330677Z'
+  stage: docs-only
+  run: 4640a3855b5f4dd4afa0d65616ae2ae1
 ---
 
 # The operator guide's the machine reads for the operator
@@ -154,3 +156,37 @@ Expect: `1`
 
    Dropped on purpose (criterion 2), against `main`: the sentence on a VM that the prototype of `planning/overnight/gcp-runbook-2026-10-24.md` had prepared, and "A later version may use `rsync`". Both are history, and dropping them is right. No *Reference* section was added. I found no name, command, setting or rule dropped besides these two.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's 15 findings in `docs/operator-guide/machine.md`. The last line of `make documents` is `documents ok (2.1 s)`. I did not run `make check`, because I changed only documents. `docs/checked-documents.txt` is unchanged and still lists the file (the smoke test prints `1`).
+
+   Files changed:
+   - `docs/operator-guide/machine.md`: all 15 findings, in the order below.
+
+   Findings:
+   1. Every `console vm` block is now a plain `sh` block, which `make documents` never runs. They show no output. I have no real VM run to copy from, so I claim none. Line 5 now says the `sh` blocks are not run and the `console` blocks are. I added two `console` examples that `make documents` runs: `sh operator/vm/setup.sh --help | head -n 1` and the `--ref` refusal.
+   2. The `preflight_failed` stop from `metadata-block` and the `stage_image_failed` stop now have the three labelled parts (what you see, what it means, what you do).
+   3. These tasks are now numbered steps, and their headings are kept: *Update the pins*, installing a unit that differs (in *The two passes*), turning the idle shutdown on and off, and *The rebuild after a merge*.
+   4. The option table of the script now has the columns Name, What it does, Default and Example.
+   5. The `work-items.md` reference is now *A restart during a stage*.
+   6. The `health.md` link for the hosting-service token is added.
+   7. "starts as before" is now "reads `factory.env` alone".
+   8. The "at the time of writing" version numbers are replaced by a pointer to the Dockerfile.
+   9. `SnapshotError` is gone; the text now says the stage does not start and the factory log names the failed command.
+   10. Repository files are linked once at their first use: `Dockerfile`, `job-start.sh`, `setup.sh`, `factory.service`, `git-credential-factory` and `test_stage_image.py`.
+   11. The `pipeline.yml`, `story-form.md` and `feature-form.md` paths now start with `<project>/`.
+   12. The glossary words claim, cost record, crash and role are linked in the opening list.
+   13. I split the long sentences and the double parentheses at the places the reviewer named.
+   14. "the items `zfs` and `dataset`".
+   15. "the 0.2 s that `rsync` measured" is now "much slower than `rsync` would be".
+
+   Open, for the human: finding 1 offered two routes, a `console` block that runs or a copy of a real VM run. For the `gcloud`, `sudo` and `podman build` commands neither is possible here. I used unrun `sh` blocks without output. If the human wants these shown another way, for example as `console vm` blocks copied from a real VM run, say so. The style guide says nothing about commands that cannot run and have no real run.
+
+   I cross-read these again and found them current: `docs/operator-guide/README.md`, and the links to `machine.md` headings in `install.md`, `health.md`, `cloud-run.md`, `agent-runtime.md`, `stops.md` and `docs/project-guide/machine.md`. I kept every heading that another file links to.
+
+   Stale text I did not touch, because it is outside this story:
+   - `docs/operator-guide/agent-runtime.md:181` names `planning/cloud-sandbox/`.
+   - `docs/operator-guide/stops.md:235` is a very long paragraph.
+   - The other files in the `Report (not checked yet)` list have name findings. They belong to other stories.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.5 s)
+   `documents`: documents ok (2.3 s)
