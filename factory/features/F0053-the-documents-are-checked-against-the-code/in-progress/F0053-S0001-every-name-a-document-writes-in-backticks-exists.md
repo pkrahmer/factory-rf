@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T02:12:38.509322Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T02:12:38.509322Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T02:14:42.675483Z'
+  stage: tests
+  run: 0c15460cc1c8447e8d6264402b70a32b
 ---
 
 # Every name a document writes in backticks exists
@@ -110,3 +112,21 @@ Expect: a number alone (the count of findings, possibly `0`)
    - Architecture: the pure rules in `shared.domain`, the I/O (`importlib`, filesystem, `top_level`) in `entry`, as CLAUDE.md asks.
    - Scope: within the feature's S0001; `docs/decisions.md` and `docs/runs/` are excluded, as the feature's "Out of scope" says.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the name check. They are red on purpose: the test run could not import `Reference` from `factory.shared.domain.documents` (ImportError at collection), and `named_references` does not exist yet either. `make lint` is green.
+
+   Criterion → test:
+   - criterion 1: tests/shared/domain/test_document_references.py::test_named_references_finds_backticked_names_paths_and_links (one row per case: module, attribute, `operator/vm/setup.sh`, `claude/agents/reviewer.md` outside `top_level`, a placeholder in a path and in a module name, a glob, `/srv/factory`, `/etc/...`, `origin/main`, `os.path`, a fenced block, `[x](a.md#h)` → `a.md` of kind link)
+   - criterion 2: tests/entry/test_check_documents_references.py::test_a_missing_name_path_or_link_target_gets_one_finding (missing module, attribute, path, `../../src/factory/nothing.py`, `a.md#h`, and `../README.md` resolved from `docs/project-guide/`), and tests/entry/test_check_documents_references.py::test_an_existing_name_path_or_link_and_a_web_or_heading_link_get_no_finding (an existing module, attribute and path, `../../operator/vm/setup.sh` resolved from the folder, an existing link with a fragment, `https://...`, `#a-heading`). These are the two sides of one rule, but I kept them as two parametrized tests: the missing rows assert the finding line and the existing rows assert there is none.
+   - criterion 3: tests/entry/test_check_documents_references.py::test_the_decision_log_runs_and_replaced_sections_are_not_checked (rows: decision log, `docs/runs/`, `## Replaced from v1`, `## Replaced in v1.2`, and a missing name after the next `##` heading, which is reported)
+   - criterion 4: tests/entry/test_check_documents_references.py::test_name_findings_follow_todays_findings_and_leave_the_exit_status (one missing name planted in each of `README.md`, `docs/operator-guide/machine.md` and `docs/project-guide/README.md`; rows: no finding today → exit 0, one finding today → exit 1, with today's line printed before the name findings)
+   - criteria 5 and 6: not tests (make check, docs).
+
+   Choices I made:
+   - In the link rows, the tests check the finding's `<document>:<line>: ` prefix and the count, not the name. The Interface does not say whether a link's name is printed as written or as resolved.
+   - When there is no finding today, the tests do not check whether `documents ok` is printed alongside the name findings. The criteria leave that open.
+
+   Files created: tests/shared/domain/test_document_references.py, tests/entry/test_check_documents_references.py. No earlier test file changed.
+
+   Open, for the coder: two existing tests from another story will probably go red, and I did not change them. `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file` copies only the repository's docs into `tmp_path` and expects exactly `documents ok\n`. Under the new check, every repository path those docs name (`src/factory/...`) is missing under that temporary root, so the command prints name findings and the output no longer matches. `tests/entry/test_check_documents_guide_files.py` may be in the same position. Changing either needs the human's leave (a `question`, then `tests`).
+
+   `lint`: lint: green (0.2 s)
