@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-11-06T13:05:11.293908Z'
   stage: smoke-test
   run: 92decdcd43a14254b60e925686c12190
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-11-06T13:09:05.777588Z'
+  stage: approval
 ---
 
 # The example runner's tests use the roomy limit
@@ -252,3 +257,4 @@ Expect: `1`
     Findings: none.
 
     Still open, and not a finding: `tests/entry/test_check_documents_copies.py:20` still writes the literal `docs/checked-documents.txt`. No criterion covers it, and earlier stages named it already.
+17. factory: done (pull request merged); cost: 7 runs, 5.8 min, 40 turns, 131398 tokens in (698321 more from cache), 15274 out, $1.25
