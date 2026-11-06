@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T20:07:50.446610Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-06T20:07:50.446610Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T20:08:36.465452Z'
+  stage: smoke-test
+  run: a593c75d4db641089ab9ecd59c530f11
 ---
 
 # Listing a right document keeps the suite green
@@ -326,3 +328,26 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (0.6 s)
 20. factory: started smoke-test as vm.
+21. smoke-tester: Smoke test, round 1. From the repository root I ran the commands under `## Smoke test` exactly as written, in order, in one shell. The clone is of the committed branch head. The `trap` removed the temporary directory at the end.
+
+    Commands 1 to 3 (`mktemp`/`trap`, `git clone -q . "$d/c" && cd "$d/c"`, `printf … >> docs/checked-documents.txt`) printed nothing and raised no error.
+
+    Command 4, `python -m factory.entry.check_documents --root . | tail -1`:
+    ```
+    documents ok (0.6 s)
+    ```
+    Met its `Expect:` line: `documents ok (<seconds> s)`.
+
+    Command 5, `python -m pytest … test_check_documents_settings.py test_check_documents_operator_guide.py test_check_documents_copies.py test_check_documents_suite_copy.py 2>&1 | tail -1`:
+    ```
+    ============================= 21 passed in 15.47s ==============================
+    ```
+    Met its `Expect:` line: the last line is `<n> passed in <seconds>s` with no `failed` in it. Before this story the same commands gave `9 failed, 12 passed`. Now all 21 rows of the four earlier tests pass while the copy's list names `docs/operator-guide/README.md`, `docs/operator-guide/install.md` and `docs/project-guide/shared.md`.
+
+    Against the acceptance criteria: the smoke test contradicts none of them.
+    - It confirms the point of criteria 1 and 4: the four earlier tests pass with the three pages listed.
+    - It does not run criteria 2 and 3 (the failing side without `write_checked_list`, and the helper's empty and one-path rows) or the new module `tests/entry/test_check_documents_any_list.py`. Per entries 17 and 19 the tests and review cover those.
+    - Criterion 5: entry 19 records `check: green` after the docs stage.
+    - Criterion 6 is the documenter's change to `docs/project-guide/shared.md`, *The settings check* (entry 19). Nothing here contradicts it.
+
+    Findings: none.
