@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -124,6 +124,11 @@ journal:
   at: '2026-11-06T12:30:05.697862Z'
   stage: smoke-test
   run: 1721a22c8def4ef0a607ff183bbc1017
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-06T12:31:58.375413Z'
+  stage: approval
 ---
 
 # The name check reads log files and git addresses
@@ -312,3 +317,4 @@ Expect: `0`
     - Criteria 1, 2 and 4: the smoke test does not reach them, and it contradicts none of them.
 
     Findings: none.
+22. factory: done (pull request merged); cost: 10 runs, 9.8 min, 65 turns, 199124 tokens in (1230421 more from cache), 24305 out, $2.11
