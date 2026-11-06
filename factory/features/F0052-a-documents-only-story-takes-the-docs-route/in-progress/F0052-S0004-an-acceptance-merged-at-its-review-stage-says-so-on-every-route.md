@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T00:32:45.926917Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-06T00:32:40.844940Z'
   stage: review
   run: c25c15043324428d9c6a81a0bf1c52f6
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:32:45.926917Z'
+  stage: docs
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -407,3 +416,4 @@ Expect: `True True False`
     - `tests/pipeline/application/test_docs_route.py`: `TWO_ROUTES` moved to `tests/support/two_routes_support.py` under the standing leave to move a shared test helper. The row `("acceptance", False)` became `("acceptance", True)` under the human's leave, feature decision 7, which the Interface names. Nothing else changed.
     - `tests/pipeline/adapters/test_pipeline_yaml.py`: `test_position_is_the_index_in_the_stages` deleted under the human's leave in entry 19. Nothing else in the module changed.
     - `tests/work/domain/test_acceptance_before_approval.py`: `FIXTURE` and `_without_approval` moved to `tests/support/before_approval_support.py`, and `ROLES` was split out of `FIXTURE`, under the standing leave to move a shared test helper. Every test keeps its name and checks the same thing.
+28. factory: started docs as vm.
