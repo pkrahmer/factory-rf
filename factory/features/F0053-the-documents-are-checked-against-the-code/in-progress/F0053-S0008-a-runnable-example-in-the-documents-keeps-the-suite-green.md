@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T11:40:54.936100Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T11:40:54.936100Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T11:41:12.322650Z'
+  stage: intake
+  run: 3db6db9d613343e99367272a983ab60b
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -66,3 +68,10 @@ Expect: `1`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete pieces, the `documents` fixture in `tests/conftest.py`, `run_git` and `commit_all` in `tests/support/git_support.py` (both exist), and the `tests/entry/test_check_documents*.py` files (they exist). `src/` is unchanged and the leave for the earlier tests is given by feature decision 6.
+   - Criteria: 1 and 2 are each testable by one parametrized test, and rule 2 covers both sides (listed file fails with the message and exit 1, unlisted file reports and exits 0). 3 covers both git properties of the fixture. 4 is the `make check` criterion. Each is testable without further decisions.
+   - Smoke test: the three commands are runnable. The pytest command passes no `-q`, and `pyproject.toml` already sets `addopts = "-q ..."`, so `tail -1 | grep -c passed` meets the summary line. Each `Expect:` can be checked against the output.
+   - Docs criterion: it names what the reader must know (the examples run in the tests' copies, and a wrong example fails the suite only in a listed file). It dictates no sentences.
+   - Architecture: only test code changes. The fixture stays in `tests/conftest.py` and reuses the shared git helpers instead of a new copy.
+   - Scope: it is within F0053 (runnable examples, S0003/S0006) and outside its "Out of scope". The changes to the S0002 and S0003 tests are covered by decision 6.
