@@ -1,6 +1,7 @@
 """The documents command blocks on the new checks' findings in the listed files only."""
 
 import re
+import shutil
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,17 @@ MISSING_NAME = "factory.nothing_here"
 OTHER_MISSING_NAME = "factory.still_missing"
 UNKNOWN_SETTING = "FACTORY_NOTHING_HERE"
 SETTINGS_TABLE = f"| Variable | Meaning |\n|---|---|\n| `{UNKNOWN_SETTING}` | nothing |\n"
+_NOT_COPIED = (
+    ".git",
+    ".venv",
+    ".cache",
+    ".ruff_cache",
+    ".mypy_cache",
+    ".pytest_cache",
+    ".reports",
+    "mutants",
+    "__pycache__",
+)
 EXAMPLE_BLOCK = f"{FENCE}console fixture=nowhere\n$ echo hi\nhi\n{FENCE}"
 
 
@@ -131,13 +143,14 @@ def test_a_finding_of_the_checks_of_before_fails_for_every_file(
 
 
 def test_todays_documents_with_the_first_list_give_a_report_and_pass(
-    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    listed = read_checked_documents((REPOSITORY / CHECKED_LIST).read_text(encoding="utf-8"))
+    copy = tmp_path / "checkout"
+    shutil.copytree(REPOSITORY, copy, ignore=shutil.ignore_patterns(*_NOT_COPIED))
+    (copy / CHECKED_LIST).write_text(f"{STYLE}\n{GLOSSARY}\n", encoding="utf-8")
 
-    status, lines = _run(REPOSITORY, capsys)
+    status, lines = _run(copy, capsys)
 
-    assert listed == [STYLE, GLOSSARY]
     assert REPORT_HEADING in lines
     assert re.fullmatch(TIME_LINE, lines[-1])
     assert status == 0

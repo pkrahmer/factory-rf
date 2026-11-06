@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T09:37:33.617343Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-06T09:37:33.617343Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-06T09:38:43.304514Z'
+  stage: tests
+  run: 62473c178988402288643724268f171c
 ---
 
 # The checks block the listed files and report on the others
@@ -237,3 +239,23 @@ Expect: `documents ok (<seconds> s)`
     - The refactor step is left for the next doing round, once all tests are green.
     - `docs/checked-documents.txt` and criterion 12 belong to the documenter.
 14. factory: started tests as vm.
+15. tester: I made the three test changes from the coder's entry 13. Changes 1 and 2 are the ones the human allowed in entry 11. Change 3 is to my own test, along the line entry 11 gave: "a test that needs the list writes its own under tmp_path". I changed no criterion's mapping. The full mapping is in entry 8; only the test for criterion 3 changed how it runs.
+
+    Changed (earlier stories' tests, with the human's leave in entry 11):
+    - `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`: the line `Report (not checked yet):` is now also left out before the exact comparison, next to the lines ending in ` does not exist`. Nothing else in the module changed, and the test keeps its name and what it checks.
+    - `tests/entry/test_check_documents_references.py::test_name_findings_follow_todays_findings_and_leave_the_exit_status`, row `one-today`: the lines before the findings must now be `[today, "Report (not checked yet):"]`. Nothing else in the module changed, and the test keeps its name and what it checks.
+
+    Changed (my own test):
+    - `tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass` (criterion 3): it no longer reads the repository's `docs/checked-documents.txt`, which the documenter writes later.
+      - It copies the repository's working tree into `tmp_path`. `.git`, `.venv` and the cache and report folders are left out (`_NOT_COPIED`).
+      - It writes the first list (style page and glossary) into the copy and runs `main` on the copy. The name check still sees the real `src/` and `tests/`.
+      - I dropped the assertion that the repository's list reads as exactly those two files. The test now supplies the list itself.
+      - Its other assertions are unchanged: the report heading is there, the last line is the time line, and the exit status is 0.
+      - Rejected: symlinks into the real checkout. The command's path check resolves a path and refuses targets outside the root.
+      - Open: a document that names an untracked or ignored path from the left-out folders would pass on the real checkout but give a finding in the copy. Today's documents give none: the test passes.
+
+    Files changed: the three test modules above. No file created.
+
+    Run: `uv run pytest -q` over the three changed files passed with no failures. `make lint` is green. No module was left unimported: the code exists from the previous doing round (2b6135a73).
+
+    `lint`: lint: green (0.2 s)

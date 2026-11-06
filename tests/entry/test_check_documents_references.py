@@ -208,4 +208,4 @@ def test_name_findings_follow_todays_findings_and_leave_the_exit_status(
     )
     assert status == exit_status
     if today is not None:
-        assert lines[: len(lines) - len(findings)] == [today]
+        assert lines[: len(lines) - len(findings)] == [today, "Report (not checked yet):"]
