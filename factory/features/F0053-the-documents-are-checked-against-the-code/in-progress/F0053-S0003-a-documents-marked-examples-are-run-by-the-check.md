@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T08:09:51.058104Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -214,6 +218,11 @@ journal:
   at: '2026-11-06T08:09:45.786752Z'
   stage: tests
   run: 0355ca0fef8f499e989d7d4428bbc828
+- number: 38
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:09:51.058104Z'
+  stage: doing
 ---
 
 # A document's marked examples are run by the check
@@ -681,3 +690,4 @@ Expect: `1`
     - `make documents` as a suite command: neither the Interface nor the review's fix asks for it.
 
     `lint`: lint: green (0.1 s)
+38. factory: started doing as vm.
