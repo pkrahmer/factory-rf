@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950, 6684384956]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T12:07:56.192973Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -176,6 +180,11 @@ journal:
   at: '2026-11-06T12:07:50.726678Z'
   stage: docs
   run: 9dd97ccb37184ff690c423dca1333205
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:07:56.192973Z'
+  stage: smoke-test
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -475,3 +484,4 @@ Expect: `1`
     `check`: check: green
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (0.6 s)
+31. factory: started smoke-test as vm.
