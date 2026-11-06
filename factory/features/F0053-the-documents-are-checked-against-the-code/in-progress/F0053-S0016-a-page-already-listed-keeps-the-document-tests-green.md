@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T20:30:27.304914Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T20:30:21.562000Z'
   stage: intake
   run: 30820f380bcc4cebbebe909d84c2bf3d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:30:27.304914Z'
+  stage: tests
 ---
 
 # A page already listed keeps the document tests green
@@ -73,3 +82,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    - Architecture: only tests and test support change. No module under `src/` changes, and the `documents` fixture and the list stay as they are.
    - Scope: within F0053, under the human's leave in decision 9. Nothing is in "Out of scope".
    - Route: `tests`, because the Interface changes test files.
+4. factory: started tests as vm.
