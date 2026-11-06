@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T11:06:37.516420Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -236,6 +240,11 @@ journal:
   at: '2026-11-06T11:06:32.157745Z'
   stage: docs
   run: 7b606c277b964a5cbec4419992109c6a
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:06:37.516420Z'
+  stage: smoke-test
 ---
 
 # The agents write and review documents against the code
@@ -630,3 +639,4 @@ Expect: `named`
     `check`: check: green
     `secrets`: secrets: green (1.9 s)
     `documents`: documents ok (0.4 s)
+42. factory: started smoke-test as vm.
