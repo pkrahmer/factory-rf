@@ -5,15 +5,21 @@ import importlib
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
+from factory.shared.domain import settings
 from factory.shared.domain.documents import (
     DOCUMENT_PATHS,
     OPERATOR_GUIDE_FOLDER,
+    OPERATOR_INSTALL,
     PROJECT_GUIDE_FOLDER,
     README,
+    SETTINGS_SECTION,
     Reference,
     check_documents,
+    guide_tables,
     is_guide_file,
     named_references,
+    refusal_findings,
+    settings_findings,
     unresolved,
 )
 
@@ -91,11 +97,24 @@ def _name_findings(root: Path) -> list[str]:
     return unresolved(references, _existence(root))
 
 
+def _settings_guide_findings(root: Path) -> list[str]:
+    text = _read(root / OPERATOR_INSTALL)
+    if text is None:
+        return []
+    tables = guide_tables(text, SETTINGS_SECTION)
+    source = Path(settings.__file__).read_text(encoding="utf-8")
+    return [
+        *settings_findings(tables, settings.SETTINGS),
+        *refusal_findings(tables, source),
+    ]
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Print `documents ok` and return 0, or one line per finding and return 1.
 
-    The names, paths and links the documents name that do not exist follow, one per line;
-    they do not change the exit status.
+    The names, paths and links the documents name that do not exist follow, one per line,
+    then where the operator guide's settings disagree with the settings code; neither
+    changes the exit status.
     """
     parser = argparse.ArgumentParser(prog=_PROGRAM)
     parser.add_argument("--root", type=Path, default=Path.cwd())
@@ -109,6 +128,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"{finding.document}: {finding.message}")
     for name_finding in _name_findings(root):
         print(name_finding)
+    for settings_finding in _settings_guide_findings(root):
+        print(f"{OPERATOR_INSTALL}: {settings_finding}")
     return _FINDINGS if findings else _CLEAN
 
 

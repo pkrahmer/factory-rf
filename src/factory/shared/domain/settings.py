@@ -32,7 +32,9 @@ from factory.shared.domain.identifiers import Name
 # The default identity is still read from here; its one definition is in the git module.
 __all__ = [
     "DEFAULT_GIT_IDENTITY",
+    "SETTINGS",
     "InstanceSettings",
+    "SettingDoc",
     "named_state_directory",
     "read_setting_file",
     "read_settings",
@@ -101,6 +103,80 @@ IdleShutdownActionName = Literal["poweroff", "exit"]
 _IDLE_SHUTDOWN_ACTIONS: tuple[IdleShutdownActionName, ...] = ("poweroff", "exit")
 
 _NAME = TypeAdapter(Name)
+
+
+class SettingDoc(BaseModel):
+    """One variable the settings read, as the operator guide lists it.
+
+    `required` is `yes`, `no` or the condition under which the variable is needed; it is
+    written for the guide's writer and never compared. `default` is `None` when there is none.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    name: str
+    required: str
+    default: str | None = None
+
+
+def _whole_minutes(duration: timedelta) -> str:
+    return str(int(duration.total_seconds()) // 60)
+
+
+_YES = "yes"
+_NO = "no"
+
+SETTINGS: tuple[SettingDoc, ...] = (
+    SettingDoc(name=REPOSITORY_URL_VARIABLE, required=_YES),
+    SettingDoc(name=INSTANCE_VARIABLE, required=_YES),
+    SettingDoc(name=CHECKOUT_VARIABLE, required=_NO, default=str(CHECKOUT_PATH)),
+    SettingDoc(name=STATE_VARIABLE, required=_NO, default=str(STATE_DIRECTORY)),
+    SettingDoc(name=GIT_USER_NAME_VARIABLE, required=_NO, default=DEFAULT_GIT_IDENTITY.name),
+    SettingDoc(name=GIT_USER_EMAIL_VARIABLE, required=_NO, default=DEFAULT_GIT_IDENTITY.email),
+    SettingDoc(name=IMAGE_ID_FILE_VARIABLE, required="for factory-run and factory-watch"),
+    SettingDoc(name=AGENT_HOME_VARIABLE, required=_YES),
+    SettingDoc(name=CLAUDE_EXECUTABLE_VARIABLE, required=_NO, default=_CLAUDE_EXECUTABLE_DEFAULT),
+    SettingDoc(name=CLAUDE_VERSION_VARIABLE, required=_NO),
+    SettingDoc(name=CREDENTIAL_FILE_VARIABLE, required=_NO),
+    SettingDoc(name=CLAUDE_LOGIN_FILE_VARIABLE, required=_NO),
+    SettingDoc(name=API_LOGIN_FILE_VARIABLE, required=_NO),
+    SettingDoc(name=MIN_FREE_SPACE_VARIABLE, required=_NO, default=str(DEFAULT_MIN_FREE_GB)),
+    SettingDoc(
+        name=PROVIDER_LIMIT_STATUS_VARIABLE, required=_NO, default=str(DEFAULT_LIMIT_STATUS)
+    ),
+    SettingDoc(name=PROVIDER_LIMIT_MESSAGE_VARIABLE, required=_NO),
+    SettingDoc(
+        name=PROVIDER_LIMIT_COOLDOWN_VARIABLE,
+        required=_NO,
+        default=_whole_minutes(DEFAULT_COOLDOWN),
+    ),
+    SettingDoc(
+        name=PROVIDER_LIMIT_CEILING_VARIABLE,
+        required=_NO,
+        default=_whole_minutes(DEFAULT_CEILING),
+    ),
+    SettingDoc(name=AGENT_RUNTIME_VARIABLE, required=_NO, default=_AGENT_RUNTIMES[0]),
+    SettingDoc(
+        name=OPENCODE_EXECUTABLE_VARIABLE, required=_NO, default=_OPENCODE_EXECUTABLE_DEFAULT
+    ),
+    SettingDoc(name=OPENCODE_VERSION_VARIABLE, required=_NO),
+    SettingDoc(name=OPENCODE_MODELS_VARIABLE, required=_NO),
+    SettingDoc(name=OPENCODE_PROVIDER_FILE_VARIABLE, required=_NO),
+    SettingDoc(name=DATASET_VARIABLE, required="with zfs"),
+    SettingDoc(name=WORKSPACE_VARIABLE, required=_YES),
+    SettingDoc(name=SNAPSHOTS_VARIABLE, required=_NO, default=_SNAPSHOTS[0]),
+    SettingDoc(name=SNAPSHOT_BASE_VARIABLE, required="with copy"),
+    SettingDoc(name=STAGE_IMAGE_VARIABLE, required=_YES),
+    SettingDoc(name=PODMAN_EXECUTABLE_VARIABLE, required=_NO, default=_PODMAN_EXECUTABLE_DEFAULT),
+    SettingDoc(name=CONTAINER_PROFILE_VARIABLE, required=_NO, default=_CONTAINER_PROFILES[0]),
+    SettingDoc(name=ZFS_EXECUTABLE_VARIABLE, required=_NO, default=_ZFS_EXECUTABLE_DEFAULT),
+    SettingDoc(name=CONTAINER_ENV_VARIABLE, required=_NO),
+    SettingDoc(name=CA_BUNDLE_VARIABLE, required=_NO),
+    # The idle shutdown is off at 0, the value `read_settings` gives an unset variable.
+    SettingDoc(name=IDLE_SHUTDOWN_VARIABLE, required=_NO, default="0"),
+    SettingDoc(name=IDLE_SHUTDOWN_ACTION_VARIABLE, required=_NO, default=_IDLE_SHUTDOWN_ACTIONS[0]),
+    SettingDoc(name=TRANSCRIPT_DIR_VARIABLE, required=_NO),
+)
 _VARIABLE_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 
 
