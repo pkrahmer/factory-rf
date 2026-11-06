@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-06T02:47:52.316346Z'
   stage: smoke-test
   run: c3dc3c32c6234d74b53c9164d36cd3b7
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-06T02:51:46.402597Z'
+  stage: approval
 ---
 
 # Every name a document writes in backticks exists
@@ -497,3 +502,4 @@ Expect: a number alone (the count of findings, possibly `0`)
     - `factory.local.env` and `factory.env` are reported as module names because they start with `factory.`.
     - `git@host:owner/name.git` is reported as a path because it contains `/` and its last segment has an extension.
     - S0004, which makes these findings fail the check, may want to look at those rules and at the 152 stale names in the documents (84 of them in `docs/project-guide/README.md`).
+32. factory: done (pull request merged); cost: 14 runs, 24.7 min, 108 turns, 370008 tokens in (2496614 more from cache), 57335 out, $4.27
