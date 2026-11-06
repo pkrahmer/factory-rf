@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: [6696943013]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T22:03:11.316926Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,19 @@ journal:
   kind: started
   at: '2026-11-06T22:03:11.316926Z'
   stage: docs-review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:04:44.152394Z'
+  stage: docs-review
+  run: c91dcfc3dbc449e0874b340ab4b2747c
+- number: 19
+  speaker: factory
+  kind: question
+  at: '2026-11-06T22:04:44.152394Z'
+  stage: docs-review
+  run: c91dcfc3dbc449e0874b340ab4b2747c
+  blocked: round_cap
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -327,3 +336,25 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (1.9 s)
 17. factory: started docs-review as vm.
+18. reviewer: Round 2 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`. I checked them against the old file on `main`, against `docs/project-guide/style.md`, and against the code: `src/factory/shared/domain/settings.py`, `src/factory/entry/wiring.py`, `operator/vm/setup.sh` and `docs/operator-guide/machine.md`.
+
+    What holds:
+    - Round 1's findings 1, 2, 4 and 5 are fixed.
+    - Finding 3 is settled by the human's answer (b) in entry 14: the two `make mutants` commands stay inline in the prose, and the meta sentences and the dangling colon are gone.
+    - *The order of faults* (install.md:233) matches settings.py:337-359.
+    - The "missing" order (install.md:125) matches wiring.py:568-615.
+    - The relative-path refusal row (install.md:126) matches settings.py:222-234, 279-298 and 606-632.
+    - The step 3 description matches the header of setup.sh (setup.sh:2-6).
+    - The headings that other files link to are kept (criterion 4), and `docs/checked-documents.txt` has the line (criterion 3).
+
+    Findings:
+    1. docs/operator-guide/install.md:11-27: the numbered steps run `uv sync` and `make check` (steps 1-2) on a machine that step 3 only then prepares "fresh". setup.sh installs uv itself (setup.sh:394) and runs `uv sync --frozen --no-dev` in the checkout (setup.sh:398), so the sequence the opening line promises ("from an empty machine") cannot be followed in this order. Fix: make the setup.sh step first and say it installs the factory's packages. Keep `uv sync`/`make check` only as the check of a development clone, said as such, or drop them from the sequence.
+    2. docs/operator-guide/install.md:29: step 4 ("Build the stage image") names no command. The style page says each step is one action with its command (style.md:77). Fix: give the build command from machine.md:128 inline, as step 3 does: `podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>`.
+    3. docs/operator-guide/install.md:39 and :103: "The examples below are from the VM that `operator/vm/setup.sh` makes" is untrue in two ways. setup.sh prepares the machine, it does not make it (round 1's point, still in this sentence). And many examples are not what setup.sh writes: `FACTORY_STAGE_IMAGE` `factory-stage:1`, where setup.sh writes `factory-stage:<instance>` (setup.sh:20, :422), and `FACTORY_SNAPSHOTS` `copy` and `FACTORY_CONTAINER_PROFILE` `job`, which setup.sh does not set. Fix: say "prepares", narrow the sentence to "where setup.sh sets a variable, the example is the value it writes", and make the `FACTORY_STAGE_IMAGE` example `factory-stage:<instance>`.
+    4. docs/operator-guide/install.md:117: the old file's rule that `FACTORY_IDLE_SHUTDOWN_ACTION` is read also when the shutdown is off was dropped without being named (criterion 2). It means an invalid action is refused even then: settings.py:394 and :527-529 read it unconditionally. "It has no effect while the shutdown is off" alone suggests that any value is harmless. Fix: add "It is read, and an invalid value refused, also while the shutdown is off."
+    5. docs/operator-guide/install.md:107: the old file's rule for `FACTORY_CONTAINER_ENV`, "each part is stripped and blank parts are left out", was dropped without being named (criterion 2). settings.py:481-482 does exactly this. Fix: add the sentence to the row.
+
+    Open, outside this diff (the human's entry 14 gives these to their own stories):
+    - `docs/project-guide/shared.md` says the operator guide has no `Default` column and no refusal table.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*. That paragraph is now under *Reference*.
+19. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
