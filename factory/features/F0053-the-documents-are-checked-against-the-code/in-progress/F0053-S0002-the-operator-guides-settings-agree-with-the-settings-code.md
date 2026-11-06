@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T07:11:16.170784Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-06T07:11:10.877092Z'
   stage: doing
   run: 9864e686a3bf4043b4819f858d1d28d4
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:11:16.170784Z'
+  stage: tests
 ---
 
 # The operator guide's settings agree with the settings code
@@ -284,3 +293,4 @@ Expect: `True`
     Noticed, not touched: under criterion 6, a settings table that loses its `Variable`/`Name` header passes silently. The reviewer suggested raising this with S0004's gate.
 
     I did not run `make check` this round, since nothing I could change has changed.
+22. factory: started tests as vm.
