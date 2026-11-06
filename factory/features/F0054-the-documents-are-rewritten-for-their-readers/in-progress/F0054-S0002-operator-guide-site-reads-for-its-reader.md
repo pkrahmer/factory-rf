@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:00:34.125225Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T23:00:34.125225Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:03:36.317975Z'
+  stage: docs-review
+  run: f9ae491a79f84c8fa10868236a26f5b0
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -120,3 +122,27 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (2.2 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md`: `docs/operator-guide/site.md` rewritten, and `docs/checked-documents.txt` +1 line. I read both against `operator/bin/site`, `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/bin/sanitise`, `operator/skill/kumpel/scripts/{reset-to-tag,merge,comment,start-story}.sh`, `tests/operator_scripts/` and `docs/project-guide/style.md`.
+
+   Criterion 2 is met: every name, command, setting and message of the old file is in the new text or its *Reference*. Nothing was dropped. The *Reference* statuses, return codes, built-in rules and `sanitise check` statuses match the scripts.
+
+   Criterion 4 is met: every link to `site.md` from `cloud-run.md`, the operator guide's `README.md` and elsewhere points to a heading that still exists.
+
+   Criterion 3: the checked-list line is present, and the journal records `documents ok`. Criterion 1 is not met; see findings 4 to 8.
+
+   Findings:
+   1. `docs/operator-guide/site.md:45-66`, `:138-139`, `:196-205`: the `console` examples write `site.env`, `token.env`, `sanitise.rules`, `raw.txt` and `clean.txt` into `$PWD`. They pass only because the check's fixture folder is no git work tree. A reader must run them from the root of their clone (`sh operator/bin/...`). There `site init` refuses with `site: <path> lies in a git repository; ...` and status 3 (`operator/lib/site.sh:28-31`). The other blocks litter the clone, and one puts a `sanitise.rules` into a repository, which line 158 forbids. Line 45's "The path here lies in a temporary folder, so the example touches nothing of yours" is false for the reader. Fix: write the files under a folder outside the checkout, such as `"$HOME/site-example/"` (`HOME` is an empty temporary folder in the check), and correct the sentence on line 45.
+   2. `docs/operator-guide/site.md:216-224`: the two `console github` blocks show no output and name no real run they were copied from. The documenter says no run was made. Fix: copy the output from a real run and name that run above the blocks. Otherwise give the output the code prints (`reset-to-tag.sh:73-76`, `:82-89`) as a marked example that says it was not copied from a run.
+   3. `docs/operator-guide/site.md:149-152`: an `sh` block shows commands that are neither a runnable `console` example nor marked. It also calls a bare `sanitise` where the rest of the file uses `sh operator/bin/sanitise`. Fix: drop it, since lines 195-206 show both calls, or turn it into a two-row table of the calls and their statuses.
+   4. `docs/operator-guide/site.md:248` (`story`) and `:256` (`journal`): these glossary words are not linked at their first use, which criterion 1 asks for. Fix: link each to `../project-guide/glossary.md` there.
+   5. `docs/operator-guide/site.md:9`, `:17`, `:254`: "the skill" and "Kumpel" are this project's own words, and the reader is never told what they are (style rule 3: "use no other private words"). Fix: add one sentence to the intro that says what the skill and Kumpel are, and point to `operator/README.md`.
+   6. `docs/operator-guide/site.md:294-308`: the `site check` table is still "Check / It proves / What a FAIL means". It is not what you see, what it means and what you do, which the Description and the operator-guide section of the style guide ask for. Fix: use the columns What you see (`FAIL <name>: <detail>`), What it means and What you do. Line 125 (the `hosting: the token command failed...` message) also needs a "what you do": set `SITE_TOKEN_CMD`, or log in with `gh`. So do the refusals of `merge.sh` on line 250 (`merge.sh: #<pr> is a draft`, `is not open`, `is not at stage:approval`, from `merge.sh:26-31`, `:47`).
+   7. `docs/operator-guide/site.md:236-240`: "unless all three conditions hold" is followed by five rows. Row 1 is wrong. Without `--yes` the script prints the plan and exits 1; it does not refuse. Exit 2 comes with `usage: reset-to-tag.sh <tag> [--yes]` when the arguments are not `<tag>` or `<tag> --yes` (`reset-to-tag.sh:10-11`). Fix: put that usage line in "What you see", and say "the arguments are not `<tag>` or `<tag> --yes`" in "What it means". Drop the count "three", or state the three conditions.
+   8. `docs/operator-guide/site.md:3`, `:9`, `:108`, `:158`, `:191`, `:232`, `:250`, `:256`, `:264`, `:312`: these sentences break style rule 2. They run past about 25 words (3, 108, 158, 191, 232, 256, 312) or hold two parentheses (9, 250, 264, 312). Fix: split each.
+   9. `docs/operator-guide/site.md:70`: "A test keeps the example's comments and this table equal to what `operator/lib/site.sh` and `operator/job/job.sh` do" is not borne out. `tests/operator_scripts/test_operator_site_example.py` checks the example's comments. The only test that reads this table (`test_operator_site_check.py:509-511`) checks only that each key is named in the file. A sentence about tests is also nothing an operator needs. Fix: drop the sentence, or say that the example's comments are kept true by a test.
+   10. `docs/operator-guide/site.md:241` against `:76`: the keys table calls `SITE_REPOSITORY` "the factory's repository". Line 241 says that, because the reset needs `SITE_RESET_REPOSITORY` to equal `SITE_REPOSITORY`, "the factory's own repository can therefore never be the target". The code only compares the two keys (`reset-to-tag.sh:17-20`), so the target is always `SITE_REPOSITORY`. Fix: on line 76 call it "the repository the factory works on", as line 280 does. On line 241 say only that a repository named by both keys is reset.
+   11. `docs/operator-guide/site.md:281`: "A failure here is the loader's: no file (status 1), a fault in a line (status 2), ..." does not match what `site init` does. `init` never loads the file. It fails with `site: <path> exists; not overwritten` (status 1) or with the work-tree refusal (status 3) (`operator/bin/site:19-29`). Fix: name `init`'s two failures here, and move the loader's statuses to step 4, where `site show` first loads the file.
+   12. `docs/operator-guide/site.md:212`: the step says "Tag the starting point once, and push the tag", which is two actions, but it shows only `git tag starting-point <commit>`. Fix: add the push, `git push origin starting-point`, as its own step or in the same `console github` block.
+   13. `docs/operator-guide/site.md:7`, `:70`, `:264`, `:287`: repository files the reader is pointed to (`operator/site.env.example`, `operator/README.md`) are named in backticks, not linked. Style rule 8 says to link a repository file by a relative link. Fix: link each at its first mention (`../../operator/site.env.example`, `../../operator/README.md`).
+
+   Not under review, for the human: the work item's Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8.
