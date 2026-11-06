@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 609
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T22:36:34.880607Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-06T22:36:34.880607Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-06T22:36:50.244182Z'
+  stage: intake
+  run: 648c633bb9a54c50ba81a79e1b303124
+  blocked: question
 ---
 
 # The check reads an indented example and one without a command
@@ -58,3 +61,7 @@ Expect: `1 echo hi`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface rule "A line of the block with less indentation than its fence keeps what it has" has no criterion. Add one, e.g. a row in criterion 1 where a block line is indented less than the fence and keeps its indentation. I would add it.
+   2. Interface rule "That path blocks in a listed file and is reported in any other" is not tested for the new finding. Criterion 2 only covers `examples`, and criterion 3 covers only a mismatch in a listed file. Add a criterion with rows for the no-command finding in a listed file (blocking) and in an unlisted file (reported, not blocking), and the same for the unlisted side of an indented mismatch. I would add both.
+   3. Criterion 1 names the line numbers as unchanged, but the finding line for a tab-indented fence and the "less indentation" case are not stated. Covered by 1 once added; confirm.
+   Everything else checks out. Interface names the module and signatures. The smoke test is runnable and its Expect is checkable (no pytest). The docs criterion names what the reader must know and dictates no sentences. The architecture is a domain-only change. The scope fits F0054 (this is the follow-up story for the code fault the feature's Out of scope says becomes its own story).
