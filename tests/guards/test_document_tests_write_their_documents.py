@@ -10,8 +10,10 @@ _CHECK = re.compile(
     r"\bfactory\.entry\.check_documents\b|from factory\.entry import check_documents"
 )
 _REPOSITORY_NAMES = {
+    # An import in parentheses spans lines, as ruff format writes a long one.
     "support.operator_support.ROOT": re.compile(
-        r"\boperator_support\.ROOT\b|from support\.operator_support import [^\n]*\bROOT\b"
+        r"\boperator_support\.ROOT\b"
+        r"|from support\.operator_support import (?:\([^)]*|[^\n(]*)\bROOT\b"
     ),
     "tracked_files": re.compile(r"\btracked_files\b"),
     "documents_copy_support": re.compile(r"\bdocuments_copy_support\b"),
@@ -46,11 +48,20 @@ _NAMING = {
 }
 
 
-@pytest.mark.parametrize("name", list(_NAMING))
+_PARENTHESIZED_ROOT = "from support.operator_support import (\n    OTHER,\n    ROOT,\n)\n"
+
+
+@pytest.mark.parametrize(
+    ("name", "naming"),
+    [
+        *(pytest.param(name, naming, id=name) for name, naming in _NAMING.items()),
+        pytest.param("support.operator_support.ROOT", _PARENTHESIZED_ROOT, id="parenthesized-ROOT"),
+    ],
+)
 def test_a_document_check_test_that_names_the_repositorys_documents_is_found(
-    tmp_path: Path, name: str
+    tmp_path: Path, name: str, naming: str
 ) -> None:
-    text = f"from factory.entry.check_documents import main\n{_NAMING[name]}"
+    text = f"from factory.entry.check_documents import main\n{naming}"
     (tmp_path / "test_written.py").write_text(text, encoding="utf-8")
 
     assert _offending_modules(tmp_path) == {"test_written.py": [name]}

@@ -4,46 +4,13 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import factory
-from factory.pipeline.domain import fault_paths, stop_table
-from factory.shared.domain import documents, kill_point_cases, settings
-from support.document_texts import decision_log, readme, stop_row, write_documents
+from factory.shared.domain import documents
+from support.document_texts import clean_texts, write_documents
 from support.git_support import commit_all, run_git
 
-_BODY = "The factory works on work items."
 
-
-def _page(title: str, sections: tuple[str, ...], rows: Mapping[str, list[str]]) -> str:
-    """A page with one `##` section per name, each holding a sentence and its rows."""
-    lines = [f"# {title}", ""]
-    for name in sections:
-        lines += [f"## {name}", "", _BODY, ""]
-        if rows.get(name):
-            lines += [*rows[name], ""]
-    return "\n".join(lines)
-
-
-def _settings_rows() -> list[str]:
-    return [
-        "| Variable | Meaning |",
-        "|---|---|",
-        *(f"| `{setting.name}` | A setting. |" for setting in settings.SETTINGS),
-    ]
-
-
-def _install() -> str:
-    sections = documents.OPERATOR_GUIDE_SECTIONS
-    return _page("Install", sections, {documents.SETTINGS_SECTION: _settings_rows()})
-
-
-def _stops() -> str:
-    rows = [stop_row(row) for row in stop_table.STOP_TABLE]
-    return _page("The stops", documents.OPERATOR_GUIDE_SECTIONS, {}) + "\n".join(["", *rows, ""])
-
-
-def _project_guide() -> str:
-    rows = [f"| `{case.id}` | {case.dies} |" for case in kill_point_cases.KILL_POINT_CASES]
-    rows += [f"| {path.number} | `{path.test}` |" for path in fault_paths.FAULT_PATHS]
-    return _page("Project guide", documents.PROJECT_GUIDE_SECTIONS, {}) + "\n".join(["", *rows, ""])
+def _area_page(area: str) -> str:
+    return f"# The {area} area\n\n## Its modules\n\nThe factory works on work items.\n"
 
 
 def _areas() -> list[str]:
@@ -52,20 +19,9 @@ def _areas() -> list[str]:
 
 
 def _texts() -> dict[str, str | None]:
-    texts: dict[str, str | None] = {
-        documents.README: readme(),
-        documents.OPERATOR_GUIDE: _page("Operator guide", ("Topics",), {}),
-    }
-    for path in documents.OPERATOR_GUIDE_FILES:
-        texts[path] = _page("A topic", ("Running it",), {})
-    texts[documents.OPERATOR_INSTALL] = _install()
-    texts[documents.OPERATOR_STOPS] = _stops()
-    texts[documents.PROJECT_GUIDE] = _project_guide()
+    texts = clean_texts()
     for area in _areas():
-        texts[f"{documents.PROJECT_GUIDE_FOLDER}/{area}.md"] = _page(
-            f"The {area} area", ("Its modules",), {}
-        )
-    texts[documents.DECISION_LOG] = decision_log()
+        texts[f"{documents.PROJECT_GUIDE_FOLDER}/{area}.md"] = _area_page(area)
     texts[documents.CHECKED_DOCUMENTS] = ""
     return texts
 

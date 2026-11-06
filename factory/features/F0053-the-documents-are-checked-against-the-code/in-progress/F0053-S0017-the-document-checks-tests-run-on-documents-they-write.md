@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T21:18:23.371459Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-06T21:18:23.371459Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-06T21:19:54.528627Z'
+  stage: tests
+  run: 42ba2f2f8d084aaebebfe25235bc622f
 ---
 
 # The document check's tests run on documents they write
@@ -369,3 +371,32 @@ Expect: `documents ok (<seconds> s)`
 
     Noticed and not touched: on line 14 I confirmed that the `ROOT` pattern ends at the first newline (`[^\n]*`), so finding 2 is real. Criterion 8 (`docs:`) is the documenter's.
 22. factory: started tests as vm.
+23. tester: Mode: a test change the human approved. I made both changes that the coder's entry 21 passes on from the reviewer's findings in entry 19. No new test function. No criterion's test changed its name.
+
+    1. The copied helpers are gone.
+       - `tests/support/document_texts.py` (another story's support module) now reads the code's tables from their modules when it is called, not when it is imported: `stop_table.STOP_TABLE`, `kill_point_cases.KILL_POINT_CASES`, `fault_paths.FAULT_PATHS` and `settings.SETTINGS`.
+       - The module constant `SETTINGS_TABLE` became the private `_settings_table()`. No other module imported it.
+       - Every builder keeps its name and signature, and gives the same text when nothing is monkeypatched. So every earlier test that uses it checks the same thing.
+       - Leave: the standing leave of `CLAUDE.md` *Tests* (one shared place, no copy), as the reviewer asked.
+       - `tests/support/minimal_documents_support.py` lost `_page`, `_settings_rows`, `_install`, `_stops` and `_project_guide`. `_texts()` is now `clean_texts()` plus one page per area under `docs/project-guide/` and the empty `docs/checked-documents.txt`.
+    2. The guard in `tests/guards/test_document_tests_write_their_documents.py` now finds an import of `ROOT` in parentheses. The `ROOT` pattern is now `from support\.operator_support import (?:\([^)]*|[^\n(]*)\bROOT\b`. I chose this over the reviewer's suggestion because it needs no `re.S`: inside the parentheses it reaches across lines, outside them it stays on one line.
+       - `test_a_document_check_test_that_names_the_repositorys_documents_is_found` now takes `(name, naming)`. It has one row per name, as before, plus the row `parenthesized-ROOT` (`from support.operator_support import (\n    OTHER,\n    ROOT,\n)`).
+
+    Criterion → test (unchanged from entry 15, with the guard's added row):
+    - criterion 1: tests/entry/test_check_documents_minimal.py::test_the_minimal_documents_pass_the_check_in_a_clean_work_tree
+    - criterion 2: tests/entry/test_check_documents_minimal.py::test_the_minimal_documents_follow_one_more_row_of_the_codes_tables
+    - criterion 3: the rewritten tests/entry/test_check_documents_*.py modules, as mapped in entry 8
+    - criterion 4: tests/guards/test_document_tests_write_their_documents.py::test_no_document_check_test_names_the_repositorys_documents and ::test_a_document_check_test_that_names_the_repositorys_documents_is_found
+    - criterion 5: tests/guards/test_document_tests_write_their_documents.py::test_no_document_check_test_names_the_repositorys_documents
+    - criterion 6: tests/entry/test_check_documents_minimal.py::test_added_files_are_committed_and_tracked
+
+    Files changed: tests/support/document_texts.py, tests/support/minimal_documents_support.py, tests/guards/test_document_tests_write_their_documents.py. No file created.
+
+    Runs:
+    - `uv run pytest -q` on the guard and on `tests/entry/test_check_documents_minimal.py`: all passed, and every module imported. I did not run the other modules that use `document_texts` in this stage; the coder's `make check` covers them.
+    - `make lint`: green, after ruff fixed the import order in `document_texts.py`.
+    - Type check skipped, as the stage says.
+
+    Open: criterion 8 (`docs:`) is the documenter's.
+
+    `lint`: lint: green (0.2 s)
