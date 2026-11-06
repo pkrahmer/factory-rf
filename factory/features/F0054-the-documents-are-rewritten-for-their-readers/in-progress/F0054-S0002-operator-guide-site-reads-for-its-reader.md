@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 610
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:13:29.846154Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-06T23:13:24.496309Z'
   stage: docs-review
   run: 304a3ed8c3b643e2951f4c51e003f29c
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:13:29.846154Z'
+  stage: docs-only
 ---
 
 # The operator guide's the site file and an operator's machine reads for the operator
@@ -288,3 +297,4 @@ Expect: `1`
     1. `docs/operator-guide/site.md:231-236`: the two `reset-to-tag.sh` commands are in a plain `sh` block. That block is neither a runnable `console` example nor marked `console github`, and `style.md:59` says "A command that needs the hosting service ... mark its block `console github`". Text that says "not run here" is not the mark. A `console github` block would need output copied from a real run that is named above it, and the journal says no such run exists. Fix: drop the block and put the commands inline in their steps, as steps 1 and 2 already do. Step 4 becomes "Run `sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`. It prints the plan and exits 1." Step 5 becomes "Run it again with `--yes` added to do it." The sentence at :231 goes too.
 
     Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant.
+16. factory: started docs-only as vm.
