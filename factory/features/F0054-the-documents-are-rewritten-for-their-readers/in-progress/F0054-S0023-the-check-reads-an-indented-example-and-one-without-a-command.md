@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T22:46:41.158438Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-06T22:46:35.986904Z'
   stage: doing
   run: ddf3b1cfbea5456b9047a1d68cecdb34
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:46:41.158438Z'
+  stage: review
 ---
 
 # The check reads an indented example and one without a command
@@ -158,3 +167,4 @@ Expect: `1 echo hi`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+11. factory: started review as vm.
