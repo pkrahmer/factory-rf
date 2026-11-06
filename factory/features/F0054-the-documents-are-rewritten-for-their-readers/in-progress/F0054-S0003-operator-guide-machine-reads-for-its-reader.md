@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:36:21.776570Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-06T23:36:21.776570Z'
   stage: docs-only
+- number: 16
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:40:03.518581Z'
+  stage: docs-only
+  run: 397b87d731504610974ef7c266451dd9
 ---
 
 # The operator guide's the machine reads for the operator
@@ -268,3 +270,28 @@ Expect: `1`
 
     Criterion 2: unchanged from entries 7 and 11. Nothing was dropped except the two history sentences, and no *Reference* section was added.
 15. factory: started docs-only as vm.
+16. documenter: Round 2: I applied the human's answer (A) and the reviewer's findings from entries 11 and 14. The last line of `make documents` is `documents ok (5.7 s)`. I did not run `make check`, because I changed only documents. `docs/checked-documents.txt` is unchanged and still lists the file.
+
+    Files changed:
+    - `docs/project-guide/style.md`: *Runnable examples* has the one new paragraph in the human's words. A command on a real machine or a cloud account, where no run can be copied, stands in an `sh` block of bare commands under its numbered step, and the text above it says where it runs. An `sh` block is never run. A command an agent can run stays a `console` block, and one copied from a real run stays `console vm`.
+    - `docs/operator-guide/machine.md`:
+      - Entry 14, findings 2 and 3: every `sh` block is now bare commands without `$ `. Line 5 now says what the blocks are, and the text above blocks that lacked a place now says where the commands run (the sandbox for the base directory, the VM for `setup.sh`, the `systemctl` commands, and so on).
+      - Entry 14, finding 4, and entry 11, finding 2: I rewrote the intro list in the glossary sentence as one list with one final "and". I also split the long sentences and double parentheses at the places named. These are the first sentence at 21, the lines before 119, 149 and 153, the lines at 198, 253, 307, 315, 330, 370, 376 and 484, and the ones at 549, 585 and 589.
+      - Entry 14, finding 5, and entry 11, finding 3: the reachability note about the metadata server is its own sentence.
+      - Entry 14, finding 7: the table of the environment file is now Name, What it does, Default and Example.
+      - Entry 14, finding 8: the idle-shutdown step now runs the copied `setup.sh` with the first run's arguments plus `--idle-shutdown 30`. The "turn it off" sentence says the same.
+      - Entry 14, finding 9: the reference is now `(see *The two passes*)`.
+      - Extra: the `uv run pytest tests/vm/test_stage_image.py` step is now a `console` block that `make documents` runs. Its output is `...` and `<n> passed in <seconds>s`.
+
+    I cross-read these again and found them current: `docs/operator-guide/README.md`, and the links to `machine.md` headings in `install.md`, `health.md`, `cloud-run.md`, `agent-runtime.md`, `stops.md` and `docs/project-guide/machine.md`. I kept every heading that another file links to.
+
+    Not in the stage's checks: I did not re-measure every other long sentence in the file. I split those the reviewer named and those I met while editing.
+
+    Stale text I did not touch, because it is outside this story:
+    - `docs/operator-guide/agent-runtime.md:181` names `planning/cloud-sandbox/`.
+    - `docs/operator-guide/stops.md:235` is a very long paragraph.
+    - The files in the `Report (not checked yet)` list have name findings. They belong to other stories.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (5.8 s)

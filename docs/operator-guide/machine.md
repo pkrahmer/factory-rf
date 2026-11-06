@@ -1,8 +1,8 @@
 # The VM and its stage image
 
-A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md) who knows Linux and does not read the code. Words the factory gave its own meaning, such as [stage](../project-guide/glossary.md), [dataset](../project-guide/glossary.md), [base](../project-guide/glossary.md), [take](../project-guide/glossary.md), [tick](../project-guide/glossary.md), [stop](../project-guide/glossary.md) and [work item](../project-guide/glossary.md), [claim](../project-guide/glossary.md), [cost record](../project-guide/glossary.md), [crash](../project-guide/glossary.md) and [role](../project-guide/glossary.md), are explained in the [glossary](../project-guide/glossary.md).
+A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md) who knows Linux and does not read the code. The factory's own words are explained in the [glossary](../project-guide/glossary.md). They are [stage](../project-guide/glossary.md), [dataset](../project-guide/glossary.md), [base](../project-guide/glossary.md), [take](../project-guide/glossary.md), [tick](../project-guide/glossary.md), [stop](../project-guide/glossary.md), [work item](../project-guide/glossary.md), [claim](../project-guide/glossary.md), [cost record](../project-guide/glossary.md), [crash](../project-guide/glossary.md) and [role](../project-guide/glossary.md).
 
-The `sh` blocks are commands for the VM, the cloud or your own computer. They show no output, and `make documents` does not run them. The `console` blocks are run by `make documents`.
+An `sh` block holds bare commands for a real machine or a cloud account. The text above it says where they run. `make documents` does not run them, and they show no output. It does run the `console` blocks.
 
 ## The machine
 
@@ -16,9 +16,9 @@ One host, one dataset, one throwaway container for each step of a stage.
 - **The dataset** is the ZFS dataset `<pool>/factory/<instance>`, mounted at `/srv/factory/<instance>/work` on the host and at `/work` in every container. It holds the checkout and the agent's home. Its one snapshot is the base, `@base`, moved forward at every stage's start.
 - **The container** is the stage image (see *The stage image*), started for one step, with `--rm`, `--userns=keep-id` and `--timeout` set to the step's time limit. It mounts the dataset and is thrown away.
 
-There is one user, `factory`, and no second one. `factory` has no `sudo` right but three. These are the page-cache helper, the four `zfs` commands of the optional `--sudoers` fallback and, with the option `--idle-shutdown`, `/usr/bin/systemctl poweroff` (see *The script*). The steps that need root run from your own account with `sudo`: the script, `systemctl` and the install of the secrets.
+There is one user, `factory`, and no second one. `factory` has no `sudo` right but three. These are the page-cache helper, the four `zfs` commands of the optional `--sudoers` fallback and, with the option `--idle-shutdown`, `/usr/bin/systemctl poweroff` (see *The script*). The steps that need root run from your own account with `sudo`. They are the script, `systemctl` and the install of the secrets.
 
-By default one repository URL serves both the factory's own code and the project. `--repository-url` is then the clone of `/srv/factory/<instance>/factory` and the value of `FACTORY_REPOSITORY_URL`, so an instance builds the repository it runs from. With `--code-url` the two are apart: the clone of `/srv/factory/<instance>/factory` comes from `--code-url`, and `--repository-url` stays the project and the value of `FACTORY_REPOSITORY_URL` (see *The code and the project apart*).
+By default one repository URL serves both the factory's own code and the project. `--repository-url` is then the clone of `/srv/factory/<instance>/factory` and the value of `FACTORY_REPOSITORY_URL`. An instance thus builds the repository it runs from. With `--code-url` the two are apart. The clone of `/srv/factory/<instance>/factory` comes from `--code-url`. `--repository-url` stays the project and the value of `FACTORY_REPOSITORY_URL` (see *The code and the project apart*).
 
 The layout of `/srv/factory/<instance>`:
 
@@ -65,7 +65,7 @@ The container runs as the job's root with every capability dropped (`--cap-drop=
 
 ### The metadata server in a job
 
-In a Cloud Run job a container shares the job's network (`--network=host`), and the metadata server at `169.254.169.254` answers any process there with the job's service-account token (reachable from host-network and bridge containers, by address and by name). An agent that holds that token acts as the job's account, so no container may reach the server. The VM is different: it has no service account (see *The metadata server* below).
+In a Cloud Run job a container shares the job's network with `--network=host`. The metadata server at `169.254.169.254` answers any process there with the job's service-account token. It is reachable from host-network and bridge containers, by address and by name. An agent that holds that token acts as the job's account, so no container may reach the server. The VM is different: it has no service account (see *The metadata server* below).
 
 The block is a firewall rule on the job's side. The start script installs it before the factory starts. It rejects TCP port 80 to that address. DNS, the proxy and everything the factory needs keep working. As an `nft` file, loaded with `nft -f <file>`:
 
@@ -110,13 +110,13 @@ A failed item stops the machine like any failed preflight item. The stop is `pre
 
 A sandbox that has no ZFS, such as a Cloud Run job, keeps the base as a plain copy. Set `FACTORY_SNAPSHOTS=copy` and `FACTORY_SNAPSHOT_BASE` to an absolute directory outside the workspace, the checkout and the state directory. `FACTORY_DATASET` and `FACTORY_ZFS` are then not read.
 
-Make the base directory once, empty; the first stage fills it:
+Make the base directory once, empty. The first stage fills it. Run this on the sandbox:
 
 ```sh
-$ mkdir -p /srv/factory/vm/base
+mkdir -p /srv/factory/vm/base
 ```
 
-Every stage start then does what ZFS does, with copies: `reset` empties the workspace and copies the base into it, `advance` replaces the base with a copy of the workspace, and the list of changes compares the two trees file by file (mode, bytes and link target; bytes in chunks of at most 1 MiB, so a large file is never held whole).
+Every stage start then does what ZFS does, with copies. `reset` empties the workspace and copies the base into it. `advance` replaces the base with a copy of the workspace. The list of changes compares the two trees file by file, by mode, bytes and link target. It reads bytes in chunks of at most 1 MiB, so a large file is never held whole.
 
 The cost: a reset takes about 1.6 s per GiB, measured on a tree of 20000 files, and the comparison is much slower than `rsync` would be. In a memory-backed sandbox the workspace and the base are both in memory, so the tree is held twice.
 
@@ -139,18 +139,24 @@ The image only carries the agent files. The sync container copies them into the 
 Build it on the VM as the user `factory`, from a checkout. [job-start.sh](../../operator/vm/job-start.sh) does the same in a job:
 
 ```sh
-$ podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>
+podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>
 ```
 
 `AGENT_RUNTIME` has no default. The image holds only that runtime, so it must be the instance's `FACTORY_AGENT_RUNTIME` (the preflight's `agent-runtime-version` fails on an image built for the other one). A build without it, with an empty value or with any other value, fails at once with a message that names `AGENT_RUNTIME`, `claude` and `opencode`. `job-start.sh` passes `FACTORY_AGENT_RUNTIME` itself. After a change of runtime, rebuild the image and renew the file `FACTORY_IMAGE_ID_FILE` names, so that the instance gets a new `image-id`.
 
 `--build-arg FACTORY_IMAGE=<ref>` sets the image's label, `factory.image=<ref>`; the default is `unlabelled`. The label is not the identity of the image. The settings read the identity from the file `FACTORY_IMAGE_ID_FILE` names, and you renew that file after every build. [setup.sh](../../operator/vm/setup.sh) makes the file with a fresh uuid when it is missing or empty (see *The script*). Nothing in `make check` builds the image.
 
-`operator/vm/Dockerfile` installs six Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`. Debian's mirror keeps only a package's current version, so an exact version stops building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead, and within one stable release Debian ships only security and serious fixes. Everything that shapes a result is still pinned: the base image is named with its digest, and `uv`, Node, Claude Code and opencode have exact versions. A pin is changed in `operator/vm/Dockerfile` alone and checked with `uv run pytest tests/vm/test_stage_image.py` ([test_stage_image.py](../../tests/vm/test_stage_image.py)), which reports any reference that floats (a `FROM` without a digest, `latest`, a download piped into a shell, an `apt-get install` of anything but those six names) and checks that each pin has its form.
+`operator/vm/Dockerfile` installs six Debian packages by name alone: `git`, `make`, `curl`, `ca-certificates`, `procps` and `xz-utils`. Debian's mirror keeps only a package's current version. An exact version would stop building at the next point release, and a job rebuilds the image at every start. The base image's digest fixes the Debian release instead. Within one stable release Debian ships only security and serious fixes.
+
+Everything that shapes a result is still pinned. The base image is named with its digest, and `uv`, Node, Claude Code and opencode have exact versions. A pin is changed in `operator/vm/Dockerfile` alone. The test [test_stage_image.py](../../tests/vm/test_stage_image.py) checks that each pin has its form. It also reports any reference that floats: a `FROM` without a digest, `latest`, a download piped into a shell, or an `apt-get install` of anything but those six names. Run it with `uv run pytest tests/vm/test_stage_image.py`.
 
 A VM's next rebuild takes the current packages of the same release.
 
-The agent runtime is installed by a Node of its own, in a first build stage. That stage downloads Node 22 from nodejs.org, pinned by `NODE_VERSION` and `NODE_SHA256`, checks the archive with `sha256sum -c` before it unpacks it into `/opt/factory/node`, and installs the one runtime `AGENT_RUNTIME` names with that Node's npm. The final stage copies from it only that runtime's native executable, to `/opt/factory/bin/<runtime>`; `/usr/local/bin/<runtime>` execs it and passes its arguments on. The final stage therefore holds no Node, no npm, no npm cache, no other runtime and no opencode `baseline` executable, and it clears apt's lists, debconf's cache, the install logs and `/tmp`. The image has no command for the other runtime, and no `node` or `npm` for projects: a project that needs one installs its own, and that cannot change the runtimes. To change the Node pin, set both `ARG`s in `operator/vm/Dockerfile`: `NODE_VERSION` to a `22.<n>.<n>` release and `NODE_SHA256` to the SHA-256 that nodejs.org's `SHASUMS256.txt` lists for `node-v<NODE_VERSION>-linux-x64.tar.xz` (64 lowercase hex digits). A wrong checksum fails the build.
+The agent runtime is installed by a Node of its own, in a first build stage. That stage downloads Node 22 from nodejs.org, pinned by `NODE_VERSION` and `NODE_SHA256`. It checks the archive with `sha256sum -c` before it unpacks it into `/opt/factory/node`. Then it installs the one runtime `AGENT_RUNTIME` names with that Node's npm.
+
+The final stage copies from it only that runtime's native executable, to `/opt/factory/bin/<runtime>`. `/usr/local/bin/<runtime>` execs it and passes its arguments on. The final stage therefore holds no Node, no npm, no npm cache, no other runtime and no opencode `baseline` executable. It clears apt's lists, debconf's cache, the install logs and `/tmp`. The image has no command for the other runtime, and no `node` or `npm` for projects. A project that needs one installs its own, and that cannot change the runtimes.
+
+To change the Node pin, set both `ARG`s in `operator/vm/Dockerfile`. `NODE_VERSION` is a `22.<n>.<n>` release. `NODE_SHA256` is the SHA-256 that nodejs.org's `SHASUMS256.txt` lists for `node-v<NODE_VERSION>-linux-x64.tar.xz`, in 64 lowercase hex digits. A wrong checksum fails the build.
 
 #### Update the pins
 
@@ -166,8 +172,10 @@ The Debian packages carry no version, so a security or point update needs no edi
 
 2. Run the test. It reports any reference that floats:
 
-   ```sh
-   uv run pytest tests/vm/test_stage_image.py
+   ```console
+   $ uv run pytest tests/vm/test_stage_image.py
+   ...
+   <n> passed in <seconds>s
    ```
 
 3. Rebuild the image and renew its id, as *The rebuild after a merge* describes. [setup.sh](../../operator/vm/setup.sh) carries the pins into the environment file.
@@ -195,7 +203,9 @@ Each change writes one line to the factory log, and an unchanged file writes non
 | `stage image: back to the base at <commit>` | the file was removed while a project image was in use |
 | `stage image: failed at <commit>` | the file broke the rule or did not build |
 
-The sizes are in GB of 10^9 bytes with two decimals (1 580 000 000 bytes give `1.58`). A size that cannot be read is written `unknown` (`base unknown`, `layer unknown`); a project image that is smaller than its base also has `layer unknown`. The warnings are the lines of the build's output that hold `WARN` or `warning`, in any case, except apt's `update-alternatives: warning:` lines, which a slim base prints for every manual page it lacks. A count above zero is worth reading in the build output: npm's `EBADENGINE` is one. An image that is reused with no build (the factory adopts it) gives the same two sizes to the cost records, with no log line of a build.
+The sizes are in GB of 10^9 bytes with two decimals, so 1 580 000 000 bytes give `1.58`. A size that cannot be read is written `unknown`, as `base unknown` or `layer unknown`. A project image that is smaller than its base also has `layer unknown`.
+
+The warnings are the lines of the build's output that hold `WARN` or `warning`, in any case. The exception is apt's `update-alternatives: warning:` lines, which a slim base prints for every manual page it lacks. A count above zero is worth reading in the build output: npm's `EBADENGINE` is one. An image that is reused with no build gives the same two sizes to the cost records. The factory adopts such an image, and it writes no log line of a build.
 
 #### The rule
 
@@ -242,15 +252,15 @@ Every cost record names the image the agent run ran on. That is the identity fro
 
 ### The code and the project apart
 
-Some projects live on a host of their own, such as a company's enterprise host, and run the factory's public code from a public repository. Give `--repository-url` the project and `--code-url` the code:
+Some projects live on a host of their own, such as a company's enterprise host, and run the factory's public code from a public repository. Give `--repository-url` the project and `--code-url` the code. Run this on the VM from your own account:
 
 ```sh
-$ sudo sh operator/vm/setup.sh --device /dev/sdb \
+sudo sh operator/vm/setup.sh --device /dev/sdb \
   --repository-url https://git.company.example/team/project.git \
   --code-url https://github.com/pkrahmer/kumpel-factory.git
 ```
 
-- **The code is cloned without a credential.** The clone of `/srv/factory/<instance>/factory` runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`, after the wait for the secrets, in the same pass as the install of the helper and the unit. A code repository that asks for a credential fails the clone: `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token`, exit status 1. `--code-url` equal to `--repository-url`, or absent, keeps the checkout as it was, with the token.
+- **The code is cloned without a credential.** The clone of `/srv/factory/<instance>/factory` runs with `GIT_TERMINAL_PROMPT=0` and without `GIT_ASKPASS` and `core.askPass`. It runs after the wait for the secrets, in the same pass as the install of the helper and the unit. A code repository that asks for a credential fails the clone with exit status 1: `setup: checkout: cannot clone <url> without a credential; the code repository must be readable without a token`. A `--code-url` that equals `--repository-url`, or is absent, clones with the token.
 - **`factory.env` holds the project only.** `FACTORY_REPOSITORY_URL` is `--repository-url`; the code url is written nowhere.
 - **The project brings its own files.** The factory reads `<project>/factory/pipeline.yml`, `<project>/factory/story-form.md` and `<project>/factory/feature-form.md`, and optionally `<project>/factory/agents/`. Its `Makefile` has the targets `check`, `lint`, `test` and `sync`.
 - **The stage image comes from the code.** `operator/vm/Dockerfile` is the one in the code checkout, not the project's.
@@ -259,10 +269,10 @@ $ sudo sh operator/vm/setup.sh --device /dev/sdb \
 
 ### The script
 
-[setup.sh](../../operator/vm/setup.sh) makes the machine from a fresh Ubuntu 24.04 with a spare disk and installs the service. It is POSIX `sh`, runs as root and does only what is missing, so a second run changes nothing.
+[setup.sh](../../operator/vm/setup.sh) makes the machine from a fresh Ubuntu 24.04 with a spare disk and installs the service. It is POSIX `sh`, runs as root and does only what is missing, so a second run changes nothing. Run it on the VM from your own account, in the folder that holds your copy of the script:
 
 ```sh
-$ sudo sh operator/vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git
+sudo sh operator/vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git
 ```
 
 | Name | What it does | Default | Example |
@@ -304,7 +314,7 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 2. `pool`: `zpool create -o ashift=12 -O compression=lz4 -O atime=off <pool> <device>`, unless `<pool>` exists.
 3. `user`: the user `factory` with a home and `/bin/bash`, unless it exists. `/etc/subuid` and `/etc/subgid` must each hold a `factory:` line; the script does not make one. Without it, it prints `setup: user: no subuid and subgid range for factory; add one with usermod --add-subuids and --add-subgids` to standard error and exits 1. Add the ranges and run the script again.
 4. `linger`: `loginctl enable-linger factory`, so rootless Podman and the user's runtime folder outlive a login.
-5. `datasets`: `<pool>/factory` and `<pool>/factory/<instance>`, both with `compression=lz4` and `atime=off`, the second mounted at `/srv/factory/<instance>/work`, with the quota, and the mount point owned by `factory`, and then the first base `<pool>/factory/<instance>@base`, taken while the dataset is still empty and owned by `factory` and before the delegation of step 6. A dataset that already has a base keeps it; the script never touches it. A dataset that exists without a base gets one.
+5. `datasets`: `<pool>/factory` and `<pool>/factory/<instance>`, both with `compression=lz4` and `atime=off`, the second mounted at `/srv/factory/<instance>/work` with the quota and owned by `factory`. Then the first base `<pool>/factory/<instance>@base` is taken, while the dataset is still empty and before the delegation of step 6. A dataset that already has a base keeps it, and the script never touches it. A dataset that exists without a base gets one.
 6. `delegation`: `zfs allow -u factory snapshot,destroy,rollback,diff,mount` on the instance's dataset, unless all five are already delegated.
 7. `sudoers`: only with `--sudoers`, see below. Without it the line says `not asked` and neither file is touched.
 8. `caches`: on every run, with or without `--sudoers`, the helper `/usr/local/bin/factory-drop-caches` (mode `0755`; it runs `sync`, then writes `1` to `/proc/sys/vm/drop_caches`) and `/etc/sudoers.d/factory-drop-caches` (mode `0440`), which holds the one rule `factory ALL=(root) NOPASSWD: /usr/local/bin/factory-drop-caches`. Each is written only when its text differs. The rule is checked with `visudo -cf`; if `visudo` refuses it, the script removes the file, prints `setup: caches: visudo -cf refused /etc/sudoers.d/factory-drop-caches; removed it` to standard error and exits 1. See *The page cache after a rollback*.
@@ -312,7 +322,7 @@ Each step prints one line, `setup: <step>: `, followed by what it changed (joine
 10. `folders`: `/srv/factory/<instance>` with `state` and `repo`, owned by `factory` (mode `0755`), and `/home/factory/.secrets` (mode `0700`). If `state`, `repo` or `/home/factory/.secrets` is a link, the script prints `setup: folders: ...` to standard error and exits 1 before it makes anything in the step: remove the link and run it again. The script sets the secrets folder's owner and mode and never touches a file in it: the secrets you placed stay as they are on every run.
 11. `image-id`: `/srv/factory/<instance>/image-id`, a fresh uuid (mode `0644`) when the file is missing or empty. A rebuilt image needs a new id; renew the file yourself (see *The stage image*).
 12. `checkout`: the factory at `--code-ref`, cloned as `factory` into `/srv/factory/<instance>/factory`, unless it holds a `.git`.
-13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `operator/vm/Dockerfile`; `uv sync --frozen --no-dev` in the checkout, which makes the factory's own `.venv`; and `/usr/local/bin/git-credential-factory`, copied from the checkout's [git-credential-factory](../../operator/vm/git-credential-factory) (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
+13. `tools`: a virtual environment `/srv/factory/<instance>/tools` with `uv` installed from `pip` at the version of `ARG UV_VERSION` in the checkout's `operator/vm/Dockerfile`. Then `uv sync --frozen --no-dev` in the checkout makes the factory's own `.venv`. Last, `/usr/local/bin/git-credential-factory` is copied from the checkout's [git-credential-factory](../../operator/vm/git-credential-factory) (see *The two passes*). `uv sync` runs on every run and changes nothing when the environment matches the lockfile.
 14. `environment`: `/srv/factory/<instance>/factory.env` (mode `0644`). With `--idle-shutdown` its last line is `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`; without the option the file holds no such line, so a run without it takes the setting back. It always holds `FACTORY_TRANSCRIPT_DIR=/srv/factory/<instance>/transcripts` before that line.
 15. `service`: the unit `operator/vm/factory.service` as `/etc/systemd/system/factory@.service` (mode `0644`; see *The two passes*), `systemctl daemon-reload`, and `systemctl enable factory@<instance>`. The service is enabled, not started.
 16. `transcripts`: the folder `/srv/factory/<instance>/transcripts` (owner `factory`, mode `0700`), made only when it is not already so. If the folder is a link, the script prints `setup: transcripts: <path> is a link; remove it and run this script again` to standard error and exits 1, before it makes anything there. The script writes no `tmpfiles.d` rule and has no option for an age. See *Transcripts* in [health.md](health.md).
@@ -327,7 +337,7 @@ The checkout of the private repository needs the hosting token. When `/home/fact
 
 The token is written into no file. Git asks the askpass script (`/srv/factory/<instance>/askpass`) for it, and only that script reads the token file; the clone sets `core.askPass` on its own command line, not in any git configuration.
 
-The unit and the credential helper come from the checkout, and root installs them only in the run that made the clone (whose content is the remote's at `--code-ref`, before the service ever ran) or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run that finds the installed file in place but different from the checkout installs nothing and prints one of these two lines to standard error:
+The unit and the credential helper come from the checkout. Root installs them only in the run that made the clone, whose content is the remote's at `--code-ref`, or when the installed file is missing. So a first run that stopped after the clone is completed by the next. A later run finds the installed file in place but different from the checkout. It installs nothing and prints one of these two lines to standard error:
 
 ```text
 setup: tools: /usr/local/bin/git-credential-factory differs from the checkout; not installed; install it from your own copy of operator/vm/git-credential-factory (docs/operator-guide/machine.md, "The rebuild after a merge")
@@ -367,45 +377,49 @@ The drop is machine-wide. It also empties the cache of other files, so the next 
 
 #### The `sudoers` fallback
 
-The delegation of step 6 is the way for the factory to reach `zfs`. When it does not suffice on your machine, run the script with `--sudoers`. Step 7 then writes `/etc/sudoers.d/factory-zfs` (mode `0440`), which lets `factory` run exactly `zfs snapshot`, `zfs destroy`, `zfs rollback -r` and `zfs diff -FH`, each on `<dataset>@base` alone, as root without a password, and checks it with `visudo -cf`. If `visudo` refuses it, the script removes the file, prints the refusal to standard error and exits 1. It also writes `/usr/local/bin/zfs-factory` (mode `0755`), a wrapper that runs those four commands through `sudo -n /usr/sbin/zfs` and every other command as itself, and the environment file then holds `FACTORY_ZFS=/usr/local/bin/zfs-factory`.
+The delegation of step 6 is the way for the factory to reach `zfs`. When it does not suffice on your machine, run the script with `--sudoers`. Step 7 then writes `/etc/sudoers.d/factory-zfs` (mode `0440`). The file lets `factory` run exactly `zfs snapshot`, `zfs destroy`, `zfs rollback -r` and `zfs diff -FH`, each on `<dataset>@base` alone, as root without a password. The script checks it with `visudo -cf`. If `visudo` refuses it, the script removes the file, prints the refusal to standard error and exits 1.
+
+Step 7 also writes `/usr/local/bin/zfs-factory` (mode `0755`). This wrapper runs those four commands through `sudo -n /usr/sbin/zfs` and every other command as itself. The environment file then holds `FACTORY_ZFS=/usr/local/bin/zfs-factory`.
 
 The rule names `diff -FH` because the factory runs `zfs diff` with those flags and `sudoers` matches the whole argument list; a rule for `diff -H` would not match.
 
 ### The service
 
-The unit [factory.service](../../operator/vm/factory.service) is a systemd template, installed as `factory@.service`; the text after the `@` is the instance. For the default instance it is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory, reads `/srv/factory/%i/factory.env` and then, if it exists, `/srv/factory/%i/factory.local.env` (see *The environment file*), and starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit.
+The unit [factory.service](../../operator/vm/factory.service) is a systemd template, installed as `factory@.service`. The text after the `@` is the instance, so the default instance is `factory@vm`. The unit runs as `factory`, with `/srv/factory/%i` as its working directory. It reads `/srv/factory/%i/factory.env` and then, if it exists, `/srv/factory/%i/factory.local.env` (see *The environment file*). It starts `/srv/factory/%i/factory/.venv/bin/factory-run`. `Restart=always` with `RestartSec=15` restarts it fifteen seconds after any exit.
+
+On the VM from your own account, the first command starts the instance, and `stop`, `restart` and `status` work the same way. The second shows the process's output. The third asks `factory-health` as `factory`:
 
 ```sh
-$ sudo systemctl start factory@vm      # also stop, restart, status
-$ sudo journalctl -u factory@vm        # the process's output
-$ sudo -u factory /srv/factory/vm/factory/.venv/bin/factory-health --state-directory /srv/factory/vm/state
+sudo systemctl start factory@vm
+sudo journalctl -u factory@vm        # the process's output
+sudo -u factory /srv/factory/vm/factory/.venv/bin/factory-health --state-directory /srv/factory/vm/state
 ```
 
 Nothing runs a health check by itself: ask `factory-health` as `factory`. Build the stage image before the first start (see *The stage image*).
 
-The environment file holds these variables, which *Configuration* in [install.md](install.md) explains:
+The environment file holds these variables. *Configuration* in [install.md](install.md) explains the settings in full. The default is the value the script writes:
 
-| Variable | Value |
-|---|---|
-| `FACTORY_INSTANCE` | `--instance` |
-| `FACTORY_REPOSITORY_URL` | `--repository-url` |
-| `FACTORY_AGENT_RUNTIME` | `--runtime` |
-| `FACTORY_DATASET` | `<pool>/factory/<instance>` |
-| `FACTORY_WORKSPACE` | `/srv/factory/<instance>/work` |
-| `FACTORY_STAGE_IMAGE` | `--image` |
-| `FACTORY_ZFS` | `zfs`, or `/usr/local/bin/zfs-factory` with `--sudoers` |
-| `FACTORY_CHECKOUT` | `/srv/factory/<instance>/repo` |
-| `FACTORY_STATE` | `/srv/factory/<instance>/state` |
-| `FACTORY_IMAGE_ID_FILE` | `/srv/factory/<instance>/image-id` |
-| `FACTORY_CLAUDE_HOME` | `/srv/factory/<instance>/factory/agents` |
-| `FACTORY_TOKEN_FILE` | `/home/factory/.secrets/hosting-token` |
-| `FACTORY_CLAUDE_LOGIN_FILE` | `/home/factory/.secrets/claude-token` |
-| `FACTORY_API_LOGIN_FILE` | `/home/factory/.secrets/anthropic-api-key` |
-| `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | the pins of `operator/vm/Dockerfile` |
-| `PATH` | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` (`/usr/sbin` holds `zfs`) |
-| `XDG_RUNTIME_DIR` | `/run/user/<uid of factory>`, where rootless Podman finds its runtime folder |
-| `FACTORY_TRANSCRIPT_DIR` | `/srv/factory/<instance>/transcripts` |
-| `FACTORY_IDLE_SHUTDOWN_MINUTES` | `--idle-shutdown`, only when it is given |
+| Name | What it does | Default | Example |
+|---|---|---|---|
+| `FACTORY_INSTANCE` | The instance's name. | `--instance` | `vm` |
+| `FACTORY_REPOSITORY_URL` | The repository the factory works on. | `--repository-url` | `https://github.com/<owner>/<repo>.git` |
+| `FACTORY_AGENT_RUNTIME` | The agent runtime. | `--runtime` | `claude` |
+| `FACTORY_DATASET` | The ZFS dataset of the instance. | `<pool>/factory/<instance>` | `tank/factory/vm` |
+| `FACTORY_WORKSPACE` | Where the dataset is mounted on the host. | `/srv/factory/<instance>/work` | `/srv/factory/vm/work` |
+| `FACTORY_STAGE_IMAGE` | The stage image. | `--image` | `factory-stage:vm` |
+| `FACTORY_ZFS` | The command that reaches `zfs`. | `zfs`, or `/usr/local/bin/zfs-factory` with `--sudoers` | `zfs` |
+| `FACTORY_CHECKOUT` | The factory's own clone of the project. | `/srv/factory/<instance>/repo` | `/srv/factory/vm/repo` |
+| `FACTORY_STATE` | The state directory. | `/srv/factory/<instance>/state` | `/srv/factory/vm/state` |
+| `FACTORY_IMAGE_ID_FILE` | The file that holds the identity of the stage image. | `/srv/factory/<instance>/image-id` | `/srv/factory/vm/image-id` |
+| `FACTORY_CLAUDE_HOME` | The folder of the agent files. | `/srv/factory/<instance>/factory/agents` | `/srv/factory/vm/factory/agents` |
+| `FACTORY_TOKEN_FILE` | The hosting token's file. | `/home/factory/.secrets/hosting-token` | `/home/factory/.secrets/hosting-token` |
+| `FACTORY_CLAUDE_LOGIN_FILE` | The login file of the `claude` runtime. | `/home/factory/.secrets/claude-token` | `/home/factory/.secrets/claude-token` |
+| `FACTORY_API_LOGIN_FILE` | The API key file. | `/home/factory/.secrets/anthropic-api-key` | `/home/factory/.secrets/anthropic-api-key` |
+| `FACTORY_CLAUDE_VERSION`, `FACTORY_OPENCODE_VERSION`, `FACTORY_OPENCODE_MODELS` | The versions and model ids the preflight compares with the image. | the pins of `operator/vm/Dockerfile` | the pins of `operator/vm/Dockerfile` |
+| `PATH` | The service's `PATH`. `/usr/sbin` holds `zfs`. | `/srv/factory/<instance>/tools/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin` | the default |
+| `XDG_RUNTIME_DIR` | Where rootless Podman finds its runtime folder. | `/run/user/<uid of factory>` | `/run/user/1001` |
+| `FACTORY_TRANSCRIPT_DIR` | Where the transcripts are kept. | `/srv/factory/<instance>/transcripts` | `/srv/factory/vm/transcripts` |
+| `FACTORY_IDLE_SHUTDOWN_MINUTES` | The idle stretch after which the machine powers off. | `--idle-shutdown`, only when it is given | `30` |
 
 ### On GCP, step by step
 
@@ -414,41 +428,41 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
 1. Create the project and the budget first, so that the alert exists before any cost does:
 
    ```sh
-   $ gcloud auth login
-   $ gcloud projects create <project-id> --name="factory"
-   $ gcloud config set project <project-id>
-   $ gcloud billing accounts list
-   $ gcloud billing projects link <project-id> --billing-account=<account-id>
-   $ gcloud services enable compute.googleapis.com iap.googleapis.com
-   $ gcloud billing budgets create --billing-account=<account-id> --display-name="factory" \
+   gcloud auth login
+   gcloud projects create <project-id> --name="factory"
+   gcloud config set project <project-id>
+   gcloud billing accounts list
+   gcloud billing projects link <project-id> --billing-account=<account-id>
+   gcloud services enable compute.googleapis.com iap.googleapis.com
+   gcloud billing budgets create --billing-account=<account-id> --display-name="factory" \
      --budget-amount=120USD --threshold-rule=percent=0.5 --threshold-rule=percent=0.9 --threshold-rule=percent=1.0
    ```
 
 2. Give the VM its way out: a router and Cloud NAT. The VM gets no external address, so apt, npm, GitHub and the Anthropic API are reached through NAT.
 
    ```sh
-   $ gcloud compute routers create factory-router --network=default --region=europe-west3
-   $ gcloud compute routers nats create factory-nat --router=factory-router --region=europe-west3 \
+   gcloud compute routers create factory-router --network=default --region=europe-west3
+   gcloud compute routers nats create factory-nat --router=factory-router --region=europe-west3 \
      --auto-allocate-nat-external-ips --nat-all-subnet-ip-ranges
    ```
 
 3. Open SSH for IAP's range only. Nothing else is open to the internet.
 
    ```sh
-   $ gcloud compute firewall-rules create allow-iap-ssh --network=default --direction=INGRESS \
+   gcloud compute firewall-rules create allow-iap-ssh --network=default --direction=INGRESS \
      --allow=tcp:22 --source-ranges=35.235.240.0/20
    ```
 
 4. Create the data disk. It holds the ZFS pool and survives the VM (`auto-delete=no` in the next step).
 
    ```sh
-   $ gcloud compute disks create factory-data --size=50GB --type=pd-balanced --zone=europe-west3-a
+   gcloud compute disks create factory-data --size=50GB --type=pd-balanced --zone=europe-west3-a
    ```
 
 5. Create the VM from Ubuntu 24.04, with no service account and no external address, and the disk attached under the device name `factory-data`:
 
    ```sh
-   $ gcloud compute instances create factory-vm --zone=europe-west3-a --machine-type=e2-standard-2 \
+   gcloud compute instances create factory-vm --zone=europe-west3-a --machine-type=e2-standard-2 \
      --image-family=ubuntu-2404-lts-amd64 --image-project=ubuntu-os-cloud --boot-disk-size=20GB \
      --no-service-account --no-scopes --no-address \
      --disk=name=factory-data,device-name=factory-data,mode=rw,auto-delete=no
@@ -457,8 +471,8 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
 6. Copy the script to the VM through the tunnel, and open a shell there. Copy it from a checkout of the ref you will run.
 
    ```sh
-   $ gcloud compute scp --zone=europe-west3-a --tunnel-through-iap operator/vm/setup.sh factory-vm:
-   $ gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
+   gcloud compute scp --zone=europe-west3-a --tunnel-through-iap operator/vm/setup.sh factory-vm:
+   gcloud compute ssh factory-vm --zone=europe-west3-a --tunnel-through-iap
    ```
 
    The script is `operator/vm/setup.sh`.
@@ -466,47 +480,47 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
 7. On the VM, run the script as root, the first time. The disk is `/dev/disk/by-id/google-factory-data` (`ls -l /dev/disk/by-id/ | grep google` shows it). `--code-ref` is the tag or branch to run.
 
    ```sh
-   $ sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
+   sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
      --repository-url https://github.com/pkrahmer/kumpel-factory.git --code-ref <the tag or branch to run>
    ```
 
-   It installs the packages and makes the pool, the user `factory`, the datasets, the delegation and the folders. Then it stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token` and exit status 0: the private repository needs the token (see *The script*, "The two passes").
+   It installs the packages and makes the pool, the user `factory`, the datasets, the delegation and the folders. Then it stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token` and exit status 0: the private repository needs the token (see *The two passes*).
 
 8. Place the three secrets by hand, from your own account on the VM, one file each: `hosting-token` (the GitHub token), `claude-token` (the output of `claude setup-token`) and `anthropic-api-key`. Make each file in your home folder with an editor, install it, and remove the copy:
 
    ```sh
-   $ sudo install -m 0600 -o factory -g factory hosting-token /home/factory/.secrets/hosting-token
-   $ sudo install -m 0600 -o factory -g factory claude-token /home/factory/.secrets/claude-token
-   $ sudo install -m 0600 -o factory -g factory anthropic-api-key /home/factory/.secrets/anthropic-api-key
-   $ shred -u hosting-token claude-token anthropic-api-key
+   sudo install -m 0600 -o factory -g factory hosting-token /home/factory/.secrets/hosting-token
+   sudo install -m 0600 -o factory -g factory claude-token /home/factory/.secrets/claude-token
+   sudo install -m 0600 -o factory -g factory anthropic-api-key /home/factory/.secrets/anthropic-api-key
+   shred -u hosting-token claude-token anthropic-api-key
    ```
 
-   All three files must exist, because the factory mounts every login file the environment file names and podman refuses to mount a missing one; every agent run would stop with exit status 125. This holds whatever the runtime is. Under `claude` the file `anthropic-api-key` may be empty (an empty file means no key); under `opencode` the file `claude-token` may be empty, since opencode does not read it, and `anthropic-api-key` holds the key.
+   All three files must exist, whatever the runtime is. The factory mounts every login file the environment file names, and podman refuses to mount a missing one. Every agent run would then stop with exit status 125. Under `claude` the file `anthropic-api-key` may be empty, which means no key. Under `opencode` the file `claude-token` may be empty, since opencode does not read it, and `anthropic-api-key` holds the key.
 
 9. Run the script a second time with the same arguments. It clones the factory, installs the tools, writes the environment file and installs and enables the unit.
 
    ```sh
-   $ sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
+   sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
      --repository-url https://github.com/pkrahmer/kumpel-factory.git --code-ref <the tag or branch to run>
    ```
 
 10. Build the stage image as `factory`, from the checkout the script made. `<ref>` labels the image; any text will do.
 
     ```sh
-    $ sudo -iu factory
-    $ cd /srv/factory/vm/factory
-    $ podman build -f operator/vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
-    $ exit
+    sudo -iu factory
+    cd /srv/factory/vm/factory
+    podman build -f operator/vm/Dockerfile -t factory-stage:vm --build-arg FACTORY_IMAGE=<ref> /srv/factory/vm/factory
+    exit
     ```
 
 11. Start the instance and look at it:
 
     ```sh
-    $ sudo systemctl start factory@vm
-    $ sudo -iu factory
-    $ set -a; . /srv/factory/vm/factory.env; set +a
-    $ /srv/factory/vm/factory/.venv/bin/factory-watch
-    $ /srv/factory/vm/factory/.venv/bin/factory-health --state-directory /srv/factory/vm/state
+    sudo systemctl start factory@vm
+    sudo -iu factory
+    set -a; . /srv/factory/vm/factory.env; set +a
+    /srv/factory/vm/factory/.venv/bin/factory-watch
+    /srv/factory/vm/factory/.venv/bin/factory-health --state-directory /srv/factory/vm/state
     ```
 
     `factory-watch` shows the board and what the next tick would do. `factory-health` prints `healthy` or one line per stop in force. The console scripts live in the factory's virtual environment, which the environment file's `PATH` does not name, so the full path is needed. The environment file is loaded so that `factory-watch` reads the instance's settings.
@@ -514,13 +528,13 @@ This is the machine of the recommended setup: instance `vm`, an `e2-standard-2` 
 12. When the machine is not used, stop the instance first and then the VM. A VM stop during a stage ends the factory after systemd's stop timeout of 90 seconds, and the next start counts that stage as a crash (see *The rebuild after a merge*). So wait until no work item is held by `vm`: on the VM as `factory`, run `factory-watch` as in step 11 and look at the board. Then, on the VM from your own account (leave the `factory` shell with `exit`), stop the instance:
 
     ```sh
-    $ sudo systemctl stop factory@vm
+    sudo systemctl stop factory@vm
     ```
 
     Then, on your own computer, stop the VM:
 
     ```sh
-    $ gcloud compute instances stop factory-vm --zone=europe-west3-a
+    gcloud compute instances stop factory-vm --zone=europe-west3-a
     ```
 
     A stopped VM costs only its disks and NAT (see *The costs*). Start it again on your own computer with `gcloud compute instances start factory-vm --zone=europe-west3-a`; the service is enabled and comes up with it, because `systemctl stop` does not disable it.
@@ -546,7 +560,7 @@ A stage container sees:
 - read-only mounts: in the sync container the host repository's `.git` at `/upstream` (the sync fetches from it, because the container has no credentials), and in the agent's container the login file and the instructions file at their paths. A rootless container cannot write a read-only mount;
 - the network: the Anthropic API, npm and GitHub through NAT.
 
-It does not see the hosting token (only the host reads it, and the host alone pushes), the host's files outside its mounts, the next stage, or anything of the metadata server worth having (see *The metadata server*). Every container runs with `--cap-drop=all`, `--security-opt=no-new-privileges`, `--pids-limit=4096`, `--memory=4g` and `--userns=keep-id` (the files it writes belong to `factory` on the host), and with `--timeout` set to the step's time limit.
+It does not see the hosting token, because only the host reads it and the host alone pushes. It does not see the host's files outside its mounts, the next stage, or anything of the metadata server worth having (see *The metadata server*). Every container runs with `--cap-drop=all`, `--security-opt=no-new-privileges`, `--pids-limit=4096` and `--memory=4g`. It runs with `--userns=keep-id`, so the files it writes belong to `factory` on the host. `--timeout` is set to the step's time limit.
 
 ### The costs
 
@@ -575,27 +589,28 @@ Every GCP VM reaches a metadata server at `169.254.169.254`, and so does every c
 
 A VM costs money for every hour it runs, also while the factory has nothing to do. With `FACTORY_IDLE_SHUTDOWN_MINUTES` set to a whole number above 0, the factory powers the machine off after an idle stretch of that many minutes. Unset, blank or `0` leaves it off, and then none of this runs.
 
-**What is idle.** A tick is idle when it ran, ended at no stop and handled the event `idle`. That holds when nothing can be started. It holds when the first waiting work item waits for the human, for an approval or a question the factory posted. It holds when another instance holds a claim. A story that waits overnight for your merge therefore counts as idle, which is the cost the option saves. A tick that ended at a stop is not idle. A tick that handled any other event is not idle either, whether a run, a comment, a merge, a crash or an error. Both start the stretch again. A stop waits for a fix you may make on the machine, so on a VM the machine stays up while one stands. In a job, see *In a job* below. An iteration that ran no tick (the checkout could not be prepared) neither counts nor ends the stretch. The first stretch starts when the instance starts.
+**What is idle.** A tick is idle when it ran, ended at no stop and handled the event `idle`. That holds when nothing can be started. It holds when the first waiting work item waits for the human, for an approval or a question the factory posted. It holds when another instance holds a claim. A story that waits overnight for your merge therefore counts as idle, which is the cost the option saves. A tick that ended at a stop is not idle. A tick that handled any other event is not idle either, whether a run, a comment, a merge, a crash or an error. Both start the stretch again. A stop waits for a fix you may make on the machine, so on a VM the machine stays up while one stands. In a job, see *In a job* below. An iteration that ran no tick neither counts nor ends the stretch. That happens when the checkout could not be prepared. The first stretch starts when the instance starts.
 
 **The two log lines.** Both go to the factory log (`factory.log` in the state directory) and both begin `idle shutdown: `:
 
 - `idle shutdown: idle for <n> minutes, powering the machine off` is written right after the idle tick that ends a stretch of at least the limit, just before the factory asks the machine to power off.
 - `idle shutdown: power off failed: <detail>; the factory runs on` follows it when the machine refused or could not be asked.
 
-**A refused power-off.** The factory runs `sudo -n /usr/bin/systemctl poweroff`, the one command it needs. When `factory` has no right to it, `sudo` is missing, the call reaches its time limit of one minute, or the instance does not run on the VM, the second line holds the last line `sudo` printed (for example `sudo: a password is required`) or `exit status <n>`. It is not a stop: the instance runs on, starts a new stretch, and asks again only after another full limit. Read the line with `grep 'idle shutdown' /srv/factory/vm/state/factory.log`. No preflight item checks the right.
+**A refused power-off.** The factory runs `sudo -n /usr/bin/systemctl poweroff`, the one command it needs. Four things refuse it: `factory` has no right to the command, `sudo` is missing, the call reaches its time limit of one minute, or the instance does not run on the VM. The second line then holds the last line `sudo` printed, for example `sudo: a password is required`, or `exit status <n>`. It is not a stop. The instance runs on, starts a new stretch, and asks again only after another full limit. Read the line with `grep 'idle shutdown' /srv/factory/vm/state/factory.log`. No preflight item checks the right.
 
 **In a job.** A Cloud Run job has no `systemctl` and no `sudo`, so `poweroff` would only be refused and the job billed until its task timeout. With `FACTORY_IDLE_SHUTDOWN_ACTION=exit` the factory, after the idle tick that ends the stretch, stops its own loop the way a `SIGTERM` does: the tick in progress is the last, and `factory-run` ends with status 0, which ends the job's execution. The job's schedule starts it again, or you do (`gcloud run jobs execute <job>`), as you start a stopped VM. The log line says what happens, `idle shutdown: idle for <n> minutes, ending the factory's process`; with `poweroff` it is `idle shutdown: idle for <n> minutes, powering the machine off`. The idle rule and `FACTORY_IDLE_SHUTDOWN_MINUTES` work as on a VM (`0` is off). A VM keeps `poweroff`.
 
-**A machine stop in a job.** On a VM a machine stop waits for a fix you make on the machine; in a job nobody can, because its file system is gone with the execution and the only fix is a new execution with other settings. So with the idle shutdown on and the action `exit`, a machine stop that has stood for ten minutes ends the process: `factory-run` ends with status 1, the execution ends as failed, and the last line of the job's log names the stop, `machine stop: standing for 10 minutes in a job, ending the factory's process: <reason>: <detail>`. The ten minutes are fixed and count from the first time of an unbroken stretch of the stop, though the preflight raises it again on every tick. A stop lifted before then ends nothing, and a new one counts from its own time. The rule is checked after every tick and after every iteration that ran no tick. It holds for no stop of scope `repository` (a push to `main` lifts those, and a job can see it), and not with `poweroff` or with the idle shutdown off.
+**A machine stop in a job.** On a VM a machine stop waits for a fix you make on the machine; in a job nobody can, because its file system is gone with the execution and the only fix is a new execution with other settings. So with the idle shutdown on and the action `exit`, a machine stop that has stood for ten minutes ends the process. `factory-run` ends with status 1 and the execution ends as failed. The last line of the job's log names the stop, `machine stop: standing for 10 minutes in a job, ending the factory's process: <reason>: <detail>`. The ten minutes are fixed. They count from the first time of an unbroken stretch of the stop, though the preflight raises it again on every tick. A stop lifted before then ends nothing, and a new one counts from its own time. The rule is checked after every tick and after every iteration that ran no tick. It holds for no stop of scope `repository`, because a push to `main` lifts those and a job can see it. It does not hold with `poweroff` or with the idle shutdown off.
 
 **The right.** The setup script gives `factory` the right to that one command, and sets the variable in the environment file, with its option `--idle-shutdown <minutes>`: step `poweroff` writes `/etc/sudoers.d/factory-poweroff`, step `environment` the line `FACTORY_IDLE_SHUTDOWN_MINUTES=<minutes>`, both from the same run. Without the right, set the variable only if you accept the second log line above.
 
 **Turning it on and off.**
 
-1. To turn it on, or to change the minutes, run the script again with the option:
+1. To turn it on, or to change the minutes, run your copy of `setup.sh` on the VM from your own account. Give it the arguments of the first run and add the option, as step 5 of *The rebuild after a merge* does:
 
    ```sh
-   sudo sh operator/vm/setup.sh --device /dev/sdb --repository-url https://github.com/<owner>/<repo>.git --idle-shutdown 30
+   sudo sh setup.sh --device /dev/disk/by-id/google-factory-data \
+     --repository-url https://github.com/pkrahmer/kumpel-factory.git --code-ref <the same ref> --idle-shutdown 30
    ```
 
 2. Restart the service so that it reads the new environment file:
@@ -604,12 +619,12 @@ A VM costs money for every hour it runs, also while the factory has nothing to d
    sudo systemctl restart factory@vm
    ```
 
-To turn it off, run the script again without the option and restart the same way. It removes `/etc/sudoers.d/factory-poweroff` and the line in the environment file. The script never starts or stops the service and never powers the machine off itself.
+To turn it off, run the script again with the arguments of the first run and without the option, and restart the same way. It removes `/etc/sudoers.d/factory-poweroff` and the line in the environment file. The script never starts or stops the service and never powers the machine off itself.
 
-**Starting the machine again.** Starting is outside the factory. By hand, from your own computer:
+**Starting the machine again.** Starting is outside the factory. By hand, on your own computer with `gcloud`:
 
 ```sh
-$ gcloud compute instances start factory-vm --zone europe-west3-a
+gcloud compute instances start factory-vm --zone europe-west3-a
 ```
 
 Or let a GCP instance schedule start it at the hours you work. Make the schedule by hand with `gcloud compute resource-policies create instance-schedule` and attach it with `gcloud compute instances add-resource-policies`; give it a start time only, so that the factory's own power-off is the only thing that stops the VM. The service is enabled and comes up with the machine. A merge, a close or an answer you gave while the VM was off is seen at the first tick after the start.
