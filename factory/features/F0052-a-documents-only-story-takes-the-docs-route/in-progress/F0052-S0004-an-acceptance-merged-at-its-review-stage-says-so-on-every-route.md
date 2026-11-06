@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T00:30:44.365853Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-06T00:30:39.027435Z'
   stage: doing
   run: 5559b36316574009a7625a097046d30f
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:30:44.365853Z'
+  stage: review
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -372,3 +381,4 @@ Expect: `True True False`
 
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
+26. factory: started review as vm.
