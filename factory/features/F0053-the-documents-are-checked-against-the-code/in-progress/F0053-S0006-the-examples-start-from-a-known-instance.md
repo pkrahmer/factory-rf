@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T09:08:14.295849Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-06T09:08:14.295849Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T09:09:25.794894Z'
+  stage: review
+  run: e98dd0543f144dc18b04d149f35b4b0c
 ---
 
 # The examples start from a known instance
@@ -137,8 +139,10 @@ Many commands of the operator guide need more than a repository: `factory-health
 5. Each document gets a fresh fixture: two `prepare` calls for two documents give two different folders, and a file written into the first is absent from the second.
 6. Every path the fixture creates lies under its folder.
 7. The instance's remote URL is a path under the folder, and `git rev-parse --is-bare-repository` in it prints `true`.
-8. `make check` stays green.
-9. docs: `docs/project-guide/style.md` (or `shared.md`): the two fixtures, `checkout` and `instance`, what each holds, and the instance's fixed name; that a command needing the hosting service is marked `console github`. `docs/decisions.md`: an entry for having no fake hosting service in the production wiring, with its reason (no switch for tests in the production code) and what was rejected (a `world` fixture behind `FACTORY_HOSTING=fake`).
+8. The folder holds the settings file `factory.env`, one `NAME=value` line for each variable of the environment `prepare` returns, and nothing else.
+9. `prepare` with a `GitCli` bound to a folder that is not a git repository raises `FixtureError`.
+10. `make check` stays green.
+11. docs: `docs/project-guide/style.md` (or `shared.md`): the two fixtures, `checkout` and `instance`, what each holds, and the instance's fixed name; that a command needing the hosting service is marked `console github`. `docs/decisions.md`: an entry for having no fake hosting service in the production wiring, with its reason (no switch for tests in the production code) and what was rejected (a `world` fixture behind `FACTORY_HOSTING=fake`).
 
 ## Smoke test
 
@@ -284,3 +288,13 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 18. factory: started review as vm.
+19. reviewer: Review, round 0. I read the work item and `git diff main...HEAD -- . ':!factory'` (7 files). I also ran `make duplicates`: its 6 new findings are all in modules this diff does not touch (`claude_runtime`/`opencode_runtime`, `hand_over`/`acceptance`, `documents.matches`, `cost_records`), so none of them is this story's. Architecture holds. The fixture sits in `hosting.adapters` and reaches git only through `GitCli.clone_bare`. `HEALTH_FILE_NAME` moved down to `watching.adapters.health_file` so that `factory.entry` is not imported. The only wiring is the table in `check_documents`. Security is clean: argv lists, no strings for a shell, no silencing markers. Criteria 1 to 7 each have a test that checks what the criterion says.
+
+    Findings:
+    1. criterion 8 added: it needs its test. `src/factory/hosting/adapters/instance_fixture.py:53-54,77` writes the settings file `<folder>/factory.env`, one `NAME=value` line per variable. The Description and the Interface name the file, but no criterion or test pins it. The tester should add a test in `tests/hosting/adapters/test_instance_fixture.py` that checks the file's lines equal the returned environment.
+    2. criterion 9 added: it needs its test. `src/factory/hosting/adapters/instance_fixture.py:70-71` turns a `GitError` from the clone into a `FixtureError`, and no test covers that side. The tester should add a test as `tests/hosting/adapters/test_checkout_fixture.py:29-38` does for the checkout fixture: `InstanceFixture(GitCli(<a folder that is not a repository>)).prepare(folder)` raises `FixtureError`.
+    3. `tests/hosting/adapters/test_instance_fixture.py:23` defines `INSTANCE_FIXTURE = "instance"` again, a second copy of `factory.shared.domain.documents.INSTANCE_FIXTURE` (which this story added at journal 11 so that the fixture names live in one place). The fix is to import it from `factory.shared.domain.documents` and drop the local constant.
+
+    The old closing criteria 8 (`make check`) and 9 (docs) are now 10 and 11. I changed nothing else in the work item.
+
+    Earlier tests: none. The diff only adds a test file (`tests/hosting/adapters/test_instance_fixture.py`, status `A`) and changes no test that `main` already holds.
