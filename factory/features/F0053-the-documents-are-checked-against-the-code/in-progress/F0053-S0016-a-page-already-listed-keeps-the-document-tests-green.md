@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T20:47:39.007612Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-06T20:47:33.721769Z'
   stage: doing
   run: 3ab942741f024fc696125e2016adea8b
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:47:39.007612Z'
+  stage: review
 ---
 
 # A page already listed keeps the document tests green
@@ -252,3 +261,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+16. factory: started review as vm.
