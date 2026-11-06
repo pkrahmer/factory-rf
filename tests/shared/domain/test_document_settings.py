@@ -109,6 +109,31 @@ def test_table_with_another_first_column_is_ignored(first_column: str, counted: 
 
 
 @pytest.mark.parametrize(
+    ("table", "named"),
+    [
+        pytest.param(
+            _table(("Setting", "Meaning"), ("`FACTORY_A`", "A.")), (), id="no-settings-table"
+        ),
+        pytest.param(
+            _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A.")),
+            ("FACTORY_B", "FACTORY_C"),
+            id="a-settings-table",
+        ),
+    ],
+)
+def test_guide_without_a_settings_table_gives_no_settings_finding(
+    table: GuideTable, named: tuple[str, ...]
+) -> None:
+    settings = (_setting("FACTORY_A"), _setting("FACTORY_B"), _setting("FACTORY_C"))
+
+    findings = settings_findings([table], settings)
+
+    assert len(findings) == len(named)
+    for name in named:
+        assert any(name in finding for finding in findings)
+
+
+@pytest.mark.parametrize(
     ("heading", "first_column", "refusal", "found"),
     [
         pytest.param(_REFUSALS, "Refusal", "is neither zfs nor copy", False, id="held"),

@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T07:11:16.170784Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-06T07:11:16.170784Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-06T07:12:33.913041Z'
+  stage: tests
+  run: d117d9e4ddfa4a3cb726bc79c9b5949b
 ---
 
 # The operator guide's settings agree with the settings code
@@ -294,3 +296,19 @@ Expect: `True`
 
     I did not run `make check` this round, since nothing I could change has changed.
 22. factory: started tests as vm.
+23. tester: Mode: a test change the human approved. I made the two test additions that coder entry 21 names, which come from the reviewer's findings in entry 19. I changed no existing test.
+
+    - criterion 1, the "with their defaults" part: tests/shared/domain/test_settings_table.py::test_settings_table_holds_the_default_read_settings_applies. It is one parametrized test with a row for each of the 36 settings. Each row pins the expected `SettingDoc.default` as a literal, for example `FACTORY_STATE` -> `/state`, `FACTORY_MIN_FREE_GB` -> `5`, `FACTORY_IDLE_SHUTDOWN_MINUTES` -> `0`, `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` -> `10`, and `None` for a setting with no default. For every setting that has a default, the row also checks that `read_settings(BASE)` applies that same value when the variable is unset. Durations are compared as whole minutes.
+    - criterion 6: tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding. It has two rows:
+      - a guide whose only table has another first column (`Setting`), with three settings in the code, gives no finding;
+      - a `Variable` table with one row gives one finding for each of the other two settings.
+
+    The criterion-1 name test stays as it was (`test_settings_table_names_what_read_settings_reads`).
+
+    Files changed: tests/shared/domain/test_settings_table.py and tests/shared/domain/test_document_settings.py. No files were created.
+
+    One run of `uv run pytest -q` on the two files: all passed. The code already exists, so these tests are not red, as entry 21 expected. Every module imported. `make lint`: green.
+
+    I skipped the type check as the stage says. A `mypy --strict` run on just these two files outside the project's configuration failed with `import-untyped` on `factory.shared.domain.settings`. That comes from the stand-alone setup, not from the tests, so the coder's `make check` is the real type check.
+
+    `lint`: lint: green (0.2 s)
