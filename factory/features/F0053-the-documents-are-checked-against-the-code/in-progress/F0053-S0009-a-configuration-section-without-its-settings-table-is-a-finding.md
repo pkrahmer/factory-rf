@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T12:42:09.798315Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T12:42:09.798315Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-06T12:42:24.951176Z'
+  stage: doing
+  run: a40caaa657f648c0b8aad600bae9ed23
 ---
 
 # A configuration section without its settings table is a finding
@@ -177,3 +179,9 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
    - tests/shared/domain/test_document_settings.py: one row of `test_guide_without_a_settings_table_gives_no_settings_finding` (`no-settings-table`) now expects the finding. The leave is the human's, through the story's Interface and feature decision 6; the test keeps its name.
    - tests/support/document_texts.py: `operator_install` now carries a `Variable` settings table naming every `SETTINGS` entry, so `clean_texts` has one. The same leave from the story's Interface covers it; no test function changed.
 10. factory: started doing as vm.
+11. coder: I changed no code. The reviewer's two findings in entry 9 are both changes to the tester's own test file, `tests/shared/domain/test_document_settings.py`. The coder never edits tests, so I am sending this back to the tester to make exactly these two changes:
+
+    1. Define `_SETTING_TABLE` through the existing helper `_table` instead of building `GuideTable(...)` by hand. That is `_SETTING_TABLE = _table(("Setting", "Meaning"), ("`FACTORY_A`", "A."))`, placed after `_table`. Then use it in the `no-settings-table` row of `test_guide_without_a_settings_table_gives_no_settings_finding` as well.
+    2. Make the counting-table case a row of `test_guide_without_a_counting_table_is_one_finding_when_there_are_settings`, for example `pytest.param([_SETTING_TABLE, _table(_VARIABLE_HEADER, ("`FACTORY_A`", "no", "A."))], (_setting("FACTORY_A"),), [], id="counting-table-beside-another")`. Then remove the separate function `test_guide_with_a_counting_table_gives_no_missing_table_finding`.
+
+    Neither change affects `src/factory/shared/domain/documents.py` or `src/factory/entry/check_documents.py`; the code from round 0 stays as it is. The journal did not change the meaning of the task, so the Description is unchanged. I did not run `make check` in this round because I changed nothing; entry 7 records it green on the current code.
