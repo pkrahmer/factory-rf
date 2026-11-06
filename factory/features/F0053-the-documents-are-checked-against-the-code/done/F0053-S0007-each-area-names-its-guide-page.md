@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-06T11:22:27.491693Z'
   stage: smoke-test
   run: 9a50393479f84c2093402fa284836e93
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-06T11:24:18.825707Z'
+  stage: approval
 ---
 
 # Each area names its guide page
@@ -189,3 +194,4 @@ Expect: `8`
     - Criterion 4: line 11 of `docs/project-guide/README.md` has the sentence that each area's package names its page. Not contradicted.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 4.3 min, 32 turns, 120065 tokens in (491675 more from cache), 10686 out, $1.05
