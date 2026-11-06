@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T02:36:45.656235Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-06T02:36:39.826029Z'
   stage: tests
   run: 934d55d92b2240d3ae6361ad34b4ed5e
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-06T02:36:45.656235Z'
+  stage: doing
 ---
 
 # Every name a document writes in backticks exists
@@ -369,3 +378,4 @@ Expect: a number alone (the count of findings, possibly `0`)
     Test run: `uv run pytest -q` on the two changed files. All 41 tests passed against the code already committed, which is expected because the coder's code already handles these rows. No module failed to import. `make lint`: green.
 
     `lint`: lint: green (0.1 s)
+24. factory: started doing as vm.
