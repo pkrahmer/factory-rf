@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:03:55.812483Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-06T09:03:49.334502Z'
   stage: tests
   run: 6f3ac62d58de4eb2b4b643be3e748a29
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:03:55.812483Z'
+  stage: doing
 ---
 
 # The examples start from a known instance
@@ -243,3 +252,4 @@ Expect: `1`
     The one run, `uv run pytest -q tests/hosting/adapters/test_instance_fixture.py`, passed all 7 tests, because the coder's code is already in place. Every module imported. `make lint`: green (0.1 s). The coder runs `make check` next.
 
     `lint`: lint: green (0.1 s)
+16. factory: started doing as vm.
