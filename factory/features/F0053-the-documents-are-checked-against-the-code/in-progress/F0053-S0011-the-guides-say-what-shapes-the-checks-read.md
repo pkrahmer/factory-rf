@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 597
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T13:12:48.989697Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T13:12:48.989697Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T13:13:57.308534Z'
+  stage: docs-review
+  run: 335fc23c5b96453592f527268859e8f1
 ---
 
 # The guides say what shapes the checks read
@@ -104,3 +106,12 @@ Expect: a number greater than `0`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (0.6 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` against `src/factory/shared/domain/documents.py` (`guide_tables`, `settings_findings`, `_default_findings`, `refusal_findings`, `_is_held`), `src/factory/entry/check_documents.py` (`main`, `_name_findings`, `_settings_guide_findings`), `docs/project-guide/shared.md` (*The name check*, *The checked documents and the report*, *The settings check*) and the rules in `docs/project-guide/style.md`. In the style page's settings bullet, these facts match the code: the `Name`/`Variable` first cell, the exact `Default` header, the `none` or empty cell for no default, the *Configuration* section of `install.md`, and the `no settings table` finding when no table counts. In the refusal bullet, the `The refusals` heading, the `Refusal` first cell, the backticked first cell, the `<placeholder>` cut and the three-character pieces all match the code. The README's descriptions of the settings check, the example check and `Report (not checked yet):` also match.
+
+   Findings:
+   1. `README.md:22`, "and name every stop, kill point and fault-injection path (the name check)": the code contradicts this label. The name check (`_name_findings`, which calls `named_references` and `unresolved`; shared.md *The name check*) reports every module, repository path or link a document writes that does not exist. Checking that the documents exist, use their own words and name every stop, kill point and fault-injection path is done by the document findings of `check_documents`. Fix: describe those as the document checks, and add a separate clause saying the name check finds names that do not exist.
+   2. `README.md:22`, "A finding blocks only in a file listed in `docs/checked-documents.txt`": false. `check_documents.main` blocks on the document findings of every file and on `checked_list_findings`. `split_findings` gates only the findings of the name, settings and example checks (see its docstring and shared.md *The checked documents and the report*, step 1). Fix: say that only a finding of the name, settings or example check blocks just in a listed file, and that the document checks block in every file.
+   3. `README.md:22`: breaks style.md rule 2 (one idea per sentence, about 25 words, at most one parenthesis). The rewritten "Beside the five console commands, …" sentence is well over 100 words, holds several ideas and has five parentheses, one of which contains a nested parenthesis. Fix: split it into short sentences: the contract command, then one sentence for each check, the blocking rule, the report and the closing line. While doing so, drop the version name "v1.1" (rule 1).
+   4. `docs/project-guide/style.md:80` (refusal bullet): it does not say where the refusal table must sit. `_settings_guide_findings` passes the refusal check only `guide_tables(text, SETTINGS_SECTION)`, so a `The refusals` table counts only as a subsection of *Configuration* in `docs/operator-guide/install.md`. A writer who puts it under install.md's own `## When the process refuses to start` gets no finding at all, and criterion 1 asks for exactly this. Fix: say that the heading `The refusals` must be a subsection of *Configuration* in `docs/operator-guide/install.md`.
+   5. `docs/project-guide/style.md:80`, "in the settings source": the term is not explained anywhere on the page (rule 3). The code reads `Path(settings.__file__)`, the source of `src/factory/shared/domain/settings.py`. Fix: name that file and link it relatively (rule 8).
+   6. `docs/project-guide/style.md:79-80`: breaks style.md rule 2. Three sentences run to about 28–30 words with two ideas each: "The settings check reads only … (`Variable` also counts).", "It compares the defaults only … has no default." and "The check looks up each piece … is a finding." Fix: split each into two sentences.
