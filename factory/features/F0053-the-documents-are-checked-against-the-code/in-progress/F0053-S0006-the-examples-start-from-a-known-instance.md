@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T08:54:02.639358Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T08:53:57.519164Z'
   stage: intake
   run: 53aef9b2d4e04e3285f9fb55b5df582d
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:54:02.639358Z'
+  stage: tests
 ---
 
 # The examples start from a known instance
@@ -100,3 +109,4 @@ Expect: `1`
    - Smoke test: the command now names the new test path. It is runnable, and it is correct under the project's `-q` addopts, which gives a summary line. `Expect: 1` is checkable.
    - Architecture: the fixture sits in `hosting.adapters` beside `CheckoutFixture` because it needs git. It changes no setting and no run or watch wiring. That fits the layering.
    - Scope: it is within F0053 (S0006, runnable examples) and touches nothing under "Out of scope". The route is `tests`, since the Interface changes `src` code.
+7. factory: started tests as vm.
