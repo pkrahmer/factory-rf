@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 588
-comments_read: []
+comments_read: [6681011738]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 4f80d96912dd4c0185d82abf9e5851bf
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T08:53:31.534026Z'
+  stage: intake
 ---
 
 # The examples start from a known instance
@@ -68,3 +73,8 @@ Expect: `1`
    4. Criterion 3 holds two claims (no file outside the runner's folder; the remote is a local bare repository, not a network address). I would split them, each with a testable check (for example: the remote URL is a path under the folder and `git rev-parse --is-bare-repository` prints `true`).
    5. Criterion 2 (fresh fixture per document) does not say how a test sees it: I would state that two builds for two documents give different folders and a file written into the first is absent from the second.
    Architecture and scope look right (`shared.adapters`, no wiring change, in S0006's place in the feature); the route would be `tests`.
+4. 2026-11-06 human: 1. Follow the pattern S0003 set: `InstanceFixture(git: GitCli)`, a class implementing `Fixture`, whose `prepare(folder) -> dict[str, str]` builds the instance in `folder` and returns its environment. It needs git for the bare remote, so it lives beside `CheckoutFixture` in `factory.hosting.adapters.instance_fixture`, not in `factory.shared.adapters.document_fixtures` as the Interface says. `factory.entry.check_documents` adds it to the name-to-fixture table under `instance` (`fixtures = {"checkout": ..., "instance": InstanceFixture(...)}`). "No change to the factory's wiring" means the factory's own run and watch commands; the document check's table is the one place this story wires. The test module becomes `tests/hosting/adapters/test_instance_fixture.py`.
+   2. Yes to both criteria: the environment holds `FACTORY_INSTANCE=docs` and `FACTORY_SNAPSHOTS=copy`, and every folder variable it sets lies under the fixture's folder; the state folder holds the health file that `factory-health` reads.
+   3. Yes: 1a (`factory-health --state-directory "$FACTORY_STATE"` prints `healthy`) and 1b (`FACTORY_INSTANCE=Factory-1` makes `factory-run` print `settings invalid: FACTORY_INSTANCE: is not a name` and exit 2), one row each of one parametrized test if they share the setup.
+   4. Yes: 3a, every path the fixture creates lies under its folder; 3b, the remote URL is a path under the folder and `git rev-parse --is-bare-repository` in it prints `true`.
+   5. Yes: two `prepare` calls for two documents give two different folders, and a file written into the first is absent from the second.
