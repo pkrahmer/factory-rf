@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T19:52:58.727994Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T19:52:58.727994Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T19:57:11.722392Z'
+  stage: doing
+  run: e4a04ca884c6482da92d9d41d73b1e92
 ---
 
 # Listing a right document keeps the suite green
@@ -122,3 +124,13 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: Wrote no code. Everything this story needs is under `tests/`, and the tester already wrote it: `tests/support/check_documents_support.py` (`write_checked_list`, plus the moved `CHECKED_LIST`, `INSTALL` and `drop_settings_row`), the new `tests/entry/test_check_documents_any_list.py`, and the four changed earlier tests. The Interface says no module under `src/factory/` changes, and neither do `docs/checked-documents.txt` nor the `documents` fixture. My only step was the full `make check`, which the tester had not run (they ran only lint and the five modules). It ended `test: green (103.7 s)` and `check: green`, so `mypy --strict` passes over the new tests too.
+
+   Main decision: I added nothing under `src/`. The alternative was to change the check so that an unlisted path in the repository's list is not reported. I rejected it because the Interface keeps the check and its output as they are, and the failing-side test (criterion 2) depends on that line appearing.
+
+   Refactor: there is no diff of mine to refactor (`git diff main -- . ':!factory' ':!tests'` is empty). The journal did not change the meaning of the task, so the Description stays.
+
+   Noticed but not touched: criterion 6, the change to `docs/project-guide/shared.md` *The settings check*, is open for the docs stage.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
