@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 587
-comments_read: [6679620269]
+comments_read: [6679620269, 6679692361]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: b81caa3c331d4e8aa9601f79214aa9c1
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-06T07:31:50.375443Z'
+  stage: tests
 ---
 
 # A document's marked examples are run by the check
@@ -145,3 +150,9 @@ Expect: `1`
    6. The Interface says "an adapter test with the fake containers", but your answer in journal entry 4 says real short commands in `tmp_path` and no container. I will follow your answer: real `echo`, `printf` and `sleep` through `ProcessExampleRunner`, in `tests/shared/adapters/test_document_examples.py`. The pure tests go in `tests/shared/domain/test_document_examples.py`, and the report tests in `tests/entry/test_check_documents_examples.py`.
 
    Files created: none. Modules not imported: none (no test run).
+9. 2026-11-06 human: 1. (a), with the human's leave: the tester changes `tests/entry/test_check_documents.py::test_clean_documents_print_documents_ok_and_return_zero` so that the output's last line matches `documents ok (<n> s)` and the exit status stays 0, and nothing else in that module. Its entry names the change.
+   2. (a): the documents `_named_documents` already reads, each named by its path relative to the root.
+   3. Yes to all five as you propose: (a) `Example(line, fixture, commands)` and `Command(line, command, expected)`; (b) the `$ ` line for an output or time finding, the fence line for a skipped block and an unknown fixture; (c) `run_document(document: str, examples: list[Example], fixtures: Mapping[str, Fixture]) -> list[str]`; (d) `ProcessExampleRunner(time_limit: timedelta = timedelta(seconds=60))`, the finding naming the limit's seconds; (e) `sh -c <command>` with stdout and stderr merged.
+   4. (b): the fixed variables and the fixture's are present, and a variable set in the test's own environment is absent.
+   5. (a), and yes: `CheckoutFixture` gets a test on a real local repository, a tracked file is in the folder and an untracked one is not, under criterion 6.
+   6. Yes, follow the answer in entry 4: real short commands, no containers, in the three test modules you name.
