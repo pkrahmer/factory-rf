@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 593
 comments_read: [6684236950, 6684384956]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T12:07:56.192973Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -185,6 +181,12 @@ journal:
   kind: started
   at: '2026-11-06T12:07:56.192973Z'
   stage: smoke-test
+- number: 32
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T12:08:30.939665Z'
+  stage: smoke-test
+  run: 750ef6cc2371448f98b0ff7fa643e2bc
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -485,3 +487,30 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (0.6 s)
 31. factory: started smoke-test as vm.
+32. smoke-tester: I ran the three commands under `## Smoke test` from the repository root, in order and as written. Each one met its `Expect:` line, so there are no findings.
+
+    1. `grep -c '^```console' docs/project-guide/style.md`
+    ```
+    2
+    ```
+    Met. Expected a number greater than `0` and got `2`.
+
+    2. `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 50ms
+    documents ok (0.6 s)
+    ```
+    Met. The first line is uv's own message on standard error, which does not go through `tail`. The last line of the check matches `documents ok (<seconds> s)`, and the exit status was 0.
+
+    3. `uv run pytest tests/entry/test_check_documents_operator_guide.py 2>&1 | tail -1 | grep -c passed`
+    ```
+    1
+    ```
+    Met. Expected `1` and got `1`. Without the final `grep`, pytest's last line was `6 passed in 1.39s`.
+
+    Checked against the acceptance criteria:
+    - Criteria 1 to 3 (the `console` block in the copy and the copy as a clean git repository): the smoke test contradicts none of them. The operator-guide test module the story names passes in full (6 passed).
+    - Criterion 5 (docs): `docs/project-guide/style.md`, *Runnable examples*, now shows its two demonstration blocks as `console` blocks, and `make documents` runs them: the check printed `documents ok`. The page says a wrong example fails `make documents` only in a file listed in `docs/checked-documents.txt`, fails the test suite in any document the check reads, and must be right wherever it stands. It does not describe how the tests' copies are built. Criterion met.
+    - Criterion 4 (`make check`): I did not run it. It is not one of the smoke test's commands, and the factory runs it as the stage's check.
+
+    Open: nothing.
