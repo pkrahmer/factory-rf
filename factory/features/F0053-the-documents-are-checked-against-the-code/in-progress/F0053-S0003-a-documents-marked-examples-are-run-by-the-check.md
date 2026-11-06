@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T08:08:50.919800Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-11-06T08:08:45.402104Z'
   stage: doing
   run: bf01d06f9c6e41118e7e4b92583c0811
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:08:50.919800Z'
+  stage: tests
 ---
 
 # A document's marked examples are run by the check
@@ -647,3 +656,4 @@ Expect: `1`
     - The 60-second default limit still has no test (the reviewer's note).
 
     `check`: check: green
+36. factory: started tests as vm.
