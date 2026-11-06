@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T02:47:18.804267Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-06T02:47:18.804267Z'
   stage: smoke-test
+- number: 31
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T02:47:52.316346Z'
+  stage: smoke-test
+  run: c3dc3c32c6234d74b53c9164d36cd3b7
 ---
 
 # Every name a document writes in backticks exists
@@ -475,3 +477,23 @@ Expect: a number alone (the count of findings, possibly `0`)
     `secrets`: secrets: green (0.4 s)
     `documents`: docs/project-guide/work.md:186: tests/entry/test_contract.py::test_the_committed_schemas_are_the_generated_ones does not exist
 30. factory: started smoke-test as vm.
+31. smoke-tester: Ran the one smoke-test command from the repository root, as written, and changed nothing.
+
+    Command 1: `uv run python -m factory.entry.check_documents | grep -c "does not exist"`
+    ```
+    Bytecode compiled 4164 files in 50ms
+    152
+    ```
+    (The `Bytecode compiled` line is uv's stderr, not the piped stdout.) Both commands in the pipeline exited with status 0. **Met** `Expect:`: stdout is one number alone, 152.
+
+    Checked against the acceptance criteria with a second, read-only run (stderr discarded, output read and removed):
+    - Exit status 0 even with 152 findings. The findings come before the document check's own `documents ok` line, which matches criterion 4: findings are only printed until S0004.
+    - The findings come from `README.md` (1), `docs/operator-guide/*` (46) and `docs/project-guide/*` (105). So all three sources are read, and none come from `docs/decisions.md` or `docs/runs/` (criteria 3 and 4).
+    - The finding format is `<document>:<line>: <name> does not exist`, as the Interface says, for example `README.md:24: factory/stage.Containerfile does not exist`.
+
+    Findings: none.
+
+    Notes, not findings (the Interface's rules ask for this behaviour):
+    - `factory.local.env` and `factory.env` are reported as module names because they start with `factory.`.
+    - `git@host:owner/name.git` is reported as a path because it contains `/` and its last segment has an extension.
+    - S0004, which makes these findings fail the check, may want to look at those rules and at the 152 stale names in the documents (84 of them in `docs/project-guide/README.md`).
