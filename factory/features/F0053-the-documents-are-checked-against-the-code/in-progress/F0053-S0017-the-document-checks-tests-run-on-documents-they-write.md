@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T21:19:59.708017Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-06T21:19:54.528627Z'
   stage: tests
   run: 42ba2f2f8d084aaebebfe25235bc622f
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-06T21:19:59.708017Z'
+  stage: doing
 ---
 
 # The document check's tests run on documents they write
@@ -400,3 +409,4 @@ Expect: `documents ok (<seconds> s)`
     Open: criterion 8 (`docs:`) is the documenter's.
 
     `lint`: lint: green (0.2 s)
+24. factory: started doing as vm.
