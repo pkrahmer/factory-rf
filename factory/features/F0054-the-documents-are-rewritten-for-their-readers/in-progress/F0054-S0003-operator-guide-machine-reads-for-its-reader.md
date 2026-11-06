@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 611
 comments_read: [6698650455]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:35:30.561856Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,13 +80,19 @@ journal:
   kind: started
   at: '2026-11-06T23:35:30.561856Z'
   stage: docs-review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:36:16.536395Z'
+  stage: docs-review
+  run: 5c26794b23ab4c93abe5ee813cb250d5
 ---
 
 # The operator guide's the machine reads for the operator
 
 ## Description
 
-`docs/operator-guide/machine.md` is rewritten for its reader, an operator who runs an instance, knows Linux and does not read the code, in the style of `docs/project-guide/style.md` (numbered steps for tasks; each stop as what you see, what it means, what you do; settings as tables of name, what it does, default and example). The facts come from the code it describes, not from the old text: every name, command, setting and rule of the old file is still in the new one, or moved on purpose to a section *Reference* at the end of the file, and a claim the code does not bear out is corrected or removed (style rules 8 to 10). Every command the file shows is a runnable example or is marked for the VM, GitHub or a model. When the file passes the checks, its path is added to `docs/checked-documents.txt`, so the checks block it from now on. The story takes the docs route.
+`docs/operator-guide/machine.md` is rewritten for its reader, an operator who runs an instance, knows Linux and does not read the code, in the style of `docs/project-guide/style.md` (numbered steps for tasks; each stop as what you see, what it means, what you do; settings as tables of name, what it does, default and example). The facts come from the code it describes, not from the old text: every name, command, setting and rule of the old file is still in the new one, or moved on purpose to a section *Reference* at the end of the file, and a claim the code does not bear out is corrected or removed (style rules 8 to 10). Every command the file shows is a runnable example, or is marked for the VM, GitHub or a model, or, when it acts on a real machine or a cloud account and no run can be copied, stands in an `sh` block of bare commands (no `$ `, no output) under its numbered step, with the text above it saying where it runs. That rule is added to `docs/project-guide/style.md`, *Runnable examples*, as one short paragraph. When the file passes the checks, its path is added to `docs/checked-documents.txt`, so the checks block it from now on. The story takes the docs route.
 
 ## Interface
 
@@ -241,3 +243,18 @@ Expect: `1`
 12. 2026-11-06 human: (A), and the rule goes into the style page in this story, so that the later pages of the rewrite meet it without asking: a command that acts on a real machine or a cloud account, where no run can be copied, stands in an `sh` block of bare commands, without `$ ` and without output, under its numbered step, and the text above it says where it runs. A command an agent can run stays a `console` block with its output; one copied from a real run stays `console vm` with the run named. The documenter adds this to `docs/project-guide/style.md`, *Runnable examples* (one short paragraph, by the style page's own rules), and this story's Description counts as amended by this answer.
     And yes to findings 1 to 7 as you wrote them: bare commands in every unrun block, the long sentences split, the environment file's table in the four columns, the copied `setup.sh` with the first run's arguments for the idle shutdown, and one italic heading per reference.
 13. factory: started docs-review as vm.
+14. reviewer: Round 1 docs-review, after the human's answer in entry 12. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. Since entry 11 the branch has only factory commits and a merge of `main`. Neither touches `docs/operator-guide/machine.md` or `docs/project-guide/style.md`, so the documents are the ones entry 11 reviewed. The human chose (A) and confirmed findings 1 to 7, so they all still stand. The answer also adds one piece of work: the rule goes into `style.md`.
+
+    description corrected: "Every command the file shows is a runnable example or is marked for the VM, GitHub or a model." -> "Every command the file shows is a runnable example, or is marked for the VM, GitHub or a model, or, when it acts on a real machine or a cloud account and no run can be copied, stands in an `sh` block of bare commands (no `$ `, no output) under its numbered step, with the text above it saying where it runs. That rule is added to `docs/project-guide/style.md`, *Runnable examples*, as one short paragraph." (entry 12: "this story's Description counts as amended by this answer").
+
+    1. `docs/project-guide/style.md:16-` (*Runnable examples*): wrong: the paragraph the human asked for in entry 12 is missing. Fix: add one short paragraph, written by the style page's own rules. It says: a command that acts on a real machine or a cloud account, where no run can be copied, stands in an `sh` block of bare commands, without `$ ` and without output, under its numbered step, and the text above it says where it runs. A command an agent can run stays a `console` block with its output. A command copied from a real run stays a `console vm` block with the run named.
+    2. `docs/operator-guide/machine.md:116,142,248,265,379-381,612` and the other `$ `-prefixed `sh` blocks from entry 11 finding 1 (417-524 and the rest): wrong: unrun `sh` blocks still put `$ ` before their commands, against entry 12's bare-command form. Fix: remove `$ ` from every line of every `sh` block.
+    3. `docs/operator-guide/machine.md:5`: wrong: one blanket sentence ("commands for the VM, the cloud or your own computer") stands in for the per-block statement that entry 12 requires. Fix: in the text above each `sh` block, say where its commands run (on the VM as root, on your own computer with `gcloud`, and so on). Then cut line 5 down to what the blocks are, or remove it.
+    4. `docs/operator-guide/machine.md:3`: wrong: the sentence is about 60 words, and its list has two "and"s ("...[stop] and [work item], [claim], ... and [role]"). Fix: make one list with one final "and", and split it into two sentences (rule 2).
+    5. `docs/operator-guide/machine.md:68`: wrong: the sentence is about 45 words with two parentheses. Fix: split it, and give the reachability note its own sentence.
+    6. `docs/operator-guide/machine.md:21,119,149,153,198,253,307,315,330,370,376,484,549,585,589`: wrong: each line holds a sentence of about 40 to 70 words, and line 549 also has two parentheses (rule 2). Fix: split each one into sentences of one idea.
+    7. `docs/operator-guide/machine.md:388-408`: wrong: the environment file's settings table is headed `Variable | Value`. Fix: use the columns `Name`, `What it does`, `Default`, `Example`. The value the script writes is the default. Say what each variable does, or link to its row in `install.md` *Configuration*.
+    8. `docs/operator-guide/machine.md:597`: wrong: the idle-shutdown step runs `sudo sh operator/vm/setup.sh` from a checkout on the VM, which contradicts `:651` ("Root runs nothing from `/srv/factory/vm/factory`") and the rebuild at `:663-664`. Fix: tell the reader to run their copied `setup.sh` with the first run's arguments plus `--idle-shutdown 30`, as step 5 of *The rebuild after a merge* does.
+    9. `docs/operator-guide/machine.md:473`: wrong: `(see *The script*, "The two passes")` mixes italics and quotes. Fix: `(see *The two passes*)`.
+
+    Criterion 2: unchanged from entries 7 and 11. Nothing was dropped except the two history sentences, and no *Reference* section was added.
