@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T19:58:15.579394Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T19:58:10.001743Z'
   stage: review
   run: 3716b8331880461581ea18b12949299d
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:58:15.579394Z'
+  stage: doing
 ---
 
 # Listing a right document keeps the suite green
@@ -159,3 +168,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    - tests/entry/test_check_documents_settings.py: the human's leave, feature decision 8, named in the story's Interface. Moving its `_drop_row` to the support module as `drop_settings_row`, unchanged, is under the standing leave to move a shared test helper.
    - tests/entry/test_check_documents_suite_copy.py: the human's leave, feature decision 8, named in the story's Interface.
    - tests/support/check_documents_support.py: none needed. The change only adds `write_checked_list` and receives the moved helper, and leaves every helper the file held as it was.
+10. factory: started doing as vm.
