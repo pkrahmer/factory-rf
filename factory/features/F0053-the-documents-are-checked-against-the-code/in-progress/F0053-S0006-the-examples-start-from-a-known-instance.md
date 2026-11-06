@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T08:56:14.014925Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-06T08:56:08.706243Z'
   stage: tests
   run: 0d326b3ade3148fda5ca1e5b361ae56f
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-06T08:56:14.014925Z'
+  stage: doing
 ---
 
 # The examples start from a known instance
@@ -135,3 +144,4 @@ Expect: `1`
    The one run (`uv run pytest -q tests/hosting/adapters/test_instance_fixture.py`) failed at collection: `ModuleNotFoundError: No module named 'factory.hosting.adapters.instance_fixture'`. That module is the one the test runner could not import. `make lint`: green. I skipped the type check, as this stage says.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
