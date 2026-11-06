@@ -3,8 +3,7 @@
 import pytest
 
 from factory.shared.domain.documents import Command, Example, Skipped, examples, matches
-
-FENCE = "```"
+from support.document_texts import FENCE
 
 
 def test_a_console_block_gives_its_fixture_commands_and_expected_output_in_order() -> None:
@@ -66,6 +65,12 @@ def test_a_console_block_gives_its_fixture_commands_and_expected_output_in_order
         pytest.param("console", "make check", "suite", id="make-check"),
         pytest.param("console", "make test", "suite", id="make-test"),
         pytest.param("console", "pytest", "suite", id="pytest-without-a-file"),
+        pytest.param("console", "uv run make check", "suite", id="uv-run-make-check"),
+        pytest.param("console", "uv run make test", "suite", id="uv-run-make-test"),
+        pytest.param("console", "uv run pytest", "suite", id="uv-run-pytest-without-a-file"),
+        pytest.param("console", "pytest -q", "suite", id="pytest-with-options-only"),
+        pytest.param("console", "pytest -q 2>&1 | tail -5", "suite", id="pytest-piped"),
+        pytest.param("console", "pytest -k name", "suite", id="pytest-with-an-option-value"),
     ],
 )
 def test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind(
@@ -77,6 +82,26 @@ def test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind(
 
     assert found.runnable == []
     assert found.skipped == [Skipped(line=3, kind=kind)]
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        pytest.param("pytest tests/shared/test_one.py", id="pytest-with-a-file"),
+        pytest.param("uv run pytest tests/shared/test_one.py", id="uv-run-pytest-with-a-file"),
+    ],
+)
+def test_a_block_that_runs_pytest_with_a_file_is_run(command: str) -> None:
+    text = "\n".join(["# A guide", "", f"{FENCE}console", f"$ {command}", "ok", FENCE, ""])
+
+    found = examples(text)
+
+    assert found.runnable == [
+        Example(
+            line=3, fixture="checkout", commands=[Command(line=4, command=command, expected=["ok"])]
+        )
+    ]
+    assert found.skipped == []
 
 
 @pytest.mark.parametrize(

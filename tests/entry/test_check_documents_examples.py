@@ -8,9 +8,8 @@ import pytest
 from factory.entry.check_documents import main
 from factory.shared.domain.documents import README
 from support.check_documents_support import TIME_LINE
-from support.document_texts import clean_texts, readme, write_documents
+from support.document_texts import FENCE, clean_texts, readme, write_documents
 
-FENCE = "```"
 SKIPPED_BLOCKS = "\n".join(
     [
         f"{FENCE}console vm",

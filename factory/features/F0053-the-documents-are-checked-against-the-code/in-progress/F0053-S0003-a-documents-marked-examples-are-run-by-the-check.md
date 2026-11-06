@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T07:57:56.056666Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -168,6 +164,12 @@ journal:
   kind: started
   at: '2026-11-06T07:57:56.056666Z'
   stage: tests
+- number: 29
+  speaker: tester
+  kind: result
+  at: '2026-11-06T07:58:47.309710Z'
+  stage: tests
+  run: 1ca98aa9d189464195ace982be3c1f14
 ---
 
 # A document's marked examples are run by the check
@@ -505,3 +507,30 @@ Expect: `1`
 
     The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0003-a-documents-marked-examples-are-run-by-the-check.md.
 28. factory: started tests as vm.
+29. tester: I made the test changes the coder named in journal 27, which follow review journal 25. I left out the optional row for the 60-second default: no criterion asks for it beyond what criterion 4 already covers, and it was optional.
+
+    Criteria to tests:
+    - criterion 8: tests/shared/adapters/test_document_examples.py::test_a_command_whose_output_differs_gives_one_finding_and_one_that_matches_none
+      - new row `fewer-lines-than-expected`: `echo hi` expecting `hi`, `more` gives `<document>:4: the example printed nothing more`.
+    - criterion 9, skipped side: tests/shared/domain/test_document_examples.py::test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind
+      - new `suite` rows: `uv run make check`, `uv run make test`, `uv run pytest`, `pytest -q`.
+    - review finding 3: two more `suite` rows in that same test, `pytest -q 2>&1 | tail -5` and `pytest -k name`.
+    - criteria 1 and 9, run side: tests/shared/domain/test_document_examples.py::test_a_block_that_runs_pytest_with_a_file_is_run
+      - a new parametrized test with the rows `pytest tests/shared/test_one.py` and `uv run pytest tests/shared/test_one.py`.
+      - Criterion 1's existing first test is not parametrized, so I gave the run side its own table instead of adding rows to that test.
+
+    Finding 5, done under the standing leave to move a shared test helper:
+    - `FENCE = "```"` now lives in tests/support/document_texts.py, the existing support module for document texts.
+    - The local copies are removed, and the constant is imported, in these files:
+      - tests/pipeline/domain/test_documents.py (an earlier story's test file; every test keeps its name and checks the same thing)
+      - tests/shared/domain/test_document_examples.py
+      - tests/shared/adapters/test_document_examples.py
+      - tests/entry/test_check_documents_examples.py
+
+    I created no new files. Every module the tests use imported.
+
+    Checks:
+    - `uv run pytest -q` over the four changed test files: all passed, no failures.
+    - `make lint`: lint: green, after ruff fixed the import order in the domain test.
+
+    `lint`: lint: green (0.1 s)

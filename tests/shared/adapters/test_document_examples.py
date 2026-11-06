@@ -11,8 +11,8 @@ import pytest
 from factory.shared.adapters.document_examples import ProcessExampleRunner
 from factory.shared.application.document_examples import Fixture
 from factory.shared.domain.documents import examples
+from support.document_texts import FENCE
 
-FENCE = "```"
 DOCUMENT = "docs/project-guide/shared.md"
 FIXTURE_VARIABLE = "EXAMPLE_FIXTURE"
 SHORT_LIMIT_SECONDS = 1
@@ -71,6 +71,11 @@ def test_the_blocks_of_one_document_share_a_folder_and_the_next_document_starts_
         pytest.param(["hello"], [f"{DOCUMENT}:4: the example printed hi"], id="differs"),
         pytest.param(
             ["one", "two"], [f"{DOCUMENT}:4: the example printed hi"], id="first-differing-line"
+        ),
+        pytest.param(
+            ["hi", "more"],
+            [f"{DOCUMENT}:4: the example printed nothing more"],
+            id="fewer-lines-than-expected",
         ),
     ],
 )
