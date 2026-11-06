@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:38:48.638434Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-06T09:38:43.304514Z'
   stage: tests
   run: 62473c178988402288643724268f171c
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:38:48.638434Z'
+  stage: doing
 ---
 
 # The checks block the listed files and report on the others
@@ -259,3 +268,4 @@ Expect: `documents ok (<seconds> s)`
     Run: `uv run pytest -q` over the three changed files passed with no failures. `make lint` is green. No module was left unimported: the code exists from the previous doing round (2b6135a73).
 
     `lint`: lint: green (0.2 s)
+16. factory: started doing as vm.
