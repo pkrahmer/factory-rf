@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T00:30:44.365853Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,13 +152,19 @@ journal:
   kind: started
   at: '2026-11-06T00:30:44.365853Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T00:32:40.844940Z'
+  stage: review
+  run: c25c15043324428d9c6a81a0bf1c52f6
 ---
 
 # An acceptance merged at its review stage says so on every route
 
 ## Description
 
-The human may merge an acceptance's pull request while the acceptance reviewer still works, and the operator guide promises that the `done` entry then says `done (pull request merged before approval); cost: ...` (`docs/operator-guide/work-items.md`, *Merged before its approval*). `AcceptanceMerged` asks `is_before_approval(definition, stage)` (`factory.work.domain.acceptance`) for this. Today that function compares the stage's position with the position of the definition's *first* approval stage. The shipped `factory/pipeline.yml` now lists `docs-approval` before `acceptance`, so `is_before_approval(definition, "acceptance")` is `False`, and an early merge of an acceptance gets the ordinary entry, which breaks the guide's promise. This story makes the function follow the stage's forward moves instead: a stage lies before the approval when its chain of first `next` entries reaches an approval stage. The order of the stages in the file then no longer matters. The booking, the merge handling and the pipeline definition stay as they are.
+The human may merge an acceptance's pull request while the acceptance reviewer still works, and the operator guide promises that the `done` entry then says `done (pull request merged before approval); cost: ...` (`docs/operator-guide/work-items.md`, *Merged before its approval*). `AcceptanceMerged` asks `is_before_approval(definition, stage)` (`factory.work.domain.acceptance`) for this. Today that function compares the stage's position with the position of the definition's *first* approval stage. The shipped `factory/pipeline.yml` now lists `docs-approval` before `acceptance`, so `is_before_approval(definition, "acceptance")` is `False`, and an early merge of an acceptance gets the ordinary entry, which breaks the guide's promise. This story makes the function follow the stage's forward moves instead: a stage lies before the approval when its chain of first `next` entries reaches an approval stage. The order of the stages in the file then no longer matters. The booking, the merge handling and `factory/pipeline.yml` stay as they are. `PipelineDefinition.position` goes, because no code calls it once this rule follows the forward moves (the human's answer in the journal).
 
 ## Interface
 
@@ -189,7 +191,7 @@ The human may merge an acceptance's pull request while the acceptance reviewer s
 4. An unknown stage raises `KeyError`, and a definition without an approval stage raises `ValueError`. Each is one row.
 5. In the fake world, on a definition of the shipped order, an acceptance that the human merges while it is at `acceptance` is booked `accepted` with the entry `done (pull request merged before approval); cost: ...`. One merged at `approval` gets the ordinary `done (pull request merged); cost: ...` entry. Each is one row.
 6. `make check` stays green.
-7. docs: `docs/project-guide/pipeline.md`, *More than one route, more than one approval stage*: `is_before_approval` follows the first `next` of each stage, so the order of the stages in the file does not matter to it; the sentence that every route's stages must be listed before the first approval stage goes. `docs/operator-guide/work-items.md`: none, because it then holds true again. `docs/decisions.md`: one entry. It says that "before the approval" is read from the forward moves, not from the position. The reason is that the docs route lists `docs-approval` before `acceptance`. Rejected: reordering `factory/pipeline.yml` so that every approval stage comes last. That would put a rule into the file's order that nothing checks.
+7. docs: `docs/project-guide/pipeline.md`, *More than one route, more than one approval stage*: `is_before_approval` follows the first `next` of each stage, so the order of the stages in the file does not matter to it; the sentence that every route's stages must be listed before the first approval stage goes. `docs/project-guide/pipeline.md`, *The pipeline definition*: the list of methods no longer names `position(stage)`, which this story removes. `docs/project-guide/README.md`, *Shared test helpers*: the list names `support/two_routes_support.py` (`TWO_ROUTES`, a definition of two routes to two approval stages in the shipped order) and `support/before_approval_support.py` (`ROLES`, `FIXTURE` and `without_approval`, the definitions of the tests of `is_before_approval`). `docs/operator-guide/work-items.md`: none, because it then holds true again. `docs/decisions.md`: one entry. It says that "before the approval" is read from the forward moves, not from the position. The reason is that the docs route lists `docs-approval` before `acceptance`. Rejected: reordering `factory/pipeline.yml` so that every approval stage comes last. That would put a rule into the file's order that nothing checks.
 
 ## Smoke test
 
@@ -382,3 +384,26 @@ Expect: `True True False`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 26. factory: started review as vm.
+27. reviewer: Review, round 1. I read the work item and `git diff main...HEAD -- . ':!factory'`, which covers nine files. I also ran `make duplicates` to read its new findings.
+
+    - **Code.** `is_before_approval` (`src/factory/work/domain/acceptance.py:309-327`) keeps its `KeyError` and `ValueError` paths. It gives `False` for an approval stage. It follows `next[0]` with a visited set, returns `True` at an approval stage, and returns `False` at a stage without `next` or on a loop. That matches every rule of the Interface. `PipelineDefinition.position` is removed (`src/factory/pipeline/domain/pipeline_definition.py`), as the human decided in entry 19, and no caller is left under `src/` or `tests/`.
+    - **Criteria.** Criterion 1 has 12 rows on `TWO_ROUTES`, parsed through the reader. Its stages and `next[0]` match the shipped `factory/pipeline.yml`. Criterion 3 has three rows: `loop`, `dead-end-at-done` and `three-moves`. Criteria 2 and 4 map to the earlier tests `tests/work/domain/test_acceptance_before_approval.py::test_only_a_stage_before_the_first_approval_is_before_approval` and `::test_an_unknown_stage_or_a_definition_without_approval_is_refused`, which use the same definitions as before. Criterion 5 has the rows `at-acceptance` and `at-approval` in the fake world. The factory's `make check` after the coder was green (entry 25).
+    - **Architecture.** The change is a pure domain rule and adds no import.
+    - **Security.** Nothing to report, and no silencing marker.
+    - **`make duplicates`.** 5 new findings, none of them in a file this diff touches (`claude_runtime`/`opencode_runtime`, `hand_over`/`work.application.acceptance`, `cost_records.py`).
+    - **Round 0 findings.** Findings 1 to 4 of entry 16 are fixed. Finding 5 is corrected below.
+
+    no findings
+
+    description corrected:
+    - `The booking, the merge handling and the pipeline definition stay as they are.` -> `The booking, the merge handling and factory/pipeline.yml stay as they are. PipelineDefinition.position goes, because no code calls it once this rule follows the forward moves (the human's answer in the journal).` This follows from entry 19.
+    - Criterion 7 named neither the shared-helper list nor the removed method. It now also names:
+      - `docs/project-guide/pipeline.md`, *The pipeline definition*: the list of methods no longer names `position(stage)`. Line 59 still lists it today.
+      - `docs/project-guide/README.md`, *Shared test helpers*: the list names `support/two_routes_support.py` (`TWO_ROUTES`) and `support/before_approval_support.py` (`ROLES`, `FIXTURE`, `without_approval`).
+
+      This follows from the human's answers in entries 8 and 19, and from that list's rule that a story adding a support module names it through its docs criterion. The coder's earlier rewrite was dropped by the take.
+
+    Earlier tests:
+    - `tests/pipeline/application/test_docs_route.py`: `TWO_ROUTES` moved to `tests/support/two_routes_support.py` under the standing leave to move a shared test helper. The row `("acceptance", False)` became `("acceptance", True)` under the human's leave, feature decision 7, which the Interface names. Nothing else changed.
+    - `tests/pipeline/adapters/test_pipeline_yaml.py`: `test_position_is_the_index_in_the_stages` deleted under the human's leave in entry 19. Nothing else in the module changed.
+    - `tests/work/domain/test_acceptance_before_approval.py`: `FIXTURE` and `_without_approval` moved to `tests/support/before_approval_support.py`, and `ROLES` was split out of `FIXTURE`, under the standing leave to move a shared test helper. Every test keeps its name and checks the same thing.
