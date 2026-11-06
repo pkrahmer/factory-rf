@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T12:20:57.012620Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-06T12:20:57.012620Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: result
+  at: '2026-11-06T12:21:19.753749Z'
+  stage: doing
+  run: 47c1882be0ef4be5853dd60234ffd25e
 ---
 
 # The name check reads log files and git addresses
@@ -150,3 +152,19 @@ Expect: `0`
    Earlier tests:
    - `tests/shared/domain/test_document_references.py`: no leave needed. The change only adds rows and one new test function and keeps every earlier row as it was. The human's story also names this file (Interface, criterion 1).
 10. factory: started doing as vm.
+11. coder: I changed no code this round. The reviewer's only finding is about a test, and the coder never edits tests, so this goes to the tester.
+
+    Test change requested: in `tests/entry/test_check_documents_todays_names.py`, rewrite `test_todays_documents_give_no_finding_for_the_log_file_and_git_addresses` as one parametrized test with these three rows:
+    - (`docs/operator-guide/machine.md`, `factory.log`)
+    - (`docs/operator-guide/install.md`, `git@github.com:owner/project.git`)
+    - (`docs/operator-guide/cloud-run.md`, `git@host:owner/name.git`)
+
+    Each row reads `ROOT / document` and asserts that no `Reference` returned by `factory.shared.domain.documents.named_references(document, text, top_level)` has that text as its name. That means the test no longer calls `check_documents.main`, starts no processes and writes no files outside `tmp_path`. The reviewer's fallback, if the rewrite doesn't work, is to run `main` only once. The test belongs to this story, so the tester needs no leave from the human.
+
+    Why I didn't do it myself: the role forbids the coder to touch tests. Nothing in the finding calls for a code change: the reviewer found the code in `src/factory/shared/domain/documents.py` (`_FILE_NAME_EXTENSIONS`, `_is_address`, `named_references`) matched criteria 1 and 2.
+
+    Description: the journal didn't change what the task means, so I left it as it was.
+
+    `make check`: not run this round, because nothing in the working tree changed. Entry 7 recorded it green after the code was written.
+
+    Noticed but not touched: nothing new beyond entry 7.
