@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T20:47:39.007612Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-06T20:47:39.007612Z'
   stage: review
+- number: 17
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T20:48:17.483087Z'
+  stage: review
+  run: 3cf7d1798ef74d9bbcf01f4f59b3729e
 ---
 
 # A page already listed keeps the document tests green
@@ -262,3 +264,29 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 16. factory: started review as vm.
+17. reviewer: Round 1 review. I read the work item and `git diff main...HEAD -- . ':!factory'`. The diff changes only `tests/entry/test_check_documents_any_list.py` and `tests/support/check_documents_support.py`. Nothing under `src/` changes, and neither do `docs/checked-documents.txt` nor the `documents` fixture.
+
+    Both round 0 findings are fixed:
+    - `_list_newly` works out `missing`, returns when it is empty, and otherwise calls `_append_to_list(root, missing)`.
+    - The wrapper `_list_by_looking` is gone, and the row `added-once` uses `_list_newly` directly.
+    - The commit message is now "List pages" instead of "List three more pages". No test reads it.
+
+    Group 1 (acceptance criteria):
+    - Criterion 1: `test_listing_the_three_pages_names_each_once_whatever_the_list_already_names`. Each row first unlists the three pages and asserts none is named. Rows `none-listed`, `index-listed` and `all-listed` then assert each page is on exactly one line and `git status --porcelain` is empty. The `all-listed` row also asserts that `HEAD` stays the same.
+    - Criterion 2: `test_a_page_the_repository_list_already_names_is_reported_once_unless_appended_again`. Row `added-once` is the fixed listing and prints the line once. Row `appended-again` is the blind append and prints it twice. Both compare the sorted output outside the report lines with the two expected lines.
+    - Criterion 3: `test_the_written_list_is_committed_only_when_its_text_changes`. Row `changed` asserts that `HEAD` moves and row `unchanged` that it stays and nothing is raised. Both rows check that `git status` is empty.
+    - Criterion 4: the earlier rows keep their names and ids.
+    - Criterion 5: coder entry 15 says the factory's `make check` was green.
+    - Every rule of the Interface has its failing side tested: a page already listed, all three listed, and the same text.
+
+    Group 2 (architecture) and group 3 (security): no findings. Nothing under `src/` changed, and no silencing marker was added.
+
+    Group 4 (quality): the comment in `write_checked_list` says why it returns early, and the round 0 duplication is gone.
+
+    Group 5 (work item hygiene): the Description matches what was built. The journal names the main choice and what was rejected. Criterion 6 is still the documenter's to write, and it still says what the reader must know.
+
+    no findings
+
+    Earlier tests:
+    - `tests/entry/test_check_documents_any_list.py`: changed under the human's leave, feature decision 9, which the story's Interface names. The fixture `listed` changed and new rows were added. Every earlier test keeps its name, its ids and what it checks.
+    - `tests/support/check_documents_support.py`: changed under the same leave, feature decision 9. `write_checked_list` keeps its signature and the text it writes. The only change is that it skips the commit when the text is unchanged.
