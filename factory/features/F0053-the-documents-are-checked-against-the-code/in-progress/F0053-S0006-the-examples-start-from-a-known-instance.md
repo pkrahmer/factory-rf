@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:10:40.333044Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-06T09:10:34.532679Z'
   stage: tests
   run: cd504ff44068404ea612049d021d25fe
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:10:40.333044Z'
+  stage: doing
 ---
 
 # The examples start from a known instance
@@ -354,3 +363,4 @@ Expect: `1`
     The one run, `uv run pytest -q tests/hosting/adapters/test_instance_fixture.py`, passed all 9 tests, because the coder's code already handles both new criteria. Every module imported. `make lint`: green (0.1 s). The coder runs `make check` next.
 
     `lint`: lint: green (0.2 s)
+24. factory: started doing as vm.
