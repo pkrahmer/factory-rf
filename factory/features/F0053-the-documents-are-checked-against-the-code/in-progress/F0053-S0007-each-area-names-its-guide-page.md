@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T11:14:45.150527Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T11:14:45.150527Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-06T11:18:55.067845Z'
+  stage: doing
+  run: 7672f638a29a4d12a9013b0e575046f3
 ---
 
 # Each area names its guide page
@@ -100,3 +102,15 @@ Expect: `8`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: I added a guide line to the package docstring of all seven areas and of `entry`. Each docstring keeps its first sentence and gains a second paragraph of one line, `Guide: docs/project-guide/<area>.md`. For `entry` the line names `docs/project-guide/README.md`. The closing quotes go on a line of their own, as the multi-line docstring rule requires.
+
+   Files changed: `src/factory/{shared,hosting,work,agents,watching,machine,pipeline,entry}/__init__.py`. No test was touched.
+
+   - **Main choice:** the line starts at column 0 inside the docstring, so the smoke test's `grep -l "^Guide: docs/project-guide/"` finds it. I ran that command and it gives `8`. I rejected indenting the line, or putting it inline after the first sentence: both would break the exact-line match that `tests/guards/test_area_guides.py` and the smoke test expect.
+   - **Refactor:** I read the diff once. It is only the docstring lines and needs no change.
+   - **Description:** the journal did not change the task's meaning, so the Description stays as it is.
+   - **Noticed, not touched:** the `README.md` sentence in criterion 4 (docs) is the documenter's.
+   - **Check:** `make check` is green: `test: green (104.1 s)`, `check: green`.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
