@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T00:57:18.722456Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T00:57:18.722456Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T00:57:45.700080Z'
+  stage: review
+  run: b631747d208f467db9186b5dd366ff75
 ---
 
 # The docs reviewer judges by the style page alone
@@ -135,3 +137,14 @@ Expect: `1`
    `check`: check: green
    `duplicates`: duplicates: 5 new, 40 known, 3 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I checked:
+   - Group 1, criteria: the diff covers criterion 1 with `tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_reviewer_in_docs_review_judges_the_writing_by_the_style_page_alone`. It is one parametrized test with nine rows. The Interface sentence must appear exactly once. `until` and each of the seven old rules, written out in full, must appear zero times. The story's only rule is a removal, and the test checks both sides of it. For criterion 2, `test_the_reviewer_in_docs_review_reads_the_documents_diff_and_approves_or_sends_back` is unchanged in the diff. The new step 3 still names `docs/project-guide/style.md`, and steps 1 and 4 still hold the documents diff command, `docs-approval` and `docs-only`. For criterion 3, the coder's entry 7 records `make check` green. Criterion 4 is the documenter's: `docs/project-guide/agents.md:295` still holds the sentence it removes.
+   - Group 2, architecture: the diff touches only the agent text `agents/agents/reviewer.md` and a test under `tests/agent_files/`. It adds no code and no imports.
+   - Group 3, security: no secrets, no markers that silence a check, no code.
+   - Group 4, quality: in `agents/agents/reviewer.md:86`, step 3 is now exactly the Interface sentence, and steps 1, 2 and 4 are unchanged. No other copy of the fallback text remains outside the human's `docs/runs/` and the work item; the docs page is criterion 4's. The test adds the constant `STYLE_PAGE_SENTENCE` just above the test that uses it. That is where the removed `STYLE_RULES` test sat, and it is not worth a finding.
+   - Group 5, work item hygiene: the journal records the main choice and the rejected option: step 3 is replaced in place, and folding the style page into step 2 was rejected. The Description matches what was built. The docs criterion still says what the documenter must write.
+
+   Earlier tests:
+   - `tests/agent_files/test_claude_agent_texts_docs_route.py`: changed under the human's leave, feature decision 8 (the human, 2026-11-06), which the story's Interface names. The change stays within the leave. It removes `STYLE_RULES` and `test_the_reviewer_in_docs_review_lists_each_style_rule_once`, and adds the one test that criterion 1 names, with its constant. Every other test in the module is unchanged.
