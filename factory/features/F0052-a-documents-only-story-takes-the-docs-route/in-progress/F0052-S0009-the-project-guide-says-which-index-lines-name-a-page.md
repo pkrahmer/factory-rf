@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 583
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T01:39:43.573036Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T01:39:43.573036Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T01:40:08.668839Z'
+  stage: intake
+  run: 57eae0b55273448ab6ddfa4eca45b712
 ---
 
 # The project guide says which lines of its index name a page
@@ -64,3 +66,9 @@ Expect: `documents ok`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: the only path changed is `docs/project-guide/README.md`, section `## The files`, the paragraph naming the guard. It states what to say (which lines read as a page entry, and that other list items start with a word). No code or test changes. The path is one the documenter may write, so the route is docs-only.
+   - Criteria: criterion 1 (the rule is in the section) is checkable by reading the text. Criterion 2 (guard still passes) names a command. Criterion 3 (`make documents` prints `documents ok`) names a command. Both sides of the rule are covered: a backtick-led item is a page entry, and any other item starts with a word. The closing `make check` and `docs:` criteria are last.
+   - Smoke test: all three commands are runnable. The pytest command passes no `-q` and `pyproject.toml` `addopts` already sets `-q`, so `tail -1` shows the summary line and `grep -c " passed"` gives `1`. Each `Expect:` line is checkable: a count of at least 1, `1`, and `documents ok`.
+   - Architecture: documents only, and the project guide is kept by the documenter. The guard and `INDEX_LINE` stay untouched.
+   - Scope: it falls inside F0052's goal (the next feature's rewrite of the index takes the docs route). Nothing in "Out of scope" is touched.
