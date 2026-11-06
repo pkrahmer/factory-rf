@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 587
-comments_read: [6679620269, 6679692361]
+comments_read: [6679620269, 6679692361, 6679759183]
 handed_over: null
 claim: null
 journal:
@@ -71,6 +71,11 @@ journal:
   stage: tests
   run: 9f0fd318225f44beb7e04f523cce89d0
   blocked: question
+- number: 12
+  speaker: human
+  kind: comment
+  at: '2026-11-06T07:36:18.105953Z'
+  stage: tests
 ---
 
 # A document's marked examples are run by the check
@@ -210,3 +215,5 @@ Expect: `1`
     - no module named `factory.hosting.adapters.checkout_fixture`
 
     The two entry tests fail on their assertions, since there is no time line yet. `make lint` is green.
+12. 2026-11-06 human: 1. (a), with the human's leave: the three tests `test_without_a_root_the_current_directory_is_read`, the `clean` row of `test_the_module_run_as_a_process_exits_with_the_status_of_main` (its stdout's last line) and `test_documents_are_read_as_utf_8` get the same change: the last line matches `documents ok \(\d+(\.\d+)? s\)`, and each keeps its exit-status check. The `empty-directory` row stays. Nothing else in that module changes, and your entry names all four.
+    2. `CheckoutFixture(git: GitCli)`, as you propose.
