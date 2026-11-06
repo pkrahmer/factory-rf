@@ -1,6 +1,4 @@
 # A configuration section without its settings table is a finding
-<!-- proposed by feature acceptance of 2026-11-06; refine before starting -->
-
 ## Description
 
 The settings check compares the operator guide's settings tables with `SETTINGS` (F0053-S0002), but only a table whose first column is `Name` or `Variable` counts. A guide with no such table gives no finding (S0002 criterion 6). The reviewer added that criterion to keep the earlier entry tests green. It is a default nobody chose: if the rewrite names the first column `Setting`, or splits the table under another heading, the settings check silently compares nothing, and the guide may drift again. The S0002 coder noticed it, and the reviewer suggested it for S0004's gate, which did not take it up. This story makes a missing settings table one finding when the *Configuration* section of `docs/operator-guide/install.md` exists, so the check either compares or says that it cannot. The comparison of names, defaults and refusals stays as S0002 built it.
@@ -9,7 +7,7 @@ The settings check compares the operator guide's settings tables with `SETTINGS`
 
 - `factory.shared.domain.documents.settings_findings(guide_tables, settings)`: when no table counts and `settings` is not empty, it returns the one finding `no settings table (first column Name or Variable) in Configuration`. With an empty `settings`, it returns no finding.
 - `factory.entry.check_documents`: unchanged. A missing `install.md`, or a missing *Configuration* section, stays the finding of today's check, and no settings finding is added for it.
-- This reverses S0002's criterion 6. It changes, beyond the standing leave, `tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding` (its rows now expect the one finding) and the texts that the earlier entry tests build without a settings table (`clean_texts` in `tests/entry/test_check_documents.py`, which gets a settings table). It needs the human's leave in `feature.md`.
+- This reverses S0002's criterion 6. It changes, beyond the standing leave, `tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding` (its rows now expect the one finding) and the texts that the earlier entry tests build without a settings table (`clean_texts` in `tests/entry/test_check_documents.py`, which gets a settings table). Feature decision 6 gives the leave.
 - Tests: rows in `tests/shared/domain/test_document_settings.py`.
 
 ## Acceptance criteria

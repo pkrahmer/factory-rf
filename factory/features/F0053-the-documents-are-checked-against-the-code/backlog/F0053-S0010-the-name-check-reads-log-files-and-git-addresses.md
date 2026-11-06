@@ -1,6 +1,4 @@
 # The name check reads log files and git addresses
-<!-- proposed by feature acceptance of 2026-11-06; refine before starting -->
-
 ## Description
 
 The name check's report on today's documents still holds texts that are no repository name, and the rewrite cannot put a page on the checked list while they remain. S0004 taught the check that `factory.env` is a file name. It did not cover the other file names the operator guide writes, `factory.log` (`docs/operator-guide/machine.md`) and the state's `.jsonl` records. A scp-style git address, `git@github.com:owner/project.git` (`docs/operator-guide/install.md`, `docs/operator-guide/cloud-run.md`), is read as a repository path. The feature acceptance listed `docs/operator-guide/install.md` in a copy, and the address blocked it. This story widens the file-name rule by two extensions and reads a text with a `:` before its first `/` as no path. Every other rule of S0001 and S0004 stays. Placeholders (`<state>/records/disk.jsonl`) stay the writer's way to name a path outside the repository.
