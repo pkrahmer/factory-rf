@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T11:53:03.744063Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-11-06T11:52:58.426539Z'
   stage: docs
   run: ad12674c8e4544618633fe117048c220
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:53:03.744063Z'
+  stage: doing
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -241,3 +250,4 @@ Expect: `1`
     Stale text noticed and not touched: none. `docs/project-guide/work.md:13` and the other `does not exist` lines are report-only findings in unlisted files, as before.
 
     I did not run `make check`, because I changed no file this run. I ran no `make documents` this run either, so I did not read its last line. I ran the check by hand in the repository and it ended `documents ok (0.5 s)`.
+15. factory: started doing as vm.
