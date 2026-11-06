@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -187,6 +187,11 @@ journal:
   at: '2026-11-06T12:08:30.939665Z'
   stage: smoke-test
   run: 750ef6cc2371448f98b0ff7fa643e2bc
+- number: 33
+  speaker: factory
+  kind: done
+  at: '2026-11-06T12:12:25.475501Z'
+  stage: approval
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -514,3 +519,4 @@ Expect: `1`
     - Criterion 4 (`make check`): I did not run it. It is not one of the smoke test's commands, and the factory runs it as the stage's check.
 
     Open: nothing.
+33. factory: done (pull request merged); cost: 14 runs, 14.3 min, 101 turns, 280295 tokens in (2312913 more from cache), 42559 out, $3.18
