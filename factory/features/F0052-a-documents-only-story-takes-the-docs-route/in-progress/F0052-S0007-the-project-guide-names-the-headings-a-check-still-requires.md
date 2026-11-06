@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T01:10:27.291030Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-11-06T01:10:27.291030Z'
   stage: docs-review
+- number: 10
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T01:11:13.931470Z'
+  stage: docs-review
+  run: d9b944b8a72d411b9acd389d28f9e4da
 ---
 
 # The project guide names the headings a check still requires
@@ -142,3 +144,18 @@ Expect: `documents ok`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok
 9. factory: started docs-review as vm.
+10. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md`. It changes only `docs/project-guide/README.md`, *The files*. I checked the facts against the code and the writing against `docs/project-guide/style.md`.
+
+    Facts, all true on the branch:
+    - `factory.shared.domain.documents` requires *Install*, *Configuration* and *The stops* (`OPERATOR_GUIDE_SECTIONS`) and *Kill points* and *Fault-injection paths* (`PROJECT_GUIDE_SECTIONS`). It exempts *Replaced from v1* (`REPLACED_SECTION`).
+    - `tests/support/guide_files_support.py` finds the page entries by the literal line `## The files`.
+    - `operator/vm/setup.sh` names "The rebuild after a merge" in two messages (lines 405 and 453) and "The machine" in one (line 476).
+    - All eight headings that exist today are where the text puts them. `machine.md` has `## The machine` and `### The rebuild after a merge`. *Replaced from v1* is covered by "wherever it stands".
+    - Criteria 1 and 2 are met: all nine headings are named, each with its file and its reason, and the unqualified "headings are free" is gone. Criterion 3 is met. Criterion 4 is met: entry 8 shows `documents ok` and `check: green`.
+
+    Findings:
+    1. `docs/project-guide/README.md`, *The files*: the new list of headings that keep their names comes straight before the existing list of pages, with only a blank line between them. Both use `-`. In CommonMark that makes them one list, so the page entries render as more items of the exceptions list, and the page list loses its lead-in. Fix: put one lead-in sentence between the two lists, for example "The pages:" or "The folder holds these pages:". The guard still reads the page entries, because a line that does not start with "- `" is not an index entry for the guard (`INDEX_LINE` in `tests/support/guide_files_support.py`).
+
+    Points I considered and did not raise:
+    - Style rule 8 (link a file by a relative link): the new text names `install.md`, `stops.md`, `machine.md` and `setup.sh` as code paths, not links. The rest of the index has no links either, so the diff follows the page's own form.
+    - Sentence length: the longest new sentence, in the second bullet, is about 25 words, which is within rule 2.
