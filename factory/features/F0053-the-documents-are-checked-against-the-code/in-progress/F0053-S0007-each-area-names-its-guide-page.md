@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 591
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T11:19:00.306254Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-06T11:19:00.306254Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T11:19:38.884641Z'
+  stage: review
+  run: 77973e9090354003ab33dd69ed1c84b7
 ---
 
 # Each area names its guide page
@@ -124,3 +126,14 @@ Expect: `8`
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I checked, from reading `git diff main...HEAD -- . ':!factory'` and the work item:
+   - Acceptance criteria: criterion 1 is tested by `tests/guards/test_area_guides.py::test_each_package_names_its_existing_guide_page`, with eight rows (the seven areas and `entry`). Each row expects the exact line `Guide: docs/project-guide/<page>`. Criterion 2 is tested by `test_the_guard_fails_for_a_missing_line_or_page`, three rows of one parametrized test on a copy under `tmp_path`: `line-missing` and `page-missing` must fail, and `line-and-page` must pass, so a guard that always fails cannot pass this test. Both failing sides the Interface states (a missing line, a missing page) have a row. The Interface states no numeric limit. The guard reads the docstring with `ast` and imports nothing, as the Interface asks. The coder's journal entry 7 records `make check` green.
+   - Code: all eight `src/factory/*/__init__.py` keep their first sentence and gain the second paragraph `Guide: docs/project-guide/<area>.md` at column 0; `entry`'s names `README.md`. Every page they name exists under `docs/project-guide/`. The smoke test's `grep -l "^Guide: docs/project-guide/" src/factory/*/__init__.py` matches these eight lines.
+   - Architecture: only docstrings changed under `src/`. There is no new import, layer or dependency. The guard sits in `tests/guards/` and imports nothing of `factory`.
+   - Security: no secrets, no silencing markers, no shell or string-built commands.
+   - Quality: the names say what they are and the test module has its docstring. `ROOT = Path(__file__).parents[2]` is the usual repository-root idiom; `tests/support/*` uses the same line, so it is not a copied helper. Building a list of the lines that start with `Guide: ` before checking for the expected line adds nothing to the result, but it is harmless, so I did not count it as a finding.
+   - Work item hygiene: the Description matches what was built. The coder's entry names the main choice (the line at column 0) and what it rejected. The docs criterion (one sentence in `docs/project-guide/README.md`, none in `docs/decisions.md`) still describes what the reader must know.
+   - Earlier tests: the diff changes no test file that `main` already holds. Its only test file, `tests/guards/test_area_guides.py`, is new (status `A`).
+   - Documents: the diff changes none.
