@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T10:57:34.160752Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-11-06T10:57:34.160752Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-11-06T11:02:45.821691Z'
+  stage: doing
+  run: 8da7d1d9eb8f4f288115ab47abb841f0
 ---
 
 # The agents write and review documents against the code
@@ -535,3 +537,30 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_review_groups.py`: changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name. The only change is that it also strips the `### Documents` item.
     - `tests/agent_files/test_claude_agent_texts_mutants.py`: changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name and only skips the `### Documents` item. Nothing else in the module changed.
 36. factory: started doing as vm.
+37. coder: I fixed finding 1 from review entry 35 (and entry 31) in `agents/agents/documenter.md` only, with no test change. `make check` is green (`test: green (104.5 s)`, coverage 99.22 %, `check: green`), and `uv run pytest -q tests/agent_files` passes.
+
+    **I did not use the wording the human gave in entry 33, and why.** Entry 33 asked for the last Lessons bullet to stop saying "in place of step 3 of the stage". A test pins that bullet word for word: `test_lessons_section_is_last_and_holds_exactly_the_role_bullets` in `tests/agent_files/test_claude_agent_texts.py`, through `LESSONS["documenter"]`. Rewording it would turn the test red, and entry 33 said "No test change". So I kept the lesson exactly as it is and moved what it was dropping instead. This meets entry 33's three conditions: the fix is in `documenter.md` only, no test changes, and `make documents` with `documents ok` stays in force for every documenter.
+
+    **What changed.** In the Stage list, step 2 now holds the whole `make documents` rule in one line:
+    - when the Makefile has a `documents` target, run `make documents` in the same command as the last edit;
+    - end only when its last line is `documents ok (<seconds> s)`;
+    - a finding it prints is the documenter's to fix, and the command runs again after the fix.
+
+    Step 3 now holds only `make check`, run after `make documents` when step 2 runs it. The lesson still replaces step 3, but step 3 is now only `make check`, so a documenter who changed only documents still runs `make documents`. The `make-documents-ends-on-ok` row still finds exactly one line with both `make documents` and `documents ok`.
+
+    **Rejected:**
+    - Splitting step 3 into two steps (option 1 of entry 31). That renumbers the steps and breaks the pinned phrase "these bullets replace steps 1 to 6" in `tests/agent_files/test_claude_agent_texts_docs_route.py`.
+    - Rewording the lesson as entry 33 said. That needs a change to the pinned bullet in `test_claude_agent_texts.py`, which is another story's test, and the human had said no test change.
+
+    If the human still wants the lesson reworded, the next step is a `tests` round, run by the tester under the human's leave, that changes that one bullet in `LESSONS["documenter"]`.
+
+    **Refactor:** I re-read the diff and found nothing to change.
+
+    **Description:** no journal entry this round changes what the task means.
+
+    **Noticed, not touched:**
+    - Criterion 11 names only the documenter and the reviewer.
+    - `docs/project-guide/agents.md:291` still calls the intake's route step "step 6"; it is now step 7. The documenter's cross-read should fix it.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
