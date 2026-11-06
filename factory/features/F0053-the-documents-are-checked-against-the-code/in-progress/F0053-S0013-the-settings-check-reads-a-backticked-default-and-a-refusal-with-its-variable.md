@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T13:38:50.324345Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-06T13:38:50.324345Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-06T13:42:52.972178Z'
+  stage: doing
+  run: b9f58bb0ad084bef8ddd2680d55199a4
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -210,3 +212,14 @@ Expect: `0 []`
 
     `lint`: lint: green (0.1 s)
 14. factory: started doing as vm.
+15. coder: Round 1. I changed no code. The reviewer's finding was criterion 4. In entry 13 the tester added its row, `frame-at-both-ends`, to `tests/shared/domain/test_document_settings.py::test_refusal_pieces_are_checked_without_their_colons_and_spaces`. That row passes against `_is_held` in `src/factory/shared/domain/documents.py` as it stands, because `_is_held` already strips whitespace and `:` from both ends of each piece. `make check` is green.
+
+    - **Main choice:** unchanged from entry 7. The `Default` cell is read through the existing `_backticked_or_plain` helper. I rejected writing a second backtick reader for it.
+    - **Refactor:** the diff is the same as in round 0, and I found nothing to change.
+    - **Description:** the reviewer's entry 9 added criterion 4 and renumbered the closing criteria to 5 and 6. The Description already shows that, and nothing else changed.
+    - **Noticed, not touched:** the docs criterion (`style.md`, `shared.md`) is the documenter's.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
