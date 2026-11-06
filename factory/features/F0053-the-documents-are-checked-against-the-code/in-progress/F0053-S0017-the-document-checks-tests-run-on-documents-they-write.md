@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T21:19:59.708017Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-06T21:19:59.708017Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-06T21:24:25.467868Z'
+  stage: doing
+  run: bdfd60b6d1cb4c88b8547942be67bb58
 ---
 
 # The document check's tests run on documents they write
@@ -410,3 +412,16 @@ Expect: `documents ok (<seconds> s)`
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: Round 1, after the tester's changes. I wrote no code, and the working tree holds only the tester's work. Nothing under `src/factory/` changes in this story. The tester made both of the reviewer's findings from entry 19, as entry 21 passed them on (entry 23):
+    - `tests/support/document_texts.py` now reads the code's tables through their modules each time it is called, and `tests/support/minimal_documents_support.py` builds its documents from `clean_texts()`. The copied helpers are gone.
+    - The `ROOT` pattern in `tests/guards/test_document_tests_write_their_documents.py` now also matches an import in parentheses, and the guard's test has a row for that form.
+
+    - `make check`: green. The test step reports `test: green (106.3 s)`, with coverage at 99.20 %.
+    - Refactor: I have no diff of my own to read, so I changed nothing.
+    - `make test` time: 106.3 s after the story, which is the same as the 106.7 s in entry 17. Entry 17 also explains why I have no like-for-like figure for before the story.
+    - Main choice: I left `src/` untouched, as the Interface says. Rejected: making the test fixes myself. That is the tester's work (R9).
+    - Open: criterion 8 (`docs:`) is the documenter's.
+    - Noticed and not touched: nothing new.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
