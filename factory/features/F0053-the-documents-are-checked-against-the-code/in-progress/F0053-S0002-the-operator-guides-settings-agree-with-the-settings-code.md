@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 586
-comments_read: []
+comments_read: [6675609802]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 1f3e43bef03b46e48ac227b8fd9a22e0
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T02:57:51.287330Z'
+  stage: intake
 ---
 
 # The operator guide's settings agree with the settings code
@@ -68,3 +73,9 @@ Expect: `True`
    4. **Refusal texts (criterion 3).** The guide has no section *Reference: the refusals*, and the Interface says "or today's equivalent". In the table the refusals are scattered through the Meaning cells and the section "When the process refuses to start". Name the exact section or table and how backticked texts are picked out. Many backticked items are not refusal messages (`poweroff`, `Exit`, `2.5`). Say what "occur in the settings module's source" means for texts the code builds from a format string.
    5. **Scope of "SETTINGS".** Criterion 1 says `SETTINGS` names the variables "`read_settings` and the boundaries read". The Interface says only the variables `read_settings` reads. Variables read in the boundaries code (`FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` are "refused when the boundaries are built") are not in `read_settings`. State which module's reads the keeping test compares with, and how the test finds them. It cannot compare to the source reliably without a rule.
    Also: criterion 4 should name the command (`factory.entry.check_documents` through `make documents`), and a criterion is missing for the failing side of the table-selection rule (a table whose first column is neither `Name` nor `Variable` is ignored).
+4. 2026-11-06 human: 1. Neither (a) nor (b): `settings_findings` compares a default only in a table that has a `Default` column, exactly against `SettingDoc.default` (`None` against an empty cell or `none`). Today's tables have no such column, so on today's guide only the names are compared. The rewrite of `install.md` in the next feature brings the style page's table (name, what it does, default, example), and then the defaults are checked. `install.md` stays unchanged here, as criterion 6 says. Criterion 2's row for a differing default uses a table with a `Default` column; add a row showing that a table without one gives no default finding.
+   2. Not compared. `SettingDoc` keeps `required` for the guide's writer; the Interface says it is not compared.
+   3. `SettingDoc` is a frozen Pydantic model in `factory.shared.domain.settings` with `name: str`, `required: str` and `default: str | None`. `guide_tables` is `list[GuideTable]`, a frozen model in `factory.shared.domain.documents` with `header: tuple[str, ...]` and `rows: tuple[tuple[str, ...], ...]`, parsed there from the Markdown by a pure function that extends the table reading the document check already has (`_table_rows`), not a second copy. A table counts when its first column is `Name` or `Variable`; a table with another first column is ignored (one row, as you say).
+   4. Refusal texts are checked only in a table under a heading `The refusals` whose first column is `Refusal`; today's guide has none, so nothing is checked yet, and the rewrite adds it. A refusal's text is the backticked text of that first column. Its parts between placeholders in angle brackets (`<value>`) are cut out, and each remaining piece of three characters or more must occur in the source of `factory.shared.domain.settings`. That handles texts built from a format string. Rows: a held text (none), a text not held (one finding), a text with a placeholder whose pieces are held (none).
+   5. Only `read_settings`: every variable it reads, `FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included (both are read there). The keeping test calls `read_settings` with a recording mapping that notes every key looked up, on an environment valid enough to reach every read, and compares the noted keys with the names in `SETTINGS`. Criterion 1 reads "the variables `read_settings` reads".
+   Also yes: criterion 4 names `factory.entry.check_documents` through `make documents`.
