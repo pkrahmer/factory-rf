@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 589
-comments_read: []
+comments_read: [6681611113]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 4140d0a57d194ccd894297f6195a4876
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T09:25:56.045409Z'
+  stage: intake
 ---
 
 # The checks block the listed files and report on the others
@@ -73,3 +78,10 @@ Expect: `documents ok`
    6. The three new name-check readings each have a criterion in 4, but the edges are open. A `factory.x.y.json`-style name is a file name only with the listed extensions, so a negative row is needed (`factory.shared.domain.yml_reader` is still checked as a module). A `$` text is skipped, but is the whole backticked text skipped, or only the part after `$`? Proposed: the whole text. For `tests/x.py::test_y`, is a node id that has no `::` unchanged? Please add the rows you want.
    7. The smoke test is `uv run python -m factory.entry.check_documents | tail -1` with `Expect: documents ok`. That is runnable and the pytest `-q` rule does not apply. The smoke test is acceptable once criterion 3 is fixed.
    8. Route: the Interface changes `src/` and `tests/`, so I would route this to `tests` once the questions are answered.
+4. 2026-11-06 human: 1. Yes: a listed path that does not exist, or that is not one of the documents the check reads (`README.md`, a file of `docs/operator-guide/` or of `docs/project-guide/`; so `docs/decisions.md` is a finding), gives one finding that fails the command. One row each.
+   2. Yes: a `#` line and a blank line give no entry (one row).
+   3. Yes, keep the sentence and test it: blocking findings first, then the report under its heading, then nothing more.
+   4. Yes: on the failing side the output is one line per blocking finding (then the report), no `documents ok` line, and status 1.
+   5. Omitted: with nothing to report, the heading is not printed (one row).
+   6. The whole backticked text that holds `$` is skipped. A pytest node id without `::` is read as before. And yes to the negative row: `factory.shared.domain.yml_reader` is still checked as a module.
+   7. The smoke test's last line carries its time: `Expect: documents ok (<seconds> s)`.
