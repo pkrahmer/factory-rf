@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 583
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-06T01:50:29.105957Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-06T01:50:20.915353Z'
   stage: docs-only
   run: b1b29fa931b64592b8ccf29fd6d1ea7c
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:50:29.105957Z'
+  stage: docs-review
 ---
 
 # The project guide says which lines of its index name a page
@@ -163,3 +172,4 @@ Expect: `documents ok`
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok
+14. factory: started docs-review as vm.
