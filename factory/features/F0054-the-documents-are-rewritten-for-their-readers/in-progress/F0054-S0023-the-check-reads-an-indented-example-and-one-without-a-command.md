@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T22:36:34.880607Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T22:36:34.873663Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:36:34.880607Z'
+  stage: intake
+---
+
 # The check reads an indented example and one without a command
 
 ## Description
@@ -28,3 +55,6 @@ d=$(mktemp -d); trap 'rm -rf "$d"' EXIT; printf '# T\n\n1. Run it:\n\n   ```cons
 Expect: `1 echo hi`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
