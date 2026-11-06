@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T09:09:58.343844Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-06T09:09:52.809388Z'
   stage: doing
   run: 3ddd14cc6c664c6dbb8104810d431e94
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:09:58.343844Z'
+  stage: tests
 ---
 
 # The examples start from a known instance
@@ -319,3 +328,4 @@ Expect: `1`
     I changed no file this round, and I did not run `make check`: nothing it reads has changed since journal 17, where it was green.
 
     Description: the reviewer already added criteria 8 and 9 in its place. Nothing else in the journal changes the task.
+22. factory: started tests as vm.
