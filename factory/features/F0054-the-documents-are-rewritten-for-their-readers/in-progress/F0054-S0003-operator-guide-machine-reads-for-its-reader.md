@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 611
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T23:25:00.195437Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-06T23:25:00.195437Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:27:27.342341Z'
+  stage: docs-review
+  run: dd819c82d5974e74990f890afe1e7bde
 ---
 
 # The operator guide's the machine reads for the operator
@@ -123,3 +125,22 @@ Expect: `1`
    `secrets`: secrets: green (0.5 s)
    `documents`: documents ok (2.2 s)
 6. factory: started docs-review as vm.
+7. reviewer: I reviewed `git diff main...HEAD -- README.md docs operator/README.md` (`docs/operator-guide/machine.md`, `docs/checked-documents.txt`) against the code on the branch, the criteria and `docs/project-guide/style.md`. I checked these claims against the code and found them true: the label `factory.image` (`operator/vm/Dockerfile:45`), the `--ref` refusal and the `setup: done` and `setup: local` lines (`operator/vm/setup.sh:76,476,477`), `FACTORY_CLAUDE_HOME` (`setup.sh:427`), the preflight item names (`src/factory/machine/application/preflight.py:65-74`), and the `stage image:`, `idle shutdown:` and `machine stop: standing for` log lines (`src/factory/entry/wiring.py:502-526`, `src/factory/entry/run.py:274`, `src/factory/pipeline/application/idle_shutdown.py:9`, `src/factory/machine/application/machine_stop_exit.py:51`). The diff mostly removed history. It did not rewrite the file for its reader, so criterion 1 is not met.
+
+   1. `docs/operator-guide/machine.md:5`, and every `console vm` block (103, 129, 225, 242, 303, 309, 340, 378-486, 557, 566, 578, 586, 602, 611): wrong: the style guide says a `vm` block comes from a real run that the text above names, and rule 6 wants each command followed by what it prints. Entry 5 says none of these commands was run, none shows output, and line 5 stretches `vm` to "the cloud or your own computer", which covers the `gcloud` blocks and the job-only `mkdir` at 103. Fix: delete line 5. Make every block a runnable `console` example where the check container can run it (for example `uv run pytest tests/vm/test_stage_image.py`, or `sh operator/vm/setup.sh --help` if it runs in the checkout fixture), or copy it from a real VM run with its output and name that run above it. Where neither is possible, ask the human how such commands are to be shown.
+   2. `docs/operator-guide/machine.md:209-215` (the stop `stage_image_failed`) and `:95` (a failed `metadata-block` raises `preflight_failed`): wrong: the style guide says every stop has three parts, what you see, what it means, what you do, and entry 5 itself says these are not split. Fix: write each stop in those three labelled parts.
+   3. `docs/operator-guide/machine.md:572-617` (*The rebuild after a merge*), `:143-151` (*Update the pins*), `:555-562` (turning the idle shutdown on and off), `:301-314` (installing a unit that differs): wrong: each is a task written as prose with several command blocks, but the style guide wants numbered steps, one action and its command per step. Fix: rewrite each as numbered steps and keep the headings that other files link to.
+   4. `docs/operator-guide/machine.md:246-259`: wrong: the option table is headed `Option | Default | Meaning`, but the style guide and the Description want settings tables headed `Name`, `What it does`, `Default`, `Example`. Fix: rebuild it with those four columns and an example per option.
+   5. `docs/operator-guide/machine.md:576`: wrong: `see "If the factory dies while a stage runs"` names no heading in any document (it is a sentence at `docs/operator-guide/work-items.md:219`), which breaks criterion 4. Fix: `see *A restart during a stage* in [work-items.md](work-items.md)` (the heading at `work-items.md:217`), as line 582 already does.
+   6. `docs/operator-guide/machine.md:236`: wrong: `(see *The hosting-service token*)` points to a heading that is not in this file; it is at `docs/operator-guide/health.md:7`. Fix: add `in [health.md](health.md)`.
+   7. `docs/operator-guide/machine.md:320`: wrong: "without it the unit starts as before" is a changelog phrase (rule 7), and entry 5 says "as before" was removed. Fix: "without it the unit reads `factory.env` alone".
+   8. `docs/operator-guide/machine.md:148-149`: wrong: "`2.1.318` at the time of writing" and "`1.19.5` at the time of writing" date the text instead of stating what is true now (rule 7). Fix: say the current default is in `operator/vm/Dockerfile`, linked, or give the value without the hedge.
+   9. `docs/operator-guide/machine.md:328`: wrong: `SnapshotError` names a class, and the operator guide says to name no module or class. Fix: say what the operator sees when the drop fails (the stage does not start, plus the log line or stop it produces).
+   10. `docs/operator-guide/machine.md:115,133,137,240,338` and the blocks at 129, 242, 304: wrong: no file of the repository is linked, though rule 8 says to link a repository file by a relative link and to link the file a block shows once, above the block. This covers `operator/vm/Dockerfile`, `operator/vm/job-start.sh`, `tests/vm/test_stage_image.py`, `operator/vm/setup.sh`, `operator/vm/factory.service` and `operator/vm/git-credential-factory`. Fix: link each once at its first use (`[setup.sh](../../operator/vm/setup.sh)`).
+   11. `docs/operator-guide/machine.md:233`: wrong: `factory/pipeline.yml`, `factory/story-form.md` and `factory/feature-form.md` are paths in the project but have no placeholder, while the same sentence writes `<project>/factory/agents/` (rule 8). Fix: start each with `<project>/`.
+   12. `docs/operator-guide/machine.md:28,176,476,507`: wrong: the glossary words claim (28, "claims"), cost record (176), crash (476) and role (507) are not linked at their first use, which criterion 1 and rule 3 require; line 3 links only seven words. Fix: link each at its first use, or add them to the list on line 3.
+   13. `docs/operator-guide/machine.md:60,141,211,231,540,551` and `:19,66,511`: wrong: the first group of lines holds sentences of 40 to 90 words, and the second group holds sentences with two parentheses each (rule 2: about 25 words, at most one parenthesis per sentence). Fix: split them, and move the second parenthesis of each into its own sentence.
+   14. `docs/operator-guide/machine.md:111`: wrong: "uses the item `zfs` and `dataset`" is ungrammatical. Fix: "uses the items `zfs` and `dataset`".
+   15. `docs/operator-guide/machine.md:109`: wrong: "slower than the 0.2 s that `rsync` measured" quotes a measurement the reader cannot place, since nothing says what took 0.2 s (rule 5). Fix: "much slower than `rsync`", or say what was measured.
+
+   Dropped on purpose (criterion 2), against `main`: the sentence on a VM that the prototype of `planning/overnight/gcp-runbook-2026-10-24.md` had prepared, and "A later version may use `rsync`". Both are history, and dropping them is right. No *Reference* section was added. I found no name, command, setting or rule dropped besides these two.
