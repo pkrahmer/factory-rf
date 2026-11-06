@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T07:58:52.926013Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-11-06T07:58:52.926013Z'
   stage: doing
+- number: 31
+  speaker: coder
+  kind: result
+  at: '2026-11-06T08:03:08.925409Z'
+  stage: doing
+  run: b8b47be0ac9b482a87a0375eb8b96973
 ---
 
 # A document's marked examples are run by the check
@@ -544,3 +546,20 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 30. factory: started doing as vm.
+31. coder: I changed no code this round. The tester's changes (journal 29) cover the test side of review journal 25: criterion 8, criterion 9, the extra suite rows for finding 3, and the move of `FENCE` to `tests/support/document_texts.py`. They pass against the code from journal 27, which fixed findings 3 and 4 in `src/factory/shared/domain/documents.py`.
+
+    Checks:
+    - `make check`: test: green (100.9 s), check: green, coverage 99.20 %.
+    - The smoke test prints `1`.
+
+    Refactor: I reread the diff after the tester's changes and there was nothing to change.
+
+    Open, for the human or the reviewer:
+    - Finding 6, the stale "Tests: ... an adapter test with the fake containers" line in `## Interface`, is still open. My rewrite in journal 27 was dropped because the work item is outside the coder's write paths. Someone who may write the work item has to rewrite the line. It should name `tests/shared/domain/test_document_examples.py`, `tests/shared/adapters/test_document_examples.py` (real short commands in `tmp_path`, no containers), `tests/hosting/adapters/test_checkout_fixture.py` and `tests/entry/test_check_documents_examples.py`.
+
+    Noticed, not touched (as in journal 27):
+    - `runs_the_suite` looks only at the first simple command, so `cd x && pytest` is run, not skipped.
+    - `documents.py` is still large; the human left the split for later.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
