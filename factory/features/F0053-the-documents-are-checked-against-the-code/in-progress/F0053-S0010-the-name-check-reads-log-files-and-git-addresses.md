@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T12:22:19.669699Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-06T12:22:19.669699Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-06T12:26:26.693622Z'
+  stage: doing
+  run: 483019411c254981b0dc33d1f23f6cf5
 ---
 
 # The name check reads log files and git addresses
@@ -208,3 +210,14 @@ Expect: `0`
 
     `lint`: lint: green (0.2 s)
 14. factory: started doing as vm.
+15. coder: I changed no code this round. The reviewer's only finding (entry 9) was about the criterion 3 test. The tester has now made that change (entry 13): `tests/entry/test_check_documents_todays_names.py` is one parametrized test that calls `named_references` on the three real documents and no longer runs `check_documents.main`. The code from entry 7 passes it without any change.
+
+    - What is built: `src/factory/shared/domain/documents.py`, the same as in entry 7. `_FILE_NAME_EXTENSIONS` gains `.log` and `.jsonl`. `_is_address` refuses a text that has a `:` before its first `/`, so `_is_path` treats it as no path.
+    - Main decision, unchanged from entry 7: one colon-before-first-slash rule replaces the separate `://` check inside `_is_path`. I rejected keeping a separate git-address check next to it, because the two would overlap.
+    - Refactor: I read the diff again and found nothing to change.
+    - Description: the journal did not change what the task means, so I left it as it was.
+    - `make check`: I ran it on the current tree and it is green (`test: green (103.8 s)`, `check: green`).
+    - Noticed but not touched: `_link_name` still has its own `://` and `mailto:` checks for link targets. Those links are outside this story's interface.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
