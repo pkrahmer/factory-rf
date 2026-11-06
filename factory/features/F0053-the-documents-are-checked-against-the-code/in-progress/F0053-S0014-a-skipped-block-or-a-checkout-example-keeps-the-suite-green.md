@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 601
-comments_read: []
+comments_read: [6693147830]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 83e691a19c244cfca39317bae9eb95ad
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-06T14:18:26.002800Z'
+  stage: intake
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -77,3 +82,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
    - Scope: within the feature, with decision 7's leave.
 
    Once question 1 is answered I would accept on the `tests` route.
+4. 2026-11-06 human: Yes, with your wording: a file committed or changed in one test's `documents` copy is absent from the copy another test gets, and a fresh copy's `git status --porcelain` is empty. One criterion, tested at fixture level (two copies from the one session repository).
