@@ -12,16 +12,6 @@ ROUTING_RULE = (
 
 DOCS_DIFF = "`git diff main...HEAD -- README.md docs operator/README.md`"
 
-STYLE_RULES = [
-    "Write for a reader without the history: no feature or story IDs, no version names.",
-    "One idea per sentence, at most about 25 words, at most one parenthesis.",
-    "Explain each factory word once, in the glossary.",
-    "What to do comes first, the details after.",
-    "Round numbers.",
-    "Examples are real and were run.",
-    "Only the current truth.",
-]
-
 
 def _stage_subsection(name: str, stage: str) -> str:
     lines = stage_section(name).splitlines()
@@ -79,9 +69,40 @@ def test_the_reviewer_in_docs_review_reads_the_documents_diff_and_approves_or_se
     assert named in _stage_subsection("reviewer", "docs-review")
 
 
-@pytest.mark.parametrize("rule", STYLE_RULES)
-def test_the_reviewer_in_docs_review_lists_each_style_rule_once(rule: str) -> None:
-    assert _stage_subsection("reviewer", "docs-review").count(rule) == 1
+STYLE_PAGE_SENTENCE = (
+    "Judge the writing against `docs/project-guide/style.md`: its rules for all documents "
+    "and the section for the kind of document the diff changes."
+)
+
+
+@pytest.mark.parametrize(
+    ("text", "count"),
+    [
+        pytest.param(STYLE_PAGE_SENTENCE, 1, id="style-page-sentence"),
+        pytest.param("until", 0, id="no-until"),
+        pytest.param(
+            "Write for a reader without the history: no feature or story IDs, no version names.",
+            0,
+            id="no-old-rule-history",
+        ),
+        pytest.param(
+            "One idea per sentence, at most about 25 words, at most one parenthesis.",
+            0,
+            id="no-old-rule-one-idea",
+        ),
+        pytest.param(
+            "Explain each factory word once, in the glossary.", 0, id="no-old-rule-glossary"
+        ),
+        pytest.param("What to do comes first, the details after.", 0, id="no-old-rule-what-first"),
+        pytest.param("Round numbers.", 0, id="no-old-rule-round-numbers"),
+        pytest.param("Examples are real and were run.", 0, id="no-old-rule-examples"),
+        pytest.param("Only the current truth.", 0, id="no-old-rule-current-truth"),
+    ],
+)
+def test_the_reviewer_in_docs_review_judges_the_writing_by_the_style_page_alone(
+    text: str, count: int
+) -> None:
+    assert _stage_subsection("reviewer", "docs-review").count(text) == count
 
 
 def test_the_documenter_in_docs_only_replaces_the_steps_of_the_stage() -> None:

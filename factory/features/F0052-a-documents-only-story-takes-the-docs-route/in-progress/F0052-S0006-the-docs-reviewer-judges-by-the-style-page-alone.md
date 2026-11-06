@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T00:51:08.875378Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T00:51:08.875378Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T00:51:39.983695Z'
+  stage: tests
+  run: 37566ac325c54748a8e0d5d515e45fdb
 ---
 
 # The docs reviewer judges by the style page alone
@@ -83,3 +85,19 @@ Expect: `1`
    - Scope: the story falls within F0052's goal and decision 8. It touches nothing in "Out of scope". The operator guide is explicitly left to the next feature.
    Route: `tests`. `agents/agents/reviewer.md` is not a path the documenter may write.
 4. factory: started tests as vm.
+5. tester: I wrote the test for criterion 1 and changed the earlier docs-route test module as the Interface says. Feature decision 8 gives the leave for that change.
+
+   Criterion → test:
+   - criterion 1: `tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_reviewer_in_docs_review_judges_the_writing_by_the_style_page_alone`. It is one parametrized test with nine rows. The Interface sentence has count 1 (`style-page-sentence`). `until` and each of the seven old rules have count 0 (`no-until`, `no-old-rule-*`). The old rules are written into the rows themselves, because `STYLE_RULES` goes.
+   - criterion 2: `tests/agent_files/test_claude_agent_texts_docs_route.py::test_the_reviewer_in_docs_review_reads_the_documents_diff_and_approves_or_sends_back`. This is the existing test with its rows unchanged; I did not touch it.
+   - criterion 3: no test; the factory's `make check` covers it.
+   - criterion 4 (docs): no test; it is the documenter's.
+
+   Files: I created none. I changed the earlier story's test module `tests/agent_files/test_claude_agent_texts_docs_route.py`:
+   - I removed `STYLE_RULES` and `test_the_reviewer_in_docs_review_lists_each_style_rule_once`.
+   - I added `STYLE_PAGE_SENTENCE` and the new test in their place.
+   - Nothing else in the module changed.
+
+   Run: `uv run pytest -q` over the module shows 9 failed rows, all in the new test. The current `reviewer.md` still has the "until … exists" fallback and the seven rules, and lacks the new sentence: that is a wrong result, the right reason to fail. All the other tests in the module pass. Every module imported; there were no import errors. `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
