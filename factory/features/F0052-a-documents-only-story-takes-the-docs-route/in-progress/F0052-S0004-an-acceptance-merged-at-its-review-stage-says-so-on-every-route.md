@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T00:25:07.662549Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-06T00:25:07.662549Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-06T00:30:39.027435Z'
+  stage: doing
+  run: 5559b36316574009a7625a097046d30f
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -354,3 +356,19 @@ Expect: `True True False`
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: Rework round 1, the last step of the human's answer (a) in entry 19. The tester has now deleted the only remaining caller (entry 23), so I removed `PipelineDefinition.position` from `src/factory/pipeline/domain/pipeline_definition.py`. A grep for `.position` / `def position` over `src` and `tests` finds nothing else. `PipelineDefinition`'s fields are unchanged, so the generated contract stays as it is and nothing needs regenerating.
+
+    What I built in this story:
+    - `src/factory/work/domain/acceptance.py::is_before_approval`, unchanged since entry 14. It walks the `next[0]` chain from the stage, keeping a set of stages it has visited. It returns `True` when it reaches an approval stage, and `False` at an approval stage itself, at a stage without `next`, or when the chain comes back to a visited stage (a loop).
+    - Main choice: follow the forward chain. I rejected keeping the comparison by position and reordering `factory/pipeline.yml` instead, which is the alternative the description rejects.
+
+    Refactor: I read the diff again (`git diff main -- . ':!factory'`) and found nothing to change.
+
+    `make check` is green (`test: green (140.7 s)`, `check: green`, coverage 99.26 %).
+
+    For the docs stage (not done here): criterion 7 as entry 8 changed it. That includes naming `tests/support/two_routes_support.py` and `tests/support/before_approval_support.py` in the *Shared test helpers* list of `docs/project-guide/README.md`, as entries 21 and 23 note.
+
+    Noticed, not touched: nothing.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone

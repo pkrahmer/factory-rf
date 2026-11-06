@@ -106,10 +106,6 @@ class PipelineDefinition(BaseModel):
         role = self.stages[stage].role
         return None if role is None else self.roles[role]
 
-    def position(self, stage: str) -> int:
-        """The index of `stage` in the pipeline's order."""
-        return list(self.stages).index(stage)
-
 
 def _contract_faults(definition: PipelineDefinition) -> list[str]:
     form = _CONTRACT_FORM.fullmatch(definition.contract)
