@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -242,6 +242,11 @@ journal:
   at: '2026-11-06T22:32:02.599660Z'
   stage: docs-review
   run: 9099f8b50e8948ffa5e54041efe92eb2
+- number: 43
+  speaker: factory
+  kind: done
+  at: '2026-11-06T22:35:56.838171Z'
+  stage: docs-approval
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -687,3 +692,4 @@ Expect: `1`
     - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
     - `docs/operator-guide/README.md` keeps its version-history sections.
     - The documents check crashes on a fenced block indented under a numbered step, and the human has made that its own story.
+43. factory: done (pull request merged); cost: 18 runs, 19.3 min, 196 turns, 685706 tokens in (6363369 more from cache), 103352 out, $7.15
