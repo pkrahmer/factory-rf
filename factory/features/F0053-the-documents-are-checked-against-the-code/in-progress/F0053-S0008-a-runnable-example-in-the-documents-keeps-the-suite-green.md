@@ -2,16 +2,12 @@
 stage: docs
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T11:49:27.302967Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,19 @@ journal:
   kind: started
   at: '2026-11-06T11:49:27.302967Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T11:51:49.207373Z'
+  stage: docs
+  run: bd4c0308c1ee4347aa4ac85600b0bf8f
+- number: 12
+  speaker: factory
+  kind: stall
+  at: '2026-11-06T11:51:49.595735Z'
+  stage: docs
+  run: bd4c0308c1ee4347aa4ac85600b0bf8f
+  reason: check_red
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -174,3 +183,33 @@ Expect: `1`
    Earlier tests:
    - `tests/conftest.py` (fixture `documents`): changed under the human's leave, feature decision 6 of `feature.md` (the human, 2026-11-06), as the story's Interface cites it. The change is what that leave describes: the fixture becomes a git repository. The fixture keeps its name and returns the same folder. No other earlier test was changed.
 10. factory: started docs as vm.
+11. documenter: Changed one file: `docs/project-guide/style.md`, *Runnable examples*. I turned the two demonstration blocks back into `console` blocks, so `make documents` now runs them. I removed the sentence that said they were shown as `text`. I added a paragraph: the tests run a document's examples in their copies too (the `documents` fixture in `tests/conftest.py` makes each copy a git repository), so a wrong example fails the suite only in a file listed in `docs/checked-documents.txt`. In any other file it is printed under `Report (not checked yet):`.
+
+    I read the fixture change in `tests/conftest.py` and `docs/checked-documents.txt` (style.md is listed) before writing this.
+
+    Checks I ran:
+    - `make documents` ended `documents ok (0.6 s)`. The style page's own examples now run in it.
+    - `tests/entry/test_check_documents_operator_guide.py` passes.
+    - I did not run `make check`, because I changed only a document. The factory runs it after this stage.
+
+    Cross-read and found current: `docs/project-guide/shared.md`, *The document check* (the story's criterion says none is needed, and its description of the checked list matches the code).
+
+    Stale text I noticed but did not touch: none.
+
+    Open: I did not run the smoke test's `grep -c` on the finished file, but style.md now holds two `console` blocks.
+12. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+    src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+    src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+    src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+    src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+    src/factory/work/domain/acceptance.py                  195      1     52      1    99%   367
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                11189     54   2250     51    99%
+
+    157 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.22%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/entry/test_check_documents_checked_files.py::test_todays_documents_with_the_first_list_give_a_report_and_pass - AssertionError: assert None
+    make: *** [Makefile:89: test] Error 1
