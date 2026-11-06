@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T08:35:15.589112Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -301,6 +297,12 @@ journal:
   kind: started
   at: '2026-11-06T08:35:15.589112Z'
   stage: review
+- number: 53
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T08:36:31.877957Z'
+  stage: review
+  run: 40219ff5e5204c448b388a65c7d5fe72
 ---
 
 # A document's marked examples are run by the check
@@ -936,3 +938,34 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 52. factory: started review as vm.
+53. reviewer: no findings
+
+    I reviewed the whole diff against main, read closely what changed since review journal 45 (commit 2f13a4677..HEAD, which is test changes only), and read the code under `src/` again.
+
+    Checked and in order:
+    - Acceptance criteria:
+      - Every criterion from 1 to 13 has a test that checks what it is named after.
+      - Criterion 10 is mapped to the runner's fixture-error test and to `test_the_checkout_fixture_outside_a_git_repository_raises_a_fixture_error`.
+      - Criterion 11: `test_the_folder_and_the_home_are_gone_once_the_document_has_run`, rows `ended` and `past-the-limit`, one parametrized test.
+      - Criterion 12: `test_an_examples_finding_comes_before_the_skipped_blocks_and_does_not_block` checks that the finding comes before `not run (vm)`, that the status is 0 and that the last line matches `TIME_LINE`.
+      - Criterion 13: `test_a_fixtures_variable_does_not_replace_a_fixed_one`, one row per variable. It holds because `_DocumentRun.environment` merges `{**prepared, **_fixed_environment(home)}`.
+      - Journal 51 shows `make check` green after the coder, with coverage at 99.21 %.
+    - Architecture: nothing under `src/` changed since journal 35. The layers hold, only `entry` wires, and `GitCli.export` goes through `_run`.
+    - Security: no secrets and no suppression markers.
+    - Quality: the moved `line_of` in `tests/support/check_documents_support.py` has a docstring, and both modules now import it.
+    - Hygiene: the Description matches what was built. The docs criterion (15) still says what the reader needs.
+
+    Notes:
+    - `tests/shared/adapters/test_document_examples.py::test_a_runner_built_with_its_defaults_gives_each_command_60_seconds` only checks the default `time_limit` through `inspect.signature`. It does not check the finding text the human asked for in journal 43. The code is right: `ProcessExampleRunner._no_end` in `src/factory/shared/adapters/document_examples.py` formats `total_seconds()` with `:g`, which gives `60 s`. Missing row: the message a default runner builds names `60 s`.
+    - `tests/shared/adapters/test_document_examples.py`: the `runner` fixture gives every command 1 s (`SHORT_LIMIT_SECONDS`), also the commands that must write or print before the limit (for example the `pwd > record` command in the criterion 11 test). The bound is a local `ELAPSED_BOUND_SECONDS = 15` instead of `ROOMY_LIMIT` and `ROOMY_BOUND_SECONDS` from `tests/support/time_limits.py`, as CLAUDE.md's *Tests* ask. A heavily loaded worker could make these tests flaky.
+    - The `## Interface` line "an adapter test with the fake containers" is still out of date; the human noted it in journal 43.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents.py`: the human's leave, journals 9 (1) and 12 (1).
+    - `tests/entry/test_check_documents_guide_files.py`: the human's leave, journal 17 (2).
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal 17 (2).
+    - `tests/entry/test_check_documents_references.py`: the standing leave to move a shared test helper (`_line_of` became `support.check_documents_support.line_of`; every test keeps its name and what it checks).
+    - `tests/guards/test_wrapper_search.py`: the human's leave, journal 17 (1).
+    - `tests/support/check_documents_support.py`: the standing leave to move a shared test helper (`TIME_LINE`, `line_of`).
+    - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`FENCE`).
+    - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper (its local `FENCE` replaced by the shared one).
