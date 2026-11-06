@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T09:45:06.770814Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-06T09:45:06.770814Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T09:46:28.610405Z'
+  stage: review
+  run: f7a83f390392413eafca02706f74047c
 ---
 
 # The checks block the listed files and report on the others
@@ -143,8 +145,10 @@ The new checks (names, settings, examples) will find many faults in today's docu
 8. On the failing side the output is one line per blocking finding, then the report, no `documents ok` line, and exit status 1.
 9. With nothing to report, the heading `Report (not checked yet):` is not printed (one row).
 10. A backticked text that holds `$` is skipped as a whole (`$HOME/factory.nothing.here` gives none); a pytest node id without `::` is read as before; `factory.shared.domain.yml_reader` is still checked as a module and gives a finding when it does not exist (rows of the name check's test).
-11. `make check` stays green.
-12. docs: `docs/project-guide/shared.md`: the checked files and the report. `docs/project-guide/style.md`, rule 8: a path of another repository, such as the project the factory runs on, starts with a placeholder (`<project>/factory/agents/`), and a path in the repository is written from its root (`tests/support/time_limits.py`, not `support/time_limits.py`), so that the name check reads it right. `docs/decisions.md`: an entry for feature decisions 1 to 4, naming F0053.
+11. With no `docs/checked-documents.txt`, the list is empty: a finding of the name, settings or example check in any file is printed under `Report (not checked yet):`, none blocks, and the command ends with `documents ok` (one row).
+12. A line for an example not run (`<document>:<line>: not run (<kind>)`) is printed in the report after the reported findings, also for a listed file, and never fails the command (rows of one test: listed and not listed).
+13. `make check` stays green.
+14. docs: `docs/project-guide/shared.md`: the checked files and the report. `docs/project-guide/style.md`, rule 8: a path of another repository, such as the project the factory runs on, starts with a placeholder (`<project>/factory/agents/`), and a path in the repository is written from its root (`tests/support/time_limits.py`, not `support/time_limits.py`), so that the name check reads it right. `docs/decisions.md`: an entry for feature decisions 1 to 4, naming F0053.
 
 ## Smoke test
 
@@ -304,3 +308,15 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 18. factory: started review as vm.
+19. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (`src/factory/entry/check_documents.py`, `src/factory/shared/domain/documents.py`, one new test module and three changed ones) against the work item. Criteria 1 to 10 each have a test that checks what the criterion says. The limits the Interface states are tested on both sides: a file extension against `yml_reader`, a listed path that is a document against one that is not, `::` against no `::`, and `$` against no `$`. The architecture holds: the list and the split are pure in `shared.domain`, and the wiring is in `factory.entry`. I found no security issue: listed paths are only compared, never read. I ran `make duplicates` (6 new). None of the six is in code this diff wrote. Two are line-shift pairs that show up as both new and gone. `matches` (documents.py:768) and the `cost_records` fields come from earlier stories.
+
+    Findings:
+    1. criterion 11 added: it needs its test. `src/factory/entry/check_documents.py:_checked_documents` treats a missing `docs/checked-documents.txt` as an empty list (journal entry 11), and no criterion or test pins that. Fix: the tester adds one row in `tests/entry/test_check_documents_checked_files.py` that writes no list file and plants a name finding. The row expects the finding under the report heading, the `documents ok` line and status 0.
+    2. criterion 12 added: it needs its test. `check_documents.py:main` puts the lines for examples not run at the end of the report (`reported = [*split.reported, *not_run]`), also for a listed file, and they never block (the human, entry 11). No test covers this: the tester's entry 8 says no test uses a skipped block. Fix: one parametrized test, with rows for listed and not listed, with a `console vm` block in a guide page. Each row expects the not-run line after the heading and status 0.
+    3. Work item, criterion 14 (docs): since entry 11 the documenter has to write `docs/checked-documents.txt` with the style page and the glossary. The docs criterion the documenter works from does not name that file, so the file criterion 3 and the Interface rely on may never be written. Fix: add to criterion 14 that `docs/checked-documents.txt` is written with `docs/project-guide/style.md` and `docs/project-guide/glossary.md` (Interface; journal entry 11).
+    4. `tests/entry/test_check_documents_checked_files.py:27`: `REPOSITORY = Path(__file__).parents[2]` is another copy of `ROOT` from `tests/support/operator_support.py:10` (also in `shipped_agents.py`, `dockerfile_support.py` and `vm_support.py`). Fix: import `ROOT` from a support module instead of defining it again.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal entry 11. The only change is that the heading line is also filtered out. The test keeps its name and what it checks.
+    - `tests/entry/test_check_documents_references.py`: the human's leave, journal entry 11. Only the `one-today` row's expectation changed.
+    - `tests/shared/domain/test_document_references.py`: no leave needed. Rows were only added to the parametrized test, which the story's Interface names ("rows for the three kinds in the name check's tests"), and every existing row is unchanged.
