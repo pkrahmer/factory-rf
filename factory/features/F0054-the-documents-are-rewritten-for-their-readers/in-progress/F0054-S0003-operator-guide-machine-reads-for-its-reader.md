@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 611
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:27:32.508934Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T23:27:27.342341Z'
   stage: docs-review
   run: dd819c82d5974e74990f890afe1e7bde
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:27:32.508934Z'
+  stage: docs-only
 ---
 
 # The operator guide's the machine reads for the operator
@@ -144,3 +153,4 @@ Expect: `1`
    15. `docs/operator-guide/machine.md:109`: wrong: "slower than the 0.2 s that `rsync` measured" quotes a measurement the reader cannot place, since nothing says what took 0.2 s (rule 5). Fix: "much slower than `rsync`", or say what was measured.
 
    Dropped on purpose (criterion 2), against `main`: the sentence on a VM that the prototype of `planning/overnight/gcp-runbook-2026-10-24.md` had prepared, and "A later version may use `rsync`". Both are history, and dropping them is right. No *Reference* section was added. I found no name, command, setting or rule dropped besides these two.
+8. factory: started docs-only as vm.
