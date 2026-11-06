@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-06T00:58:41.504594Z'
   stage: smoke-test
   run: de69386ca5e54eafb3fe7b493fa7f3f8
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-06T01:02:34.663475Z'
+  stage: approval
 ---
 
 # The docs reviewer judges by the style page alone
@@ -214,3 +219,4 @@ Expect: `1`
     Nothing in the run contradicts any criterion.
 
     Findings: none.
+14. factory: done (pull request merged); cost: 6 runs, 4.5 min, 30 turns, 99513 tokens in (458163 more from cache), 8787 out, $0.90
