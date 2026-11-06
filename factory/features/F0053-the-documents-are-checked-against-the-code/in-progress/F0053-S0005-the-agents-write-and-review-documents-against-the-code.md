@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 590
-comments_read: [6682263635, 6682414078]
+comments_read: [6682263635, 6682414078, 6683206284]
 handed_over: null
 claim: null
 journal:
@@ -187,6 +187,11 @@ journal:
   stage: review
   run: 41500be8fceb48bd9cf2f759b64ac1d9
   blocked: round_cap
+- number: 33
+  speaker: human
+  kind: comment
+  at: '2026-11-06T10:56:43.191142Z'
+  stage: review
 ---
 
 # The agents write and review documents against the code
@@ -493,3 +498,4 @@ Expect: `named`
     - `tests/agent_files/test_claude_agent_texts_review_groups.py` was changed under the human's leave in the Interface (2026-11-05). `test_the_rest_of_the_reviewer_body_is_unchanged` keeps its name; the only change is that it also strips the `### Documents` item.
     - `tests/agent_files/test_claude_agent_texts_mutants.py` was changed under the human's answer in journal entry 11. `test_reviewer_item_6_is_followed_by_the_findings_paragraph` keeps its name; the only change is that it skips the `### Documents` item. Nothing else in that module changed.
 32. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+33. 2026-11-06 human: One more round, by the human's decision. The coder fixes finding 1 of review entry 31 in `agents/agents/documenter.md` only: the lesson names only the `make check` half of step 3 ("end without running `make check`"), and no longer says "in place of step 3", so the `make documents` sentence and its `documents ok (<seconds> s)` stay in force for every documenter. Keep `make documents` and `documents ok` in one paragraph, so the test row holds unchanged. No test change.
