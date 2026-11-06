@@ -7,7 +7,11 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from support.check_documents_support import TIME_LINE, without_report_lines
+from support.check_documents_support import (
+    TIME_LINE,
+    without_report_lines,
+    write_checked_list,
+)
 
 GUIDE = "docs/operator-guide"
 
@@ -78,6 +82,7 @@ def test_the_operator_guide_folder_is_checked_per_file(
     output: str | None,
     exit_status: int,
 ) -> None:
+    write_checked_list(documents, [])
     change(documents)
 
     status = main(["--root", str(documents)])

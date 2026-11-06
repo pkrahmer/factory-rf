@@ -1,6 +1,7 @@
 """What the document check tests share: the expected lines, the output filters, the block helper."""
 
 import re
+from collections.abc import Sequence
 from pathlib import Path
 
 from support.document_texts import FENCE
@@ -28,6 +29,8 @@ MISSING_LINES = (
 REPORT_HEADING = "Report (not checked yet):"
 TIME_LINE = r"documents ok \(\d+(\.\d+)? s\)"
 NOT_RUN = re.compile(r": not run \([^)]*\)\n\Z")
+CHECKED_LIST = "docs/checked-documents.txt"
+INSTALL = "docs/operator-guide/install.md"
 
 
 def line_of(text: str, line: str) -> int:
@@ -67,3 +70,19 @@ def findings_from(lines: list[str], document: str, first_line: int) -> list[str]
         for line in lines
         if (found := pattern.match(line)) is not None and int(found.group(1)) >= first_line
     ]
+
+
+def write_checked_list(root: Path, paths: Sequence[str]) -> None:
+    """Write the list of checked documents under `root`, one path per line, and commit it."""
+    text = "".join(f"{path}\n" for path in paths)
+    (root / CHECKED_LIST).write_text(text, encoding="utf-8")
+    commit_all(root, "The checked documents")
+
+
+def drop_settings_row(root: Path, name: str) -> None:
+    """Remove the settings table row of `name` from the install file under `root`."""
+    path = root / INSTALL
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    kept = [line for line in lines if not line.startswith(f"| `{name}` |")]
+    assert len(kept) == len(lines) - 1
+    path.write_text("".join(kept), encoding="utf-8")

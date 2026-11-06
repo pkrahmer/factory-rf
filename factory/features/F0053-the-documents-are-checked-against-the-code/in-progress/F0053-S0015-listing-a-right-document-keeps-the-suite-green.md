@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T19:50:59.950898Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T19:50:59.950898Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-06T19:52:53.080087Z'
+  stage: tests
+  run: a695e6f7919840baa3ae30109fd95a27
 ---
 
 # Listing a right document keeps the suite green
@@ -84,3 +86,29 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    - Architecture: this is test support only, placed in `tests/support/` as CLAUDE.md requires. No test module imports another.
    - Scope: within feature decision 8 and outside the feature's "Out of scope". Route: tests, because the Interface changes tests and support code, not only documents.
 4. factory: started tests as vm.
+5. tester: Wrote the tests and the test helper this story needs. All of its work is under `tests/`, so the tests are green now instead of red. The new and changed tests pass in one run: `uv run pytest -q` over the five modules gave 27 passed, and `make lint` is green. No module was missing: every import resolved.
+
+   Criteria → tests:
+   - criterion 1: tests/entry/test_check_documents_any_list.py::test_a_test_that_writes_its_list_keeps_its_outcome_when_the_repository_lists_more_pages. It has one row per listed page: `install` runs the settings test's steps (same exit status for both runs), `operator-guide-index` runs the `no-index` steps (exactly `docs/operator-guide/README.md: missing\n`, exit 1), and `shared` puts an `echo one`/`two` example after the report heading (exit 0). Its fixture `listed` adds the three pages to the copy's list and commits.
+   - criterion 2: tests/entry/test_check_documents_any_list.py::test_without_its_own_list_the_repository_list_reaches_the_output
+   - criterion 3: tests/entry/test_check_documents_any_list.py::test_the_written_list_holds_one_path_per_line_and_is_committed (rows `empty` and `one`)
+   - criterion 4: the earlier rows of the four tests, under their old names and ids:
+     - tests/entry/test_check_documents_settings.py::test_settings_findings_are_printed_without_changing_the_exit_status
+     - tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file
+     - tests/entry/test_check_documents_suite_copy.py::test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_its_line
+     - tests/entry/test_check_documents_copies.py (`_append_example`)
+   - criteria 5 and 6: `make check` and docs, no test.
+
+   Files created: tests/entry/test_check_documents_any_list.py.
+
+   Earlier test files changed:
+   - tests/support/check_documents_support.py: new `write_checked_list`. Two constants, `CHECKED_LIST` and `INSTALL`, and `drop_settings_row` moved here.
+   - tests/entry/test_check_documents_settings.py: writes an empty list first. Its private `_drop_row` moved to the support module as `drop_settings_row`, so the new module can reuse the settings test's steps. That move is under the standing leave for shared helpers.
+   - tests/entry/test_check_documents_operator_guide.py and tests/entry/test_check_documents_suite_copy.py: each row writes an empty list first.
+   - tests/entry/test_check_documents_copies.py: `_append_example` writes `[LISTED]` or `[]` through the helper.
+
+   The four test changes rest on feature decision 8, as the Interface names it. Every test keeps its name, its ids and what it checks.
+
+   Open: there is nothing for the coder to write under `src/`, and the type check was not run in this stage. The coder's `make check` covers it, and the docs criterion is left to the docs stage.
+
+   `lint`: lint: green (0.2 s)

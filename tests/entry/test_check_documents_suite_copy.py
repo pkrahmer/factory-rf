@@ -6,7 +6,12 @@ from pathlib import Path
 import pytest
 
 from factory.entry.check_documents import main
-from support.check_documents_support import append_block, findings_from, without_report_lines
+from support.check_documents_support import (
+    append_block,
+    findings_from,
+    without_report_lines,
+    write_checked_list,
+)
 from support.git_support import clone, commit_all, run_git
 
 MACHINE = "docs/project-guide/machine.md"
@@ -36,6 +41,7 @@ def test_a_skipped_block_leaves_the_output_as_it_was_and_a_wrong_example_adds_it
     lines: list[str],
     added: str | None,
 ) -> None:
+    write_checked_list(documents, [])
     append_block(documents, MACHINE, info, lines)
     (documents / "docs" / "operator-guide" / "README.md").unlink()
 
