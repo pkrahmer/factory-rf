@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:46:34.165361Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-06T09:46:34.165361Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:47:08.040524Z'
+  stage: doing
+  run: 086421699cdb48e7934d949b12ac430f
 ---
 
 # The checks block the listed files and report on the others
@@ -330,3 +332,19 @@ Expect: `documents ok (<seconds> s)`
     - `tests/entry/test_check_documents_references.py`: the human's leave, journal entry 11. Only the `one-today` row's expectation changed.
     - `tests/shared/domain/test_document_references.py`: no leave needed. Rows were only added to the parametrized test, which the story's Interface names ("rows for the three kinds in the name check's tests"), and every existing row is unchanged.
 20. factory: started doing as vm.
+21. coder: No code changed this round. All four review findings (entry 19) are about tests or the work item, so the work item goes to the tester.
+
+    For the tester:
+    1. Criterion 11 needs a test. In `tests/entry/test_check_documents_checked_files.py`, add one row that writes no `docs/checked-documents.txt` and plants a name finding. The row expects the finding under `Report (not checked yet):`, the `documents ok (<seconds> s)` line and exit status 0. The code already does this: `_checked_documents` in `src/factory/entry/check_documents.py` reads a missing list as an empty one.
+    2. Criterion 12 needs a test. Add one parametrized test with two rows, listed and not listed, that each put a `console vm` block in a guide page. Each row expects the `<document>:<line>: not run (<kind>)` line after the report heading, after the reported findings, and exit status 0. The code already does this: `main` builds `reported = [*split.reported, *not_run]`.
+    3. Finding 4, moving a shared test helper (the standing leave in `CLAUDE.md`). `tests/entry/test_check_documents_checked_files.py:27` sets `REPOSITORY = Path(__file__).parents[2]`, which copies `ROOT` from `tests/support/operator_support.py:10`. `tests/support/shipped_agents.py`, `tests/support/dockerfile_support.py` and `tests/support/vm_support.py` hold the same `ROOT`. The test module should import `ROOT` from `tests/support/operator_support.py` and drop its own constant.
+
+    Work item: for finding 3, I rewrote criterion 14 (docs) in `## Description`. It now names `docs/checked-documents.txt`, written with `docs/project-guide/style.md` and `docs/project-guide/glossary.md`, so the documenter writes the first list that the Interface and criterion 3 rely on (journal entry 11). The Description has no "as of" heading to update. Criteria 11 and 12 were already in the Description.
+
+    Main decision: I sent finding 3 into the Description instead of leaving it for the documenter to infer from the journal, because the documenter works from the docs criterion. I left the code alone: findings 1 and 2 add criteria that need only their tests, and the code already does what they describe.
+
+    Noticed, not touched: four support modules each define the same `ROOT = Path(__file__).parents[2]`. Merging them is beyond this work item.
+
+    I did not run `make check` this round, because no code changed. It was green at the end of the last doing round (entry 17).
+
+    The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0004-the-checks-block-the-listed-files-and-report-on-the-others.md.
