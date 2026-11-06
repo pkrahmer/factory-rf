@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:58:52.079670Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T23:58:47.150520Z'
   stage: intake
   run: 28327dec91dc42258679ae60ffe93c01
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:58:52.079670Z'
+  stage: docs-only
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    - Docs criterion: criterion 6 asks for criteria 1 to 4 and names no decision-log change. It says what the reader must know (the operator's tasks, stops and settings, taken from the code) and dictates no sentences.
    - Architecture: the story touches documents only, so there is no code layering to break. The route is docs-only, since every path the story changes is one the documenter may write.
    - Scope: the story is one of the 22 files in F0054's scope (S0004). It leaves out `docs/decisions.md`, `docs/runs/` and the operator playbook, and it makes no behaviour change.
+4. factory: started docs-only as vm.
