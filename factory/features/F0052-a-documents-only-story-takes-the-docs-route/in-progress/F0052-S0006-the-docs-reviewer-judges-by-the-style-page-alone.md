@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 579
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-06T00:58:15.898779Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-06T00:58:10.384031Z'
   stage: docs
   run: d3a15cb39f2b49669fb626a4fb4245e8
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:58:15.898779Z'
+  stage: smoke-test
 ---
 
 # The docs reviewer judges by the style page alone
@@ -173,3 +182,4 @@ Expect: `1`
     `check`: check: green (not run again: passed on tree 2503ea5b3c55 at 2026-11-06T00:54:40Z)
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok
+12. factory: started smoke-test as vm.
