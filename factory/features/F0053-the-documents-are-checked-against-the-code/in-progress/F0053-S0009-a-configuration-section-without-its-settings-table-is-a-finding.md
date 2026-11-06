@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 595
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T12:50:57.874264Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-06T12:50:57.874264Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T12:51:18.366279Z'
+  stage: smoke-test
+  run: 7edf5f38962b4727ab1d3ceb4d72aaf7
 ---
 
 # A configuration section without its settings table is a finding
@@ -328,3 +330,17 @@ Expect: `['no settings table (first column Name or Variable) in Configuration']`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (0.6 s)
 20. factory: started smoke-test as vm.
+21. smoke-tester: Ran the work item's one smoke-test command from the repository root, exactly as written. I fixed nothing.
+
+    1. `uv run python -c "from factory.shared.domain.documents import settings_findings; from factory.shared.domain.settings import SETTINGS; print(settings_findings([], SETTINGS))"`
+
+    ```
+    Bytecode compiled 4164 files in 50ms
+    ['no settings table (first column Name or Variable) in Configuration']
+    ```
+
+    Met its `Expect:` line. The printed list is exactly `['no settings table (first column Name or Variable) in Configuration']`. The first line is uv's own bytecode-compile notice on stderr, not output of the command. The command exited without error.
+
+    Against the acceptance criteria: the output is what criterion 1 asks for when there are no counting tables and `SETTINGS` is not empty. The smoke test does not contradict any other criterion. It does not touch criteria 2, 3, 4 or 5. The docs stage's entry 19 records that `make documents` ended `documents ok` and `make check` was green.
+
+    Findings: none.
