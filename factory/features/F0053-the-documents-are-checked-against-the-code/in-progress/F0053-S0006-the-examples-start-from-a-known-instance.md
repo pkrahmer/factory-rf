@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T08:54:02.639358Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T08:54:02.639358Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T08:56:08.706243Z'
+  stage: tests
+  run: 0d326b3ade3148fda5ca1e5b361ae56f
 ---
 
 # The examples start from a known instance
@@ -110,3 +112,26 @@ Expect: `1`
    - Architecture: the fixture sits in `hosting.adapters` beside `CheckoutFixture` because it needs git. It changes no setting and no run or watch wiring. That fits the layering.
    - Scope: it is within F0053 (S0006, runnable examples) and touches nothing under "Out of scope". The route is `tests`, since the Interface changes `src` code.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for the instance fixture from the Interface and criteria 1 to 7, in one new module.
+
+   Criterion → test (all in `tests/hosting/adapters/test_instance_fixture.py`):
+   - criterion 1: `test_the_commands_of_a_block_on_the_instance_print_what_a_valid_instance_prints[healthy]`. It runs a `console fixture=instance` block through `ProcessExampleRunner` with `{"instance": InstanceFixture(checkout)}`. `factory-health --state-directory "$FACTORY_STATE"` must print `healthy`, which means no findings.
+   - criterion 2: the same test, row `[a-wrong-instance-name-is-refused]`. `FACTORY_INSTANCE=Factory-1 factory-run; echo "exit $?"` must print `<time> settings invalid: FACTORY_INSTANCE: is not a name` and then `exit 2`. The two criteria share their setup, so they are rows of one test, as journal 4 says. `<time>` is there because `factory-run` stamps the line with the time; I checked by hand that it prints `2026-…Z settings invalid: …` and exits 2.
+   - criterion 3: `test_the_environment_names_the_instance_docs_with_copied_snapshots_and_folders_inside`. Every value in the environment that is an absolute path counts as a folder variable, and it must lie under the folder given.
+   - criterion 4: `test_the_state_folder_holds_the_health_file_factory_health_reads`, using `factory.entry.wiring.health_file($FACTORY_STATE)`.
+   - criterion 5: `test_each_document_gets_a_fresh_instance_in_a_folder_of_its_own`. Two documents run through the runner. A recording `Fixture` wraps the real `InstanceFixture` (no mocking) and checks the two `prepare` folders differ. A marker written to `$FACTORY_STATE` in the first document must be absent in the second.
+   - criterion 6: `test_the_fixture_creates_no_path_outside_its_folder`. It lists the paths under `tmp_path` before and after `prepare`; every new path must lie under the folder.
+   - criterion 7: `test_the_instance_s_remote_is_a_bare_repository_under_the_folder`. `FACTORY_REPOSITORY_URL` must be a path under the folder, and `git rev-parse --is-bare-repository` in it (via `support.git_support.run_git`) must print `true`.
+   - criteria 8 and 9 (`make check`, docs) have no test.
+
+   Readings the coder should know:
+   - I took "the instance's remote URL" to be `FACTORY_REPOSITORY_URL`. It is the only setting that names the remote.
+   - Criterion 1 uses `$FACTORY_STATE`, so the environment must set `FACTORY_STATE`.
+   - For criterion 2 to print only the instance refusal, the other settings in the environment must be valid: with an empty environment, `factory-run` refuses `FACTORY_REPOSITORY_URL: missing` first.
+   - The commands run as installed scripts on the `PATH` the runner passes on (`.venv/bin` under `uv run`).
+
+   Files created: `tests/hosting/adapters/test_instance_fixture.py`.
+
+   The one run (`uv run pytest -q tests/hosting/adapters/test_instance_fixture.py`) failed at collection: `ModuleNotFoundError: No module named 'factory.hosting.adapters.instance_fixture'`. That module is the one the test runner could not import. `make lint`: green. I skipped the type check, as this stage says.
+
+   `lint`: lint: green (0.1 s)
