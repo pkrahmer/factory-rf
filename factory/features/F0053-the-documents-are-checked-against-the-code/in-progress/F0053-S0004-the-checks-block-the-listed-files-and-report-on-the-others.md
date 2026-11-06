@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T09:47:13.381244Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-06T09:47:08.040524Z'
   stage: doing
   run: 086421699cdb48e7934d949b12ac430f
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:47:13.381244Z'
+  stage: tests
 ---
 
 # The checks block the listed files and report on the others
@@ -348,3 +357,4 @@ Expect: `documents ok (<seconds> s)`
     I did not run `make check` this round, because no code changed. It was green at the end of the last doing round (entry 17).
 
     The factory left out changes outside the write paths: factory/features/F0053-the-documents-are-checked-against-the-code/in-progress/F0053-S0004-the-checks-block-the-listed-files-and-report-on-the-others.md.
+22. factory: started tests as vm.
