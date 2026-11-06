@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T02:35:58.656674Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-06T02:35:58.656674Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-06T02:36:39.826029Z'
+  stage: tests
+  run: 934d55d92b2240d3ae6361ad34b4ed5e
 ---
 
 # Every name a document writes in backticks exists
@@ -344,3 +346,26 @@ Expect: a number alone (the count of findings, possibly `0`)
 
     `check`: check: green
 22. factory: started tests as vm.
+23. tester: Round 1. This is the test change the human approved: findings 1 to 5 of the review (entry 19), as the coder's entry 21 lists them. I wrote no code.
+
+    Changes in `tests/shared/domain/test_document_references.py`, `test_named_references_finds_backticked_names_paths_and_links`:
+    - Criterion 5 now has its four rows, each expecting `[]`: `absolute-link` `[x](/srv/a.md)`, `mailto-link` `[x](mailto:a@example.org)`, `placeholder-link` `[x](<instance>.md)` and `glob-link` `[x](*.md)`.
+    - Finding 5 added three more rows that fail the path rule, each expecting `[]`: `whitespace` (`make -C operator/vm`), `home` (`~/.config/factory/site.env`) and `web-address-in-backticks` (`https://example.org/a.md`).
+
+    Changes in `tests/entry/test_check_documents_references.py`:
+    - Finding 2: I merged `test_a_missing_name_path_or_link_target_gets_one_finding` and `test_an_existing_name_path_or_link_and_a_web_or_heading_link_get_no_finding` into one parametrized test, `test_each_missing_name_path_or_link_target_gets_one_finding`. Each row carries its expected findings, and the existing rows expect `[]`. Every earlier row id is kept. A small helper, `_finding`, builds the expected line.
+    - Finding 3: the three link rows now check the whole finding line, with the names `src/factory/nothing.py`, `docs/project-guide/a.md` and `docs/README.md`.
+    - Finding 4: a new row, `missing-top-level-path-without-extension` (`operator/nothing_here/`), expects one finding. It shows that the command passes `top_level`.
+    - The other tests in both files are unchanged.
+
+    Criterion → test after this change:
+    - criterion 1: `tests/shared/domain/test_document_references.py::test_named_references_finds_backticked_names_paths_and_links`
+    - criterion 2: `tests/entry/test_check_documents_references.py::test_each_missing_name_path_or_link_target_gets_one_finding`
+    - criterion 5: `tests/shared/domain/test_document_references.py::test_named_references_finds_backticked_names_paths_and_links`, rows `absolute-link`, `mailto-link`, `placeholder-link` and `glob-link`
+    - criteria 3 and 4: unchanged, `test_the_decision_log_runs_and_replaced_sections_are_not_checked` and `test_name_findings_follow_todays_findings_and_leave_the_exit_status`, both in `tests/entry/test_check_documents_references.py`
+
+    Files created: none. Files changed: the two above.
+
+    Test run: `uv run pytest -q` on the two changed files. All 41 tests passed against the code already committed, which is expected because the coder's code already handles these rows. No module failed to import. `make lint`: green.
+
+    `lint`: lint: green (0.1 s)

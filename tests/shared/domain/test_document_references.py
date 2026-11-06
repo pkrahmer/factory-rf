@@ -44,6 +44,13 @@ def _text(body: str) -> str:
         pytest.param("Python's `os.path` joins.", [], id="not-factory-module"),
         pytest.param("```\n`factory.a.b` and `operator/vm/setup.sh`\n```", [], id="fenced-block"),
         pytest.param("See [x](a.md#h) for it.", [(3, "a.md", "link")], id="link-with-fragment"),
+        pytest.param("Run `make -C operator/vm` once.", [], id="whitespace"),
+        pytest.param("It reads `~/.config/factory/site.env` too.", [], id="home"),
+        pytest.param("Open `https://example.org/a.md` there.", [], id="web-address-in-backticks"),
+        pytest.param("See [x](/srv/a.md) for it.", [], id="absolute-link"),
+        pytest.param("See [x](mailto:a@example.org) for it.", [], id="mailto-link"),
+        pytest.param("See [x](<instance>.md) for it.", [], id="placeholder-link"),
+        pytest.param("See [x](*.md) for it.", [], id="glob-link"),
     ],
 )
 def test_named_references_finds_backticked_names_paths_and_links(

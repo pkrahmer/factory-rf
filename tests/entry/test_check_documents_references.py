@@ -45,58 +45,67 @@ def checkout(tmp_path: Path) -> Path:
     return root
 
 
+def _finding(planted: str, name: str) -> list[str]:
+    line = _line_of(project_guide(suffix=planted), planted)
+    return [f"{PROJECT_GUIDE}:{line}: {name}{FINDING_END}"]
+
+
 @pytest.mark.parametrize(
-    ("planted", "name"),
+    ("planted", "expected"),
     [
         pytest.param(
             "`factory.shared.domain.nothing_here`",
-            "factory.shared.domain.nothing_here",
+            _finding("`factory.shared.domain.nothing_here`", "factory.shared.domain.nothing_here"),
             id="missing-module",
         ),
         pytest.param(
             "`factory.shared.domain.documents.nothing_here`",
-            "factory.shared.domain.documents.nothing_here",
+            _finding(
+                "`factory.shared.domain.documents.nothing_here`",
+                "factory.shared.domain.documents.nothing_here",
+            ),
             id="missing-attribute",
         ),
-        pytest.param("`operator/vm/nothing.sh`", "operator/vm/nothing.sh", id="missing-path"),
-        pytest.param("[x](../../src/factory/nothing.py)", None, id="missing-link"),
-        pytest.param("[x](a.md#h)", None, id="missing-link-with-fragment"),
-        pytest.param("[x](../README.md)", None, id="link-resolved-from-folder-missing"),
+        pytest.param(
+            "`operator/vm/nothing.sh`",
+            _finding("`operator/vm/nothing.sh`", "operator/vm/nothing.sh"),
+            id="missing-path",
+        ),
+        pytest.param(
+            "`operator/nothing_here/`",
+            _finding("`operator/nothing_here/`", "operator/nothing_here/"),
+            id="missing-top-level-path-without-extension",
+        ),
+        pytest.param(
+            "[x](../../src/factory/nothing.py)",
+            _finding("[x](../../src/factory/nothing.py)", "src/factory/nothing.py"),
+            id="missing-link",
+        ),
+        pytest.param(
+            "[x](a.md#h)",
+            _finding("[x](a.md#h)", "docs/project-guide/a.md"),
+            id="missing-link-with-fragment",
+        ),
+        pytest.param(
+            "[x](../README.md)",
+            _finding("[x](../README.md)", "docs/README.md"),
+            id="link-resolved-from-folder-missing",
+        ),
+        pytest.param("`factory.shared.domain.documents`", [], id="existing-module"),
+        pytest.param(
+            "`factory.shared.domain.documents.named_references`", [], id="existing-attribute"
+        ),
+        pytest.param(f"`{SCRIPT}`", [], id="existing-path"),
+        pytest.param(f"[x](../../{SCRIPT})", [], id="link-resolved-from-folder"),
+        pytest.param(
+            "[x](../operator-guide/install.md#install)", [], id="existing-link-with-fragment"
+        ),
+        pytest.param("[x](https://example.org/a.md)", [], id="web-address"),
+        pytest.param("[x](#a-heading)", [], id="heading-alone"),
     ],
 )
-def test_a_missing_name_path_or_link_target_gets_one_finding(
-    checkout: Path, capsys: pytest.CaptureFixture[str], planted: str, name: str | None
-) -> None:
-    texts = clean_texts()
-    text = project_guide(suffix=planted)
-    texts[PROJECT_GUIDE] = text
-    write_documents(checkout, texts)
-
-    main(["--root", str(checkout)])
-
-    findings = _name_findings(capsys.readouterr().out)
-    prefix = f"{PROJECT_GUIDE}:{_line_of(text, planted)}: "
-    if name is not None:
-        assert findings == [f"{prefix}{name}{FINDING_END}"]
-    else:
-        assert len(findings) == 1
-        assert findings[0].startswith(prefix)
-
-
-@pytest.mark.parametrize(
-    "planted",
-    [
-        pytest.param("`factory.shared.domain.documents`", id="existing-module"),
-        pytest.param("`factory.shared.domain.documents.named_references`", id="existing-attribute"),
-        pytest.param(f"`{SCRIPT}`", id="existing-path"),
-        pytest.param(f"[x](../../{SCRIPT})", id="link-resolved-from-folder"),
-        pytest.param("[x](../operator-guide/install.md#install)", id="existing-link-with-fragment"),
-        pytest.param("[x](https://example.org/a.md)", id="web-address"),
-        pytest.param("[x](#a-heading)", id="heading-alone"),
-    ],
-)
-def test_an_existing_name_path_or_link_and_a_web_or_heading_link_get_no_finding(
-    checkout: Path, capsys: pytest.CaptureFixture[str], planted: str
+def test_each_missing_name_path_or_link_target_gets_one_finding(
+    checkout: Path, capsys: pytest.CaptureFixture[str], planted: str, expected: list[str]
 ) -> None:
     texts = clean_texts()
     texts[PROJECT_GUIDE] = project_guide(suffix=planted)
@@ -104,7 +113,7 @@ def test_an_existing_name_path_or_link_and_a_web_or_heading_link_get_no_finding(
 
     main(["--root", str(checkout)])
 
-    assert _name_findings(capsys.readouterr().out) == []
+    assert _name_findings(capsys.readouterr().out) == expected
 
 
 MISSING = "`factory.nothing_here`"
