@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T19:59:49.665575Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-06T19:59:49.665575Z'
   stage: doing
+- number: 15
+  speaker: coder
+  kind: result
+  at: '2026-11-06T20:03:56.596736Z'
+  stage: doing
+  run: 233b83ef354347aea4cb3930816169b9
 ---
 
 # Listing a right document keeps the suite green
@@ -225,3 +227,17 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
     `lint`: lint: green (0.1 s)
 14. factory: started doing as vm.
+15. coder: Round 1. I wrote no code this round. The tester's change in entry 13 dealt with the reviewer's three findings from entry 9. The copied path constants in `tests/support/check_documents_support.py` and `tests/entry/test_check_documents_any_list.py` now come from `factory.shared.domain.documents` (`CHECKED_DOCUMENTS`, `OPERATOR_INSTALL`, `OPERATOR_GUIDE`). Nothing under `src/` changes, as the Interface says.
+
+    I ran the full `make check`, which the tester had not run because it ran only lint and the five modules. It ended with `test: green (101.9 s)` and `check: green`, so `mypy --strict` also passes over the changed test files. Against `main`, the diff outside `factory/` is only the six test files of this story.
+
+    Main decision: I made no `src/` change. The alternative was to change the check so the repository's list does not reach the output. I rejected it because the Interface keeps the check and its output as they are, and criterion 2 relies on that line appearing.
+
+    Refactor: I have no diff of my own to refactor (`git diff main -- . ':!factory' ':!tests'` is empty). The journal did not change the meaning of the task, so the Description stays.
+
+    Noticed but not touched: criterion 6 (`docs/project-guide/shared.md`, *The settings check*) is still open for the docs stage. The `docs/operator-guide/` literals in `MISSING_LINES` and `NO_INDEX` were there before this story, and I left them.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
