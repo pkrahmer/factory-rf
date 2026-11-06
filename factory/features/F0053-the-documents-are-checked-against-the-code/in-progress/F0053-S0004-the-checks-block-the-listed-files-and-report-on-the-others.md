@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:46:34.165361Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-06T09:46:28.610405Z'
   stage: review
   run: f7a83f390392413eafca02706f74047c
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:46:34.165361Z'
+  stage: doing
 ---
 
 # The checks block the listed files and report on the others
@@ -320,3 +329,4 @@ Expect: `documents ok (<seconds> s)`
     - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal entry 11. The only change is that the heading line is also filtered out. The test keeps its name and what it checks.
     - `tests/entry/test_check_documents_references.py`: the human's leave, journal entry 11. Only the `one-today` row's expectation changed.
     - `tests/shared/domain/test_document_references.py`: no leave needed. Rows were only added to the parametrized test, which the story's Interface names ("rows for the three kinds in the name check's tests"), and every existing row is unchanged.
+20. factory: started doing as vm.
