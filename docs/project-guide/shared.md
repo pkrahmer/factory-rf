@@ -94,13 +94,23 @@ This repository's pipeline runs the report after the coder and writes its last l
 
 ## The document check
 
-`uv run python -m factory.entry.check_documents` reads the four documents (the operator guide is its index `docs/operator-guide/README.md` and ten topic files, listed in `OPERATOR_GUIDE_FILES`; a missing one is reported as `docs/operator-guide/<file>: missing`) and the other files of this guide, and prints `documents ok`, or one finding per line and exits 1. The rule is the pure function `factory.shared.domain.documents.check_documents`; the command only reads the files (`--root` names another checkout). It requires:
+`uv run python -m factory.entry.check_documents` reads the four documents (the operator guide is its index `docs/operator-guide/README.md` and ten topic files, listed in `OPERATOR_GUIDE_FILES`; a missing one is reported as `docs/operator-guide/<file>: missing`) and the other files of this guide, and prints one finding per line and exits 1, or, when nothing blocks, ends with `documents ok (<seconds> s)`. The rule is the pure function `factory.shared.domain.documents.check_documents`; the command only reads the files (`--root` names another checkout). It requires:
 
 - the operator guide's sections *Install* and *Configuration* in `docs/operator-guide/install.md` and *The stops* in `docs/operator-guide/stops.md`, with a table row for each row of `STOP_TABLE` that holds the stop's id in backticks and its destination in words;
 - the guide's index, `docs/project-guide/README.md`, with its sections *Kill points* and *Fault-injection paths*, with a table row for each case of `KILL_POINT_CASES` and each path of `FAULT_PATHS`, each with its id or test name in backticks;
 - none of the phrases of `REPLACED_PHRASES` and none of the v1 words of `GLOSSARY_FORBIDDEN` outside a `## Replaced from v1` section; the decision log is exempt from both lists.
 
 The command also reads every other `.md` file directly in `docs/project-guide/` (`factory.shared.domain.documents.is_guide_file` says which: not the index, no subfolder, no other extension) and checks it for the phrases and the v1 words only, so that a section moved out of the index does not leave the check. Its findings follow those of the four documents, in path order. A folder, a file in a subfolder and a missing folder add nothing.
+
+### The examples
+
+After the settings lines the command runs the `console` blocks of every document it reads for names (the README and the files of both guides). How to write one is in [style.md](style.md), *Runnable examples*; this section is the machinery.
+
+- `factory.shared.domain.documents.examples(text)` returns `Examples` with `runnable` (each `Example`: its line, its fixture and its `Command`s with their expected lines) and `skipped` (`Skipped`: line and kind). A block marked `vm`, `github` or `model`, or with a command for which `runs_the_suite` holds, is skipped; `first_difference` is the match, with `...` and `<placeholder>`.
+- `factory.shared.application.document_examples` holds the two interfaces: `Fixture.prepare(folder)` fills an empty folder and returns the extra environment, and `ExampleRunner.run_document(document, examples, fixtures)` returns the document's findings.
+- `factory.shared.adapters.document_examples.ProcessExampleRunner` runs each command through `run_process` as `env -i <variables> sh -c <command>`. The fixed variables come last, so a fixture cannot replace `PATH`, `HOME`, `TZ` or `LANG`. Its default limit is 60 seconds; a test passes a shorter one. The folder and the home are temporary and removed when `run_document` returns, also after a timeout.
+- `factory.hosting.adapters.checkout_fixture.CheckoutFixture` is the fixture `checkout`: it exports the tracked files of the checked commit through `GitCli.export`. It raises `FixtureError` outside a git repository; the runner then gives one finding, `fixture <name> could not be prepared`, at the block's line and runs none of the document's commands on that fixture.
+- `factory.entry.check_documents` wires the two classes. Its report lists, in this order, the document findings, the name and settings findings, the examples' findings and one `not run (<kind>)` line per skipped block. Only the document findings set the exit status; an example's finding is printed and does not make `make documents` red. The last line is `documents ok (<seconds> s)`.
 
 ### The name check
 

@@ -2,16 +2,12 @@
 stage: docs
 blocked: null
 round: 1
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T08:36:37.175425Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -312,6 +308,19 @@ journal:
   kind: started
   at: '2026-11-06T08:36:37.175425Z'
   stage: docs
+- number: 55
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T08:39:52.845719Z'
+  stage: docs
+  run: 4f3da81f74214116a2543dcd560ab0db
+- number: 56
+  speaker: factory
+  kind: stall
+  at: '2026-11-06T08:39:53.049329Z'
+  stage: docs
+  run: 4f3da81f74214116a2543dcd560ab0db
+  reason: check_red
 ---
 
 # A document's marked examples are run by the check
@@ -979,3 +988,42 @@ Expect: `1`
     - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`FENCE`).
     - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper (its local `FENCE` replaced by the shared one).
 54. factory: started docs as vm.
+55. documenter: I wrote criterion 15 and fixed the text of `README.md` and `docs/project-guide/shared.md` that the story made stale. `make documents` ends with `documents ok (0.5 s)` and prints no example finding, so both of my new `console` blocks ran and matched. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/style.md`: a new section, *Runnable examples*, before *The operator guide*. It covers:
+      - how to write a `console` block (`$ ` lines, expected output, stderr included);
+      - the fixed environment, the one folder per document and the 60-second limit;
+      - the `<name>` and `...` placeholders;
+      - `console fixture=<name>` (only `checkout`, the default);
+      - the `vm`, `github` and `model` marks, and that a `vm` example comes from a real run and says where it ran;
+      - that a block running the suite is skipped without a mark, and that `uv run pytest <file>` is run;
+      - the finding and `not run (<kind>)` line formats.
+      It holds two real `console` blocks, run by `make documents`.
+    - `docs/project-guide/shared.md`: a new section, *The examples*, after *The settings check*, for the machinery (`examples`, `Fixture`, `ExampleRunner`, `ProcessExampleRunner`, `CheckoutFixture`, the report order and the exit status). I also corrected the *The document check* paragraph, which said the command prints `documents ok`; it now ends with `documents ok (<seconds> s)`.
+    - `README.md`: the paragraph on `check_documents` now says it also runs the runnable examples and ends with `documents ok (<seconds> s)`.
+
+    Cross-read and found current: `docs/project-guide/README.md` (its line on `style.md` and on `shared.md`, and the list of `tests/support` modules), and the rest of `shared.md`.
+
+    Stale text I saw and did not touch:
+    - `docs/project-guide/shared.md` says of the name lines that `make documents` stays green with them "until a later story". That is still true, and S0004 changes it.
+    - The story's `## Interface` still says "an adapter test with the fake containers", which the human noted in journal 43. I do not touch the work item.
+    - `make documents` prints name findings (`does not exist`) on lines of `agents.md`, `hosting.md`, `machine.md`, `operator.md` and `work.md`. They come from the name check of S0001, not from this story.
+
+    No finding for the coder: the code matches the Interface and the criteria as I read them.
+56. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+    src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+    src/factory/work/domain/acceptance.py                  195      1     52      1    99%   367
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                11105     54   2250     51    99%
+
+    156 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.21%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-stops-section] - assert 'docs/operato...be prepared\n' == "docs/operato... is missin...
+    FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-install-section] - assert 'docs/operato...be prepared\n' == "docs/operato... is miss...
+    FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-configuration-section] - assert 'docs/operato...be prepared\n' == "docs/operato... i...
+    FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-install-file] - AssertionError: assert 'docs/operato...be prepared\n' == 'docs/opera...
+    FAILED tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[no-index] - AssertionError: assert 'docs/operato...be prepared\n' == 'docs/operato...md...
+    make: *** [Makefile:89: test] Error 1
