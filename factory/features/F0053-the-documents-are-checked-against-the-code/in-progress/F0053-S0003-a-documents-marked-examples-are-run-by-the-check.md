@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T07:47:37.478176Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -115,6 +119,11 @@ journal:
   at: '2026-11-06T07:47:31.946145Z'
   stage: doing
   run: 7ab4cbd256f145518ddb00805e3070a8
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:47:37.478176Z'
+  stage: tests
 ---
 
 # A document's marked examples are run by the check
@@ -342,3 +351,4 @@ Expect: `1`
     - My refactor step comes after `make check` is green, so I do it when the work item comes back.
     - Criterion 9 (the docs) is the documenter's.
     - `documents.py` at about 590 lines is for a later split, as you noted.
+20. factory: started tests as vm.
