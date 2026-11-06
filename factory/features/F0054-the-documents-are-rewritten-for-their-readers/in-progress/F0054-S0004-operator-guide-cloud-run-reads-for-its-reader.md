@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-06T23:58:32.184919Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T23:58:32.177570Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:58:32.184919Z'
+  stage: intake
+---
+
 # The operator guide's on cloud run reads for the operator
 
 ## Description
@@ -28,3 +55,6 @@ grep -cx "docs/operator-guide/cloud-run.md" docs/checked-documents.txt
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
