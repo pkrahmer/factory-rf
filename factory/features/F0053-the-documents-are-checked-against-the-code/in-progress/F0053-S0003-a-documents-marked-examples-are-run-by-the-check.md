@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T07:48:36.591590Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -126,6 +130,11 @@ journal:
   at: '2026-11-06T07:48:31.353350Z'
   stage: tests
   run: 7ae96c5023d64d12bcd71e3fddfef81e
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:48:36.591590Z'
+  stage: doing
 ---
 
 # A document's marked examples are run by the check
@@ -382,3 +391,4 @@ Expect: `1`
     The criterion-to-test mapping is unchanged from journal 14.
 
     `lint`: lint: green (0.1 s)
+22. factory: started doing as vm.
