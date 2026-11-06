@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 594
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T12:13:03.783092Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T12:13:03.783092Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T12:13:22.192908Z'
+  stage: intake
+  run: fc5f74f32ac742b9830380b8b4643f75
 ---
 
 # The name check reads log files and git addresses
@@ -55,3 +57,10 @@ Expect: `0`
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `factory.shared.domain.documents` with `_FILE_NAME_EXTENSIONS` (exists, line 104) and `named_references`, plus the test file; the colon rule is stated exactly (first `:` before first `/`), so it is concrete.
+   - Criteria: 1 covers `.log` and `.jsonl` with the module case still passing; 2 covers both sides of the colon rule (git addresses give none, `tests/x.py::test_y` and `docs/a:b.md` stay paths); 3 is checkable on today's documents; each is testable by one test function.
+   - Smoke test: `factory.entry.check_documents` exists and the command is runnable. The `Expect: 0` line is checkable. Note that the grep pattern is loose, but it is the human's wording.
+   - Docs criterion: names what the reader must know (which file names and addresses the check leaves out) in `docs/project-guide/shared.md`, and dictates no sentences.
+   - Architecture: the change stays in the `shared` domain layer, pure rules with no I/O, so it fits.
+   - Scope: it is inside F0053's name check (S0001/S0004 follow-up) and does not touch rewriting the documents or anything under Out of scope. Route is `tests`, since the Interface changes source code.
