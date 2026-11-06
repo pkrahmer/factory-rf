@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -247,6 +247,11 @@ journal:
   at: '2026-11-06T11:07:08.848647Z'
   stage: smoke-test
   run: 166ccb92fd0346a98c31d5e115c0ab04
+- number: 44
+  speaker: factory
+  kind: done
+  at: '2026-11-06T11:09:01.629945Z'
+  stage: approval
 ---
 
 # The agents write and review documents against the code
@@ -658,3 +663,4 @@ Expect: `named`
     - Criterion 10 (`make check`): I did not run it, because it is not one of the smoke test's commands. The factory runs it as the stage's check.
 
     Findings: none.
+44. factory: done (pull request merged); cost: 19 runs, 26.3 min, 163 turns, 496028 tokens in (4005778 more from cache), 70685 out, $5.86
