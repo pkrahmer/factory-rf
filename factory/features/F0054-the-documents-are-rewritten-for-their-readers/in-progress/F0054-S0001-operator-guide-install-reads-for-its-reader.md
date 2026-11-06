@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-06T22:12:19.115257Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-06T22:12:19.115257Z'
   stage: docs-review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T22:13:56.594636Z'
+  stage: docs-review
+  run: efc036c342114102ac4507d2f6225bfe
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -432,3 +434,22 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (1.8 s)
 25. factory: started docs-review as vm.
+26. reviewer: Docs review after the documenter's entry 24. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/install.md` and `docs/checked-documents.txt`. I checked them against the old file on `main`, against `docs/project-guide/style.md`, and against `operator/vm/setup.sh`, `operator/vm/factory.service`, `docs/operator-guide/machine.md` and `src/factory/pipeline/domain/checks.py`.
+
+    What holds:
+    - Findings 1 to 5 of review entry 18 are fixed, as the human's entry 20 asked:
+      - setup.sh is now step 1 and says it installs uv and the packages (setup.sh:393-398).
+      - `uv sync` and `make check` now come after the steps, as the check of a development clone.
+      - Step 2 gives the build command from machine.md:128.
+      - Line 39 now says "where setup.sh sets a variable", and the `FACTORY_STAGE_IMAGE` example is `factory-stage:<instance>`.
+      - The `FACTORY_IDLE_SHUTDOWN_ACTION` row and the `FACTORY_CONTAINER_ENV` row (settings.py:480-482) are back.
+    - What earlier rounds found true is unchanged: the order of faults, the refusal table, the relative-path row, the kept headings (criterion 4) and the line in `docs/checked-documents.txt` (criterion 3).
+    - Two more claims agree with the code: the example paths match setup.sh:106 and :417-436, and "the last 30 lines" matches `OUTPUT_TAIL_LINES = 30` (checks.py:12).
+    - The two `make mutants` commands stay inline, as entry 14 decided.
+
+    Findings. All three are in the new numbered install steps, which entry 24 wrote:
+    1. docs/operator-guide/install.md:17, step 4 says "Start the instance with `factory-run`", but setup.sh only enables the unit `factory@<instance>` and does not start it (machine.md:279; setup.sh:476 says "start factory@<instance>"). The unit runs `factory-run` with `factory.env` loaded (factory.service:14, machine.md:336). If the operator runs `factory-run` by hand, `factory.env` is not loaded. Fix: write step 4 as `sudo systemctl start factory@<instance>`, which runs `factory-run`, with a pointer to *The service* in machine.md.
+    2. docs/operator-guide/install.md:13, step 2 does not say that the image is built as the user `factory`, as machine.md:125 requires. Under rootless podman, an image built by another user is not visible to the service, which runs as `factory`. Fix: say "as the user `factory`, from the factory's checkout" in the step.
+    3. docs/operator-guide/install.md:11, step 1 says the script prepares the factory's checkout, but setup.sh's first run stops before the checkout and waits for the hosting token (setup.sh:5-6; machine.md:433 quotes `setup: checkout: waiting for /home/factory/.secrets/hosting-token`). An operator who follows the steps as written stops there without knowing why. Fix: add to step 1 that the first run stops waiting for the token: put the token in `/home/factory/.secrets/hosting-token` and run the script again (see "The two passes" in machine.md).
+
+    Still open outside this diff, and given to their own stories by entries 14 and 20: `docs/project-guide/shared.md` (no `Default` column), `docs/operator-guide/agent-runtime.md:57` ("The stage environment" under *Configuration*), and the version-history sections of `docs/operator-guide/README.md`.
