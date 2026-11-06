@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 586
-comments_read: [6675609802]
+comments_read: [6675609802, 6675672524]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: c86e053805c24193a32f60118b22394b
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-06T03:00:55.495035Z'
+  stage: tests
 ---
 
 # The operator guide's settings agree with the settings code
@@ -122,3 +127,6 @@ Expect: `True`
    3. **The form of a finding (criteria 2, 4, 5).** The tests would check only that each finding is one string that contains the setting's name (or the refusal text). Criterion 5 would build a copy of the docs in `tmp_path` whose install.md drops one setting's row, run `factory.entry.check_documents.main(["--root", …])`, and check two things: a printed line names that setting, and the exit status is the same as with the row present. Tell me if criterion 5 should instead run on the repository's own guide. Today it may give no settings finding at all, so a test of "today's guide gives findings" could not be checked.
 
    Criteria 1 to 3 are clear. Once 1 and 2 are answered, they map to `tests/shared/domain/test_settings_table.py::test_settings_table_names_what_read_settings_reads` and `tests/shared/domain/test_document_settings.py::{test_name_and_default_mismatches_are_findings, test_table_with_another_first_column_is_ignored, test_refusal_texts_are_checked_against_the_settings_source}`, plus a `tests/entry/` test for criterion 5.
+9. 2026-11-06 human: 1. (b), with the heading: `GuideTable` gets `heading: str`, the nearest heading above it, and `refusal_findings(guide_tables: list[GuideTable], settings_source: str) -> list[str]` is a separate pure function that checks the tables headed `The refusals` with first column `Refusal`. `settings_findings(guide_tables, settings)` keeps its signature and checks only the settings tables. The command passes the source text of `factory.shared.domain.settings`; the tests pass a small fake source. A `Refusal` table under another heading gives no finding (one row).
+   2. Yes: `guide_tables(text: str, section: str) -> list[GuideTable]`, the tables inside `section` and its subsections, each with its nearest heading. Give it one test of its own: two tables under two headings come back with their headings.
+   3. Yes, as you propose: a finding is one string containing the setting's name or the refusal text. Criterion 5 runs on a copy in `tmp_path` whose `install.md` drops one setting's row, and checks that a printed line names that setting and that the exit status is the same as with the row present.
