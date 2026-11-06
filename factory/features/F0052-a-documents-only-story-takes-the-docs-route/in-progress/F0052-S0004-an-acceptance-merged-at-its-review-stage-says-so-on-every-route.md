@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T00:09:45.879944Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-06T00:09:45.879944Z'
   stage: tests
+- number: 12
+  speaker: tester
+  kind: result
+  at: '2026-11-06T00:11:04.955262Z'
+  stage: tests
+  run: 7501e2c7c84d4537a451e1b8638ee4d0
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -186,3 +188,13 @@ Expect: `True True False`
 
     Description: unchanged. The human's answer does not change what the task means. It adds one thing for the docs stage: name `tests/support/two_routes_support.py` in the project guide's shared-helper list.
 11. factory: started tests as vm.
+12. tester: I made the test change the human approved under (a) in entry 8, as the coder named it in entry 10. The changed test is `tests/work/application/test_acceptance_merged_on_two_routes.py::test_an_acceptance_merged_on_the_shipped_order_says_whether_it_came_before_approval`.
+
+    - Change: the test now checks the booked report's state against the work area's own `AcceptanceState` from `factory.work.domain.acceptance`. It does this with `assert isinstance(state, AcceptanceState)` before it checks `(stage, outcome) == ("done", "accepted")`. Before, it called `booked_state` from `support.acceptance_walk`, which made the same assertion out of sight. The import is used by a real check, not added only to satisfy the guard. The test still checks the same thing, and the module stays in `tests/work/application/` beside `test_acceptance_merged_before_approval.py`.
+    - Rejected: importing `book_merge` to build the expected entry, because that would test against the implementation. Also rejected: the `AcceptanceOutcome` Literal, which nothing could check at runtime.
+    - Run: `uv run pytest -q` on the changed file plus `tests/guards/test_areas.py` passed, including the guard row `test_a_test_module_in_an_area_folder_imports_only_moved_areas_and_its_own[work/application/test_acceptance_merged_on_two_routes.py]`. `make lint` is green (`lint: green (0.1 s)`).
+    - Criterion mapping (unchanged): criterion 5 is tested by `tests/work/application/test_acceptance_merged_on_two_routes.py::test_an_acceptance_merged_on_the_shipped_order_says_whether_it_came_before_approval`. Criteria 1 to 4 stay as entry 5 maps them.
+    - Files: I created no new file in this run. I changed only `tests/work/application/test_acceptance_merged_on_two_routes.py`, which this story's tests stage wrote. The test run could import every module.
+    - Still open for the docs stage, per entry 8: name `tests/support/two_routes_support.py` in the project guide's shared-helper list.
+
+    `lint`: lint: green (0.2 s)

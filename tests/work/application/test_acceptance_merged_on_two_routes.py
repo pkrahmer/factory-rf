@@ -4,7 +4,8 @@ import pytest
 
 from factory.pipeline.application.boundaries import Boundaries
 from factory.watching.domain.bills import bill, cost_line
-from support.acceptance_walk import FIRST, FIRST_RECORDS, AcceptanceWalk, booked_state, last_entry
+from factory.work.domain.acceptance import AcceptanceState
+from support.acceptance_walk import FIRST, FIRST_RECORDS, AcceptanceWalk, last_entry
 from support.human_clone import HumanClone
 from support.two_routes_support import TWO_ROUTES
 
@@ -36,6 +37,7 @@ def test_an_acceptance_merged_on_the_shipped_order_says_whether_it_came_before_a
     two_routes.tick()
 
     document = two_routes.booked(FIRST)
-    state = booked_state(document)
+    state = document.state
+    assert isinstance(state, AcceptanceState)
     assert (state.stage, state.outcome) == ("done", "accepted")
     assert last_entry(document) == entry + cost_line(bill(FIRST_RECORDS))
