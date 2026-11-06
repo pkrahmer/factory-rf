@@ -1,12 +1,13 @@
 """The documents command reads the files of the project guide beside its index."""
 
+import re
 from pathlib import Path
 
 import pytest
 
 from factory.entry.check_documents import main
 from factory.shared.domain.documents import PROJECT_GUIDE
-from support.check_documents_support import MISSING_LINES
+from support.check_documents_support import MISSING_LINES, TIME_LINE
 from support.document_texts import clean_texts, project_guide, write_documents
 
 STAGES = "docs/project-guide/stages.md"
@@ -29,14 +30,14 @@ STAGES = "docs/project-guide/stages.md"
                 "docs/project-guide/old/x.md": "A ticket.\n",
             },
             ["docs/project-guide/empty.md"],
-            "documents ok\n",
+            None,
             0,
             id="others-ignored",
         ),
         pytest.param(
             {STAGES: "# Stages\n\nThe café opens — every day.\n"},
             [],
-            "documents ok\n",
+            None,
             0,
             id="utf-8",
         ),
@@ -48,7 +49,7 @@ def test_the_files_beside_the_index_are_read(
     *,
     files: dict[str, str | None],
     folders: list[str],
-    output: str,
+    output: str | None,
     exit_status: int,
 ) -> None:
     write_documents(tmp_path, clean_texts())
@@ -58,7 +59,11 @@ def test_the_files_beside_the_index_are_read(
 
     status = main(["--root", str(tmp_path)])
 
-    assert capsys.readouterr().out == output
+    printed = capsys.readouterr().out
+    if output is None:
+        assert re.fullmatch(TIME_LINE, printed.splitlines()[-1])
+    else:
+        assert printed == output
     assert status == exit_status
 
 

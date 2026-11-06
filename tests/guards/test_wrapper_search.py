@@ -20,4 +20,5 @@ def test_only_the_three_wrappers_import_the_process_module() -> None:
         "factory.machine.adapters.podman_runs",
         "factory.machine.adapters.zfs_snapshots",
         "factory.machine.adapters.power_off",
+        "factory.shared.adapters.document_examples",
     }

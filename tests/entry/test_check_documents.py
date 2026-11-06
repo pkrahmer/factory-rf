@@ -15,7 +15,7 @@ from factory.shared.domain.documents import (
     PROJECT_GUIDE_SECTIONS,
     README,
 )
-from support.check_documents_support import MISSING_LINES
+from support.check_documents_support import MISSING_LINES, TIME_LINE
 from support.document_texts import (
     clean_texts,
     operator_install,
@@ -23,8 +23,6 @@ from support.document_texts import (
     readme,
     write_documents,
 )
-
-TIME_LINE = r"documents ok \(\d+(\.\d+)? s\)"
 
 
 def test_clean_documents_print_documents_ok_and_return_zero(

@@ -1,4 +1,4 @@
-"""The missing lines of the document check tests."""
+"""The missing lines and the time line of the document check tests."""
 
 TOPIC_FILES = (
     "install.md",
@@ -19,3 +19,4 @@ MISSING_LINES = (
     + "docs/project-guide/README.md: missing\n"
     "docs/decisions.md: missing\n"
 )
+TIME_LINE = r"documents ok \(\d+(\.\d+)? s\)"

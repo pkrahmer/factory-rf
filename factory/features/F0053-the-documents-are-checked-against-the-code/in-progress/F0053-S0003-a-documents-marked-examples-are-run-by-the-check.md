@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T07:47:37.478176Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-11-06T07:47:37.478176Z'
   stage: tests
+- number: 21
+  speaker: tester
+  kind: result
+  at: '2026-11-06T07:48:31.353350Z'
+  stage: tests
+  run: 7ae96c5023d64d12bcd71e3fddfef81e
 ---
 
 # A document's marked examples are run by the check
@@ -352,3 +354,31 @@ Expect: `1`
     - Criterion 9 (the docs) is the documenter's.
     - `documents.py` at about 590 lines is for a later split, as you noted.
 20. factory: started tests as vm.
+21. tester: I made the test changes the human allowed in journal 17, as the coder listed them in journal 19.
+
+    1. `tests/guards/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`: I added `"factory.shared.adapters.document_examples"` to the set of modules allowed to import `factory.shared.adapters.process`. Nothing else in that module changed, and the test keeps its name.
+
+    2. Three earlier tests failed only on the exact `documents ok` line. Each now checks that its last line matches `documents ok \(\d+(\.\d+)? s\)`, and each keeps its exit-status check:
+       - `tests/entry/test_check_documents_guide_files.py::test_the_files_beside_the_index_are_read`, rows `others-ignored` and `utf-8`. Their expected output is now `None`. The test checks the last line against the time line when the expected output is `None`, and the whole output otherwise. The `guide-file-read` row is unchanged.
+       - `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file`, row `as-it-is`. Its expected output is now `None`, handled the same way. The other rows are unchanged.
+
+       I searched `tests/` for any other test expecting a bare `documents ok` and found none. The run over `tests/entry/test_check_documents*.py`, `tests/entry/test_entry_arguments.py` and `tests/guards/test_operator_guide_files.py` passes.
+
+    3. I moved the shared time-line pattern under the standing leave in CLAUDE.md (*Tests*). Without the move, the two modules above would have been the third and fourth copies of it. `TIME_LINE` now lives in `tests/support/check_documents_support.py`, as the same regex string.
+       - `tests/entry/test_check_documents.py` and `tests/entry/test_check_documents_examples.py` (written by this story, journal 11) now import it from there, instead of each holding its own copy.
+       - The examples module now calls `re.fullmatch(TIME_LINE, …)` instead of a compiled pattern's `fullmatch`.
+       - Every test in both modules keeps its name and checks the same thing.
+
+    Earlier test files I changed: `tests/guards/test_wrapper_search.py`, `tests/entry/test_check_documents_guide_files.py`, `tests/entry/test_check_documents_operator_guide.py`, `tests/entry/test_check_documents.py` and `tests/support/check_documents_support.py`. I also changed this story's own `tests/entry/test_check_documents_examples.py`.
+
+    Files created: none.
+
+    Modules the test run could not import: none.
+
+    Run: `uv run pytest -q` over those files: 49 passed.
+
+    `make lint`: lint: green (0.1 s)
+
+    The criterion-to-test mapping is unchanged from journal 14.
+
+    `lint`: lint: green (0.1 s)
