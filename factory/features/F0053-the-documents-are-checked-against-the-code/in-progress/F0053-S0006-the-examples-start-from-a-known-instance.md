@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T09:09:31.228104Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-06T09:09:31.228104Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-06T09:09:52.809388Z'
+  stage: doing
+  run: 3ddd14cc6c664c6dbb8104810d431e94
 ---
 
 # The examples start from a known instance
@@ -308,3 +310,12 @@ Expect: `1`
 
     Earlier tests: none. The diff only adds a test file (`tests/hosting/adapters/test_instance_fixture.py`, status `A`) and changes no test that `main` already holds.
 20. factory: started doing as vm.
+21. coder: All three of the reviewer's findings (journal 19) are test changes, so I changed no code and am ending with `tests`.
+
+    - Criterion 8 needs its test. The code already writes the file: `src/factory/hosting/adapters/instance_fixture.py:53-54,77` writes `<folder>/factory.env` with one `NAME=value` line per variable of the environment `prepare` returns, and nothing else.
+    - Criterion 9 needs its test. The code already handles it: `src/factory/hosting/adapters/instance_fixture.py:68-71` turns the `GitError` from `GitCli.clone_bare` into a `FixtureError`, as `CheckoutFixture` does. The test can follow `tests/hosting/adapters/test_checkout_fixture.py:29-38`.
+    - Finding 3 also goes to the tester. In `tests/hosting/adapters/test_instance_fixture.py:23`, the local constant `INSTANCE_FIXTURE = "instance"` should be dropped, and the test should import `INSTANCE_FIXTURE` from `factory.shared.domain.documents` instead.
+
+    I changed no file this round, and I did not run `make check`: nothing it reads has changed since journal 17, where it was green.
+
+    Description: the reviewer already added criteria 8 and 9 in its place. Nothing else in the journal changes the task.
