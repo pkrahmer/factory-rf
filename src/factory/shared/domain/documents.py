@@ -2,7 +2,7 @@
 
 import posixpath
 import re
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Collection, Mapping, Sequence
 from typing import Final, Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -100,6 +100,10 @@ _BACKTICKED = re.compile(r"`([^`]+)`")
 _LINK_TARGET = re.compile(r"\]\(([^)\s]+)")
 _MODULE_NAME = re.compile(r"factory(\.\w+)+")
 _FILE_EXTENSION = re.compile(r".+\.\w+")
+# A dotted `factory.` name that ends in one of these is a file, such as `factory.env`.
+_FILE_NAME_EXTENSIONS = (".env", ".service", ".yml", ".yaml", ".json", ".toml", ".md", ".txt")
+_SHELL_EXPRESSION_MARK = "$"
+_NODE_ID_SEPARATOR = "::"
 _PLACEHOLDER_OR_GLOB = ("<", ">", "*")
 _WEB_ADDRESS = "://"
 _FRAGMENT = "#"
@@ -448,10 +452,14 @@ def _is_path(text: str, top_level: frozenset[str]) -> bool:
     return segments[0] in top_level or _FILE_EXTENSION.fullmatch(segments[-1]) is not None
 
 
+def _is_module_name(text: str) -> bool:
+    return _MODULE_NAME.fullmatch(text) is not None and not text.endswith(_FILE_NAME_EXTENSIONS)
+
+
 def _backticked_kind(text: str, top_level: frozenset[str]) -> ReferenceKind | None:
     if any(marker in text for marker in _PLACEHOLDER_OR_GLOB):
         return None
-    if _MODULE_NAME.fullmatch(text) is not None:
+    if _is_module_name(text):
         return "module"
     if _is_path(text, top_level):
         return "path"
@@ -471,7 +479,11 @@ def _line_references(
     document: str, number: int, line: str, top_level: frozenset[str]
 ) -> list[Reference]:
     references: list[Reference] = []
-    for text in _BACKTICKED.findall(line):
+    for quoted in _BACKTICKED.findall(line):
+        if _SHELL_EXPRESSION_MARK in quoted:
+            continue
+        # A pytest node id names its test file before the separator.
+        text = quoted.split(_NODE_ID_SEPARATOR, 1)[0]
         kind = _backticked_kind(text, top_level)
         if kind is not None:
             references.append(Reference(document=document, line=number, name=text, kind=kind))
@@ -493,7 +505,10 @@ def named_references(document: str, text: str, top_level: frozenset[str]) -> lis
 
     Fenced blocks and the sections under `UNCHECKED_SECTIONS` are left out; a path counts
     when its first segment is in `top_level` or its last segment has a file extension, and
-    a link's target is resolved against the document's folder, without its fragment.
+    a link's target is resolved against the document's folder, without its fragment. A
+    backticked text that holds `$` is a shell expression and left out, a pytest node id
+    names the path before its `::`, and a dotted `factory.` name that ends in a file
+    extension, such as `factory.env`, is a file name and no module.
     """
     lines = split_lines(text)
     return [
@@ -513,6 +528,51 @@ def unresolved(references: list[Reference], exists: Callable[[Reference], bool])
         for reference in references
         if not exists(reference)
     ]
+
+
+CHECKED_DOCUMENTS: Final = "docs/checked-documents.txt"
+_COMMENT_MARK = "#"
+
+
+class GatedFinding(BaseModel):
+    """A finding of the name, settings or example check, which blocks only in a listed document."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    document: str
+    line: str
+
+
+class SplitFindings(BaseModel):
+    """The lines that fail the check, and those it only reports."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    blocking: list[str]
+    reported: list[str]
+
+
+def read_checked_documents(text: str) -> list[str]:
+    """The paths of the list of checked documents, in order; blank and `#` lines give none."""
+    stripped = (line.strip() for line in split_lines(text))
+    return [line for line in stripped if line and not line.startswith(_COMMENT_MARK)]
+
+
+def checked_list_findings(listed: Sequence[str], documents: Collection[str]) -> list[str]:
+    """One finding per listed path that is none of `documents`, the documents the check reads."""
+    return [
+        f"{CHECKED_DOCUMENTS}: {path} is no document of the check"
+        for path in listed
+        if path not in documents
+    ]
+
+
+def split_findings(findings: Sequence[GatedFinding], checked: Collection[str]) -> SplitFindings:
+    """The findings in a `checked` document block, the others are reported; order is kept."""
+    return SplitFindings(
+        blocking=[finding.line for finding in findings if finding.document in checked],
+        reported=[finding.line for finding in findings if finding.document not in checked],
+    )
 
 
 CONSOLE: Final = "console"

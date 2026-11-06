@@ -1622,3 +1622,11 @@ Date: 2026-11-06 (F0053-S0006).
 - Decision: the documents' examples get two fixtures, `checkout` and `instance`. A command that needs the hosting service, such as `factory-watch` with a story in progress, has no fixture: its block is marked `console github` and only listed.
 - Why: the human decided on 2026-11-05 that the production code gets no switch for tests.
 - Rejected: a `world` fixture behind `FACTORY_HOSTING=fake`, which would put a fake hosting service into the production wiring.
+
+## The document checks block only the listed files
+
+Date: 2026-11-06 (F0053).
+
+- Decision: the checks of the documents run in `make documents`, and `make check` stays fast. `docs/checked-documents.txt` lists the documents whose findings of the name, settings and example checks fail the command; the findings in any other document are printed under `Report (not checked yet):`. The list is a document, so that a story on the docs route can add a line. A marked example runs in a check container, in a temporary folder that its fixture (`checkout` or `instance`) prepared; the blocks of one document run in order and share the folder, and each document starts fresh. A block marked for the VM, GitHub or a model, and a block that runs the test suite, is skipped and listed in the report. `docs/decisions.md` and `docs/runs/` are not checked.
+- Why: the docs stages already run `make documents` (decision 1); the human chose the fixtures and the skipped blocks on 2026-11-05, because the name and settings checks and the scripts' own tests already catch most of what those examples would; history keeps old names and paths on purpose (decision 4).
+- Rejected: blocking on all documents at once, which would stop every docs stage until all files are rewritten.

@@ -86,5 +86,12 @@ def test_the_operator_guide_folder_is_checked_per_file(
     if output is None:
         assert re.fullmatch(TIME_LINE, printed[-1].rstrip("\n"))
     else:
-        assert "".join(line for line in printed if not line.endswith(" does not exist\n")) == output
+        assert (
+            "".join(
+                line
+                for line in printed
+                if not line.endswith(" does not exist\n") and line != "Report (not checked yet):\n"
+            )
+            == output
+        )
     assert status == exit_status

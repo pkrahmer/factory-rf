@@ -111,19 +111,31 @@ After the settings lines the command runs the `console` blocks of every document
 - `factory.shared.adapters.document_examples.ProcessExampleRunner` runs each command through `run_process` as `env -i <variables> sh -c <command>`. The fixed variables come last, so a fixture cannot replace `PATH`, `HOME`, `TZ` or `LANG`. Its default limit is 60 seconds; a test passes a shorter one. The folder and the home are temporary and removed when `run_document` returns, also after a timeout.
 - `factory.hosting.adapters.checkout_fixture.CheckoutFixture` is the fixture `checkout`: it exports the tracked files of the checked commit through `GitCli.export`. It raises `FixtureError` outside a git repository; the runner then gives one finding, `fixture <name> could not be prepared`, at the block's line and runs none of the document's commands on that fixture.
 - `factory.hosting.adapters.instance_fixture.InstanceFixture(git)` is the fixture `instance`. `prepare(folder)` makes the bare remote `<folder>/remote.git` with `GitCli.clone_bare`, a healthy health file in `<folder>/state` (named by `HEALTH_FILE_NAME` in `factory.watching.adapters.health_file`, the name `factory-health` reads), the image id file and the empty agent home, workspace and copy base, and writes `<folder>/factory.env`, one `NAME=value` line for each variable it returns. The name `INSTANCE_FIXTURE` is in `factory.shared.domain.documents`. A `GitError` becomes a `FixtureError`, as for `checkout`.
-- `factory.entry.check_documents` wires the runner and the two fixtures. Its report lists, in this order, the document findings, the name and settings findings, the examples' findings and one `not run (<kind>)` line per skipped block. Only the document findings set the exit status; an example's finding is printed and does not make `make documents` red. The last line is `documents ok (<seconds> s)`.
+- `factory.entry.check_documents` wires the runner and the two fixtures. Its output is described under *The checked documents and the report*. A line for a skipped block reads `<document>:<line>: not run (<kind>)`.
 
 ### The name check
 
-After those findings the command prints one line per name a document writes that does not exist, as `<document>:<line>: <name> does not exist`. For now these lines are only printed: they do not change the exit status, which today's findings alone set, and `make documents` stays green with them (the feature that adds the check makes them count in a later story). `uv run python -m factory.entry.check_documents | grep -c "does not exist"` counts them.
+The command prints one line per name a document writes that does not exist, as `<document>:<line>: <name> does not exist`. Whether such a line blocks depends on the document: see *The checked documents and the report*. `uv run python -m factory.entry.check_documents | grep -c "does not exist"` counts them.
 
 It reads `README.md` and every `.md` file under `docs/operator-guide/` and `docs/project-guide/`; `docs/decisions.md` and `docs/runs/` are not read. The pure functions are `named_references` (finds the names, with their lines) and `unresolved` (turns the refused ones into findings) in `factory.shared.domain.documents`; the command gives them the checkout's top-level entries and the real test of existence. Three kinds of reference are found:
 
-- **A module or attribute:** a backticked dotted name that starts with `factory.`. It exists when `importlib` imports the longest leading part that is a module and the rest are attributes of it in turn (`factory.shared.domain.documents.named_references` is checked that way). Other dotted names, such as `os.path`, are not checked.
-- **A repository path:** a backticked text that contains `/`, has no whitespace, does not start with `/` or `~` and holds no `://`, and either starts with a top-level entry of the checkout or ends in a file name with an extension (so a path whose first folder was renamed is still checked). `origin/main` is not a path. It exists when it resolves to something inside the checkout.
+- **A module or attribute:** a backticked dotted name that starts with `factory.`. A name that ends in `.env`, `.service`, `.yml`, `.yaml`, `.json`, `.toml`, `.md` or `.txt` is a file name (`factory.env`) and is not checked. It exists when `importlib` imports the longest leading part that is a module and the rest are attributes of it in turn (`factory.shared.domain.documents.named_references` is checked that way). Other dotted names, such as `os.path`, are not checked.
+- **A repository path:** a backticked text that contains `/` and no `$` (a text with `$` is a shell expression and is skipped as a whole). In a pytest node id (a test file, then `::`, then the test name) only the path before `::` is read. The text has no whitespace, does not start with `/` or `~` and holds no `://`, and either starts with a top-level entry of the checkout or ends in a file name with an extension (so a path whose first folder was renamed is still checked). `origin/main` is not a path. It exists when it resolves to something inside the checkout.
 - **A link:** the target of a relative Markdown link, read from the document's own folder (`../` included) with any `#fragment` left off. A web address, a `mailto:` address, an absolute path and a link to a heading alone (`#...`) are not checked.
 
 Never checked, whatever the kind: a placeholder in angle brackets (`<instance>`), a glob (`*`), an absolute path such as one under `/srv` or `/etc`, anything inside a fenced code block, and a section headed `## Replaced from v1` or `## Replaced in v1.2` up to the next `##` heading. A name after that heading is checked again.
+
+### The checked documents and the report
+
+`docs/checked-documents.txt` lists the documents whose findings of the name, settings and example checks fail the command: one path per line, `#` starts a comment, blank lines are skipped. `factory.shared.domain.documents.read_checked_documents(text)` reads it. A missing file is an empty list. A listed path that does not exist, or that is not a document the check reads (`docs/decisions.md`, for example), is one blocking finding.
+
+The output has three parts, in this order:
+
+1. One line per blocking finding: today's checks (a missing stop row, a missing section, an old word) for every document, and the new checks for the listed ones.
+2. The heading `Report (not checked yet):` and the other findings of the new checks, then the `not run` lines of skipped examples. The heading is left out when there is nothing to report. A `not run` line never blocks, also for a listed document.
+3. When nothing blocks, the last line `documents ok (<seconds> s)`. Otherwise there is no such line and the exit status is 1.
+
+`split_findings` makes the split from the document each finding carries. A document is added to the list when it has been rewritten; the list is complete when every document is on it.
 
 ### The settings check
 
