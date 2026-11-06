@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T11:48:21.420732Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-06T11:48:16.019154Z'
   stage: doing
   run: 11da8432f69b4856a058affae469853b
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:48:21.420732Z'
+  stage: review
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -128,3 +137,4 @@ Expect: `1`
 
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
+8. factory: started review as vm.
