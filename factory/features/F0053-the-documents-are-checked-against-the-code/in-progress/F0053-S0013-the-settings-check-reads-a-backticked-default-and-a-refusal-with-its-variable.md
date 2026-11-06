@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T13:32:34.897807Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T13:32:29.269541Z'
   stage: tests
   run: cfe056b2d43a40eab45615a6d501df5b
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:32:34.897807Z'
+  stage: doing
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -95,3 +104,4 @@ Expect: `0 []`
    One run of `uv run pytest -q` on that file failed four tests on wrong results, as expected: `backticked-equal`, `message-held`, `stripped-piece-of-two-unchecked` and the real-settings test. `plain-equal`, `backticked-differs` and `message-not-held` already pass with today's code. `make lint`: green.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
