@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799, 6680560925]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T08:30:48.828021Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -290,6 +286,12 @@ journal:
   kind: started
   at: '2026-11-06T08:30:48.828021Z'
   stage: doing
+- number: 51
+  speaker: coder
+  kind: result
+  at: '2026-11-06T08:35:10.182451Z'
+  stage: doing
+  run: 4b3f7cf527ce42cc833138eb70f65ce8
 ---
 
 # A document's marked examples are run by the check
@@ -892,3 +894,35 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 50. factory: started doing as vm.
+51. coder: I changed no code this round. The tester's changes from journal 49 cover every finding of review journal 45, and they pass against the code already on the branch: `make check` gives `test: green (103.7 s)`, `check: green`, coverage 99.21 %.
+
+    The tests that cover journal 45, all from journal 49:
+    - Criterion 10 is mapped to the two existing tests (the runner's fixture-error finding and `CheckoutFixture` outside a repository).
+    - Criterion 11 (the folder and the home are removed, rows `ended` and `past-the-limit`): `tests/shared/adapters/test_document_examples.py::test_the_folder_and_the_home_are_gone_once_the_document_has_run`.
+    - Criterion 12 (an example's finding in `main`'s output, before the `not run` line, status 0): `tests/entry/test_check_documents_examples.py::test_an_examples_finding_comes_before_the_skipped_blocks_and_does_not_block`.
+    - The 60-second default: `test_a_runner_built_with_its_defaults_gives_each_command_60_seconds`. It checks the default of `time_limit`, not a finding that says `60 s`; the tester explains why in journal 49.
+    - Criterion 13 (a fixture cannot replace `PATH`, `HOME`, `TZ` or `LANG`): `test_a_fixtures_variable_does_not_replace_a_fixed_one`.
+    - `_line_of` moved to `tests/support/check_documents_support.py::line_of`, under the standing leave.
+
+    What I built, from journals 16, 27 and 35:
+    - `src/factory/shared/domain/documents.py`
+    - `src/factory/shared/domain/errors.py` (`FixtureError`)
+    - `src/factory/shared/application/document_examples.py`
+    - `src/factory/shared/adapters/document_examples.py`
+    - `src/factory/hosting/adapters/checkout_fixture.py`
+    - `GitCli.export` in `src/factory/hosting/adapters/git_cli.py`
+    - `src/factory/entry/check_documents.py`
+
+    Main decision, unchanged: `export` is a method of `GitCli` only, not an operation of the `Git` interface, because two tests pin that interface at 22 operations. I rejected building the copy from `show_file` calls, which would start two processes per tracked file. When a fixture cannot be prepared, the document gets one finding, not one per block.
+
+    Refactor: the code has not changed since journal 35, and I read that diff then. Nothing to change.
+
+    The journal did not change what the task means, so the Description stays as it is.
+
+    Noticed, not touched:
+    - `make documents` is not read as running the suite.
+    - The `## Interface` line about "fake containers" is out of date; the human noted it in journal 43.
+    - `documents.py` is still large; the human left the split for later (journal 17).
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
