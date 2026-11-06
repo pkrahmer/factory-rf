@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T08:03:14.397809Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -190,6 +186,12 @@ journal:
   kind: started
   at: '2026-11-06T08:03:14.397809Z'
   stage: review
+- number: 33
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T08:05:24.311288Z'
+  stage: review
+  run: d6ca9489170043eb85f87364fe2a7c5a
 ---
 
 # A document's marked examples are run by the check
@@ -573,3 +575,33 @@ Expect: `1`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 32. factory: started review as vm.
+33. reviewer: Findings:
+    1. `src/factory/shared/adapters/document_examples.py` `_DocumentRun.environment` and `src/factory/entry/check_documents.py` `main`: if a fixture cannot prepare its folder, nothing catches the error, so `main` ends in a traceback instead of a report. Example: `CheckoutFixture` on a root that is not a git repository, where `GitCli.export` → `_run` raises `GitError`. This will happen inside `make check`. `tests/entry/test_check_documents_operator_guide.py::test_the_operator_guide_folder_is_checked_per_file[as-it-is]` runs `main` on the `documents` fixture (`tests/conftest.py:608`), which copies the real README, project guide and operator guide into a `tmp_path` with no git. So the first runnable `console` block in those documents (likely the documenter's example for criterion 11) turns `make check` red. The story has no criterion for this failing side, which is a gap in the story. Fix:
+       - the `Fixture` interface names an error of its own in `factory.shared`;
+       - `CheckoutFixture` translates `GitError` into it;
+       - the runner turns it into one finding at the block's fence line, `<document>:<line>: fixture <name> could not be prepared`, and does not run the document's blocks on that fixture;
+       - the tester then adds a test (a fixture that raises gives that finding and no command runs).
+    2. `src/factory/shared/domain/documents.py` `runs_the_suite`: the Interface skips every command that runs the suite, but these run:
+       - `_first_simple_command` reads only what comes before the first `|&;<>`, so `cd docs && make check` and `true; pytest` are run, and `make documents` runs the suite in the docs stage;
+       - `_names_a_test_path` treats any word containing `/` as a file, so `pytest tests/` (a folder, the whole suite) and `pytest --cov=src/factory` are run.
+       Fix: split the line into its simple commands at `|`, `||`, `&&`, `;`, `&` and skip the block when any of them runs the suite. Drop redirections such as `2>&1` before reading the words. Count a pytest word as a file only when it does not start with `-` and its part before `::` ends in `.py`. The tester adds `suite` rows `cd docs && make check` and `pytest tests/` to `tests/shared/domain/test_document_examples.py::test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind`.
+
+    Notes:
+    - The 60-second default limit still has no test. In `src/factory/shared/adapters/document_examples.py`, `ProcessExampleRunner()` defaults to `EXAMPLE_TIME_LIMIT = timedelta(seconds=60)` and `_no_end` prints `60 s`, so the code does what the Interface says. Missing row: the finding from a default runner names `60 s`.
+
+    Open, for the human (not a finding, since no stage may fix it): in the work item's `## Interface`, the line "Tests: ... and an adapter test with the fake containers" is still out of date. Journals 4 and 9 (6) settled on real short commands in `tmp_path` and no containers, and that is what was built. I may correct only the `## Description`, and the coder's rewrite (journal 27) was dropped because the work item is outside its write paths. The Description itself matches what was built.
+
+    Checked and in order:
+    - Findings 1 to 5 of journal 25 are resolved: criteria 8 and 9 have rows; `runs_the_suite` stops at operators and `pytest -q`/`-k name` are `suite` rows; `_commands` builds each `Command` complete; `FENCE` is in `tests/support/document_texts.py`.
+    - Criteria 1 to 9 each have a test that checks what it is named after, and journal 31 shows `make check` green after the coder.
+    - Layers and wrappers hold. The new importer of the process module has the human's leave (journal 17). No suppression markers were added. Example findings do not change the exit status.
+    - `make duplicates`: this diff's only new finding is `matches` being unused in `src`. It is not a finding, because the Interface asks for `matches` and its tests use it.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents.py`: the human's leave, journals 9 (1) and 12 (1).
+    - `tests/entry/test_check_documents_guide_files.py`: the human's leave, journal 17 (2).
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal 17 (2).
+    - `tests/guards/test_wrapper_search.py`: the human's leave, journal 17 (1).
+    - `tests/support/check_documents_support.py`: the standing leave to move a shared test helper (`TIME_LINE`).
+    - `tests/support/document_texts.py`: the standing leave to move a shared test helper (`FENCE`).
+    - `tests/pipeline/domain/test_documents.py`: the standing leave to move a shared test helper. Its local `FENCE` was replaced by the shared one, and every test keeps its name and what it checks.
