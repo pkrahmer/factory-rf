@@ -276,6 +276,7 @@ def test_backticked_default_is_read_through_its_backticks(cell: str, expected: l
             id="message-not-held",
         ),
         pytest.param("<a>: qz<b>", [], id="stripped-piece-of-two-unchecked"),
+        pytest.param("<variable>: is not a colour: <value>", [], id="frame-at-both-ends"),
     ],
 )
 def test_refusal_pieces_are_checked_without_their_colons_and_spaces(

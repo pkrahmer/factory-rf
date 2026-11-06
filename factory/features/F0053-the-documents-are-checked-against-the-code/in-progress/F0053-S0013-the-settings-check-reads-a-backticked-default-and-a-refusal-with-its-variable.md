@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T13:38:21.925671Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-06T13:38:21.925671Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: result
+  at: '2026-11-06T13:38:44.869028Z'
+  stage: tests
+  run: c7f4c2bd58514ae8af425f5fbbaa9876
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -188,3 +190,13 @@ Expect: `0 []`
 
     I changed no code. `_is_held` in `src/factory/shared/domain/documents.py` already strips whitespace and `:` from both ends of each piece, so the new row should pass once the tester adds it. Description: the reviewer's entry added criterion 4 and renumbered the last two criteria to 5 and 6; nothing else about the task changed.
 12. factory: started tests as vm.
+13. tester: I added the one test row the reviewer's criterion 4 needs, as the coder's entry 11 asked. No other test changed.
+
+    - criterion 4: tests/shared/domain/test_document_settings.py::test_refusal_pieces_are_checked_without_their_colons_and_spaces, new row `frame-at-both-ends`. It checks the refusal `<variable>: is not a colour: <value>` against the source `is not a colour` and expects no finding. The colon and space sit at both ends of the piece here, so the row would fail if `_is_held` stripped only the left end.
+    - criteria 1 to 3 keep the tests named in entry 5. Criteria 5 (`make check`) and 6 (docs) have no test of mine.
+
+    Files: I created none and changed `tests/shared/domain/test_document_settings.py`, a test this story wrote. Modules the test runner could not import: none.
+
+    One run of `uv run pytest -q` on that file passed all 37 tests, the new row included. That fits, because the coder's code already strips both ends. `make lint`: green.
+
+    `lint`: lint: green (0.1 s)
