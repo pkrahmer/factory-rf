@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 580
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T01:11:20.240803Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -65,6 +69,11 @@ journal:
   at: '2026-11-06T01:11:13.931470Z'
   stage: docs-review
   run: d9b944b8a72d411b9acd389d28f9e4da
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-06T01:11:20.240803Z'
+  stage: docs-only
 ---
 
 # The project guide names the headings a check still requires
@@ -159,3 +168,4 @@ Expect: `documents ok`
     Points I considered and did not raise:
     - Style rule 8 (link a file by a relative link): the new text names `install.md`, `stops.md`, `machine.md` and `setup.sh` as code paths, not links. The rest of the index has no links either, so the diff follows the page's own form.
     - Sentence length: the longest new sentence, in the second bullet, is about 25 words, which is within rule 2.
+11. factory: started docs-only as vm.
