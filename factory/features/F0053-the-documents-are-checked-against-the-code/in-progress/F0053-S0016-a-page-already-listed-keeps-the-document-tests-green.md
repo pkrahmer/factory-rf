@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T20:48:23.165695Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-06T20:48:17.483087Z'
   stage: review
   run: 3cf7d1798ef74d9bbcf01f4f59b3729e
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:48:23.165695Z'
+  stage: docs
 ---
 
 # A page already listed keeps the document tests green
@@ -290,3 +299,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     Earlier tests:
     - `tests/entry/test_check_documents_any_list.py`: changed under the human's leave, feature decision 9, which the story's Interface names. The fixture `listed` changed and new rows were added. Every earlier test keeps its name, its ids and what it checks.
     - `tests/support/check_documents_support.py`: changed under the same leave, feature decision 9. `write_checked_list` keeps its signature and the text it writes. The only change is that it skips the commit when the text is unchanged.
+18. factory: started docs as vm.
