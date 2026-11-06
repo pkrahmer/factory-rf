@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-06T20:50:54.427511Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -122,6 +118,12 @@ journal:
   kind: started
   at: '2026-11-06T20:50:54.427511Z'
   stage: smoke-test
+- number: 21
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-06T20:51:44.826260Z'
+  stage: smoke-test
+  run: b0254d59163b412db1547fcb7d7ae4c0
 ---
 
 # A page already listed keeps the document tests green
@@ -329,3 +331,23 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (0.6 s)
 20. factory: started smoke-test as vm.
+21. smoke-tester: Smoke test, round 1. I ran the block under `## Smoke test` exactly as written, from the repository root, in one shell. The working tree was clean, so the clone holds the branch's committed state. After the run, `git status --porcelain` in the checkout printed nothing, and the temporary directory removed itself through the trap.
+
+    Command 1: clone, append `docs/operator-guide/README.md` to the copy's `docs/checked-documents.txt`, then `python -m factory.entry.check_documents --root . | tail -1`
+    ```
+    documents ok (0.6 s)
+    ```
+    Met its `Expect:` line (`documents ok (<seconds> s)`).
+
+    Command 2: `python -m pytest -p no:cacheprovider -o addopts= tests/entry/test_check_documents_any_list.py tests/entry/test_check_documents_settings.py tests/entry/test_check_documents_operator_guide.py tests/entry/test_check_documents_copies.py tests/entry/test_check_documents_suite_copy.py 2>&1 | tail -1`
+    ```
+    ============================= 34 passed in 23.51s ==============================
+    ```
+    Met its `Expect:` line (`<n> passed in <seconds>s`, no `failed`). The copy's list names `docs/operator-guide/README.md`, which is the case that made the module fail before this story (`1 failed, 5 passed`).
+
+    Against the acceptance criteria:
+    - Criteria 1 to 4: the five modules pass on a copy whose list already names the index page, including the earlier rows and the new parametrized rows. Nothing in the run contradicts them.
+    - Criterion 5: not something the smoke test runs. The factory's `make check` was green after the docs stage (entry 19).
+    - Criterion 6: the smoke test does not read the docs, and nothing in it contradicts them.
+
+    Findings: none.
