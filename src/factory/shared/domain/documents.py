@@ -1,4 +1,4 @@
-"""The check of the documents and the project guide's files: sections, rows, phrases, words."""
+"""The check of the documents and the guide's files: sections, rows, phrases, words, names."""
 
 import posixpath
 import re
@@ -165,11 +165,16 @@ def _project_guide_rows(text: str) -> list[str]:
     return messages
 
 
-def _without_replaced_section(text: str) -> str:
-    exempt: set[int] = set()
+def _section_lines(text: str, headings: Sequence[str]) -> set[int]:
+    lines: set[int] = set()
     for found in sections(text):
-        if found.heading == REPLACED_SECTION:
-            exempt.update(range(found.start, found.end))
+        if found.heading in headings:
+            lines.update(range(found.start, found.end))
+    return lines
+
+
+def _without_replaced_section(text: str) -> str:
+    exempt = _section_lines(text, (REPLACED_SECTION,))
     lines = split_lines(text)
     return "\n".join(line for index, line in enumerate(lines) if index not in exempt)
 
@@ -307,10 +312,7 @@ def _line_references(
 
 
 def _checked_lines(text: str) -> list[int]:
-    exempt: set[int] = set()
-    for found in sections(text):
-        if found.heading in UNCHECKED_SECTIONS:
-            exempt.update(range(found.start, found.end))
+    exempt = _section_lines(text, UNCHECKED_SECTIONS)
     lines = split_lines(text)
     return [index for index in lines_outside_blocks(lines) if index not in exempt]
 

@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T02:22:42.046756Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-06T02:22:42.046756Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-06T02:30:48.496434Z'
+  stage: doing
+  run: 586c5ff44cb64dac885b5e8fceee37e6
 ---
 
 # Every name a document writes in backticks exists
@@ -237,3 +239,35 @@ Expect: a number alone (the count of findings, possibly `0`)
 
     `lint`: lint: green (0.2 s)
 16. factory: started doing as vm.
+17. coder: `make check` is green now that the tester has made the two test changes the human allowed in entry 11. I ran `make check` once on the committed code, which passed, and again after the refactor, which also passed.
+
+    What I built (the code is from entry 10):
+    - `src/factory/shared/domain/documents.py`:
+      - `Reference(document, line, name, kind)` and `UNCHECKED_SECTIONS` (the two *Replaced* headings).
+      - `named_references(document, text, top_level)`: backticked `factory.` names, backticked paths by the agreed rule, and relative link targets. A link target is resolved against the document's folder with `posixpath`, and its `#fragment` is dropped.
+      - `unresolved(references, exists)`: prints `<document>:<line>: <name> does not exist`.
+      - Fenced blocks and section ranges come from `factory.shared.domain.sections`, which already existed.
+    - `src/factory/entry/check_documents.py`:
+      - It reads `README.md` and every `*.md` file under `docs/operator-guide/` and `docs/project-guide/`, and passes the root's entries as `top_level`.
+      - A module or attribute exists when its longest importable prefix (found with `importlib`) holds the rest as attributes. A path or link exists when it lies under the root and exists there.
+      - The name findings are printed after today's findings (or after `documents ok`). Only today's findings set the exit status.
+
+    Refactor (this run):
+    - `_without_replaced_section` and `_checked_lines` built the same set of exempt line numbers, so both now use one helper, `_section_lines(text, headings)`.
+    - The module docstring now lists names among what the check checks.
+    - No behaviour changed.
+
+    Main design decision: links are resolved inside the domain function, so a link's `name` is the path from the checkout root. The command then checks paths and links the same way. I rejected keeping the raw link target and resolving it in the command: the Interface says the link target is resolved against the document's folder, and doing that in `named_references` keeps the command free of path rules.
+
+    Noticed, not touched: on the real repository the command prints about 152 name findings (the smoke test prints that number). Many are false positives of the agreed rule:
+    - example paths in prose
+    - paths of the project the factory runs on (`project/factory/pipeline.yml`)
+    - paths relative to `tests/`
+    - pytest node ids
+    - `$XDG_CONFIG_HOME/...`
+    - `factory.service`, which reads as a module
+
+    The human left these for S0004 (entry 11). Nothing in the journal changed what the task means beyond the tests the human answered, so the Description stays as it is.
+
+    `check`: check: green
+    `duplicates`: duplicates: 5 new, 40 known, 3 gone
