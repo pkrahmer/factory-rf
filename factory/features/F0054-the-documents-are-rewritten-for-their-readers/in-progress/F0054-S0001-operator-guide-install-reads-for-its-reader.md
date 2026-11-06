@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T22:14:01.892842Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-06T22:14:01.892842Z'
   stage: docs-only
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T22:16:23.690150Z'
+  stage: docs-only
+  run: 46e1607d2f8548ccb3c1bc6d613d9208
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -463,3 +465,22 @@ Expect: `1`
 
     Still open outside this diff, and given to their own stories by entries 14 and 20: `docs/project-guide/shared.md` (no `Default` column), `docs/operator-guide/agent-runtime.md:57` ("The stage environment" under *Configuration*), and the version-history sections of `docs/operator-guide/README.md`.
 27. factory: started docs-only as vm.
+28. documenter: Fixed findings 1 to 3 of review entry 26, all in `docs/operator-guide/install.md`. Before editing I read the install steps and the passages of `docs/operator-guide/machine.md` the reviewer cited: *The two passes*, the service step, and the build command.
+
+    Files changed:
+    - `docs/operator-guide/install.md`, finding 3, step 1: it now says the unit is enabled, not started. It also says the first run stops with `setup: checkout: waiting for /home/factory/.secrets/hosting-token`. The operator puts the token there with the other login files and runs the script again. A pointer to "The two passes" in machine.md is included.
+    - Same file, finding 2, step 2: it now says "As the user `factory`, from the factory's checkout" before the build command.
+    - Same file, finding 1, step 4: it now reads `sudo systemctl start factory@<instance>`. The text says the unit runs `factory-run` with `factory.env` loaded, and points to "The service" in machine.md.
+
+    `make documents` ends with `documents ok (1.8 s)`. It prints the two expected "not run" notes for install.md:21 (vm) and install.md:29 (suite). It also prints `docs/project-guide/work.md:13: factory/agents does not exist`, a line outside this diff. I ran no `make check`, because I changed only a document.
+
+    Cross-read: the headings other files link to are unchanged. `docs/checked-documents.txt` is unchanged and correct.
+
+    Stale text I saw and did not touch, because the human gave these to their own stories (entries 14 and 20):
+    - `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
+    - `docs/operator-guide/README.md` still has the version-history sections.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (1.9 s)
