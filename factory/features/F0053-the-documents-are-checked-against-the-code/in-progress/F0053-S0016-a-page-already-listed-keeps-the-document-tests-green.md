@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 605
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-06T20:30:01.702658Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-06T20:30:01.702658Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T20:30:21.562000Z'
+  stage: intake
+  run: 30820f380bcc4cebbebe909d84c2bf3d
 ---
 
 # A page already listed keeps the document tests green
@@ -63,3 +65,11 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
 
 1. 2026-11-06 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names the fixture `listed` in `tests/entry/test_check_documents_any_list.py` and `write_checked_list(root, paths)` in `tests/support/check_documents_support.py`, with signatures and behaviour (add only unnamed pages in `_NEWLY_LISTED` order; commit only when the text changed). Feature decision 9 covers the earlier-test changes.
+   - Criteria: 1 to 3 are each testable, as parametrized rows. Each rule has its failing side: criterion 1 has the none-listed, one-listed and all-listed rows (the last makes no commit); criterion 2 has the duplicate row, which prints the line twice; criterion 3 has the changed-text and same-text rows. Criterion 4 keeps the earlier rows passing under their old ids, and criterion 5 is the `make check` criterion.
+   - Smoke test: the commands can be run. The pytest call passes `-o addopts=` and no `-q`, so the last line is the summary the `Expect:` line counts. The `Expect:` line is checkable (`documents ok`, `<n> passed`, no `failed`).
+   - Docs criterion: names what the reader must know (tests write their own list through `write_checked_list` and assume nothing about the repository's list; the README line names what the support module holds). It dictates no sentences.
+   - Architecture: only tests and test support change. No module under `src/` changes, and the `documents` fixture and the list stay as they are.
+   - Scope: within F0053, under the human's leave in decision 9. Nothing is in "Out of scope".
+   - Route: `tests`, because the Interface changes test files.
