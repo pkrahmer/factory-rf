@@ -12,7 +12,7 @@ Under `src/factory/` the seven areas, `entry` and `contract` hold all modules. A
 
 Each file starts with a title and a sentence on what it covers.
 
-A guard (`tests/guards/test_project_guide_files.py`) requires every page of the folder to be named in this section and every area to have its page. Headings are free except these, which keep their names, because a check or a script finds them by name:
+A guard (`tests/guards/test_project_guide_files.py`) requires every page of the folder to be named in this section and every area to have its page. It reads a list item in this section as a page entry when the item starts with a name in backticks and goes on to a sentence that ends in a full stop; every other list item in this section must start with a word, so that a heading such as `## The files` is never read as a page. Headings are free except these, which keep their names, because a check or a script finds them by name:
 
 - The heading `## The files` in this index: the guard reads the pages named under it, so renaming it leaves every page unnamed.
 - *Kill points* and *Fault-injection paths* in this index, *Install* and *Configuration* in `docs/operator-guide/install.md`, and *The stops* in `docs/operator-guide/stops.md`: the document check (`make documents`) requires them.
