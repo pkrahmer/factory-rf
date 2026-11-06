@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 599
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T13:43:00.655268Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-06T13:42:52.972178Z'
   stage: doing
   run: b9f58bb0ad084bef8ddd2680d55199a4
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T13:43:00.655268Z'
+  stage: review
 ---
 
 # The settings check reads a backticked default and a refusal with its variable
@@ -223,3 +232,4 @@ Expect: `0 []`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+16. factory: started review as vm.
