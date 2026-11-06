@@ -3,3 +3,4 @@
 docs/project-guide/style.md
 docs/project-guide/glossary.md
 docs/operator-guide/install.md
+docs/operator-guide/site.md

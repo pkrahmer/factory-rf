@@ -1,3 +1,120 @@
+---
+stage: docs-approval
+blocked: null
+round: 3
+attempts: 0
+crashes: 0
+pull_request: 610
+comments_read: []
+handed_over: docs-approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-06T22:56:08.353005Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:56:08.360408Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-06T22:56:25.002334Z'
+  stage: intake
+  run: 97a9d5fcadaa4232aa87610a67507be2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:56:30.294569Z'
+  stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:00:28.504605Z'
+  stage: docs-only
+  run: 19a3c910cef4445ab675d63ef8012ca9
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:00:34.125225Z'
+  stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:03:36.317975Z'
+  stage: docs-review
+  run: f9ae491a79f84c8fa10868236a26f5b0
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:03:41.482683Z'
+  stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:07:25.227201Z'
+  stage: docs-only
+  run: eb2b350cbf1f4f19b753948272cd305a
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:07:30.490747Z'
+  stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:09:49.240259Z'
+  stage: docs-review
+  run: 6140a2891c1d484f8aa62d1010fd3945
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:10:01.133594Z'
+  stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:12:28.254796Z'
+  stage: docs-only
+  run: f10ad710f3794b64a1d635bfde66d686
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:12:33.933505Z'
+  stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:13:24.496309Z'
+  stage: docs-review
+  run: 304a3ed8c3b643e2951f4c51e003f29c
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:13:29.846154Z'
+  stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T23:15:45.641876Z'
+  stage: docs-only
+  run: 830349f46a39435dba2d99f04a481649
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:15:51.143642Z'
+  stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T23:16:26.093957Z'
+  stage: docs-review
+  run: 2147bf3b39404036af44acc99ccb19be
+---
+
 # The operator guide's the site file and an operator's machine reads for the operator
 
 ## Description
@@ -28,3 +145,204 @@ grep -cx "docs/operator-guide/site.md" docs/checked-documents.txt
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-06 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `docs/operator-guide/site.md` (exists) and `docs/checked-documents.txt` (exists; its entry is one added line). Both are paths the documenter may write; no code, test or agent file changes.
+   - Criteria: all are about documents. Criterion 1 is the style judgment (reviewer). Criterion 2 is the fact comparison against the code (reviewer). Criterion 3 is testable with `make documents` printing `documents ok`, plus the checked-list entry. Criterion 4 is a link check. Criterion 5 is `make check`. The Interface states no behaviour or rule that needs a failing side.
+   - Smoke test: `grep -cx "docs/operator-guide/site.md" docs/checked-documents.txt` is runnable, and `Expect: 1` can be checked against its output. It runs no pytest.
+   - Docs criterion: criterion 6 asks for criteria 1 to 4 and names no sentences to write. It dictates no text. It says what the reader must know only through the Description: an operator who runs an instance and does not read the code.
+   - Architecture: nothing in `src` changes. This is a document rewrite on the docs route, checked by the F0053 document checks.
+   - Scope: it is S0002 of F0054, which lists it. It stays inside the feature's scope (one file rewritten and added to the checked list). It touches none of the feature's out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`) and changes no behaviour.
+4. factory: started docs-only as vm.
+5. documenter: Rewrote `docs/operator-guide/site.md` for the operator and added it to `docs/checked-documents.txt`. `make documents` ends with `documents ok (1.9 s)`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/site.md`: the whole file, rewritten.
+     - Headings that other files link to are kept: *The site file*, *The keys*, *Sanitising what leaves the machine*, *Setting up an operator's machine*, *Repeating a trial*, *Telling Kumpel's acts from the human's*.
+     - Intro: new, for an operator who does not read the code. It links `instance`, `work item` and `stop` to the glossary.
+     - Tasks: now numbered steps. The place, the site commands, the repeat-a-trial reset and the machine setup were already steps or lists; the "Its place" paths are now a numbered list.
+     - Failures: given as what you see, what it means and what you do. This covers the sanitise rule faults, the reset refusals and the `site check` table.
+     - Keys: the table now has the columns Name, What it does, Default and Example. The Example values come from `operator/site.env.example`.
+     - *Reference*, new section at the end: loader and `site` statuses, return codes of the hosting library, the three built-in sanitiser rules, the `sanitise check` exit statuses, and `KUMPEL_POLL_SECONDS` and `KUMPEL_ARCHIVE_WAIT` as a settings table.
+     - Examples: the site, token and sanitise examples and the no-site-file `site check` example are now `console` blocks and were run by `make documents`. The two `reset-to-tag.sh` blocks are marked `console github` and are not run, and they show no output because I have not seen it.
+     - Content: I added two things from `operator/site.env.example`: the format of `SITE_INSTANCE`, and that `SITE_REPOSITORY` and `SITE_CHECKOUT` are always required. I moved no rule out of the file and dropped none on purpose.
+   - `docs/checked-documents.txt`: one new line, `docs/operator-guide/site.md`.
+
+   Cross-read and found current:
+   - `docs/operator-guide/cloud-run.md`, `README.md` (operator guide), `docs/project-guide/operator.md` and the repository `README.md`: every link to `site.md` points to a heading that still exists.
+   - `docs/operator-guide/stops.md`: opened only for the link I added to it. I did not read it for stale text.
+
+   For the reviewer:
+   - I did not compare the old file's claims against the shell scripts line by line. I carried the old text over, and checked only that `operator/site.env.example` agrees with the keys table. Please spot-check the statuses and messages in the *Reference* against `operator/lib/` and `operator/bin/`.
+   - I wrote the loader status table in *Reference* from the old prose, not from a new reading of the scripts.
+   - `KUMPEL_POLL_SECONDS` and `KUMPEL_ARCHIVE_WAIT` are in a table with an Example column, with the defaults the old text gave (15 and 300).
+
+   Stale text I saw and left alone:
+   - `make documents` prints many `does not exist` lines for `docs/project-guide/*.md`, for example `README.md:127` and `agents.md:146`. They are in files not on the checked list. They are unrelated to this story.
+
+   No findings for the coder.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (2.2 s)
+6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md`: `docs/operator-guide/site.md` rewritten, and `docs/checked-documents.txt` +1 line. I read both against `operator/bin/site`, `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/bin/sanitise`, `operator/skill/kumpel/scripts/{reset-to-tag,merge,comment,start-story}.sh`, `tests/operator_scripts/` and `docs/project-guide/style.md`.
+
+   Criterion 2 is met: every name, command, setting and message of the old file is in the new text or its *Reference*. Nothing was dropped. The *Reference* statuses, return codes, built-in rules and `sanitise check` statuses match the scripts.
+
+   Criterion 4 is met: every link to `site.md` from `cloud-run.md`, the operator guide's `README.md` and elsewhere points to a heading that still exists.
+
+   Criterion 3: the checked-list line is present, and the journal records `documents ok`. Criterion 1 is not met; see findings 4 to 8.
+
+   Findings:
+   1. `docs/operator-guide/site.md:45-66`, `:138-139`, `:196-205`: the `console` examples write `site.env`, `token.env`, `sanitise.rules`, `raw.txt` and `clean.txt` into `$PWD`. They pass only because the check's fixture folder is no git work tree. A reader must run them from the root of their clone (`sh operator/bin/...`). There `site init` refuses with `site: <path> lies in a git repository; ...` and status 3 (`operator/lib/site.sh:28-31`). The other blocks litter the clone, and one puts a `sanitise.rules` into a repository, which line 158 forbids. Line 45's "The path here lies in a temporary folder, so the example touches nothing of yours" is false for the reader. Fix: write the files under a folder outside the checkout, such as `"$HOME/site-example/"` (`HOME` is an empty temporary folder in the check), and correct the sentence on line 45.
+   2. `docs/operator-guide/site.md:216-224`: the two `console github` blocks show no output and name no real run they were copied from. The documenter says no run was made. Fix: copy the output from a real run and name that run above the blocks. Otherwise give the output the code prints (`reset-to-tag.sh:73-76`, `:82-89`) as a marked example that says it was not copied from a run.
+   3. `docs/operator-guide/site.md:149-152`: an `sh` block shows commands that are neither a runnable `console` example nor marked. It also calls a bare `sanitise` where the rest of the file uses `sh operator/bin/sanitise`. Fix: drop it, since lines 195-206 show both calls, or turn it into a two-row table of the calls and their statuses.
+   4. `docs/operator-guide/site.md:248` (`story`) and `:256` (`journal`): these glossary words are not linked at their first use, which criterion 1 asks for. Fix: link each to `../project-guide/glossary.md` there.
+   5. `docs/operator-guide/site.md:9`, `:17`, `:254`: "the skill" and "Kumpel" are this project's own words, and the reader is never told what they are (style rule 3: "use no other private words"). Fix: add one sentence to the intro that says what the skill and Kumpel are, and point to `operator/README.md`.
+   6. `docs/operator-guide/site.md:294-308`: the `site check` table is still "Check / It proves / What a FAIL means". It is not what you see, what it means and what you do, which the Description and the operator-guide section of the style guide ask for. Fix: use the columns What you see (`FAIL <name>: <detail>`), What it means and What you do. Line 125 (the `hosting: the token command failed...` message) also needs a "what you do": set `SITE_TOKEN_CMD`, or log in with `gh`. So do the refusals of `merge.sh` on line 250 (`merge.sh: #<pr> is a draft`, `is not open`, `is not at stage:approval`, from `merge.sh:26-31`, `:47`).
+   7. `docs/operator-guide/site.md:236-240`: "unless all three conditions hold" is followed by five rows. Row 1 is wrong. Without `--yes` the script prints the plan and exits 1; it does not refuse. Exit 2 comes with `usage: reset-to-tag.sh <tag> [--yes]` when the arguments are not `<tag>` or `<tag> --yes` (`reset-to-tag.sh:10-11`). Fix: put that usage line in "What you see", and say "the arguments are not `<tag>` or `<tag> --yes`" in "What it means". Drop the count "three", or state the three conditions.
+   8. `docs/operator-guide/site.md:3`, `:9`, `:108`, `:158`, `:191`, `:232`, `:250`, `:256`, `:264`, `:312`: these sentences break style rule 2. They run past about 25 words (3, 108, 158, 191, 232, 256, 312) or hold two parentheses (9, 250, 264, 312). Fix: split each.
+   9. `docs/operator-guide/site.md:70`: "A test keeps the example's comments and this table equal to what `operator/lib/site.sh` and `operator/job/job.sh` do" is not borne out. `tests/operator_scripts/test_operator_site_example.py` checks the example's comments. The only test that reads this table (`test_operator_site_check.py:509-511`) checks only that each key is named in the file. A sentence about tests is also nothing an operator needs. Fix: drop the sentence, or say that the example's comments are kept true by a test.
+   10. `docs/operator-guide/site.md:241` against `:76`: the keys table calls `SITE_REPOSITORY` "the factory's repository". Line 241 says that, because the reset needs `SITE_RESET_REPOSITORY` to equal `SITE_REPOSITORY`, "the factory's own repository can therefore never be the target". The code only compares the two keys (`reset-to-tag.sh:17-20`), so the target is always `SITE_REPOSITORY`. Fix: on line 76 call it "the repository the factory works on", as line 280 does. On line 241 say only that a repository named by both keys is reset.
+   11. `docs/operator-guide/site.md:281`: "A failure here is the loader's: no file (status 1), a fault in a line (status 2), ..." does not match what `site init` does. `init` never loads the file. It fails with `site: <path> exists; not overwritten` (status 1) or with the work-tree refusal (status 3) (`operator/bin/site:19-29`). Fix: name `init`'s two failures here, and move the loader's statuses to step 4, where `site show` first loads the file.
+   12. `docs/operator-guide/site.md:212`: the step says "Tag the starting point once, and push the tag", which is two actions, but it shows only `git tag starting-point <commit>`. Fix: add the push, `git push origin starting-point`, as its own step or in the same `console github` block.
+   13. `docs/operator-guide/site.md:7`, `:70`, `:264`, `:287`: repository files the reader is pointed to (`operator/site.env.example`, `operator/README.md`) are named in backticks, not linked. Style rule 8 says to link a repository file by a relative link. Fix: link each at its first mention (`../../operator/site.env.example`, `../../operator/README.md`).
+
+   Not under review, for the human: the work item's Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8.
+8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's findings 1 to 13 in `docs/operator-guide/site.md`. `make documents` ends with `documents ok (1.9 s)`. I changed only documents, so I did not run `make check`. The only change since round 0 is to that one file; `docs/checked-documents.txt` is unchanged and still has its one line.
+
+   Findings, in order:
+   1. The `console` examples now write under `$HOME/site-example`, outside the checkout, and a sentence says to run from the clone's root. The false "touches nothing of yours" sentence is gone. The `sanitise check` example prints its path through `sed` as `<home>/...`.
+   2. The `reset-to-tag.sh` outputs are one `console github` block. The text above it says the block is not copied from a run. It shows the lines the script's code prints (`reset-to-tag.sh:73-76`, `:82-89`), with made-up counts and commit.
+   3. I dropped the bare `sanitise` `sh` block. Prose now names the two calls and the usage line.
+   4. I linked `story` and `journal` to the glossary at their first use.
+   5. The intro says what Kumpel and the skill are and links `operator/README.md`.
+   6. The `site check` table is now What you see, What it means and What you do. I added a "what you do" for the token failure, as a table. `merge.sh`'s five refusals are a table too, with the `no archive commit` case.
+   7. The `reset-to-tag.sh` table now starts with the usage line and exit 2. "Three" is gone, and so is the claim about the factory's own repository.
+   8. I split the long and double-parenthesis sentences at the lines named. The sentence on line 108 is split too.
+   9. The sentence says a test keeps the example's comments true. It no longer says the test covers the table.
+   10. `SITE_REPOSITORY` is "the repository the factory works on".
+   11. Step 3 names `init`'s two failures. The loader's statuses moved to step 4.
+   12. The tag push is its own step: `git push origin starting-point`.
+   13. I linked `operator/site.env.example` and `operator/README.md` by relative links at their first mentions.
+
+   Beyond the findings:
+   - Each `FAIL` row of the check table has its own row. The `job` row is the `FAIL job: needs ...` case, and the three `ok job` lines stay in the list below the table.
+   - The `FAIL site file:` row is not from a new reading of the loader.
+   - I could not run `reset-to-tag.sh` or `merge.sh` (they need GitHub), so those two tables follow `reset-to-tag.sh` and `merge.sh` as I read them.
+
+   Cross-read and found current: the links to `site.md` headings in `cloud-run.md`, the operator guide's `README.md`, `docs/project-guide/operator.md` and the repository `README.md`.
+
+   Stale text I saw and left alone: `make documents` prints `does not exist` lines for paths in files that are not on the checked list, for example `docs/operator-guide/machine.md:153`, `health.md:63` and the project-guide files. They are not part of this story.
+
+   For the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The reviewer noted this too.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (2.2 s)
+10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs review of `git diff main...HEAD -- README.md docs operator/README.md`: `docs/operator-guide/site.md` rewritten, `docs/checked-documents.txt` +1 line. I read it against `operator/bin/site`, `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/bin/sanitise`, `operator/skill/kumpel/scripts/{reset-to-tag,merge,settings}.sh` and `docs/project-guide/style.md`.
+
+    The round-0 findings 2 to 4 and 6 to 13 are fixed as asked. Finding 1 is fixed: the examples write under `$HOME/site-example`.
+
+    Criterion 2 is met. Nothing of the old file was dropped. The loader statuses, the `site` messages, the hosting return codes, the built-in sanitiser rules, the `sanitise check` statuses and the `site check` details match the scripts.
+
+    Criterion 4 is met. Every link to `site.md` (in `cloud-run.md`, the operator guide's `README.md`, `docs/project-guide/operator.md` and the repository `README.md`) names a heading that still exists.
+
+    Criterion 3: the checked-list line is present, and the journal records `documents ok`. I did not run `make documents` myself. Criterion 1 is not yet met; see findings 4 and 5.
+
+    Findings:
+    1. `docs/operator-guide/site.md:231-244`: the `console github` block shows made-up output, and the text says it was not copied from a run. This breaks style rule 6 ("Examples are real and were run") and the rule that a marked example names the real run it came from. The made-up lines also disagree with each other: the plan says "would delete 3 work-item branch(es)", but the `--yes` run prints one `deleted` line. Fix: copy both outputs from a real run on a trial repository and name that run above the block. Otherwise drop the block and give steps 4 and 5 their commands inline (`sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`, then with `--yes`), and leave the output to the prose at :246-252, which already names every line.
+    2. `docs/operator-guide/site.md:126`: "What it means" says "the script has neither a token command nor a `gh` login". The same message also comes when the token command fails or prints nothing (`operator/lib/hosting.sh:12-23`), as :137 says. Fix: "the token command failed or printed nothing, or there is neither a command nor `gh`".
+    3. `docs/operator-guide/site.md:328`: the `FAIL site file:` row's "What you do" covers a missing file and a faulty line only. It does not cover a file inside a git work tree (`operator/lib/site.sh:28-31`, `:41`, status 3). Fix: add "or move the file out of the git work tree".
+    4. `docs/operator-guide/site.md:276`: "has not reached the approval" is the glossary word *approval* at its first use, and it is not linked (criterion 1, style rule 3). Fix: link it to `../project-guide/glossary.md`.
+    5. `docs/operator-guide/site.md:130`, `:311`, `:313`: each sentence holds two parentheses. `:312` (about 30 words) and `:201` (about 28 words) run past about 25 words. These break style rule 2. Fix: split each.
+    6. `docs/operator-guide/site.md:9`: "Exact detail (every exit status, every message, every built-in rule) is in the *Reference*" is not true of the file. The `merge.sh` and `reset-to-tag.sh` refusals, the `site check` lines and the sanitise rule faults are in the body. Fix: "Exit statuses, return codes and the built-in rules are in the *Reference* at the end."
+
+    Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant, so I left the Description as it is.
+12. factory: started docs-only as vm.
+13. documenter: Round 2: fixed the reviewer's findings 1 to 6 in `docs/operator-guide/site.md`. `make documents` ends with `documents ok (2.1 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/operator-guide/site.md`: the six fixes below. It is the only file I changed.
+    - `docs/checked-documents.txt`: unchanged.
+
+    Findings, in order:
+    1. I dropped the `console github` block that showed made-up output. Steps 4 and 5 now show the two commands in an `sh` block, and the text above it says they need GitHub and are not run. The prose below the block already names every output line.
+    2. The token-failure row now says the token command failed or printed nothing, or there is neither a command nor a `gh` login.
+    3. The `FAIL site file:` row now adds "or move the file out of the git work tree".
+    4. *approval* in the `merge.sh` table is linked to the glossary.
+    5. I split the sentences with two parentheses and the long ones. They are the `hosting.sh` description, the `SITE_TOKEN_CMD` sentence, the `sanitise check` sentence, and steps 3, 4 and 5 of the machine setup.
+    6. The intro now reads "Exit statuses, return codes and the built-in rules are in the *Reference* at the end."
+
+    I could not run `reset-to-tag.sh` or `merge.sh`, because they need GitHub. Their tables follow the scripts as I read them.
+
+    Cross-read and found current: the links to `site.md` headings elsewhere were checked in round 1 and are unchanged, because I kept every heading.
+
+    Stale text I saw and left alone: `make documents` still prints `does not exist` lines for files that are not on the checked list, for example `docs/operator-guide/install.md`. They are not part of this story.
+
+    For the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. I left the Description as it is.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (2.2 s)
+14. factory: started docs-review as vm.
+15. reviewer: Round 2 docs review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff rewrites `docs/operator-guide/site.md` and adds one line to `docs/checked-documents.txt`. I read the file against `operator/bin/site`, `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/skill/kumpel/scripts/reset-to-tag.sh` and `docs/project-guide/style.md`.
+
+    The round-1 findings 2 to 6 are fixed as asked:
+    - the token-failure row at :126 now matches `hosting.sh:89` and its callers;
+    - the `FAIL site file:` row at :320 now covers the git work tree;
+    - *approval* at :268 is linked;
+    - the long sentences and the ones with two parentheses are split;
+    - the intro at :9 is now true.
+
+    The facts I checked again are right: the `reset-to-tag.sh` messages and statuses (:244, :252-256, against `reset-to-tag.sh:8-21`, `:72-89`), the `site_require` message (:254, against `site.sh:65`), the eleven checks of `site check` (:314, against `operator/bin/site:72-81`), and `init`'s two failures and the loader's statuses (:303-304).
+
+    Criteria 2 and 4 are still met: no heading changed in this round. Criterion 3: the checked-list line is present, and the journal records `documents ok`.
+
+    Round-1 finding 1 was fixed in a way that brings back the problem of round-0 finding 3.
+
+    Findings:
+    1. `docs/operator-guide/site.md:231-236`: the two `reset-to-tag.sh` commands are in a plain `sh` block. That block is neither a runnable `console` example nor marked `console github`, and `style.md:59` says "A command that needs the hosting service ... mark its block `console github`". Text that says "not run here" is not the mark. A `console github` block would need output copied from a real run that is named above it, and the journal says no such run exists. Fix: drop the block and put the commands inline in their steps, as steps 1 and 2 already do. Step 4 becomes "Run `sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`. It prints the plan and exits 1." Step 5 becomes "Run it again with `--yes` added to do it." The sentence at :231 goes too.
+
+    Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant.
+16. factory: started docs-only as vm.
+17. documenter: Round 3: fixed the reviewer's finding 1 of round 2 in `docs/operator-guide/site.md`. `make documents` ends with `documents ok (2.1 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/operator-guide/site.md`: I dropped the plain `sh` block with the two `reset-to-tag.sh` commands, and the sentence above it that said they were not run. Step 4 of *Repeating a trial* now reads "Run `sh operator/skill/kumpel/scripts/reset-to-tag.sh starting-point`. It prints the plan and exits 1." Step 5 reads "Run it again with `--yes` added to do it." The prose below them still names every output line. It is the only file I changed. `docs/checked-documents.txt` is unchanged.
+
+    I could not run `reset-to-tag.sh`: it needs GitHub. Its text follows the script as the reviewer checked it in round 2.
+
+    Cross-read and found current: I changed no heading this round, so the links to `site.md` headings from other documents stay as checked in rounds 1 and 2.
+
+    Stale text I saw and left alone: `make documents` still prints `does not exist` lines for files that are not on the checked list. They are not part of this story.
+
+    For the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. I left the Description as it is.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (2.2 s)
+18. factory: started docs-review as vm.
+19. reviewer: Round 3 docs review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff rewrites `docs/operator-guide/site.md` and adds one line to `docs/checked-documents.txt`. I read the whole file again against `docs/project-guide/style.md` (*Examples that are not run*, the fixture rules) and `operator/skill/kumpel/scripts/reset-to-tag.sh`.
+
+    Round-2 finding 1 is fixed as asked:
+    - The plain `sh` block with the two `reset-to-tag.sh` commands is gone, and so is the sentence that said they were not run.
+    - Steps 4 and 5 of *Repeating a trial* (`site.md:228-229`) now give the commands inline, in the same way as steps 1 and 2.
+    - "It prints the plan and exits 1" matches `reset-to-tag.sh:73-78`.
+
+    No unmarked command block is left. Every `console` block writes under `$HOME/site-example` or `$PWD/none`. Nothing else in the file changed since the round-2 review, which found the rest correct.
+
+    The criteria:
+    - Criterion 1 is met. There are no feature or story IDs and no version history. Glossary words are linked at their first use, and the round 0 to 2 style findings are fixed.
+    - Criterion 2 is still met. Nothing of the old file was dropped on purpose.
+    - Criterion 3: the checked-list line is present, and the journal records `documents ok (2.2 s)`. I did not run `make documents` myself.
+    - Criterion 4 is still met. No heading changed this round.
+
+    no findings
+
+    Open, for the human: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules were meant, so I left the Description as it is.
