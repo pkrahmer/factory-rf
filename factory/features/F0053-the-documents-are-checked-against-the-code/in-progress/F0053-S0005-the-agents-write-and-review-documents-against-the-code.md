@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T10:13:45.158942Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-06T10:13:45.158942Z'
   stage: tests
+- number: 15
+  speaker: tester
+  kind: result
+  at: '2026-11-06T10:14:16.473517Z'
+  stage: tests
+  run: 193c4150145843dc8eba9a8f9a0f1ef7
 ---
 
 # The agents write and review documents against the code
@@ -224,3 +226,19 @@ Expect: `named`
 
     Description: entry 11 does not change the meaning of the task, so it stays as it is.
 14. factory: started tests as vm.
+15. tester: I made the test change the human approved in entry 11 (option a), which the coder named in entry 13. It is in `tests/agent_files/test_claude_agent_texts_mutants.py::test_reviewer_item_6_is_followed_by_the_findings_paragraph`, a test another story wrote.
+
+    - The test still finds checklist item 6 and still requires a blank line after it.
+    - If the next line is `### Documents`, the test now skips that item. The item is its heading, one blank line, its non-blank paragraph lines and the blank line after them. If the item's shape is different, the test fails.
+    - Either way, the next line must still start with "Write findings as a numbered list in your entry".
+    - The test keeps its name and still checks the same thing. Nothing else in that module changed.
+
+    Why: the human put the `### Documents` item in the reviewer's checklist, after item 6 and before the "Write findings" paragraph. The old test required "Write findings" to follow item 6 directly.
+
+    Files created: none. File changed: `tests/agent_files/test_claude_agent_texts_mutants.py`, with the human's leave (entry 11).
+
+    Run: `uv run pytest -q tests/agent_files/test_claude_agent_texts_mutants.py`, 21 passed, including the changed test against the coder's `reviewer.md`. There were no import failures, because these tests read only the agent files. `make lint`: lint: green (0.2 s).
+
+    Open: the coder's `make check` has not run yet. It should now run without this failure.
+
+    `lint`: lint: green (0.1 s)
