@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433, 6697301221]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T22:28:34.582655Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -220,6 +224,11 @@ journal:
   at: '2026-11-06T22:28:29.102754Z'
   stage: docs-review
   run: 53adfc491171412a86435b383fdb5ff5
+- number: 39
+  speaker: factory
+  kind: started
+  at: '2026-11-06T22:28:34.582655Z'
+  stage: docs-only
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -621,3 +630,4 @@ Expect: `1`
     - `docs/project-guide/shared.md` says the operator guide has no `Default` column.
     - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*.
     - `docs/operator-guide/README.md` keeps its version-history sections.
+39. factory: started docs-only as vm.
