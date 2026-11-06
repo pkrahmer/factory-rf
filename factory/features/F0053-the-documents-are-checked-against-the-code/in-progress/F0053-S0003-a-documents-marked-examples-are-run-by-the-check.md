@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T08:09:51.058104Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-11-06T08:09:51.058104Z'
   stage: doing
+- number: 39
+  speaker: coder
+  kind: result
+  at: '2026-11-06T08:14:02.849227Z'
+  stage: doing
+  run: ce05976922664e9cb9e7ccb94d072c35
 ---
 
 # A document's marked examples are run by the check
@@ -691,3 +693,31 @@ Expect: `1`
 
     `lint`: lint: green (0.1 s)
 38. factory: started doing as vm.
+39. coder: I changed no code this round. The tests the tester added in journal 37 cover both findings of review journal 33, and they pass against the code from journal 35:
+    - Finding 1, the fixture that cannot be prepared:
+      - `tests/shared/adapters/test_document_examples.py::test_a_fixture_that_cannot_be_prepared_gives_one_finding_and_runs_no_command`
+      - `tests/hosting/adapters/test_checkout_fixture.py::test_the_checkout_fixture_outside_a_git_repository_raises_a_fixture_error`
+    - Finding 2, the suite rows: `cd docs && make check` and `pytest tests/`.
+
+    The code those tests run, written in journal 35:
+    - `FixtureError` in `src/factory/shared/domain/errors.py`.
+    - `CheckoutFixture` turns `GitError` into it, in `src/factory/hosting/adapters/checkout_fixture.py`.
+    - The runner gives one finding at the fence line, `fixture <name> could not be prepared`, in `src/factory/shared/adapters/document_examples.py`.
+    - `runs_the_suite` now splits the line into its simple commands, in `src/factory/shared/domain/documents.py`.
+
+    Main decision (from journal 35, unchanged): one finding per document for a fixture that fails, not one per block, which would repeat the same cause for every later block.
+
+    Checks: `make check` is green, 99.20 % coverage, `test: green (101.0 s)`.
+
+    Refactor: I reread `runs_the_suite` and its helpers. Nothing needs changing.
+
+    Noticed, not touched:
+    - `make documents` is not read as running the suite. Neither the Interface nor the review's fix asks for it.
+    - The 60-second default limit has no test of its own. This is the reviewer's note; the code does what the Interface says.
+    - The line in `## Interface` that says "Tests: ... an adapter test with the fake containers" is still out of date. The tests use real short commands in `tmp_path` and no containers. The work item is outside the coder's write paths, so someone who may write it has to fix the line.
+    - `documents.py` is still large; the human left the split for later (journal 17).
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
