@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 611
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-06T23:21:18.692790Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-06T23:21:13.433043Z'
   stage: intake
   run: 1d57cf013bc0402d8e8c1c995fd325ad
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-06T23:21:18.692790Z'
+  stage: docs-only
 ---
 
 # The operator guide's the machine reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    Docs criterion: criterion 6 names what the reader must know (criteria 1 to 4) and quotes no sentences to write.
    Architecture: documents only, no code, so CLAUDE.md's layers are not touched. Operator-guide docs sit in the documenter's write paths.
    Scope: this is S0003 of F0054, listed in `feature.md`. It touches nothing in the feature's Out of scope (`decisions.md`, `docs/runs/`, `operator-playbook.md`, no behaviour change).
+4. factory: started docs-only as vm.
