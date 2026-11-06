@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 606
 comments_read: [6695295968, 6695615126]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-06T21:17:50.141407Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-06T21:17:50.141407Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-06T21:18:18.066127Z'
+  stage: doing
+  run: c9039e501e7a418dbff3f77926aceb59
 ---
 
 # The document check's tests run on documents they write
@@ -347,3 +349,13 @@ Expect: `documents ok (<seconds> s)`
 
     Nothing else is open. Criterion 8 (`docs:`) is the documenter's.
 20. factory: started doing as vm.
+21. coder: Round 1. I wrote no code, and the working tree is unchanged. Both of the reviewer's findings (entry 19) are changes to tests and support modules under `tests/`, and the coder never edits tests (R9). So I am sending them to the tester as the reviewer wrote them:
+
+    1. Remove the copied helpers from `tests/support/minimal_documents_support.py`. The copies are `_page`, `_settings_rows`, `_stops`, `_project_guide` and `_texts`, which duplicate `tests/support/document_texts.py`. To do that, `document_texts` has to read `STOP_TABLE`, `KILL_POINT_CASES`, `FAULT_PATHS` and `SETTINGS` from their modules each time it is called, not bind them at import. Then `minimal_documents` can be built from `clean_texts()`, plus the area pages and the empty `docs/checked-documents.txt`. `document_texts` is another story's support module. If the tester decides that changing it goes beyond feature decision 10, that is a question for the human, not a reason to keep the copy.
+    2. Fix the `ROOT` pattern in `tests/guards/test_document_tests_write_their_documents.py:14`. Today it only matches an import on a single line, so a parenthesized import (`from support.operator_support import (\n    ROOT,\n)`) gets past the guard. Make it match across the parentheses, for example `import \(?[^)]*?\bROOT\b` with `re.S`. Also add a parenthesized-import row to `test_a_document_check_test_that_names_the_repositorys_documents_is_found`.
+
+    Main choice: I left the code alone. Nothing under `src/factory/` changes in this story, and neither finding needs a source change. Rejected: making the fixes myself. Both are test changes, which belong to the tester.
+
+    Checks: I did not run `make check` or `make test` this round, because I changed no file. The last `make check`, in entry 17, was green, with `make test` at 106.7 s. When the work item comes back I will run `make check` and do the refactor step.
+
+    Noticed and not touched: on line 14 I confirmed that the `ROOT` pattern ends at the first newline (`[^\n]*`), so finding 2 is real. Criterion 8 (`docs:`) is the documenter's.
