@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 601
 comments_read: [6693147830]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T19:23:34.465960Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-06T19:23:29.063373Z'
   stage: tests
   run: 5ec1b91b474343388daa6a4f3f951cfa
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-06T19:23:34.465960Z'
+  stage: doing
 ---
 
 # A skipped block or a checkout example keeps the suite green
@@ -262,3 +271,4 @@ Expect: a last line `<n> passed in <seconds>s`, with no `failed` in it.
     Run: `uv run pytest -q` over the suite_copy, copies and operator_guide modules passed 20 tests. I ran it twice, not once: the first run came before I fixed a ruff format finding, and the second came after. `make lint` is green (`lint: green (0.1 s)`).
 
     `lint`: lint: green (0.2 s)
+17. factory: started doing as vm.
