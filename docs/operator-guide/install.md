@@ -8,7 +8,15 @@ An instance runs one project. It is told what it needs through environment varia
 
 Install the factory on a repository that holds no [work items](../project-guide/glossary.md) from an older version of the factory, or whose old work items are archived or discarded. The factory starts fresh and does not detect old work items.
 
-1. Install the factory's packages. This ran on the VM:
+1. Prepare the machine with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`. It is the way to run an instance. It prepares a fresh Ubuntu 24.04 machine: the packages, the ZFS pool and dataset, uv and the factory's packages in the factory's checkout with its virtual environment, the image identity file `image-id`, the environment file `factory.env` and the systemd unit. The preflight checks the dataset and the stage image (see "The preflight's items" in [health.md](health.md)). See "The machine" in [machine.md](machine.md).
+
+2. Build the stage image, which carries the agent runtime and the pinned tools, before the instance starts: `podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>`. See "The stage image" in [machine.md](machine.md).
+
+3. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
+
+4. Start the instance with `factory-run`. It reads the same environment as `factory-watch`. If it refuses, see "When the process refuses to start".
+
+To check a development clone instead of an instance, install the packages in the clone and run the checks. This ran on the VM:
 
 ```console vm
 $ uv sync
@@ -16,7 +24,7 @@ Resolved 107 packages in 3ms
 Bytecode compiled 4164 files in 49ms
 ```
 
-2. Check the installation. The last line must be `check: green`:
+The last line of `make check` must be `check: green`:
 
 ```console
 $ make check
@@ -24,19 +32,11 @@ $ make check
 check: green
 ```
 
-3. Prepare the machine with `sudo sh operator/vm/setup.sh --device <disk> --repository-url <url>`. It is the way to run an instance. It prepares a fresh Ubuntu 24.04 machine: the packages, the ZFS pool and dataset, the factory's checkout with its virtual environment, the image identity file `image-id`, the environment file `factory.env` and the systemd unit. The preflight checks the dataset and the stage image (see "The preflight's items" in [health.md](health.md)). See "The machine" in [machine.md](machine.md).
-
-4. Build the stage image, which carries the agent runtime and the pinned tools, before the instance starts. See "The stage image" in [machine.md](machine.md).
-
-5. Set the instance's environment variables, as *Configuration* describes. On the VM, `operator/vm/setup.sh` writes most of them to the environment file `factory.env`.
-
-6. Start the instance with `factory-run`. It reads the same environment as `factory-watch`. If it refuses, see "When the process refuses to start".
-
 ## Configuration
 
 The tables below list every variable the factory reads. A variable that is unset or holds only spaces counts as unset, and takes its default. A variable that is required and unset is refused (see *The refusals*).
 
-The path variables named in *The refusals* must be absolute. The examples below are from the VM that `operator/vm/setup.sh` makes, where `<instance>` is the instance's name.
+The path variables named in *The refusals* must be absolute. Where `operator/vm/setup.sh` sets a variable, the example is the value it writes; `<instance>` is the instance's name.
 
 The factory reports the first fault it finds. The order is in the *Reference*, under *The order of faults*.
 
@@ -100,11 +100,11 @@ An instance needs `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE`, and with `zfs` 
 | `FACTORY_DATASET` | Required with `zfs`. The ZFS dataset the stages run on. It is not read with `copy`. | none | `tank/factory/vm` |
 | `FACTORY_SNAPSHOT_BASE` | Required with `copy`. The directory that holds the base. With `zfs` it is refused. It must not be, hold or lie inside the workspace, the checkout or the state directory. | none | `/srv/factory/<instance>/base` |
 | `FACTORY_WORKSPACE` | Required. The folder the stage containers mount at `/work`: the dataset's mount point with `zfs`, a plain directory with `copy`. The checkout and the state directory must lie outside it, so the default checkout rules out `/work`. | none | `/srv/factory/vm/work` |
-| `FACTORY_STAGE_IMAGE` | Required. The image the stage containers run. | none | `factory-stage:1` |
+| `FACTORY_STAGE_IMAGE` | Required. The image the stage containers run. | none | `factory-stage:<instance>` |
 | `FACTORY_PODMAN` | The `podman` executable, one word. | `podman` | `podman` |
 | `FACTORY_ZFS` | The `zfs` executable, one word. | `zfs` | `zfs` |
 | `FACTORY_CONTAINER_PROFILE` | How the factory starts its containers: `rootless` or `job` (see *The job profile* in [machine.md](machine.md)). | `rootless` | `job` |
-| `FACTORY_CONTAINER_ENV` | Comma-separated names of variables of the factory's own environment that every agent, sync and check container also gets, with their values. A name that the factory's environment lacks is skipped. See "Behind a proxy" in [agent-runtime.md](agent-runtime.md). | none | `HTTPS_PROXY,NO_PROXY` |
+| `FACTORY_CONTAINER_ENV` | Comma-separated names of variables of the factory's own environment that every agent, sync and check container also gets, with their values. Each part is stripped and blank parts are left out. A name that the factory's environment lacks is skipped. See "Behind a proxy" in [agent-runtime.md](agent-runtime.md). | none | `HTTPS_PROXY,NO_PROXY` |
 | `FACTORY_CA_BUNDLE` | The path of a PEM file on the machine, the company's CA certificates. Every agent, sync and check container gets it mounted read-only at the same path, and `NODE_EXTRA_CA_CERTS`, `SSL_CERT_FILE` and `REQUESTS_CA_BUNDLE` name it. The settings do not check that the file exists: podman refuses to mount a missing file, and the container then fails. | none | `/etc/ssl/company-ca.pem` |
 
 ### The idle shutdown
@@ -114,7 +114,7 @@ See *The idle shutdown* under "The machine" in [machine.md](machine.md).
 | Name | What it does | Default | Example |
 |---|---|---|---|
 | `FACTORY_IDLE_SHUTDOWN_MINUTES` | The idle stretch, in whole minutes, after which the factory powers the machine off. `0` is off. | `0` | `30` |
-| `FACTORY_IDLE_SHUTDOWN_ACTION` | What the shutdown does at the limit: `poweroff` powers the machine off, `exit` ends `factory-run` with status 0 (for a job). It has no effect while the shutdown is off. See *In a job* in [machine.md](machine.md). | `poweroff` | `exit` |
+| `FACTORY_IDLE_SHUTDOWN_ACTION` | What the shutdown does at the limit: `poweroff` powers the machine off, `exit` ends `factory-run` with status 0 (for a job). It has no effect while the shutdown is off, but it is read, and an invalid value refused, also then. See *In a job* in [machine.md](machine.md). | `poweroff` | `exit` |
 
 ### The refusals
 

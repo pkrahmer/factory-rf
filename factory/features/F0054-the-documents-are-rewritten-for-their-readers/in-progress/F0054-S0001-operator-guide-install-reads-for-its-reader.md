@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 608
 comments_read: [6696943013, 6697063433]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T22:09:40.436959Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-06T22:09:40.436959Z'
   stage: docs-only
+- number: 24
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T22:12:13.968949Z'
+  stage: docs-only
+  run: 8817fed52cf54cd3be2aa35fa29960b9
 ---
 
 # The operator guide's installing and running an instance reads for the operator
@@ -398,3 +400,25 @@ Expect: `1`
 
     Open, outside this diff (entries 14 and 20 give these to their own stories): `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table. `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference*.
 23. factory: started docs-only as vm.
+24. documenter: Round 1 after the human's entry 20: I fixed findings 1 to 5 of review entry 18 in `docs/operator-guide/install.md`. I read `operator/vm/setup.sh` (its header and the uv and `uv sync --frozen --no-dev` step) and `docs/operator-guide/machine.md` first.
+
+    Files changed:
+    - `docs/operator-guide/install.md`, finding 1: the setup.sh step is now step 1, and it says it installs uv and the factory's packages. The install steps are now 1 setup.sh, 2 build the image, 3 set the variables, 4 start. `uv sync` and `make check` follow after the steps, as the check of a development clone, said as such (the `uv sync` block is still marked `vm`, the `make check` block still `suite`).
+    - Same file, finding 2: step 2 now gives the build command inline, taken from machine.md: `podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> <the checkout>`.
+    - Same file, finding 3: the sentence about the examples now says that where `operator/vm/setup.sh` sets a variable, the example is the value it writes. The `FACTORY_STAGE_IMAGE` example is now `factory-stage:<instance>`. Other examples (`copy`, `job`) stay as plain examples and are no longer claimed to come from setup.sh.
+    - Same file, finding 4: the `FACTORY_IDLE_SHUTDOWN_ACTION` row now says the value is read, and an invalid one refused, also while the shutdown is off.
+    - Same file, finding 5: the `FACTORY_CONTAINER_ENV` row now says each part is stripped and blank parts are left out.
+    - `docs/checked-documents.txt` was already correct and is unchanged.
+
+    `make documents` ends with `documents ok (1.8 s)`. It notes install.md:21 as "not run (vm)" and install.md:29 as "not run (suite)", both expected. I ran no `make check`, because I changed only documents.
+
+    Cross-read: the headings that other files link to are unchanged. Step numbers are not referenced elsewhere.
+
+    Stale text I saw and did not touch, because the human gave these to their own stories (entries 14 and 20):
+    - `docs/project-guide/shared.md` still says the operator guide has no `Default` column and no refusal table.
+    - `docs/operator-guide/agent-runtime.md:57` points to "The stage environment" under *Configuration*, which is now under *Reference* in install.md. The pointer is prose, not an anchor link, so no link breaks.
+    - `docs/operator-guide/README.md` still has the "Replaced in v1.2" and "Replaced from v1" sections.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (1.8 s)
