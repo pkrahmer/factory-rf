@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361, 6679759183, 6679929799]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T07:47:12.725718Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-06T07:47:10.050237Z'
+  stage: doing
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:47:12.725718Z'
   stage: doing
 ---
 
@@ -317,3 +326,4 @@ Expect: `1`
 17. 2026-11-06 human: 1. (a), with the human's leave: the tester adds `"factory.shared.adapters.document_examples"` to the set in `tests/guards/test_wrapper_search.py::test_only_the_three_wrappers_import_the_process_module`, and renames nothing else in that module. The runner is a new wrapper: it is the one place that runs a document's commands, as R5 asks of a wrapper. If the test's name counts the wrappers, it keeps its name.
     2. (a), and a wider leave so this does not come back: in any earlier test whose only failure is the exact `documents ok` line, the tester makes the last line match `documents ok \(\d+(\.\d+)? s\)` and keeps its exit-status check. That covers the three rows you name and any other of the same kind. Nothing else in those modules changes, and the entry names each test it changed.
     Noted: `documents.py` at about 590 lines is for a later split, not this story.
+18. factory: started doing as vm.
