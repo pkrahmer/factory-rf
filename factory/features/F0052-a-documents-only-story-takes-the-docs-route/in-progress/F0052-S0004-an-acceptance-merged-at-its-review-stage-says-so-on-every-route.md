@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T00:22:52.529261Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-06T00:22:47.566727Z'
   stage: doing
   run: 883f734711a748748b1f1603e1a4aedf
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-06T00:22:52.529261Z'
+  stage: tests
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -310,3 +319,4 @@ Expect: `True True False`
     Description: unchanged. The work item is outside my write paths, so the take dropped my earlier rewrite of criterion 7, as entry 19 notes. Entry 8 still stands as the docs criterion: the docs stage names `tests/support/two_routes_support.py` and `TWO_ROUTES` in the *Shared test helpers* list of `docs/project-guide/README.md`. If finding 1 creates a second support module, the docs stage should name that one in the list as well.
 
     I did not run `make check` in this run, because no code changed. It was green after entry 14.
+22. factory: started tests as vm.
