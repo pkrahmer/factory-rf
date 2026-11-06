@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 593
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T11:44:06.228679Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-06T11:44:00.957162Z'
   stage: tests
   run: e8bf4ac35c474b4c98dab6cdd0925518
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-06T11:44:06.228679Z'
+  stage: doing
 ---
 
 # A runnable example in the documents keeps the suite green
@@ -108,3 +117,4 @@ Expect: `1`
    One run: `uv run pytest -q` of the new file plus the two earlier `documents` test files gave 12 passed. `make lint` is green. Every module imported; nothing was missing.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
