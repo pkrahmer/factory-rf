@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 603
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-06T20:05:14.410625Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -102,6 +106,11 @@ journal:
   at: '2026-11-06T20:05:08.506068Z'
   stage: review
   run: 4384604b4d3c4736b1d7fe9ca523499b
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:05:14.410625Z'
+  stage: docs
 ---
 
 # Listing a right document keeps the suite green
@@ -286,3 +295,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
     1. `tests/entry/test_check_documents_any_list.py:40-75`: `_settings_steps`, `_no_index_steps` and `_shared_example_steps` re-state the steps of the earlier tests instead of sharing them. `_shared_example_steps` repeats the body of `test_a_wrong_example_in_a_copied_document_fails_only_a_listed_one` in `tests/entry/test_check_documents_copies.py:47-63`, including its ` does not exist` filter. These step functions could live in `tests/support/check_documents_support.py` and both modules could use them.
     2. `tests/entry/test_check_documents_any_list.py:21-23`: two constants copy constants of other test modules. `_SHARED` repeats `UNLISTED` (`tests/entry/test_check_documents_copies.py:18`), and `_NO_INDEX` repeats the expected `no-index` line of `tests/entry/test_check_documents_operator_guide.py`. Both could be shared constants in the support module.
     3. `tests/support/check_documents_support.py:74-78`: `write_checked_list` commits through `commit_all`, which runs a plain `git commit`. If the text it writes equals what the copy's list already holds, the commit is empty and fails. The repository's list starts with comment lines, so no test hits this today. Writing the list and leaving the commit to the caller's next commit, or committing only when the text changed, would remove that dependency on the repository's list.
+18. factory: started docs as vm.
