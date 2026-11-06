@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 590
 comments_read: [6682263635, 6682414078]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-06T10:35:17.553856Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   at: '2026-11-06T10:35:12.210695Z'
   stage: doing
   run: d74f05cd7f7c4fd08b189354c5462c28
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-06T10:35:17.553856Z'
+  stage: review
 ---
 
 # The agents write and review documents against the code
@@ -454,3 +463,4 @@ Expect: `named`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+30. factory: started review as vm.
