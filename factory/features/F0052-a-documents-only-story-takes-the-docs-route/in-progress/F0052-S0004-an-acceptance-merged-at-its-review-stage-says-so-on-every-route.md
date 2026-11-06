@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 577
 comments_read: [6672901695, 6673109567]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T00:32:45.926917Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-06T00:32:45.926917Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T00:33:24.429883Z'
+  stage: docs
+  run: 4a5c9298ab5446d6b3bb0f5c7e0fb6af
 ---
 
 # An acceptance merged at its review stage says so on every route
@@ -417,3 +419,23 @@ Expect: `True True False`
     - `tests/pipeline/adapters/test_pipeline_yaml.py`: `test_position_is_the_index_in_the_stages` deleted under the human's leave in entry 19. Nothing else in the module changed.
     - `tests/work/domain/test_acceptance_before_approval.py`: `FIXTURE` and `_without_approval` moved to `tests/support/before_approval_support.py`, and `ROLES` was split out of `FIXTURE`, under the standing leave to move a shared test helper. Every test keeps its name and checks the same thing.
 28. factory: started docs as vm.
+29. documenter: Docs, round 1. I read the story, the diff against main, and the project guide pages that mention the rule. I changed only documents, so I did not run `make check`. The factory's checks decide.
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`, *More than one route, more than one approval stage*: `is_before_approval` now follows the first `next` of each stage. The paragraph says when the answer is `True` and when it is `False`, and says the order of the stages in the file does not matter. The sentence that every route's stages must be listed before the first approval stage is gone. "three rules read the order and the `next` lists" became "read the `next` lists".
+    - `docs/project-guide/pipeline.md`, *The pipeline definition*: the list of methods no longer names `position(stage)`, which the coder removed.
+    - `docs/project-guide/README.md`, *Shared test helpers*: added `support/before_approval_support.py` (`ROLES`, `FIXTURE`, `without_approval`) and `support/two_routes_support.py` (`TWO_ROUTES`), each in alphabetical place in the first list.
+    - `docs/decisions.md`: one new entry, "Before the approval" is read from the forward moves. Its Why and its Rejected line come from the story's docs criterion: the docs route lists `docs-approval` before `acceptance`, and reordering `factory/pipeline.yml` was rejected because nothing checks the file's order.
+
+    Cross-read and found current:
+    - `docs/operator-guide/work-items.md`, *Merged before its approval*. The criterion says it holds true again, and I changed nothing.
+    - `docs/project-guide/work.md` and the rest of `docs/project-guide/pipeline.md`: no other mention of `is_before_approval` or `position`.
+    - The older decision entry on a merge before the approval (2026-10-15) still holds. It does not describe how the stage is judged.
+
+    No findings for the coder. The code matches the Interface (`src/factory/work/domain/acceptance.py`).
+
+    Stale text noticed, not touched: none related to this story.
+
+    `check`: check: green (not run again: passed on tree e8cf3ac1367b at 2026-11-06T00:28:14Z)
+    `secrets`: secrets: green (2.0 s)
+    `documents`: documents ok

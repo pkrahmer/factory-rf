@@ -49,6 +49,7 @@ Support modules added for this rule, each holding what test modules once importe
 
 - `support/agent_definition_support.py`: `COMPLETED`, the completed agent run of the agent-definition tests.
 - `support/agent_login_support.py`: `API_LOGIN` and `SUBSCRIPTION`, the two stand-in logins, and `_utf_16`, which writes a file in UTF-16.
+- `support/before_approval_support.py`: `ROLES`, `FIXTURE` and `without_approval`, the definitions of the tests of `is_before_approval`.
 - `support/check_documents_support.py`: `MISSING_LINES`, the document check's output for a missing guide file.
 - `support/claude_reply_support.py`: `LOGIN` and `BUDGET_STOP`, the stand-in login and the reply of a run stopped by its budget.
 - `support/claude_resume_support.py`: the resume tests' reply builders (`_reply`, `_budget_reply`), request and runtime (`_request`, `_runtime`), `_after` (the argument after a flag) and `LIMIT`.
@@ -60,6 +61,7 @@ Support modules added for this rule, each holding what test modules once importe
 - `support/opencode_events_support.py`, `support/opencode_resume_support.py`: `WAIT_SECONDS`, how long the opencode stand-ins wait; `tests/guards/test_time_limits.py` reads them here.
 - `support/probe_login_support.py`: `LOGIN_FILE` and `HINT` of the login probe tests.
 - `support/sections_support.py`: `TICKS`, three backticks, for fenced text in section tests.
+- `support/two_routes_support.py`: `TWO_ROUTES`, a pipeline definition of two routes to two approval stages, in the shipped order.
 - `support/stage_image_support.py`: what the project image tests share: `BASE_IDENTITY` (the base image's identity, `"sha256-base"`), `FIRST` and `SECOND` (two stage files that satisfy the rule), `StageSeen` (what one tick ran with: image, identity, `PATH`, builds asked for) and `built_path` (the project image's `PATH` after a given build).
 - `support/story_form_support.py`: `FORM`, `SMOKE` and `_state`, a story form's text and a state at a stage.
 

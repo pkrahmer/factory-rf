@@ -1604,3 +1604,11 @@ Date: 2026-11-05 (F0052-S0005).
 - Decision: no test pins the headings of the project guide or the operator guide. The two tables of earlier headings and the tests that read them are gone. The project guide's guard reads its rule from the index instead: every page in the folder is named in the index's *The files*, every page named there exists, and every area keeps its page (`index_problems` in `tests/support/guide_files_support.py`). The searches for removed file names and the operator guide's list of topic files stay.
 - Why: the regrouping that the tables guarded is done, and a rewrite following the style page must rename headings without a test change.
 - Rejected: keeping the tables and changing their rows in each rewrite story, which would cost every rewrite a tester and a coder.
+
+## "Before the approval" is read from the forward moves
+
+Date: 2026-11-06 (F0052-S0004).
+
+- Decision: `is_before_approval` (`factory.work.domain.acceptance`) follows the first `next` of each stage and answers `True` when that chain reaches an approval stage. It no longer compares the stage's position with the first approval stage in the file. `PipelineDefinition.position` is removed, because no code calls it any more.
+- Why: the docs route lists `docs-approval` before `acceptance`, so by position an acceptance was no longer before the approval, and the early merge of an acceptance got the ordinary entry instead of `done (pull request merged before approval)`.
+- Rejected: reordering `factory/pipeline.yml` so that every approval stage comes last. That would put a rule into the file's order that nothing checks.
