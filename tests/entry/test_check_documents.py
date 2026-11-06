@@ -1,5 +1,6 @@
 """The documents command: the findings of the four documents under a root as lines."""
 
+import re
 import sys
 from pathlib import Path
 
@@ -31,7 +32,7 @@ def test_clean_documents_print_documents_ok_and_return_zero(
 
     status = main(["--root", str(tmp_path)])
 
-    assert capsys.readouterr().out == "documents ok\n"
+    assert re.fullmatch(r"documents ok \(\d+(\.\d+)? s\)", capsys.readouterr().out.splitlines()[-1])
     assert status == 0
 
 

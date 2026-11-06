@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 587
 comments_read: [6679620269, 6679692361]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T07:31:52.891416Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,13 @@ journal:
   kind: started
   at: '2026-11-06T07:31:52.891416Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: question
+  at: '2026-11-06T07:34:28.691354Z'
+  stage: tests
+  run: 9f0fd318225f44beb7e04f523cce89d0
+  blocked: question
 ---
 
 # A document's marked examples are run by the check
@@ -166,3 +169,44 @@ Expect: `1`
    5. (a), and yes: `CheckoutFixture` gets a test on a real local repository, a tracked file is in the folder and an untracked one is not, under criterion 6.
    6. Yes, follow the answer in entry 4: real short commands, no containers, in the three test modules you name.
 10. factory: started tests as vm.
+11. tester: I wrote the tests for every criterion and made the one change you allowed, but I'm stopping with a question. Once the coder adds the time line, three more tests in the module you let me change will fail, and you gave no leave for them.
+
+    Question 1: three other tests in `tests/entry/test_check_documents.py` check that the whole output is exactly `"documents ok\n"`:
+    - `test_without_a_root_the_current_directory_is_read`
+    - the `clean` row of `test_the_module_run_as_a_process_exits_with_the_status_of_main`
+    - `test_documents_are_read_as_utf_8`
+
+    Under criterion 7 the last line becomes `documents ok (<seconds> s)`, so all three fail after the coder's work. The coder can't fix them and `make check` stays red. Journal entry 9 lets me change only `test_clean_documents_print_documents_ok_and_return_zero`, "and nothing else in that module".
+    - (a) I give these three the same change: the output's last line matches `documents ok \(\d+(\.\d+)? s\)`, and each keeps its exit-status check. For the process row, the stdout's last line. The `empty-directory` row is unchanged.
+    - (b) Leave them, and the coder's `make check` stays red.
+
+    I would choose (a).
+
+    Question 2: the Interface doesn't give `CheckoutFixture`'s constructor. My test assumes `CheckoutFixture(git: GitCli)` on the `checkout` fixture's clone, with `prepare(folder)` copying the tracked files at `HEAD`. The other option is `CheckoutFixture(root: Path)`, which builds its own `GitCli`. I would keep `CheckoutFixture(git)`.
+
+    Criterion → test:
+    - criterion 1: `tests/shared/domain/test_document_examples.py::test_a_console_block_gives_its_fixture_commands_and_expected_output_in_order` (also covers `pytest` with a file being run), and `::test_a_marked_block_or_one_that_runs_the_suite_is_skipped_with_its_kind` (one row each for vm, github, model, make-check, make-test, pytest-without-a-file)
+    - criterion 2: `tests/shared/domain/test_document_examples.py::test_matches_accepts_equal_lines_and_the_placeholders_and_refuses_missing_or_extra_lines`
+    - criterion 3: `tests/shared/adapters/test_document_examples.py::test_the_blocks_of_one_document_share_a_folder_and_the_next_document_starts_fresh`
+    - criterion 4: `tests/shared/adapters/test_document_examples.py::test_a_command_whose_output_differs_gives_one_finding_and_one_that_matches_none`, `::test_the_output_compared_holds_stderr_too` (stdout and stderr merged, journal 9 3e), and `::test_a_command_past_its_limit_gives_one_finding_and_the_later_blocks_do_not_run` (limit 1 s, `sleep 30`, elapsed under 15 s)
+    - criterion 5: `tests/shared/adapters/test_document_examples.py::test_a_block_naming_an_unknown_fixture_gives_a_finding`
+    - criterion 6: `tests/shared/adapters/test_document_examples.py::test_the_commands_never_run_in_the_current_directory`, `::test_env_in_a_block_shows_the_fixed_variables_and_the_fixtures_and_not_the_callers`, and `tests/hosting/adapters/test_checkout_fixture.py::test_the_checkout_fixture_copies_the_tracked_files_and_not_the_untracked_ones`
+    - criterion 7: `tests/entry/test_check_documents_examples.py::test_the_report_lists_every_skipped_block_and_ends_with_the_time_line`
+    - criteria 8 and 9: no test (`make check` and docs)
+
+    Lines are 1-based. Following journal 9 3b, a finding names the `$ ` line for output or time and the fence line for a skipped block or an unknown fixture.
+
+    Files created:
+    - `tests/shared/domain/test_document_examples.py`
+    - `tests/shared/adapters/test_document_examples.py`
+    - `tests/hosting/adapters/test_checkout_fixture.py`
+    - `tests/entry/test_check_documents_examples.py`
+
+    Earlier test file changed, with your leave from journal 9 (1a): in `tests/entry/test_check_documents.py`, `test_clean_documents_print_documents_ok_and_return_zero` now checks that the last line matches `documents ok (<n> s)`, and the status stays 0. I also added `import re` to that module.
+
+    Test run: the three new pure and adapter modules fail at collection, for the right reason:
+    - `factory.shared.domain.documents` has no `Command`
+    - no module named `factory.shared.adapters.document_examples`
+    - no module named `factory.hosting.adapters.checkout_fixture`
+
+    The two entry tests fail on their assertions, since there is no time line yet. `make lint` is green.
