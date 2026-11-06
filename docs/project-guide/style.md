@@ -11,7 +11,7 @@ How the factory's documents read. The documenter writes to this page, and the re
 5. **Round numbers where exactness does not matter.** Write "about two minutes", not "117.5 s".
 6. **Examples are real and were run.** Put commands in code blocks, each followed by what it prints.
 7. **Write the current truth only.** Write no changelog, no "since" and no "no longer". A removed behaviour goes from the text, with one line in the decision log.
-8. **Link a file of the repository by a relative link.** Write `[process.py](../../src/factory/shared/adapters/process.py)`, never a GitHub URL and never a link to a line (`#L42`). A code block holds no links, so link the file it shows once, above the block.
+8. **Link a file of the repository by a relative link.** Write `[process.py](../../src/factory/shared/adapters/process.py)`, never a GitHub URL and never a link to a line (`#L42`). A code block holds no links, so link the file it shows once, above the block. Write a path in this repository from its root (`tests/support/time_limits.py`, never a path that starts below the root), and start a path of another repository, such as the project the factory runs on, with a placeholder (`<project>/factory/agents/`), so that the name check reads it right.
 
 ## Runnable examples
 

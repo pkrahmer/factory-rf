@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-06T09:53:41.221286Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-06T09:53:41.221286Z'
   stage: docs
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-06T09:56:55.824330Z'
+  stage: docs
+  run: 071ef49e0da54c2f860a5bc9648946a3
 ---
 
 # The checks block the listed files and report on the others
@@ -463,3 +465,27 @@ Expect: `documents ok (<seconds> s)`
     - `tests/entry/test_check_documents_references.py`: the human's leave, journal entry 11. Only the expectation of the `one-today` row changed.
     - `tests/shared/domain/test_document_references.py`: none needed. Rows were only added to the parametrized name-check test, and every existing row is as it was.
 28. factory: started docs as vm.
+29. documenter: Wrote the checked-files documentation (the take had dropped the coder's list file, so the list is new here).
+
+    Files changed:
+    - `docs/checked-documents.txt` (new): holds `docs/project-guide/style.md` and `docs/project-guide/glossary.md`, with two comment lines. Neither page has a blocking finding.
+    - `docs/project-guide/shared.md`: new section *The checked documents and the report*. It covers the list format, a missing file counting as an empty list, the blocking findings for a listed path that is missing or is not a document of the check, the output order, the omitted heading, and `not run` lines never blocking. I also updated the `check_documents` bullet and the name check text. The name check text now says its lines no longer only print, names the three readings (file name, node id, `$`), and gives the stop-line behaviour.
+    - `docs/project-guide/style.md`, rule 8: a path in the repository is written from its root, and a path of another repository starts with a placeholder.
+    - `docs/decisions.md`: new entry *The document checks block only the listed files* (F0053, feature decisions 1 to 4). Why and Rejected come from the feature's decisions 1 to 4 and the story's Description. I read `feature.md`'s decision list for the wording, since the criterion names decisions 1 to 4 and the story does not spell them out.
+
+    Run: `make documents` ends with `documents ok (0.4 s)` and prints a report (for example `docs/project-guide/machine.md:362: factory/stage.Containerfile does not exist`). Neither the style page nor the glossary is in it. I did not run `make check`, because I changed only documents.
+
+    Cross-read and found current: the README, the operator guide pages and the other project-guide pages, against the diff. The only thing the diff made stale was `shared.md` itself, which I fixed.
+
+    Stale text noticed, not touched (the report lists it, and each file is added to the list when it is rewritten):
+    - `docs/project-guide/machine.md:362` (`factory/stage.Containerfile`).
+    - `docs/project-guide/work.md:13` (`factory/agents`, written without a `<project>/` placeholder).
+    - Other report lines in documents not yet rewritten.
+
+    Notes: I left the reviewer's two test-constant notes alone. They concern tests, not documents.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.7 s)
+    `documents`: documents ok (0.4 s)
