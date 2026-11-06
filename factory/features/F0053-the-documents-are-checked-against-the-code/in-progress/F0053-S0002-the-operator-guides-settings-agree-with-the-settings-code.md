@@ -7,7 +7,11 @@ crashes: 1
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T07:03:55.173901Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   stage: doing
   run: 42cb92791ae745458b940a175da86565
   reason: died
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-06T07:03:55.173901Z'
+  stage: doing
 ---
 
 # The operator guide's settings agree with the settings code
@@ -189,3 +198,4 @@ Expect: `True`
 13. factory: crash 1: the run of stage doing ended without a result. Its work is discarded back to commit df6343e7ddca4349c3708f34958ec6be5a0308fe.
 14. factory: started doing as vm.
 15. factory: Stage doing stalled (attempt 1 of 2): the agent run died without a result
+16. factory: started doing as vm.
