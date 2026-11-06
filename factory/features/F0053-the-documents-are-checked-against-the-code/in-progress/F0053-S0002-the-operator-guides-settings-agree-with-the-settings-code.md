@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 586
 comments_read: [6675609802, 6675672524]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T07:16:50.900299Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-06T07:16:50.900299Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T07:17:52.314645Z'
+  stage: review
+  run: 7d8490dc9d66403da1e5c805b1ff4aff
 ---
 
 # The operator guide's settings agree with the settings code
@@ -357,3 +359,28 @@ Expect: `True`
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 26. factory: started review as vm.
+27. reviewer: Round 1. I reviewed `git diff main...HEAD -- . ':!factory'`: src/factory/shared/domain/settings.py, src/factory/shared/domain/documents.py, src/factory/entry/check_documents.py and the four test files. I read them against the work item and the human's answers in entries 4 and 9. The coder's `make check` was green (entry 25), and `make duplicates` reported no new findings in the modules this diff touches (entries 17 and 25).
+
+    no findings
+
+    What I checked:
+    - Both findings from entry 19 are closed. Criterion 1's defaults are now pinned by tests/shared/domain/test_settings_table.py::test_settings_table_holds_the_default_read_settings_applies, with one row per setting. Each row pins the literal default and, where a default exists, the value `read_settings(BASE)` applies. Criterion 6 is tested by tests/shared/domain/test_document_settings.py::test_guide_without_a_settings_table_gives_no_settings_finding, with two rows. It matches `settings_findings` at src/factory/shared/domain/documents.py, `if not tables: return []`.
+    - Criteria 2 to 5 each have parametrized tests, and the Interface's rules are tested on both sides:
+      - first column `Name`/`Variable` against another column;
+      - a `Default` column present and absent;
+      - `None` as an empty cell and as `none`;
+      - the three-character piece against the two-character piece;
+      - the `The refusals` heading against another heading;
+      - first column `Refusal` against another column.
+    - Architecture: the new checks are pure functions in the domain layer. The file is read only in `factory.entry.check_documents`, which passes the source text of the settings module. `guide_tables` reuses `_section_lines`, and `_table_rows` shares `_is_table_row` with the new parser, so there is no second copy of the table reading.
+    - Security: no shell or SQL is built from strings, no secrets were added, and no marker silences a check.
+    - Description: still true of what was built.
+
+    Open, not a finding: the `## Interface` still predates entry 9. It does not name `GuideTable.heading`, `guide_tables(text, section)` or `refusal_findings(guide_tables, settings_source)`, and it still says refusals are checked as part of `settings_findings`. The code and tests follow entry 9. I may correct only the Description, so only the human or an intake rerun can update the Interface.
+
+    Notes:
+    1. tests/shared/domain/test_settings_table.py `_minutes`: a copy of `_whole_minutes` at src/factory/shared/domain/settings.py:122. It is acceptable as the test's own oracle, and it is in a test file this diff adds.
+
+    Earlier tests:
+    - tests/conftest.py: standing leave to move a shared test helper. The `documents` fixture moved here with the same name and body.
+    - tests/entry/test_check_documents_operator_guide.py: standing leave to move a shared test helper. Its local `documents` fixture, `ROOT` and the `shutil` import were removed, and its tests keep their names and checks.
