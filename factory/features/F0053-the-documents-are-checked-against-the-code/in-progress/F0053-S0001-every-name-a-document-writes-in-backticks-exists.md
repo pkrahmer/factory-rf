@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 585
 comments_read: [6674965185, 6675118179]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T02:30:59.910503Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-06T02:30:59.910503Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T02:32:43.370458Z'
+  stage: review
+  run: da950e68da4246e998db3be8a972e4d7
 ---
 
 # Every name a document writes in backticks exists
@@ -134,8 +136,9 @@ A document that names a module, a function or a file the code no longer has misl
 2. A document that names a missing module, a missing attribute or a missing path, or links to a missing file (`[x](../../src/factory/nothing.py)`), gets one finding each; `[x](a.md#h)` with `a.md` missing is one finding; `../` is resolved from the document's folder (`docs/project-guide/`); a link to `https://...` or to `#a-heading` gets none, in the form of the Interface; existing ones get none (rows of one test).
 3. `docs/decisions.md`, `docs/runs/` and the two *Replaced* sections give no finding, whatever they name; a missing name after a *Replaced* section's end (the next `##` heading) is reported.
 4. The command prints the findings after today's findings of the document check, and its exit status does not change for them until S0004; it reads `README.md`, `docs/operator-guide/` and `docs/project-guide/`, shown by one planted missing name in each.
-5. `make check` stays green.
-6. docs: `docs/project-guide/shared.md`, *The document check*: the name check. `docs/operator-guide/pipeline.md`: none. `docs/decisions.md`: none (the feature's decisions go in at S0004).
+5. `named_references` gives no link reference for a link to an absolute path (`[x](/srv/a.md)`), to a `mailto:` address (`[x](mailto:a@example.org)`), or with a placeholder in angle brackets or a glob in its target (`[x](<instance>.md)`, `[x](*.md)`) (rows of the criterion 1 test).
+6. `make check` stays green.
+7. docs: `docs/project-guide/shared.md`, *The document check*: the name check. `docs/operator-guide/pipeline.md`: none. `docs/decisions.md`: none (the feature's decisions go in at S0004).
 
 ## Smoke test
 
@@ -281,3 +284,22 @@ Expect: a number alone (the count of findings, possibly `0`)
     `check`: check: green
     `duplicates`: duplicates: 5 new, 40 known, 3 gone
 18. factory: started review as vm.
+19. reviewer: Review, round 0. I read the diff against main and the work item. `make check` was green after the coder (entry 17).
+
+    Findings:
+    1. criterion 5 added: it needs its test. `src/factory/shared/domain/documents.py` `_link_name` skips links that start with `/` or `mailto:` and links whose target holds `<`, `>` or `*`, but no criterion named that behaviour. The new criterion 5 names it, and the closing criteria are now 6 and 7. Fix: the tester adds those four rows to `test_named_references_finds_backticked_names_paths_and_links`.
+    2. `tests/entry/test_check_documents_references.py`, `test_a_missing_name_path_or_link_target_gets_one_finding` and `test_an_existing_name_path_or_link_and_a_web_or_heading_link_get_no_finding`: criterion 2 says "rows of one test", but the two sides of the rule are two test functions. Fix: one parametrized test whose rows each carry their expected findings (`[]` for the existing ones).
+    3. Same file, the three link rows (`missing-link`, `missing-link-with-fragment`, `link-resolved-from-folder-missing`): they check only the `<document>:<line>: ` prefix and the count, never the name. The Interface settles the name as the target resolved against the document's folder without its fragment, so the "form of the Interface" in criterion 2 goes untested for links. `[x](../README.md)` would also give one finding if `../` were resolved from the root. Fix: assert the whole line with `src/factory/nothing.py`, `docs/project-guide/a.md` and `docs/README.md`.
+    4. Same file, criterion 2 and Interface ("the command fills in … `top_level`"): every missing-path row has a file extension, so no test shows that the command passes the checkout's top-level entries. Fix: a row with a missing path that has no extension but starts with a top-level folder (`operator/nothing_here/`), expecting one finding.
+    5. `tests/shared/domain/test_document_references.py`, `test_named_references_finds_backticked_names_paths_and_links`: three failing sides of the Interface's path rule have no row: a backticked text with whitespace (`make -C operator/vm`), one starting with `~` (`~/.config/factory/site.env`) and one holding `://` (`https://example.org/a.md` in backticks). The code refuses all three in `_is_path`, but these are rule sides, not limits. Fix: one row each, expecting `[]`.
+    6. `src/factory/shared/domain/documents.py`, `UNCHECKED_SECTIONS`: it writes the literal `"Replaced from v1"` a second time instead of using the existing `REPLACED_SECTION` constant. Fix: `UNCHECKED_SECTIONS: Final = (REPLACED_SECTION, "Replaced in v1.2")`.
+
+    Checked and fine:
+    - Architecture: the pure rules are in `shared.domain`; `importlib` and the filesystem are in `entry`, as the Interface says.
+    - Security: no markers, no shell, nothing built from strings.
+    - A *Replaced* section ends at the next `## ` heading through `sections()`.
+    - The Description matches what was built.
+    - The docs criterion still holds.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents_operator_guide.py`: changed under the human's leave in journal entry 11, answer 2(a). The change is only the comparison that leaves out the ` does not exist` lines, which is within that leave.
