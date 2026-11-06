@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-06T09:19:25.271476Z'
   stage: smoke-test
   run: 967b596debab4525a34762eb9928d405
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-06T09:21:17.598128Z'
+  stage: approval
 ---
 
 # The examples start from a known instance
@@ -491,3 +496,4 @@ Expect: `1`
     Not checked here: `make check` (criterion 10). The smoke test does not run it, and the factory's gate does.
 
     Findings: none. I fixed nothing.
+32. factory: done (pull request merged); cost: 14 runs, 17.6 min, 110 turns, 330640 tokens in (2808041 more from cache), 44419 out, $3.76
