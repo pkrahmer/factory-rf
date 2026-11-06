@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 588
 comments_read: [6681011738, 6681194364]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T09:09:31.228104Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -114,6 +118,11 @@ journal:
   at: '2026-11-06T09:09:25.794894Z'
   stage: review
   run: e98dd0543f144dc18b04d149f35b4b0c
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-06T09:09:31.228104Z'
+  stage: doing
 ---
 
 # The examples start from a known instance
@@ -298,3 +307,4 @@ Expect: `1`
     The old closing criteria 8 (`make check`) and 9 (docs) are now 10 and 11. I changed nothing else in the work item.
 
     Earlier tests: none. The diff only adds a test file (`tests/hosting/adapters/test_instance_fixture.py`, status `A`) and changes no test that `main` already holds.
+20. factory: started doing as vm.
