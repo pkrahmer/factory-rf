@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 596
 comments_read: [6685329163]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-06T12:57:32.795776Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-06T12:57:27.674496Z'
   stage: intake
   run: 735dfc5f37ec4dcdbc623633c9db7098
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-06T12:57:32.795776Z'
+  stage: tests
 ---
 
 # The example runner's tests use the roomy limit
@@ -102,3 +111,4 @@ Expect: `1`
    - Docs criterion: `docs: none`, which is right because only tests change. It dictates no sentences.
    - Architecture: test-only changes put shared helpers in `tests/support/`, as CLAUDE.md asks. No test module imports another.
    - Scope: within F0053 and not in its "Out of scope". Decision 6 gives the leave to change earlier tests, and the tester names each changed test. The route is `tests`.
+7. factory: started tests as vm.
