@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 589
 comments_read: [6681611113, 6681795743]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-06T09:52:22.645711Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-06T09:52:22.645711Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-06T09:53:35.791558Z'
+  stage: review
+  run: 647fbbfe124949dcbb34989fa588cc8f
 ---
 
 # The checks block the listed files and report on the others
@@ -190,7 +192,7 @@ The new checks (names, settings, examples) will find many faults in today's docu
 11. With no `docs/checked-documents.txt`, the list is empty: a finding of the name, settings or example check in any file is printed under `Report (not checked yet):`, none blocks, and the command ends with `documents ok` (one row).
 12. A line for an example not run (`<document>:<line>: not run (<kind>)`) is printed in the report after the reported findings, also for a listed file, and never fails the command (rows of one test: listed and not listed).
 13. `make check` stays green.
-14. docs: `docs/project-guide/shared.md`: the checked files and the report. `docs/project-guide/style.md`, rule 8: a path of another repository, such as the project the factory runs on, starts with a placeholder (`<project>/factory/agents/`), and a path in the repository is written from its root (`tests/support/time_limits.py`, not `support/time_limits.py`), so that the name check reads it right. `docs/decisions.md`: an entry for feature decisions 1 to 4, naming F0053.
+14. docs: `docs/checked-documents.txt`, written with `docs/project-guide/style.md` and `docs/project-guide/glossary.md`, one per line (the Interface; the human, journal entry 11). `docs/project-guide/shared.md`: the checked files and the report. `docs/project-guide/style.md`, rule 8: a path of another repository, such as the project the factory runs on, starts with a placeholder (`<project>/factory/agents/`), and a path in the repository is written from its root (`tests/support/time_limits.py`, not `support/time_limits.py`), so that the name check reads it right. `docs/decisions.md`: an entry for feature decisions 1 to 4, naming F0053.
 
 ## Smoke test
 
@@ -418,3 +420,36 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 26. factory: started review as vm.
+27. reviewer: Round 1 review of `git diff main...HEAD -- . ':!factory'`: `src/factory/entry/check_documents.py`, `src/factory/shared/domain/documents.py`, the new `tests/entry/test_check_documents_checked_files.py` and three changed test modules. The factory's `make check` after the coder was green (entry 25: test 103.6 s, coverage 99.22 %). `make duplicates` reported 6 new, the same as entry 17, and entry 19 found none of them in code this diff wrote.
+
+    What I checked:
+    - Criteria 1 to 12 each have a test that checks what the criterion says. Since round 0 the tester added a test for criterion 11 (no list file: every finding is reported, the command ends with `documents ok`, status 0) and one for criterion 12 (the not-run line comes after the reported findings, with rows for listed and not listed). The copy of `ROOT` is gone; the module now imports it from `tests/support/operator_support.py`.
+    - Every limit of the Interface is tested on both sides:
+      - each of the eight file extensions against `factory.shared.domain.yml_reader`, which is still read as a module;
+      - a node id with `::` and a path without it;
+      - a text with `$` (skipped as a whole) and one without;
+      - a listed path that is a document of the check, one that does not exist, and `docs/decisions.md`;
+      - the report heading printed when there is something to report and left out when there is not.
+    - I read the code for each stated reading:
+      - `_line_references` (documents.py) drops a backticked text that holds `$` and cuts a node id at `::`.
+      - `_is_module_name` leaves out the eight file extensions.
+      - `checked_list_findings` compares each listed path against `_named_documents`, which holds `README.md` and the `.md` files under the two guide folders that exist.
+      - `split_findings` decides by document and keeps the order.
+      - `main` prints the blocking lines, then the heading and the report only when there is one, then the time line only when nothing blocks; otherwise it returns 1.
+    - Architecture: the list and the split are pure functions in `shared.domain`, and the reading and printing stay in `factory.entry`.
+    - Security: the listed paths are only compared, never opened. No markers or baseline entries were added.
+    - Quality: names, docstrings and the comments that explain why are in order.
+
+    Round 0's finding 3 is open no longer: the human's entry 11 settles it, so I corrected the criterion myself.
+    - description corrected: criterion 14 (docs) said `docs/project-guide/shared.md: the checked files and the report. ...` -> it now begins `docs/checked-documents.txt, written with docs/project-guide/style.md and docs/project-guide/glossary.md, one per line (the Interface; the human, journal entry 11).`, and the rest is unchanged. The take dropped the coder's list file, and the documenter works from this criterion. Until the file is written the command reads a missing list as an empty one, and criterion 3's test supplies its own list.
+
+    no findings
+
+    Notes:
+    - `tests/entry/test_check_documents_checked_files.py:27`: `CHECKED_LIST = "docs/checked-documents.txt"` repeats `CHECKED_DOCUMENTS` from `factory.shared.domain.documents`, which the module could import.
+    - `tests/entry/test_check_documents_checked_files.py:30`: `REPORT_HEADING` is the same text written again in `tests/entry/test_check_documents_operator_guide.py:93` and `tests/entry/test_check_documents_references.py:211`. A constant in `tests/support/check_documents_support.py` would hold it once.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents_operator_guide.py`: the human's leave, journal entry 11. Only the heading line was added to the lines left out before the comparison.
+    - `tests/entry/test_check_documents_references.py`: the human's leave, journal entry 11. Only the expectation of the `one-today` row changed.
+    - `tests/shared/domain/test_document_references.py`: none needed. Rows were only added to the parametrized name-check test, and every existing row is as it was.
