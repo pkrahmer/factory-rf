@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 609
 comments_read: [6697578988]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-06T22:39:05.960744Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-06T22:39:05.960744Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-06T22:41:27.370645Z'
+  stage: tests
+  run: 67d09e2143a04ecea3de9ea01ab76cba
 ---
 
 # The check reads an indented example and one without a command
@@ -104,3 +106,17 @@ Expect: `1 echo hi`
    - Architecture: the change is domain-only in the shared area, with no new dependency.
    - Scope: it fits F0054. It is the code-fault follow-up story that the feature's Out of scope calls for.
 7. factory: started tests as vm.
+8. tester: I added the red tests for every criterion: new rows in the two earlier modules that the Interface names. No earlier row was changed.
+
+   - criterion 1: tests/shared/domain/test_document_examples.py::test_a_block_indented_under_a_step_reads_as_at_column_0 (rows: three-spaces, four-spaces, tab, column-0, line-less-indented-than-fence; every row expects the same Example, fence line 5 and command line 6, and the less-indented row keeps its one space in the expected line ` hi`)
+   - criterion 2: tests/entry/test_check_documents_examples.py::test_a_console_block_without_a_command_is_a_finding_at_its_fence (rows: column-0, indented; the finding `docs/project-guide/shared.md:<fence line>: the example has no command` is printed and `main` does not raise). A second test covers the domain side: tests/shared/domain/test_document_examples.py::test_a_console_block_without_a_command_gives_no_example (rows: column-0, indented; `examples` does not raise and gives no runnable Example). It does not pin whether such a block appears in `skipped`, because the Interface leaves that open.
+   - criterion 3: tests/entry/test_check_documents_examples.py::test_an_example_finding_blocks_in_a_listed_file_and_is_reported_in_any_other (rows: no-command-listed blocks with exit 1; no-command-not-listed and mismatch-not-listed are reported under the report heading with exit 0)
+   - criterion 4: tests/entry/test_check_documents_examples.py::test_an_indented_example_is_run_and_a_mismatch_in_a_listed_file_blocks (rows: match prints only the time line with exit 0; mismatch-listed prints one finding, `the example printed ...`, with exit 1)
+
+   The entry tests run on the `minimal` fixture (tests/support/minimal_documents_support.py). They append a numbered step with a `console` block to `docs/project-guide/shared.md` and commit it through `add_and_commit`. `docs/checked-documents.txt` holds either that page or nothing.
+
+   Files changed: tests/shared/domain/test_document_examples.py and tests/entry/test_check_documents_examples.py. I created no new files. No module failed to import, because `factory.shared.domain.documents` exists.
+
+   Test run (`uv run pytest -q` on the two files): 13 new rows fail, all with `ValueError: zip() argument 2 is longer than argument 1` at src/factory/shared/domain/documents.py:681. The column-0 row of criterion 1 and every earlier row pass. I ran the tests twice: the first run showed that my own helper `_append_step` counted the fence line wrongly, so I changed it to use `line_of` and ran once more to see the real reasons. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
