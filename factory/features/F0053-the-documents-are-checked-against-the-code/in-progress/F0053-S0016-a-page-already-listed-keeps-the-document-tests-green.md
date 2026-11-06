@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 605
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-06T20:42:08.438514Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-06T20:42:02.762427Z'
   stage: review
   run: 36916745fc804af2b59dfe9ed1dce404
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-06T20:42:08.438514Z'
+  stage: doing
 ---
 
 # A page already listed keeps the document tests green
@@ -169,3 +178,4 @@ Expect: the first command prints `documents ok (<seconds> s)`. The second prints
    - `tests/support/check_documents_support.py`: changed under the same human's leave, feature decision 9. `write_checked_list` keeps its signature and its text, and only skips the commit when the text is unchanged.
 
    Both findings are in test files, so the coder hands them to the tester with `tests` (R9).
+10. factory: started doing as vm.
