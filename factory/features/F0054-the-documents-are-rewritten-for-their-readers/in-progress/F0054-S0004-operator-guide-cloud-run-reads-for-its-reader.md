@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:07:32.706414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T00:07:32.706414Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:09:11.435661Z'
+  stage: docs-review
+  run: 0c707730ab8f4d4aac3065c6a6cddfff
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -170,3 +172,9 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (5.9 s)
 10. factory: started docs-review as vm.
+11. reviewer: Docs review, round 1. I read `docs/operator-guide/cloud-run.md` on the branch against the file on `main`, `operator/vm/job-start.sh` (lines 1-140) and `operator/job/job.sh` (its messages, `status` and `log`), and against `docs/project-guide/style.md` and the glossary. All eight round-0 findings are fixed: the idle-shutdown condition is at :125, the `--region` cause at :135, `/secrets/hosting-token` at :55, the order of the checks at :96, the failure line at :113, the `JOB_START_SH_END` message at :206 and :289, the glossary links at first use (instance, stage, base, crash, work item, story, tick, stop) and the `make documents` paragraph is gone. `docs/checked-documents.txt` holds the path. The links from `README.md`, `site.md`, `install.md` and the guide index still point to headings that exist. Every message in the two Reference tables matches `job.sh` and `job-start.sh` word for word. The smaller changes are acceptable: `gcloud run jobs execute <job>` became `sh operator/job/job.sh execute` at :127, and the gcloud call is still named at :213. The P-labels, the measurement date and the "candidate for later" sentence were dropped on purpose as history.
+
+    Findings:
+    1. `docs/operator-guide/cloud-run.md:228`: "`log` and `status` pass what they print through `operator/bin/sanitise`" is false. `status` prints its execution lines unsanitised (`printf '%s\n' "$executions"`, `operator/job/job.sh:444`) and passes only the stop line through `sanitise` (`job.sh:451`). `log` sanitises every line (`job.sh:382,384`). `main` had this right. Fix: "`log` passes every line it prints through `operator/bin/sanitise`, and `status` passes the stop line it prints".
+    2. `docs/operator-guide/cloud-run.md:139-146` and `:221-224`: these `sh` blocks hold usage synopses with `[--dry-run]`, `[N]` and `NAME`, not bare commands. They also stand under no numbered step. style.md *Examples that are not run* allows an `sh` block only for bare commands under their numbered step. The second block repeats two lines of the first, and the usage `console` example at :150-153 already shows the full grammar. Fix: replace the block at :139-146 with a table of `Command` and `What it does` (create, update, execute, delete, log, status, each with its options), and drop the block at :221-224.
+    3. `docs/operator-guide/cloud-run.md:129`: *A free model* is now a `####` subsection of *Starts, restarts and the end of an execution*, but it is about model prices, not starts. On `main` it was a section of its own (`###`), and nothing links to it. Fix: make it `###` again, so it is a sibling of the other sections.
