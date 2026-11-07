@@ -542,7 +542,7 @@ A handler that answers an act of the human on a pull request first records the a
 
 ### The merge archives the story
 
-`MergedHandler(boundaries)` in [merged.py](../../src/factory/pipeline/application/handlers/merged.py) (`factory.pipeline.application.handlers.merged`) handles `merged`; it is registered for `merged` and is also the merged handler of the run gate. It does what [work-items.md](../operator-guide/work-items.md) says under *A merge archives the story*, in this order:
+`MergedHandler(boundaries)` in [merged.py](../../src/factory/pipeline/application/handlers/merged.py) (`factory.pipeline.application.handlers.merged`) handles `merged`; it is registered for `merged` and is also the merged handler of the run gate. It does what [the operator guide on work items](../operator-guide/work-items.md) says under *A merge archives the story*, in this order:
 
 1. `target_of(event)`, then `WorkItemRecorder.check_out(MAIN_BRANCH)`: it works on the remote's main, not on the work item's branch.
 2. It reads the story at `snapshot.path` and appends `NewEntry(FACTORY, "done", done_entry_text(bill(records)))`. The records are `cost_reader.read(cost_records_path(path))`; a missing file gives none. `done_entry_text(bill)` is in `factory.hosting.domain.post_texts`: `done (pull request merged); cost: ` and `cost_line(bill)`.
@@ -555,7 +555,7 @@ It posts nothing and does not touch the pull request. `destination_path(path, fo
 
 ### A close before the approval discards the story
 
-`ClosedHandler(boundaries, definition)` in [closed.py](../../src/factory/pipeline/application/handlers/closed.py) (`factory.pipeline.application.handlers.closed`) handles `closed`; it is registered for `closed` and is also the closed handler of the run gate. It does what [work-items.md](../operator-guide/work-items.md) says under *A close before the approval discards the story*:
+`ClosedHandler(boundaries, definition)` in [closed.py](../../src/factory/pipeline/application/handlers/closed.py) (`factory.pipeline.application.handlers.closed`) handles `closed`; it is registered for `closed` and is also the closed handler of the run gate. It does what [the operator guide on work items](../operator-guide/work-items.md) says under *A close before the approval discards the story*:
 
 1. `target_of(event)`. When `definition.stages[stage].approval` is true the handler sends the story back instead (see *A close at the approval sends the story back*) and does not discard it.
 2. `WorkItemRecorder.check_out(MAIN_BRANCH)`, then `Git.move` of the story to `destination_path(path, "backlog")`. The file is moved and not rewritten, so its text is main's, the human's.
@@ -566,7 +566,7 @@ It makes no hosting-service call. Tests: `tests/pipeline/application/handlers/te
 
 ### A close at the approval sends the story back
 
-`ClosedHandler._send_back(target)` handles a `closed` event at a stage whose `approval` is true; [work-items.md](../operator-guide/work-items.md) says what the operator sees under *A close at the approval sends the story back*. The rules are pure functions in [send_back.py](../../src/factory/work/domain/send_back.py) (`factory.work.domain.send_back`):
+`ClosedHandler._send_back(target)` handles a `closed` event at a stage whose `approval` is true; [the operator guide on work items](../operator-guide/work-items.md) says what the operator sees under *A close at the approval sends the story back*. The rules are pure functions in [send_back.py](../../src/factory/work/domain/send_back.py) (`factory.work.domain.send_back`):
 
 - `send_back_target(definition, approval)` is `next[1]` of the approval, or `None` when `next` has fewer than two stages. `None` is `CannotHandle("closed", ...)` before anything is written.
 - `send_back_cap(definition, approval)` is the `round_cap` of the first stage whose `next[0]` is the approval and that has a cap, or `None`.
@@ -617,7 +617,7 @@ The handler posts nothing; `AskHandler` posts the question. Tests: `tests/pipeli
 
 ### An illegal stage change is put back
 
-`RejectHandler(boundaries)` in [reject.py](../../src/factory/pipeline/application/handlers/reject.py) (`factory.pipeline.application.handlers.reject`) handles `reject`; it is registered for `reject`. It puts the stage back with a commit whose subject contains `moved back` (`MOVED_BACK_MARKER`, `factory.hosting.domain.post_texts`), and the journal gains a `move_back` entry. That entry is what exempts the correction from the move rule: the next evaluation sees a `StageChange` with `correction` true and does not reject it. [work-items.md](../operator-guide/work-items.md) says what the operator sees.
+`RejectHandler(boundaries)` in [reject.py](../../src/factory/pipeline/application/handlers/reject.py) (`factory.pipeline.application.handlers.reject`) handles `reject`; it is registered for `reject`. It puts the stage back with a commit whose subject contains `moved back` (`MOVED_BACK_MARKER`, `factory.hosting.domain.post_texts`), and the journal gains a `move_back` entry. That entry is what exempts the correction from the move rule: the next evaluation sees a `StageChange` with `correction` true and does not reject it. [the operator guide on work items](../operator-guide/work-items.md) says what the operator sees.
 
 1. `target_of(event)`, then `WorkItemRecorder.check_out(snapshot.branch)`.
 2. The change is taken from the same source as the watcher's: `RemoteWorkItems(git, work_item_reader).last_stage_change(snapshot)`, the newest commit beyond `origin/main` that touched the work item's file, whatever later commits touched other files. `None` (no change, a merge commit, a parent without the file or with an unreadable one) and a change that is itself a correction raise `CannotHandle("reject", ...)` before anything is posted or written.

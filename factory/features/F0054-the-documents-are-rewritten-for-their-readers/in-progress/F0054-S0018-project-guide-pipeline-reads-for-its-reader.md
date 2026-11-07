@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:58:14.324444Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -52,6 +48,12 @@ journal:
   kind: started
   at: '2026-11-07T05:58:14.324444Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:01:09.927638Z'
+  stage: docs-only
+  run: 7f74800d6a2544078fae85262d9b17ca
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -135,3 +137,19 @@ Expect: `1`
    FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/projec...ork-items.md'] == []
    make: *** [Makefile:89: test] Error 1
 7. factory: started docs-only as vm.
+8. documenter: Round 0, second run after the red check. The check was red because of one test, `tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file`. It flagged four lines of `docs/project-guide/pipeline.md` (545, 558, 569, 620). On each, the link text `work-items.md` matched the guard's pattern for a removed guide file. The links themselves point at the existing `docs/operator-guide/work-items.md` and were fine.
+
+   Files changed:
+   - `docs/project-guide/pipeline.md`: on those four lines, the link text `[work-items.md]` is now `[the operator guide on work items]`. The targets are unchanged.
+
+   Checks: the guard test passes when run alone, and `make documents` ends with `documents ok (16.7 s)`. I did not run `make check`, since the only file changed is a document; the factory's gate decides.
+
+   For the reviewer, from the first run's entry, which still stands:
+   - The page has no *Reference* section. The detail stays in each section's rules.
+   - The documenter checked only the rule count and a few named constants against the code. The other claims were carried over from the old file without comparing them to the code. Please compare the old and new file against the code.
+
+   Stale text I saw but did not touch, unrelated to this story: paths that do not exist in `docs/project-guide/README.md` (lines 67 to 141 and 283) and `README.md:28`. `make documents` lists them as "not checked yet".
+
+   `check`: check: green
+   `secrets`: secrets: green (0.7 s)
+   `documents`: documents ok (16.3 s)
