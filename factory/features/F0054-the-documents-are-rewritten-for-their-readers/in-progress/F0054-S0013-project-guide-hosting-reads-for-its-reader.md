@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:34:34.264381Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T03:34:34.264381Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:36:13.012019Z'
+  stage: docs-review
+  run: 81104c9d97c24ee9a181a634cc5c5aaf
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -214,3 +216,23 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (9.1 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I checked the page against the code on the branch, against the old page on `main` and against `docs/project-guide/style.md`.
+
+    What holds:
+    - All nine round-0 findings are fixed. `wiring.py`, `pipeline.md`, `machine.md` and `decisions.md` are each linked once. Both `operator/vm/` files are linked. *Deleting and merging branches* now opens with plain sentences. The `status` row now names the claim and the stall handling (`claims.py:96`, `stalls.py:111`).
+    - The new `pygithub_service` bullet (line 37) matches `pygithub_hosting.py:172`: `lazy=True`, `retry=hosting_retry()`.
+    - The `InstanceSettings.checkout` and `InstanceSettings.state_directory` paragraph (line 279) matches `settings.py:192-193`, `:231-234` and `:606-610`.
+    - The environment order (lines 228-229) matches `git_cli.py:472-489`.
+    - The checked list holds the line, and no heading that another document links to has changed.
+
+    Findings:
+    1. `docs/project-guide/hosting.md:245`, `:156` and `:181`: these lines say only "the merge and the discard" delete branches, but the code deletes them in two more places. Restoring the checkout deletes the local work item branches (`src/factory/pipeline/application/tick.py:199-200`). The recovery deletes the stale remote branches of stories that are back in the backlog or done (`src/factory/pipeline/application/recovery.py:247`). Fix: add both to the row's "Used by" and to the "Who uses them" sentence at line 181. Make line 156 say that the branches are deleted after a merge or a discard, by the tick and by the recovery.
+    2. `docs/project-guide/hosting.md:198`: the glossary word "take" is not linked anywhere on the page. Round 1 removed its only link, and the entry's claim that it is "already linked in The git wrapper" is wrong. Its first use is the section name at line 134, and its first use in prose is "The take's restore" at line 198. Fix: link `take` to `glossary.md` at its first use in prose (line 198).
+    3. `docs/project-guide/hosting.md:156`: the glossary word "work item" is used here first ("A merge or a discard of a work item"), but it is linked only at line 181. That breaks style rule 3. Fix: move the link to line 156 and write the name plain at line 181.
+    4. `docs/project-guide/hosting.md:309`: the first sentence of the `work_tree_id` row still holds two parentheses, "(`factory.hosting.domain.git`, 40 lower-case hex characters, …)" and "(`matches_any`, as for write paths: …)". The sentence "Tracked files count … as in a commit." runs to about 40 words. Both break style rule 2. Fix: move the `TreeId` description into its own sentence, and split the sentence about what counts at its semicolon.
+
+    Rejected as findings:
+    - Row 272 names only `GIT_CEILING_DIRECTORIES` and `GIT_CONFIG_NOSYSTEM` as set after `environment`. It is incomplete, but nothing in it is false, and lines 228-229 give the full order.
+    - Line 279 gives `SettingsInvalid` when the settings are read from the environment and `ValidationError` from the model's own validator. Both are true (`settings.py:609`, `:233`).
+
+    Open: nothing beyond the findings above.
