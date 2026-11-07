@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T08:05:46.646923Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T08:05:46.646923Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T08:11:13.399930Z'
+  stage: docs-only
+  run: b09524053f7640449c4e971342f9f5b5
 ---
 
 # The project guide's index reads for the developer
@@ -195,3 +197,38 @@ Expect: `1`
 
    Not checked: every one-line description of a `tests/support/` module against its source. I did not run `make documents`; the documenter's run printed `documents ok`, and the factory runs it again as the gate.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's 15 findings in `docs/project-guide/README.md`. `make documents` ends with `documents ok (58.3 s)`. Only documents changed, so I did not run `make check`.
+
+   Files changed:
+   - `docs/project-guide/README.md`: the fixes below. No other file changed this round; `docs/checked-documents.txt` keeps its line from round 0.
+
+   Findings, by number:
+   1. *Errors* now covers every class in `src/factory/shared/domain/errors.py`. I read the file for the added classes: `TokenError`, `FixtureError`, `PipelineDefinitionInvalid`, `AgentDefinitionError`, `AgentDefinitionMissing`, `AgentDefinitionInvalid`, `UnhandledEvent`, `SettingsInvalid` and `MachineStopStood`. The scope sentence now says the section describes each class.
+   2. The ordinals "first" to "fourth" are gone. Each class says what it is a subclass of.
+   3. The hierarchy block now shows the whole tree: every class with its parent.
+   4. The five fault-path and kill-point test files are each linked above the block that runs them.
+   5. *The demos* now links `demo/todo-service/README.md` and `demo/todo-service/project/factory/pipeline.yml` and `story-form.md`, all as the example's.
+   6. Paths now start at the repository root: `tests/guards/`, `tests/vm/`, `tests/operator_scripts/`, `tests/agent_files/`, `tests/<area>/<layer>/`, `tests/entry/` and `demo/<name>/features/...`.
+   7. The inner parenthesis in `STALL_CONDITIONS` is now a sentence of its own.
+   8. I split the *Kill points* opening, the *Fault-injection paths* opening, the `PushFailed` bullet and the `shared.md` entry. Each now has at most one parenthesis.
+   9. Factory words are linked to the glossary at first use: "acceptance", "leases", "stops", "approval", "round cap" and "attempts cap".
+   10. *Shared test helpers* gets an opening idea and a See also. *The models' configuration* gets a code block, bullets and a See also. *The kill-point cases* gets a See also.
+   11. The unparseable sentence in *The files* is now two sentences.
+   12. `tests/operator_scripts/` now says why the folder is not named `operator`: a package of that name would hide the standard library's module.
+   13. The paths that need no row now say what covers them: the claim and the crash rules for the restart, and the empty bill at the start for the discarded story. The rest are reworded.
+   14. I added *Reference* to the `shared.md`, `hosting.md` and `agents.md` entries, and *Journal* and *Reference* to the `work.md` entry. I compared these four against the pages' `##` headings, which I listed with grep.
+   15. The stray space before `check_demos(root)` is gone.
+
+   Cross-read and found current: the glossary terms I linked all exist there, and the headings I cite in the other pages (*The bearer token*, *The examples*, *The pipeline definition*, *The agent definition reader*) exist.
+
+   Not done: I did not compare the one-line descriptions of the `tests/support/` modules against their source. The reviewer did not check them either.
+
+   Stale text I noticed and did not touch, because it is unrelated to this story:
+   - `demo/README.md` and `CLAUDE.md` still say "v1.1".
+   - The report line `README.md:28: factory/stage.Containerfile does not exist` comes from the top-level README, which is not on the checked list.
+
+   I removed my scratch files from `/tmp` this round. The `/tmp/xxwork` folder from round 0 I did not touch.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.5 s)
+   `documents`: documents ok (57.0 s)
