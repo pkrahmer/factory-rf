@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:24:41.970248Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T00:24:41.970248Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:28:36.344846Z'
+  stage: docs-only
+  run: c408dbd565cc4d9abd3e57bfc908cbd4
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -174,3 +176,30 @@ Expect: `1`
    - "This repository's own build stays on the subscription";
    - `limit_wait` (an internal field that is not in the records contract).
 8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's twelve numbered findings in `docs/operator-guide/agent-runtime.md`. `make documents` ends with `documents ok (10.3 s)`. I did not run `make check`, because I changed only a document.
+
+   Files changed:
+   - `docs/operator-guide/agent-runtime.md`: the changes below.
+   - `docs/checked-documents.txt`: unchanged this round.
+
+   Findings:
+   1. The manual-login route is removed. The login list now ends in "none", and *Without a login file* says the shell reports `none` and that a login made by hand does not survive the rollback. It points to the token file.
+   2. `died` is now defined as a run that exits non-zero, gives no reply or an error reply, and has no provider limit, budget or time limit applying. I did not re-read the code lines the reviewer cited (`claude_runtime.py:226-241`, `opencode_runtime.py:477-490`); I took the conditions from the reviewer's finding and the old text.
+   3. The token-age sentence is corrected: the file is rewritten at least every ten minutes, so a run starts with a token at most ten minutes old, and that token stays valid for at least its life less ten minutes (fifty minutes for a one-hour token).
+   4. The `FACTORY_OPENCODE` default in the Reference table is now `opencode`. The reviewer cited `settings.py:91,161`; I did not read it, only the reviewer's finding.
+   5. The opencode folders are now three full paths under the agent's home `/work/home`. The first attempt, `.cache/opencode`, was flagged by the name check, so all three are written as full paths.
+   6. The rule that the factory takes the first word of `claude --version` (example `2.1.289`) is restored in *How a call is made*. `agent-runtime-version` is described the same way.
+   7. *Running on opencode* now has numbered steps that set `FACTORY_AGENT_RUNTIME=opencode` (or `--runtime opencode` of `operator/vm/setup.sh`) and restart the instance.
+   8. Each inline command that needs the VM or a model now stands in an `sh` block under its step, with a line saying where it runs. These are `claude setup-token`, `install -m 0600 ...`, `Set-Content ...`, `opencode models anthropic` and `python -m factory.entry.refresh_token`. They are not run.
+   9. I linked these words to the glossary at first use: role, cost record, journal, work item, tick, attempts cap, lease, claim, crash, story, feature and round. Claim and role were not linked at the reviewer's cited lines (the reviewer named line 16 for claim and line 14 for role, but the document's first uses are elsewhere). A "project command" mention and the "stop" mentions are not linked, because the page uses them only in passing in a sentence about the secret and in the name of a stop; the reviewer should say if they still want them.
+   10. The `FACTORY_CLAUDE_HOME` sentence now says the setting names the shipped agents' folder for both runtimes.
+   11. The two ceiling alternatives are bullets, not numbered steps.
+   12. "The wiring gives the runtime this chain" is replaced by a pointer to "The stage environment" in `install.md`.
+
+   Cross-read and found current: `install.md`, `health.md`, `stops.md`, `machine.md`, `work-items.md`. No heading that another file links to was changed.
+
+   Stale text noticed and not touched: the project guide's "does not exist" report lines (`hosting.md`, `machine.md`, `work.md`, `README.md`, `health.md`). The files are not on the checked list.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (10.5 s)

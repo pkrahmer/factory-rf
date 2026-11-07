@@ -11,9 +11,9 @@ Every agent call runs in a throwaway container of the [stage](../project-guide/g
 - The agent's home is `home/` on the dataset. The rollback to the [base](../project-guide/glossary.md) clears it before every stage, so nothing an agent or a login command leaves there reaches the next run.
 - The call gets only the environment its request gives, with `HOME=/work/home`. No variable is inherited from the factory.
 - The factory itself holds no key or token. A small shell inside the container reads the login files (see *The login*).
-- The [take](../project-guide/glossary.md) copies out of the dataset only the changed paths the agent's role may write. A write elsewhere is lost, not refused, so an agent keeps temporary files in `mktemp` or `tempfile`. No kernel rule stands behind this.
+- The [take](../project-guide/glossary.md) copies out of the dataset only the changed paths the agent's [role](../project-guide/glossary.md) may write. A write elsewhere is lost, not refused, so an agent keeps temporary files in `mktemp` or `tempfile`. No kernel rule stands behind this.
 
-The preflight's `agent-run-probe` makes one call with the real flags once for each image build. A flag the pinned program rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run" in [health.md](health.md). The preflight's `agent-runtime-version` compares the pinned version with `claude --version` or `opencode --version`, run in the stage image (see "The preflight's items" in [health.md](health.md)).
+The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The preflight compares it with `FACTORY_CLAUDE_VERSION`, the pinned version the flags were written for. The preflight's `agent-run-probe` makes one call with the real flags once for each image build. A flag the pinned program rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run" in [health.md](health.md). The preflight's `agent-runtime-version` runs `claude --version` or `opencode --version` in the stage image and compares the first word of its output with the pinned version (see "The preflight's items" in [health.md](health.md)).
 
 ### The container's fence
 
@@ -42,7 +42,7 @@ The call logs in with the first of these that holds something:
 
 1. an API key, when `FACTORY_API_LOGIN_FILE` names a file that holds one;
 2. a token, when `FACTORY_CLAUDE_LOGIN_FILE` names a file that holds one, made once with `claude setup-token`;
-3. otherwise the login kept in the agent's home (Claude Code only; see *Without a login file*).
+3. otherwise none: the call has no login and the shell reports `none` (see *Without a login file*).
 
 A variable that is unset, or a file that is missing or blank, counts as holding nothing. Both files are read the same way:
 
@@ -56,28 +56,44 @@ A variable that is unset, or a file that is missing or blank, counts as holding 
 
 The token is made once for all instances and the Podman machine.
 
-1. Run `claude setup-token` on the host where Claude Code is installed, or on the VM as `factory`.
+1. Run `claude setup-token` on the host where Claude Code is installed, or on the VM as `factory`. It needs a subscription and prints the token.
+
+   ```sh
+   claude setup-token
+   ```
 2. Save the token it prints, with nothing else in the file, as `/home/factory/.secrets/claude-token`. See "The machine" in [machine.md](machine.md), and step 8 of "On GCP, step by step" there.
-3. Install it so that only the factory's user can read it, with `install -m 0600 -o factory -g factory`, as the steps of "The machine" show.
+3. Install it so that only the factory's user can read it. On the VM, as root, with the token saved as `claude-token` in the current folder:
+
+   ```sh
+   install -m 0600 -o factory -g factory claude-token /home/factory/.secrets/claude-token
+   ```
+
+   "The machine" in [machine.md](machine.md) shows the same steps.
 4. Set `FACTORY_CLAUDE_LOGIN_FILE` to its path in the environment file.
 
-On Windows, write the file as plain text without a byte-order mark, for example `Set-Content -NoNewline -Encoding ascii claude-token <token>`. PowerShell 5's `>` writes UTF-16, which is not read as the token.
+On Windows, write the file as plain text without a byte-order mark, in PowerShell:
+
+```sh
+Set-Content -NoNewline -Encoding ascii claude-token <token>
+```
+
+PowerShell 5's `>` writes UTF-16, which is not read as the token.
 
 ### The agent's API key
 
 An instance can run its agents on an Anthropic API key instead of the subscription, for example at a workplace that has a key and no subscription. An opencode instance always uses the key (see *Running on opencode*).
 
-1. Save the key, with nothing else in the file, as `/home/factory/.secrets/anthropic-api-key`, as plain ASCII text. On Windows use `Set-Content -NoNewline -Encoding ascii`, as for the token.
+1. Save the key, with nothing else in the file, as `/home/factory/.secrets/anthropic-api-key`, as plain ASCII text. On Windows write it with `Set-Content -NoNewline -Encoding ascii`, as for the token.
 2. Set the file's permissions as for the token file.
 3. Set `FACTORY_API_LOGIN_FILE` to its path in the environment file.
 
 Each instance has its own file. The VM holds one instance, and the file is in its `factory` user's folder.
 
 - A key in the file wins over the token, which is then not read. An `ANTHROPIC_API_KEY` anywhere else in the environment is dropped.
-- The key stands in no argument, run file, result, journal entry, cost record or log, and not in the factory's own environment.
+- The key stands in no argument, run file, result, [journal](../project-guide/glossary.md) entry, cost record or log, and not in the factory's own environment.
 - To go back to the subscription, empty the file. The next call reads it as it is.
 
-To see which login is in force, read the cost record of a run: its field `login` is `subscription`, `none` or the value for the API key (a record written before the field existed lacks it). The preflight also writes one factory-log line for the probe, once for each image build:
+To see which login is in force, read the [cost record](../project-guide/glossary.md) of a run: its field `login` is `subscription`, `none` or the value for the API key (a record written before the field existed lacks it). The preflight also writes one factory-log line for the probe, once for each image build:
 
 ```text
 preflight: agent-run-probe: the agent runs log in with the API key from <file>
@@ -85,7 +101,7 @@ preflight: agent-run-probe: the agent runs log in with the API key from <file>
 
 ### Without a login file
 
-An empty token file means no token. Claude Code then needs the manual login: run `claude` once as `factory` on the VM. `claude` keeps its `.claude.json` in the home's root.
+With neither file, the call has no login and the shell reports `none`. A login made by hand with `claude` as `factory` on the VM does not help: the agent's home is on the dataset, and the rollback clears it before every stage. Make the token file instead (see *The agent's login token*).
 
 ## Behind a proxy
 
@@ -104,7 +120,7 @@ The names the factory gives a container itself win over the list: a listed `PATH
 
 ## A run that ends without a result
 
-A run that exits non-zero, gives no reply, runs past its time limit or returns no usable decision stops the work item as a [stall](../project-guide/glossary.md). Two cases have their own handling.
+A run that exits non-zero, gives no reply, runs past its time limit or returns no usable decision stops the [work item](../project-guide/glossary.md) as a [stall](../project-guide/glossary.md). Two cases have their own handling.
 
 ### A run whose budget is spent
 
@@ -117,7 +133,7 @@ Under opencode the factory keeps the budget itself, because opencode has no budg
 
 ### A run that ends `died`
 
-A run whose text matches no provider rule ends `died`. The factory log names it with one line:
+A run ends `died` when it exits non-zero, gives no reply or an error reply, and neither a provider limit, the budget nor the time limit applies. The factory log names it with one line:
 
 ```text
 run <run id> of <work item> (<stage>) died: <text>
@@ -166,25 +182,27 @@ The factory log shows each wait and the end. The first line is written before ea
 
 **You see** a stall with the cause `the provider's spend limit lasted past the waiting ceiling`, and the stall note on the pull request (see "A stall: the stall note" in [stops.md](stops.md)).
 
-**It means** the factory waited out the whole ceiling and the limit was still there. One attempt is counted. The next tick runs the stage again from what the stall kept, and at the attempts cap the factory asks you.
+**It means** the factory waited out the whole ceiling and the limit was still there. One attempt is counted. The next [tick](../project-guide/glossary.md) runs the stage again from what the stall kept, and at the [attempts cap](../project-guide/glossary.md) the factory asks you.
 
 **You do** one of these before you answer. A limit that lasts two hours is not a rolling window passing.
 
-1. Look at the gateway: its quota and its window.
-2. Raise `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`.
+- Look at the gateway: its quota and its window.
+- Raise `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`.
 
 ### While the factory waits
 
-- **The claim stays held.** The factory renews no lease, so a stage that waits may hold its claim past its `lease_duration`. The coder's time limit, the ceiling and the checks come to about 180 minutes, against a lease of 60. Only another instance on the same repository would act on the age, so run one instance per repository.
-- **A stop or a restart during a wait** is a crash of the factory's own claim. The stage runs again at once and counts toward the crash cap, not toward the attempts (see "A restart during a stage" in [work-items.md](work-items.md)). The wait starts over.
+- **The claim stays held.** The factory renews no [lease](../project-guide/glossary.md), so a stage that waits may hold its [claim](../project-guide/glossary.md) past its `lease_duration`. The coder's time limit, the ceiling and the checks come to about 180 minutes, against a lease of 60. Only another instance on the same repository would act on the age, so run one instance per repository.
+- **A stop or a restart during a wait** is a [crash](../project-guide/glossary.md) of the factory's own claim. The stage runs again at once and counts toward the crash cap, not toward the attempts (see "A restart during a stage" in [work-items.md](work-items.md)). The wait starts over.
 
 ## Running on opencode
 
-An instance runs its agents on Claude Code unless the operator sets `FACTORY_AGENT_RUNTIME=opencode` (`--runtime opencode` of `operator/vm/setup.sh`).
+An instance runs its agents on Claude Code unless you switch it to opencode.
 
-1. Build the stage image with `AGENT_RUNTIME=opencode`. The image holds only the runtime it was built for (see "The stage image" in [machine.md](machine.md)). `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of `operator/vm/Dockerfile`, and the environment file sets `FACTORY_OPENCODE_VERSION` to it.
-2. Put the API key in the file `FACTORY_API_LOGIN_FILE` names (see *The agent's API key*). Every run is then paid through the API. The subscription token is not used.
-3. Check that the models exist, as *The models* below says.
+1. Set `FACTORY_AGENT_RUNTIME=opencode` in `factory.local.env` (see "The environment file" in [machine.md](machine.md)), or give `operator/vm/setup.sh` the option `--runtime opencode`.
+2. Build the stage image with `AGENT_RUNTIME=opencode`. The image holds only the runtime it was built for (see "The stage image" in [machine.md](machine.md)). `opencode-ai` is installed from npm at the version `OPENCODE_VERSION` of `operator/vm/Dockerfile`, and the environment file sets `FACTORY_OPENCODE_VERSION` to it.
+3. Put the API key in the file `FACTORY_API_LOGIN_FILE` names (see *The agent's API key*). Every run is then paid through the API. The subscription token is not used.
+4. Check that the models exist, as *The models* below says.
+5. Restart the instance. The factory reads its environment when it starts.
 
 A login that a build keeps in the agent's home does not work on the machine. The rollback clears the home before every stage, so nothing made by a login command survives. Put the key in the API login file, whatever the build.
 
@@ -192,11 +210,17 @@ The preflight does not read the key: the probe of the agent run shows whether a 
 
 **Your own build.** Choose an opencode build with `FACTORY_OPENCODE` (its path), `FACTORY_OPENCODE_VERSION` (what `--version` prints) and `FACTORY_OPENCODE_MODELS`. Add them to `factory.local.env` (see "The environment file" in [machine.md](machine.md)), install the build on the VM and restart the instance. The values `factory.env` carries are the stage image's `opencode-ai`, its pin in `operator/vm/Dockerfile` and the three Anthropic ids.
 
-**The models.** The agent files name `opus`, `sonnet` and `haiku`. `FACTORY_OPENCODE_MODELS` maps each to a `<provider>/<model>` id of opencode. `operator/vm/Dockerfile` pins `opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5`. Check that an id exists with `opencode models anthropic`. A model written with a `/` in an agent file is used as it is.
+**The models.** The agent files name `opus`, `sonnet` and `haiku`. `FACTORY_OPENCODE_MODELS` maps each to a `<provider>/<model>` id of opencode. `operator/vm/Dockerfile` pins `opus=anthropic/claude-opus-5-5,sonnet=anthropic/claude-sonnet-5-5,haiku=anthropic/claude-haiku-5-5`. Check that an id exists by running this where opencode is installed, for example in the stage image:
+
+```sh
+opencode models anthropic
+```
+
+A model written with a `/` in an agent file is used as it is.
 
 **The version.** The pins change in `operator/vm/Dockerfile` alone (see "The stage image" in [machine.md](machine.md)).
 
-**What opencode keeps in the agent's home.** Sessions, logs and caches in `.local/share/opencode`, `.local/state/opencode` and `<agent home>/.cache/opencode`, for the length of one stage. The configuration in `.config/opencode` is what the next run reads, and an agent that could write it could loosen its own permissions.
+**What opencode keeps in the agent's home.** Sessions, logs and caches in the agent's home: `/work/home/.local/share/opencode`, `/work/home/.local/state/opencode` and `/work/home/.cache/opencode`, for the length of one stage. The configuration in `.config/opencode` is what the next run reads, and an agent that could write it could loosen its own permissions.
 
 **What differs from Claude Code:**
 
@@ -255,7 +279,13 @@ One contact stays: opencode 1.19.3 asks `registry.npmjs.org` at the start of eve
 
 A model API behind an OAuth2 client-credentials grant gives out a bearer token that lives about an hour. The opencode runtime reads the file `FACTORY_API_LOGIN_FILE` names at every call and hands its content to the agent as `ANTHROPIC_API_KEY`. The token therefore only has to be kept fresh in that file.
 
-`python -m factory.entry.refresh_token` does that, as a process of its own beside the factory. Starting it with the instance is the start script's business (see "The machine" in [machine.md](machine.md)). It reads five variables. A missing or blank one prints `refresh_token: <variable> is not set` to standard error and exits 2.
+The command `python -m factory.entry.refresh_token` does that, as a process of its own beside the factory. Run it like this, with the five variables below in its environment:
+
+```sh
+python -m factory.entry.refresh_token
+```
+
+ Starting it with the instance is the start script's business (see "The machine" in [machine.md](machine.md)). It reads five variables. A missing or blank one prints `refresh_token: <variable> is not set` to standard error and exits 2.
 
 | Name | What it does | Default | Example |
 | --- | --- | --- | --- |
@@ -272,7 +302,7 @@ What it does:
 - A failed request, or any other fault of one refresh, prints `refresh_token: <the error>`, keeps the old file and tries again after a minute. The client secret and the token are replaced by `***` in every message.
 - `--once` refreshes once and exits 0, or 1 after printing the error. Without it the command runs until `SIGTERM` or `SIGINT` and exits 0.
 
-A container mounts the login file when it starts, and its login shell reads it once. A run therefore holds the token that was in the file at its start. That token is at most the token's life less ten minutes old at the start of the run, which for a one-hour token is fifty minutes, more than the longest stage. Use a grant whose token lives longer than ten minutes plus your longest stage.
+A container mounts the login file when it starts, and its login shell reads it once. A run therefore holds the token that was in the file at its start. The file is rewritten at least every ten minutes, so a run starts with a token at most ten minutes old. That token stays valid for at least its life less ten minutes, which for a one-hour token is fifty minutes, more than the longest stage. Use a grant whose token lives longer than ten minutes plus your longest stage.
 
 **The proxy.** The request goes through Python's standard library, which honours `https_proxy` and `no_proxy`. Set `https_proxy` in the refresher's environment when the token endpoint is reached through a proxy, and `NO_PROXY` for an internal API host the agents reach directly.
 
@@ -313,13 +343,13 @@ The file follows the same rules and has the same faults as any agent file. A fau
 
 A project may bring skills under `<project>/.claude/skills/`. Every shipped agent has the `Skill` tool and loads a skill whose description fits its work. Where a skill contradicts the agent's own instructions, the instructions win: the agent follows them and names in its journal entry the skill and the step it set aside.
 
-The skills are the human's files, like `CLAUDE.md`. `.claude/` is a protected path at any depth, so no stage writes a `.claude/` folder anywhere in the repository, `<project>/src/.claude/skills/` included. The take leaves a nested `.claude/` write out after every run, also where a write path opens it, and the journal entry names the path. A run reads the root `.claude/skills/` from its checkout, the work item's branch.
+The skills are the human's files, like `CLAUDE.md`. `.claude/` is a protected path at any depth, so no stage writes a `.claude/` folder anywhere in the repository, `<project>/src/.claude/skills/` included. The take leaves a nested `.claude/` write out after every run, also where a write path opens it, and the entry names the path. A run reads the root `.claude/skills/` from its checkout, the work item's branch.
 
 Only Claude Code's runs are given the `Skill` tool. An opencode run leaves it out, and the factory does not check whether opencode loads skills of its own.
 
 ### The shipped agents and settings
 
-The checkout ships them in its `agents/` folder: `agents/agents/<role>.md` and `agents/settings.json`. The stage image copies the folder to `/etc/factory/agents`. The files are in Claude Code's format and the opencode runtime translates them per run, so the folder carries no runtime's name. The setting `FACTORY_CLAUDE_HOME` keeps its name.
+The checkout ships them in its `agents/` folder: `agents/agents/<role>.md` and `agents/settings.json`. The stage image copies the folder to `/etc/factory/agents`. The files are in Claude Code's format and the opencode runtime translates them per run, so the folder carries no runtime's name. The setting `FACTORY_CLAUDE_HOME` names this folder for both runtimes.
 
 The folder holds seven agents (`intake`, `tester`, `coder`, `reviewer`, `documenter`, `smoke-tester`, `acceptance-reviewer`) and `settings.json`. Each agent's `tools` ends with `Skill`, and the settings allow it in `permissions.allow`, right after `Grep`.
 
@@ -331,14 +361,14 @@ What the settings allow and deny:
 - `git add` and `git commit` are denied, because an agent leaves its changes in the working tree and the factory makes the result commit. An agent has no git identity of its own.
 - `git push`, `gh` and the commands that move or rewrite branches are denied, because the factory alone pushes.
 
-A new project starts from `operator/template/` in the factory's checkout: a pipeline definition, a `CLAUDE.md` and a `Makefile` whose `SOURCE` and `LAYERS` placeholders you fill in. The story and feature forms are yours to add, and every stage stops until `factory/story-form.md` exists.
+A new project starts from `operator/template/` in the factory's checkout: a pipeline definition, a `CLAUDE.md` and a `Makefile` whose `SOURCE` and `LAYERS` placeholders you fill in. The [story](../project-guide/glossary.md) and [feature](../project-guide/glossary.md) forms are yours to add, and every stage stops until `factory/story-form.md` exists.
 
 The smoke tester has two ways out when it finds something:
 
 - When every finding is a slip in a document the documenter writes, and the code does what the work item says, it ends with `docs`. The documenter fixes exactly those findings and ends with `smoke-test`. A slip in a document is a sentence the code contradicts, or a contradicted criterion that is the `docs:` one.
 - With any other finding, or a mix, it ends with `doing`.
 
-Both count as rework rounds.
+Both count as [rounds](../project-guide/glossary.md).
 
 ## Reference
 
@@ -359,7 +389,7 @@ The full list of settings is in "Configuration" in [install.md](install.md).
 | `FACTORY_PROVIDER_LIMIT_MESSAGE` | A regular expression that matches the limit's text. | none | `usage limit` |
 | `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` | The wait when the message names none. | `10` | `5` |
 | `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` | The total of the waits after which the run ends `provider_limit`. | `120` | `60` |
-| `FACTORY_OPENCODE` | The path of an own opencode build. | none | `/usr/local/bin/opencode` |
+| `FACTORY_OPENCODE` | The path of an own opencode build. | `opencode` | `/usr/local/bin/opencode` |
 | `FACTORY_OPENCODE_VERSION` | What the build's `--version` prints. | none | `1.19.5` |
 | `FACTORY_OPENCODE_MODELS` | Maps `opus`, `sonnet` and `haiku` to `<provider>/<model>`. | none | `opus=corp/big,sonnet=corp/big,haiku=corp/small` |
 | `FACTORY_OPENCODE_PROVIDER_FILE` | The provider file. | none | `/srv/factory/<instance>/provider.json` |
@@ -375,7 +405,7 @@ The shell is started as `/bin/sh -c <script> factory-login --api-login <api file
 podman run --rm --userns=keep-id --timeout <seconds> --cap-drop=all --security-opt=no-new-privileges --pids-limit=4096 --memory=4g --env NAME=value ... --volume <dataset>:/work --volume <login file>:<login file>:ro --volume <instructions file>:<instructions file>:ro --workdir /work/checkout <image> /bin/sh -c <login shell> ... claude -p ...
 ```
 
-Under opencode the last words are `opencode run ...`. The login files and the call's instructions (or configuration) file are mounted read-only at their own paths, so the login shell reads the token or key as on a host and the container cannot change them. The wiring gives the runtime this chain: see "The stage environment" under *Configuration* in [install.md](install.md).
+Under opencode the last words are `opencode run ...`. The login files and the call's instructions (or configuration) file are mounted read-only at their own paths, so the login shell reads the token or key as on a host and the container cannot change them. The container environment the runs use is described in "The stage environment" under *Configuration* in [install.md](install.md).
 
 ### The faults of a login file
 
