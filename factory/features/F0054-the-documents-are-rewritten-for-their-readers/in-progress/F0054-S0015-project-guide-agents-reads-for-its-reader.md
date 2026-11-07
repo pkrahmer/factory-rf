@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:23:06.886506Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T04:23:06.886506Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:28:51.045118Z'
+  stage: docs-only
+  run: fda00b98ea744d4daf825a3c1f08eb55
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -169,3 +171,35 @@ Expect: `1`
 
    The added `tool_uses` line matches `src/factory/agents/application/agent_runtime.py:34`.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the ten findings of the review, all in `docs/project-guide/agents.md`. `docs/checked-documents.txt` already holds the page's line from round 0, so I did not touch it. `make documents` ends with `documents ok (13.2 s)`, and no finding names `agents.md`. I did not run `make check`, because every file I changed is a document.
+
+   How I handled each finding:
+   1. Finding 1 (the secrets recipe): the page now says the todo demo's recipe, `demo/todo-service/project/Makefile`, is the template's. It links that file and `test_demo_makefile_secrets.py`.
+   2. Finding 2 (the opencode configuration): the sentence now says "The run's configuration file is the first call's and is removed only after the resume."
+   3. Finding 3 (the twelfth protected pattern): it is now written as `PROJECT_AGENTS_DIRECTORY` + `/*`, with a link to `paths.py` where the constant is defined. A sentence says the pattern matches `<project>/factory/agents/` at the project's root.
+   4. Finding 4 (the opencode folders): they are named again as `<home>/.local/share/opencode`, `<home>/.local/state/opencode`, `<home>/.cache/opencode`, and the configuration in `<home>/.config/opencode`.
+   5. Finding 5 (the editing rule): I restored it. Besides the lessons, the passages listed are the factory's own text and are pinned by tests. Every other sentence outside `## Lessons` keeps its words when edited. A one-line pointer to the decision log entry *The shipped agents carry v1's texts, renamed, and `stuck` does not exist* gives the reason.
+   6. Finding 6 (the glossary): I replaced the "in italics" sentence. I linked these glossary words at their first use: stall, stage, dataset, base, role, pipeline definition, journal, work item, backlog and write paths. I did not link "approval": its only appearances are inside code spans.
+   7. Finding 7 (links):
+      - Every file the page names is linked once, at its first mention, and above any code block that shows it.
+      - Later mentions of `decisions.md`, `wiring.py`, `agent_runtime.py`, `agent_launch.py`, `machine.md` and `pipeline.md` are plain text, or "the decision log".
+      - `project_agents.py` is now linked in the sentence above its block.
+      - The `operator/template/factory/pipeline.yml` link moved to its first mention.
+      - The `FakeAgentRuntime`, token, `oauth_token`, `validation_faults`, `identifiers`, `provider_limits`, `transcripts`, `conftest`, stand-in and `tests/` files are now linked.
+   8. Finding 8 (the review-groups test): it now carries its full path, `tests/agent_files/test_claude_agent_texts_review_groups.py`, as a link.
+   9. Finding 9 (`refresh_token`): it is an `sh` block now, with a sentence saying it runs on the host beside the factory with the operator's settings.
+   10. Finding 10 (style):
+       - I split the long sentences at old lines 119, 264, 266, 272, 336 and 342 into bullets of one idea each.
+       - "The moved constants" became "The constants defined in `agent_launch`".
+       - *Matching and placeholders* now opens with two plain sentences and a block holding the signatures of `matches_any`, `is_writable` and `expand_write_paths`.
+
+   Cross-read: `work.md` still links *The agent definition reader*, a heading that is kept. `machine.md:288` names *Calls in a container*, also kept. I checked the new link targets: they all exist, and `make documents` finds no broken link.
+
+   Stale text I noticed and did not touch (not this story's):
+   - The unchecked-documents report still lists "does not exist" findings in `docs/project-guide/README.md` and `docs/project-guide/machine.md`.
+   - The rewrite moved the Reference text over as it was. I did not re-read `claude_runtime.py` and `opencode_runtime.py` line by line against it.
+   - I wrote nothing in `docs/decisions.md`. The old sentence that the texts come from v1 so the baseline run compares still holds no line in the decision log. I removed it as history; the reviewer may decide whether a decisions line should carry it.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.5 s)
+   `documents`: documents ok (13.1 s)
