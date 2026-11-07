@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: [6703344230, 6703551254]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:54:13.066674Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -263,6 +259,12 @@ journal:
   kind: started
   at: '2026-11-07T06:54:13.066674Z'
   stage: docs-review
+- number: 46
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:56:31.210268Z'
+  stage: docs-review
+  run: e8ba36a6ff8a4f3bba45b0e79f23df26
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -812,3 +814,29 @@ Expect: `1`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok (16.5 s)
 45. factory: started docs-review as vm.
+46. reviewer: Review of the documenter's entry 36. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read the changes since the last review (`git diff f5abbb945 HEAD -- docs/project-guide/pipeline.md`, word by word) and then read the whole page again against rule 2 of `docs/project-guide/style.md`.
+
+    Fixed since the last review:
+    - Finding 1 of entry 34 is fixed. `docs/project-guide/pipeline.md:323` now reads "`commit` is the pushed head. `attempts`, `attempts_cap` and `pull_request` are at least 1." That matches `src/factory/pipeline/application/stalls.py:39-50`.
+    - Finding 2 of entry 34 is fixed for every line it named. I checked the places where the documenter says the wording moved against the code:
+      - 879 matches `entry/wiring.py:798-820`: `idle_shutdown_of` returns `None` for 0, `SystemctlPowerOff` for `poweroff`, and `ValueError` for `exit` without `request_stop`.
+      - 887 matches `pipeline/application/idle_shutdown.py:46-54`: it stays idle while the time is below the limit, so exactly the limit is enough. It then powers off once and starts a new stretch.
+      - 743 (`ManualClock`) and 295 keep their claims.
+      - The split settings bullets (840-848) say what they said before: the two settings without a default, the ZFS dataset or the copy base, and `container_env_fault`.
+      - The take bullets (427-443) and the commit-subject bullet (610) are also unchanged in meaning.
+    - The documenter dropped the dotted module names that sat in parentheses after a file link, for example `(factory.pipeline.application.task)`. The link to each file stays, so nothing named is lost. I accept this under criterion 2.
+    - The other files in the diff are as earlier reviews found them: `docs/checked-documents.txt`, `docs/project-guide/README.md:35`, `agents.md` and `watching.md`. Every heading other files cite is still there.
+
+    Findings:
+    1. `docs/project-guide/pipeline.md:24` breaks style rule 2: the sentence has two parentheses, `([lease.py](...), `factory.pipeline.domain.lease`)` and `(no claim)`. Fix: drop the module name, as elsewhere on the page: "`status(state)` in [lease.py](...) returns a `ClaimStatus`: `"none"` when there is no claim, `"own"`, `"held"` or `"expired"`."
+    2. `docs/project-guide/pipeline.md:468` has two problems.
+       - Rule 2: the first sentence has two parentheses, `(`Tick._publish_stop_records`)` and `(see *The stop records*)`.
+       - The cross-reference points to the wrong section. The publisher is described under `### Stop records` (763), not under `## The stop records` (724). The two headings differ only by "The", and line 795 points to the other one.
+       - Fix: give the subsection at 763 a distinct name, for example `### Recording and publishing the stops`. No file outside this page cites it. Change 468 and 795 to point to it, and rewrite 468 without parentheses: "`Tick._publish_stop_records` calls `StopPublisher(boundaries).publish()`, as *<new name>* describes."
+    3. `docs/project-guide/pipeline.md:152` puts a semicolon list inside a parenthesis: `(`factory.pipeline.application.pipeline_loading`; `PIPELINE_REF` is `origin/main`)`. Entry 34 asked for this pattern to be broken out. Fix: drop the module name and make "`PIPELINE_REF` is `origin/main`." its own sentence.
+    4. `docs/project-guide/pipeline.md` still has sentences over about 25 words, which the human's entry 24 asks to split: 405 (the `command_line` sentence, 29 words), 677 (the `unread` sentence, 31 words) and 707 (the `last_stage_change` sentence, 29 words). Fix: split each in two. For example, at 707: "... `last_stage_change(snapshot)`. It is the newest commit beyond `origin/main` that touched the work item's file, whatever later commits touched other files."
+    5. `docs/project-guide/pipeline.md:226` breaks style rule 4: "`ensure_pull_request` returns the first of three. One is ..." reads as if it returns the first item listed, and the reader learns the order only afterwards. Fix: "`ensure_pull_request` returns the first of these that exists, in order:" followed by a three-item list. The last item, a new draft, always exists. The claims themselves match `hosting/application/opening.py:89-110`.
+
+    Open, not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has only rules 1 to 8. The human decides which rules are meant.
+    - The page has no *Reference* section, which criterion 2 allows.
