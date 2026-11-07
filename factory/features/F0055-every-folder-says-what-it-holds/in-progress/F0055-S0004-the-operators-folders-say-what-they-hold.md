@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 637
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T13:38:35.455575Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T13:38:35.455575Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T13:39:15.614954Z'
+  stage: review
+  run: 98bfd562db5d4183b6db2bb1f1c06ebc
 ---
 
 # The operator's folders say what they hold
@@ -137,3 +139,18 @@ Expect: `documents ok (<seconds> s)`
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (one line deleted in `src/factory/shared/domain/folder_readmes.py`, one new test module `tests/shared/domain/test_folder_readmes_list.py`) against the work item.
+
+   - Group 1, acceptance criteria: criterion 4 has its test, `test_the_folder_readme_list_leaves_out_the_template_folder`. It pins the length (22) and the removed path in one assertion, which covers the failing side the Interface names. The tuple now holds 22 entries without `operator/template/README.md`. Criteria 1 to 3 and 6 belong to the docs stage and the guard, as the Interface says. The guard `tests/guards/test_folder_readmes.py` already skips a README that does not exist yet and checks each one that does. The coder's `make check` was green (journal entry 7).
+   - Group 2, architecture: the change stays in the shared domain constant. No new imports and no wiring.
+   - Group 3, security: nothing relevant. No markers, no secrets.
+   - Group 4, quality: the module docstring is present, and the names say what they are. `make duplicates` reports 6 new findings, but they cannot come from this diff, which only deletes a line of `src/`.
+   - Group 5, work item hygiene: the journal explains the choice (delete the entry rather than add a guard skip), and the Description matches what was built. The docs criterion misses one document, see finding 1.
+
+   Findings:
+   1. `factory/features/F0055-every-folder-says-what-it-holds/in-progress/F0055-S0004-the-operators-folders-say-what-they-hold.md`, criterion 6, against `docs/project-guide/shared.md:207`.
+      - What is wrong: `shared.md:207` says `FOLDER_READMES` lists "every folder README of the repository, 23 in all". After this story the list holds 22, and `operator/template/` on purpose has no README. Criterion 6 does not name `shared.md`, so the documenter, who writes from that criterion, will leave the project guide wrong. The document check does not catch a count.
+      - Fix: add to criterion 6 something like "`docs/project-guide/shared.md`: `FOLDER_READMES` lists 22 paths, and `operator/template/` carries none because an operator copies that folder into a new project".
+      - Related: `docs/decisions.md:1653` also says "the 23 paths". The criterion's "`docs/decisions.md`: none" came from the human, so it stays as is unless the human says otherwise.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
