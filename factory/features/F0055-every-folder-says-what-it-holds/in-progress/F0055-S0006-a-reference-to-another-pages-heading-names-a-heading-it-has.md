@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T11:21:05.922101Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T11:21:05.914714Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:21:05.922101Z'
+  stage: intake
+---
+
 # A reference to another page's heading names a heading it has
 
 ## Description
@@ -41,3 +68,6 @@ uv run python -m factory.entry.check_documents | tail -1
 Expect: `documents ok (<seconds> s)`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
