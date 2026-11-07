@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-07T15:04:33.892180Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T15:04:29.038158Z'
   stage: docs
   run: 0ec81675f2f8486bac6b98a35849d523
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T15:04:33.892180Z'
+  stage: smoke-test
 ---
 
 # A listed folder README that is missing fails the guard
@@ -199,3 +208,4 @@ Expect: `missing-fails`
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (59.1 s)
+12. factory: started smoke-test as vm.
