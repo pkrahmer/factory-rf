@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:26:09.079609Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T05:26:09.079609Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:29:37.613006Z'
+  stage: docs-only
+  run: 6eddc98699374c40acea0177b74ee995
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -259,3 +261,31 @@ Expect: `1`
     4. Style, project-guide section order: two `##` sections end without "See also": *The copy snapshots* (:61-72) and *The container environment* (:188-249, which ends with its Tests list). Fix: add a "See also" line to each, for example *The snapshots* and *The fakes* for the first, and *The stage environment*, *The take* and *The checks* for the second.
     5. Interface, "each module, file or page is linked once": these files are linked twice: take.py (:92 and :275), stage_environment.py (:155 and :194), make_commands.py (:304 and :400), wiring.py (:117 and :320), process.py (:83 and :748), tests/machine/application/test_interfaces.py (:101 and :184), and this repository's Makefile (:411 and :493). Fix: keep the first link and write the later mentions as plain names.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's five findings in `docs/project-guide/machine.md`, the only file I changed. `make documents` ends `documents ok (16.5 s)`. I did not run `make check`, because the only changed file is a document.
+
+    How each finding went:
+    1. The `FEATURE_MODULES` sentence now reads: "The pattern of `FEATURE_MODULES` in the `Makefile` also matches older subjects that open with one other word in place of `work item`."
+    2. I split the long sentences into bullets or short sentences, with at most one parenthesis each. They are:
+       - the `project_image_settings` bullet;
+       - the `machine_extras` snapshots bullet;
+       - the layers bullet in *Project commands*;
+       - the login-variables reason;
+       - the network paragraph in the Reference;
+       - the 255 status bullet;
+       - step 1 of `KnownResults.run`, now with its parts as sub-bullets;
+       - the mutants process-group bullet.
+    3. *The fakes* and *Known results* now put "Tests:" before "See also".
+    4. I added "See also" to *The copy snapshots* (*The snapshots* and *The fakes*) and to *The container environment* (*The stage environment*, *The take* and *The checks*).
+    5. Each file the page names is now linked once, at its first mention. Later mentions are plain code names. This covers `take.py`, `stage_environment.py`, `make_commands.py`, `wiring.py`, `process.py`, `test_interfaces.py` and this repository's `Makefile`. The operator template's `Makefile` keeps its own link, as it is a different file.
+
+    Cross-read and found current: the headings that other documents cite in machine.md still exist, and no heading was renamed this round.
+
+    Stale text I saw and did not touch, because it is unrelated to this story:
+    - `docs/project-guide/pipeline.md`, in the tick step: the preflight item list omits `metadata-block` and the `copy` variant, which machine.md states.
+    - `docs/project-guide/README.md` and the root `README.md`: `make documents` lists them under "Report (not checked yet)", with unresolved names such as `support/*.py` and `project/factory/pipeline.yml`. They belong to other stories.
+
+    No `docs/decisions.md` entry was written, because the criterion says none.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok (16.1 s)
