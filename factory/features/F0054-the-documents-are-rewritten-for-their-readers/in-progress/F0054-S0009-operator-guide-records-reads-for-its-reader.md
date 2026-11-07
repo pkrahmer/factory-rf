@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:50:50.324621Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T01:50:45.105247Z'
   stage: docs-review
   run: 6447226898b74d798e48f1bf81bf2623
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:50:50.324621Z'
+  stage: docs-only
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -201,3 +210,4 @@ Expect: `1`
     6. `docs/operator-guide/records.md:135` (style rule 3): "provider limit" is a private word that is not in the glossary and is not explained. Fix: say it in plain words, for example "a usage limit of the model's provider", or link the page of the operator guide that explains it.
     7. `docs/operator-guide/records.md:36` (style rule 3): "moved to `done/` by the archive commit" uses a private word without explaining it. Fix: "moved to `done/` by the commit the factory makes after the merge".
     8. `docs/operator-guide/records.md:27`: "Run as `uv run python -m factory.entry.contract` from a checkout, without a folder, it rewrites `src/factory/contract/`, …" is a dangling sentence with two stacked conditions. The code it describes is `CONTRACT_FOLDER` in `contract.py:9`. Fix: "Without a folder, the command rewrites `src/factory/contract/`, where the committed schemas are; run it as `uv run python -m factory.entry.contract` from a checkout."
+12. factory: started docs-only as vm.
