@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 618
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T02:07:21.061631Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T02:07:21.061631Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T02:07:35.545760Z'
+  stage: intake
+  run: da90882f7e2948c7b810fb77bc7154f8
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names `docs/operator-guide/work-items.md` and `docs/checked-documents.txt` with its one line. Both are paths the documenter may write. No code, test or agent file changes, and no behaviour is stated in it that would need its own criterion.
+   Criteria: each can be judged on the docs route. Criteria 1 and 2 are the reviewer's comparison against the style guide and the code. Criterion 3 is checked by `make documents` printing `documents ok`. Criterion 4 is a link check and criterion 5 is `make check`. The Interface states no limit, validation or default, so there is no failing side to cover.
+   Smoke test: `grep -cx "docs/operator-guide/work-items.md" docs/checked-documents.txt` is runnable as written. Its `Expect: 1` can be checked against the output. It does not run pytest.
+   Docs criterion: criterion 6 asks for criteria 1 to 4 and names no sentences to write. `docs/decisions.md`: none.
+   Architecture: the change touches documents only. It fits CLAUDE.md's split between the operator guide, the project guide and the README.
+   Scope: it is S0010 in the feature's list. It touches no file the feature lists as out of scope. I made no change to the story.
