@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 637
-comments_read: []
+comments_read: [6707675447]
 handed_over: null
 claim: null
 journal:
@@ -70,6 +70,11 @@ journal:
   stage: doing
   run: e958306d40914ea186a126247f661a2c
   blocked: question
+- number: 12
+  speaker: human
+  kind: comment
+  at: '2026-11-07T13:41:27.140871Z'
+  stage: doing
 ---
 
 # The operator's folders say what they hold
@@ -179,3 +184,4 @@ Expect: `documents ok (<seconds> s)`
     I would choose option 1. On `decisions.md`, I would keep the entry as it is, because a decision log records what was decided at the time.
 
     Noticed but not touched: `make duplicates` reported 6 new findings in the last run. They cannot come from this story's one deleted line.
+12. 2026-11-07 human: Option 1, and decisions.md stays as it is. Criterion 6 also names docs/project-guide/shared.md: FOLDER_READMES lists 22 paths, and operator/template/ carries none, because an operator copies that folder into a new project. The documenter fixes that sentence at the docs stage. The coder sends the item on to review with no code change; the reviewer reads this answer as part of criterion 6.
