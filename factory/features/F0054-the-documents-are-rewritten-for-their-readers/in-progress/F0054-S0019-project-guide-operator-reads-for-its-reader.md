@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T07:27:58.217112Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T07:27:58.217112Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T07:30:50.056453Z'
+  stage: docs-only
+  run: 6a1f1a7e539c44308884a5b58cbc9a25
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -203,3 +205,19 @@ Expect: `1`
     3. docs/project-guide/operator.md:7: the first sentence has two parentheses, "([site.sh](...))" and "([hosting.sh](...))". Style rule 2 allows at most one per sentence. Fix: split the sentence, or link the two files without parentheses, for example "The loader, [site.sh](...), and ...".
     4. docs/project-guide/operator.md:7: "keep it current from the docs criterion" uses a private word that the glossary does not explain (style rule 3). Fix: say it plainly, for example "update it when a story changes a file under `operator/`".
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the four findings of the review. `make documents` ends `documents ok (16.7 s)`. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/operator.md`:
+      1. `settings.sh`, `status.sh`, `wait.sh`, `approval.sh`, `next-story.sh` and `start-story.sh` are now linked at their mention in the layout section. `comment.sh`, `merge.sh` and `reset-to-tag.sh` stay linked where the page treats them, so each is linked once.
+      2. The intro now says what the *Reference* holds: the status codes of the site scripts, the checks of `site check`, the job keys and the test modules by script. It says every key of the site file is in `site.env.example`.
+      3. The first sentence of the layout section has no parentheses: "The loader, site.sh, and the hosting client, hosting.sh, are libraries …".
+      4. "keep it current from the docs criterion" is now "update it when a story changes a file under `operator/`".
+
+    I cross-read nothing further this round; the earlier rounds' cross-reads (README.md of the project guide, glossary.md, style.md, operator-guide/site.md, operator/README.md) still stand.
+
+    Stale text I saw and did not touch, because it is unrelated to this story: the `make documents` report for docs/project-guide/README.md names `support/*.py` files that do not exist (about lines 134 to 141) and `project/factory/pipeline.yml` and `story-form.md` (line 283).
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (16.4 s)
