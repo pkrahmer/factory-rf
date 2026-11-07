@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T14:22:37.829751Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,19 @@ journal:
   kind: started
   at: '2026-11-07T14:22:37.829751Z'
   stage: docs-review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:23:26.497914Z'
+  stage: docs-review
+  run: fc8d3218cacf44b39d4db2ae92647acf
+- number: 23
+  speaker: factory
+  kind: question
+  at: '2026-11-07T14:23:26.497914Z'
+  stage: docs-review
+  run: fc8d3218cacf44b39d4db2ae92647acf
+  blocked: round_cap
 ---
 
 # The top folders say what they hold
@@ -296,3 +305,17 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (59.4 s)
 21. factory: started docs-review as vm.
+22. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, which criteria 1, 2 and 5 name. I checked the facts against `demo/README.md`, `agents/README.md`, `operator/README.md`, `planning/README.md`, the contents of `docs/`, `docs/runs/` and `security/`, and the READMEs that `## The folders` links to. I checked the writing against `docs/project-guide/style.md` (*Rules for all documents*, *Folder READMEs*) and against every term in `docs/project-guide/glossary.md`. This time I checked every new line of the root README against the whole glossary word list, not one word at a time.
+
+    Findings:
+    1. `README.md:37`, the `agents/` line of `## The folders`: "one per role" is the first prose use of the glossary word "role" (`docs/project-guide/glossary.md:20`) in the root README, and it has no link. Line 33 has `<role>` only inside a code span, and the README never links "role" anywhere. This breaks rule 3 of *Rules for all documents*. Fix: write "one per [role](docs/project-guide/glossary.md)".
+    2. `README.md:41`, the `planning/` line: "no stage reads or writes" uses the glossary word "stage" (`docs/project-guide/glossary.md:23`). The README's only link for "stage" is at line 82, after this line, so the new line puts an unlinked use ahead of the link. Same rule. Fix: write "no [stage](docs/project-guide/glossary.md) reads or writes". Line 33's "stage image" is older than this story and outside this diff.
+
+    Checked and found true:
+    - Round 3's findings are fixed: `docs/README.md:5` links "stops" and `docs/README.md:7` links "stage".
+    - In `docs/README.md` no other glossary word is left unlinked. "Area", "agents" and "decision log" are not glossary words. It names the four documents and says that `runs/` is the human's (criterion 4). The three subfolder lines match `docs/`.
+    - `security/README.md` uses no glossary word. It matches `security/`, names the semgrep rules and the duplicates baseline, and links `CLAUDE.md`, *Checks* (criterion 5).
+    - The other new root lines are true of the folders they describe. "Story", "feature", "instance" and "pipeline definition" are linked at or before their first use. The section sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines, links the eight READMEs that exist, and names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6).
+    - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
+    - Round 2's reviewer wrote that every other glossary word in the root README was linked earlier. That was wrong for "role" and "stage", and these two findings could have been raised then.
+23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
