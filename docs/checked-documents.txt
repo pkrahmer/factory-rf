@@ -32,3 +32,6 @@ src/factory/pipeline/README.md
 src/factory/shared/README.md
 src/factory/watching/README.md
 src/factory/work/README.md
+tests/README.md
+tests/support/README.md
+tests/guards/README.md

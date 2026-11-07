@@ -60,7 +60,7 @@ See also: [glossary.md](glossary.md), [style.md](style.md), [shared.md](shared.m
 
 The tests share their helpers through one folder, so that no test module imports another and no helper exists twice. Look here before you write a helper.
 
-The root of `tests/` holds `conftest.py` and folders, each a package:
+The root of `tests/` holds `conftest.py`, its `README.md` and folders, each a package:
 
 - `tests/support/`: the shared helpers, imported as `support.<name>` (`from support.bill_support import completed_records`). `tests/` is on `sys.path` (pytest's rootdir import; mypy names the files the same way), so no relative import is needed.
 - `tests/guards/`: the structural guards: searches over the source (`tests/guards/test_*_search.py`), `tests/guards/test_*_removed.py`, `tests/guards/test_shared_*.py`, `tests/guards/test_no_*.py`, `tests/guards/test_suite_*.py`, `tests/guards/test_layers.py`, `tests/guards/test_areas.py`, `tests/guards/test_folder_readmes.py` (each existing folder README of `FOLDER_READMES` is free of `readme_problems`, and every package under `src/factory/` has one on the list), `tests/guards/test_license_headers.py` (every Python module under `src/factory/` and every script under `operator/` outside `operator/template/` has `# SPDX-License-Identifier: Apache-2.0` as its first line, or right after its shebang; a new module or script carries the header, and the tests, `operator/template/`, `demo/`, the documents and the agent files do not), `tests/guards/test_test_names.py`, `tests/guards/test_model_configuration.py`, the umask guard, the layout guard `tests/guards/test_tests_layout.py`, and the tests of the helpers themselves.
@@ -69,7 +69,7 @@ The root of `tests/` holds `conftest.py` and folders, each a package:
 - `tests/agent_files/`: the tests of the files under `agents/` and `operator/template/`.
 - `tests/<area>/<layer>/` and `tests/entry/`: the tests of the modules of `factory.<area>.<layer>` and of `factory.entry`, mirroring `src/factory`. A test module that imports no `factory` module but a helper or a source text sits in `tests/guards/`.
 
-[`tests/guards/test_tests_layout.py`](../../tests/guards/test_tests_layout.py) fails when the root holds anything but `conftest.py` and packages, when a helper exists outside `tests/support/`, when a module imports a helper by its bare name, and when a test module sits outside the folder of its name's pattern.
+[`tests/guards/test_tests_layout.py`](../../tests/guards/test_tests_layout.py) fails when the root holds anything but `conftest.py`, `README.md` and packages, when a helper exists outside `tests/support/`, when a module imports a helper by its bare name, and when a test module sits outside the folder of its name's pattern.
 
 A guard that a module stays removed names the module at the path it had and checks it with `module_exists_anywhere` of [`tests/support/module_names.py`](../../tests/support/module_names.py). The module is then found in no area either. [`tests/guards/test_removal_guards_search.py`](../../tests/guards/test_removal_guards_search.py) fails when a test module with an old layer path calls `module_exists`.
 
