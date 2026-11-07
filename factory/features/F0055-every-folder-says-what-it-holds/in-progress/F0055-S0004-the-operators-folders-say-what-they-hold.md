@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T13:43:42.333212Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-07T13:43:36.867408Z'
   stage: doing
   run: dcca117d5c2c44e5b7468ae1d48eda60
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:43:42.333212Z'
+  stage: review
 ---
 
 # The operator's folders say what they hold
@@ -209,3 +218,4 @@ Expect: `documents ok (<seconds> s)`
 
     `check`: check: green (not run again: passed on tree b97df92e9a1b at 2026-11-07T13:36:30Z)
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+15. factory: started review as vm.
