@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T10:57:48.031903Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -234,6 +230,12 @@ journal:
   kind: started
   at: '2026-11-07T10:57:48.031903Z'
   stage: docs
+- number: 41
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T11:03:33.697798Z'
+  stage: docs
+  run: 093960cb89a04c96831c31b18b23f47d
 ---
 
 # The folders that have a README are listed and checked
@@ -616,3 +618,25 @@ Expect: `23 ['x: no README.md']`
     - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) is still a copy of `_run` in `tests/entry/test_check_documents_checked_files.py:50`. The human made moving it to `tests/support/check_documents_support.py` optional in entry 29.
     - `tests/guards/test_folder_readmes.py:10` (`ROOT = Path(__file__).parents[2]`) repeats the `ROOT` that `tests/support/shipped_agents.py:13`, `tests/support/operator_support.py:10` and others already define. Many guards follow the same pattern.
 40. factory: started docs as vm.
+41. documenter: Docs, round 1. I read the story, the diff outside `factory/` and `docs/`, and the code of `folder_readmes.py`, `documents.py` (`relative_link_targets`), `check_documents.py` (`_named_documents`) and `documenter.md`. `make documents` ends with `documents ok (61.0 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/shared.md`: the name check now says which files it reads (`operator/README.md` and the folder READMEs of `FOLDER_READMES` that exist). A new section, *The folder READMEs*, says where the list lives and what `readme_problems` and the guard do. It also says when a README's findings block or are only reported, that a listed README with no file is no name-check finding, and that the form check and the name check share one definition of "relative link".
+    - `docs/project-guide/README.md`: the guard `tests/guards/test_folder_readmes.py` is named in the guards line.
+    - `docs/project-guide/style.md`: a new section, *Folder READMEs*, with the form, the limits, and the rule that explanation goes into the guide page the README links to.
+    - `docs/decisions.md`: one entry, "Folders a reader asks about have a short README".
+
+    Decisions:
+    - The decision entry has a Decision line and a Rejected line (a README in every folder, about 25 more files). It has no "Why" line, because the story names no reason for the decision. I did not add one of my own.
+    - I did not write the 23 folder READMEs, because later stories write them.
+    - I did not add any README to `docs/checked-documents.txt`, because none exists yet.
+
+    Cross-read and found current: `README.md`; `docs/operator-guide/` (no README or guide text about the document check changed); the rest of `docs/project-guide/shared.md`; `docs/project-guide/style.md` apart from the new section.
+
+    Stale text I noticed and did not touch: none that this story caused. The "four documents" wording at the top of *The document check* is still accurate for the checks it names.
+
+    Findings for the coder: none. The code matches the Interface.
+
+    `check`: check: green
+    `secrets`: secrets: green (2.0 s)
+    `documents`: documents ok (60.4 s)

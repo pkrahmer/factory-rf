@@ -1645,3 +1645,10 @@ Date: 2026-11-06 (F0053-S0017).
 - Decision: the tests of the document check run `factory.entry.check_documents` on documents they write. `minimal_documents` (`tests/support/minimal_documents_support.py`) writes the smallest documents the check accepts from the code's own tables, and each test adds the one block, row, page or list line its rule needs. No test reads or copies the real documents or the real list, and no real example runs in `make check`. The real documents are checked by `make documents` alone. A guard (`tests/guards/test_document_tests_write_their_documents.py`) refuses the names that lead to the repository's documents.
 - Why: `make check` must not grow with the documents, and a rewrite of a document must not break a test.
 - Rejected: copies of the real documents with one repair per page, since four acceptances each found one more coupling.
+
+## Folders a reader asks about have a short README
+
+Date: 2026-11-07 (F0055-S0001).
+
+- Decision: every folder a reader would ask about has a short `README.md` that points to the guides; the 23 paths are `FOLDER_READMES` in `factory.shared.domain.folder_readmes`. A guard checks each README against its folder and a fixed form, and the document check reads them so that `docs/checked-documents.txt` may list them. The documenter may write them. `operator/README.md` keeps its own form and is not on the list.
+- Rejected: a README in every folder, which would cost about 25 more files that all say the same.

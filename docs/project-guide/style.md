@@ -130,6 +130,18 @@ After an agent's run, the factory copies back only what the agent's role may wri
 See also: *The take's rule* in [pipeline.md](pipeline.md).
 ```
 
+## Folder READMEs
+
+A folder a reader would ask about has a short `README.md` that points to the guides. The folders are listed in `FOLDER_READMES` of `factory.shared.domain.folder_readmes`, and the guard `tests/guards/test_folder_readmes.py` checks each one that exists with `readme_problems`. The documenter may write them.
+
+The form, in this order:
+
+- The title, `# <title>`, as the first line.
+- An opening of at most two sentences: what the folder holds.
+- At least one relative link to a guide page, and a line `- ` and the subfolder's name in backticks ending in `/`, then one sentence of at most 25 words, for every subfolder.
+
+A folder README has no other heading, no code block and no other prose. It has at most 10 lines plus one per subfolder, blank lines left out. Whatever needs explaining goes into the guide page the README links to, never into the README. A subfolder missing from the list, or listed and gone, is a finding of the guard.
+
 ## The README
 
 The reader opens the repository for the first time and decides whether to go on.

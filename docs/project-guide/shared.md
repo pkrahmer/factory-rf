@@ -175,7 +175,7 @@ The output has three parts, in this order:
 
 The command prints one line per name a document writes that does not exist, as `<document>:<line>: <name> does not exist`. Whether such a line blocks depends on the document.
 
-It reads `README.md` and every `.md` file under `docs/operator-guide/` and `docs/project-guide/`. `docs/decisions.md` and `docs/runs/` are not read. The pure functions are `named_references`, which finds the names with their lines, and `unresolved`, which turns the refused ones into findings.
+It reads `README.md`, `operator/README.md`, every folder README of `FOLDER_READMES` (see below) that exists, and every `.md` file under `docs/operator-guide/` and `docs/project-guide/`. `docs/decisions.md` and `docs/runs/` are not read. The pure functions are `named_references`, which finds the names with their lines, and `unresolved`, which turns the refused ones into findings.
 
     named_references(document: str, text: str, top_level: frozenset[str]) -> list[Reference]
     unresolved(references: list[Reference], exists: Callable[[Reference], bool]) -> list[str]
@@ -193,6 +193,18 @@ The command gives them the checkout's top-level entries and the real test of exi
 - **A link:** the target of a relative Markdown link, read from the document's own folder (`../` included) with any `#fragment` left off. A web address, a `mailto:` address, an absolute path and a link to a heading alone (`#...`) are not checked.
 
 Never checked, whatever the kind: a placeholder in angle brackets such as `<instance>`, a glob such as `*` and an absolute path such as one under `/srv` or `/etc`. Anything inside a fenced code block is not checked either. The same holds for a section headed `## Replaced from v1` or `## Replaced in v1.2`, up to the next `##` heading. A name after that heading is checked again.
+
+### The folder READMEs
+
+`FOLDER_READMES` in [folder_readmes.py](../../src/factory/shared/domain/folder_readmes.py), the module `factory.shared.domain.folder_readmes`, lists the path of every folder README of the repository, 23 in all. Each is a short pointer from a folder to the guide pages that explain it. Its form and limits are in *Folder READMEs* in [style.md](style.md).
+
+    readme_problems(folder: str, readme: str | None, subfolders: Sequence[str]) -> list[str]
+
+- `readme_problems` gives one sorted line per disagreement between a README and its folder, or `[]`. A `None` README gives `<folder>: no README.md`.
+- The guard [test_folder_readmes.py](../../tests/guards/test_folder_readmes.py) runs it on every README of the list that exists, with the subfolders read from the folder (hidden folders and `__pycache__` left out). A README that does not exist yet is skipped with its path. Another test requires every path to end in `/README.md` and name a folder that exists, and another requires a README on the list for every package directly under `src/factory/`.
+- The name check reads each listed README that exists, and `operator/README.md`, which keeps its own form and is not on the list. A missing module or path a README names is a finding. It blocks when the README is on [checked-documents.txt](../checked-documents.txt), and is reported otherwise.
+- A listed path with no file is no finding of the name check. It is a blocking finding only when it is also on `checked-documents.txt`, as for any listed path that does not exist.
+- A link counts as relative by the same function, `relative_link_targets` of [documents.py](../../src/factory/shared/domain/documents.py), in the form check and the name check: a web address, a path starting with `/`, a `mailto:` address and a link to a heading alone are no relative link.
 
 ### The examples
 
