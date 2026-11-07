@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T12:32:01.567807Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -71,6 +75,11 @@ journal:
   at: '2026-11-07T12:31:56.433846Z'
   stage: docs-only
   run: 073086758e7a4dfa8e4780dd2d9600ce
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:32:01.567807Z'
+  stage: tests
 ---
 
 # The package and its areas say what they hold
@@ -179,3 +188,4 @@ Expect: `documents ok (<seconds> s)`
     The deviation from the first round still stands. The Interface writes the subfolder line with a colon, ``- `<name>/`: ...``. The guard (`readme_problems` in `src/factory/shared/domain/folder_readmes.py`) and `docs/project-guide/style.md`, *Folder READMEs*, say ``- `<name>/` ...``, with no colon. I followed the guard and the style guide.
 
     I cross-read `docs/project-guide/README.md` (*The code's layout*) against the READMEs in round 0 and found it current. I saw no stale text outside this story.
+12. factory: started tests as vm.
