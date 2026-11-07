@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 627
 comments_read: [6704005122]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T07:43:14.303013Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-07T07:43:14.303013Z'
   stage: docs-review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T07:44:14.681312Z'
+  stage: docs-review
+  run: 9a956d30fd274824a5ac918c2a2dbeac
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -395,3 +397,28 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (16.2 s)
 26. factory: started docs-review as vm.
+27. reviewer: Docs review after the documenter's round-4 entry (25). I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes `docs/project-guide/operator.md`, `docs/project-guide/README.md` (*Reference* added to the section list) and `docs/checked-documents.txt` (the page added). I read the whole page against `docs/project-guide/style.md` and checked its claims against `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/job/job.sh`, `operator/bin/sanitise`, `operator/skill/kumpel/scripts/comment.sh` and `merge.sh`.
+
+    The human's entry 21 asks for the link rule to be checked by a script. My role does not let me write code, so I checked it by reading every link on the page against every mention of its file.
+
+    What holds:
+    - All five findings of entry 23 are fixed:
+      - line 3 links `site check` and line 7 names `site` plain;
+      - line 24 links `comment.sh`, `merge.sh` and `reset-to-tag.sh`, and lines 122, 130, 131 and 133 name them plain;
+      - line 92 names `job-start.sh` plain;
+      - lines 174 and 176 name the three test modules plain, after their links on lines 128 and 132.
+    - Every other linked file is linked once and named plain after that: `site.env.example`, `site.md`, `site.sh`, `hosting.sh`, `sanitise`, `job.sh`, `operator/README.md`, `decisions.md`, the VM, template and skill files, the support modules and the table's test modules. Each glossary link is the first use of a different word.
+    - The facts I sampled match the code:
+      - the defaults of `SITE_CPU`, `SITE_MEMORY`, `SITE_TIMEOUT` and `SITE_IDLE_MINUTES` (job.sh:113, 192-194);
+      - `job-start.sh` read from `git show` (job.sh:159), and the wrapper gzipped and base64-encoded (job.sh:176);
+      - `python3 -I` in `provider_json` (job.sh:118);
+      - `_site_is_name` before `eval`, and a blank after `=` is a fault (site.sh:125, 136-146);
+      - `hosting.sh` returns 4, 22 and 2, uses `sh -c`, `gh auth token`, `api.github.com` and the `GIT_CONFIG_*` header with an empty `credential.helper` (hosting.sh:15-81);
+      - the sanitiser's rules-file lookup and its exit codes 0 to 3 (sanitise:4-22);
+      - the signature and the marker in `comment.sh:21`, and Kumpel's signature in `merge.sh:55`.
+    - Criterion 2 still holds. The only thing dropped on purpose is the history pointer to F0048's decision 22.
+    - Criterion 3's entry is on `docs/checked-documents.txt`, and entry 25 reports `documents ok`. No document links to a changed heading, because the headings are unchanged.
+
+    Accepted as in rounds 1 and 2, and not raised again: the files named in the layout block (lines 9-19) and the support block (lines 143-146) are linked in the bullets just below each block, not above it as style rule 8 and the Interface put it. The human may want this changed in a later story.
+
+    no findings
