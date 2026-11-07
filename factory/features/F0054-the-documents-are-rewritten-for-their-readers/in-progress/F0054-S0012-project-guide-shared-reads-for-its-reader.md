@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:17:02.075997Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T03:16:56.777824Z'
   stage: docs-review
   run: 45c02375a97348b6a02d3d1e5bb002ba
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:17:02.075997Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -356,3 +365,4 @@ Expect: `1`
     4. `docs/project-guide/shared.md:214`: `src/factory/shared/adapters/document_examples.py` is linked a second time. It is already linked at line 19. The Interface says each file the page names is linked once. Fix: write `document_examples.py` plain at line 214, or name it as "the adapter module" without a link.
 
     Not a finding: the usage lines at 103 and 143 (`uv run python -m factory.entry.check_duplicates ...` and `... check_documents [--root <checkout>]`) are signatures with placeholders. They follow the project guide's form for names and signatures in an indented block, as `style.md`'s *The take* example does, and they are not shown as examples to run. The three See also links to `decisions.md` (lines 95, 135 and 273) follow the form of one See also per section. `machine.md:443` "(since F0044-S0010)" was on `main` before this story.
+16. factory: started docs-only as vm.
