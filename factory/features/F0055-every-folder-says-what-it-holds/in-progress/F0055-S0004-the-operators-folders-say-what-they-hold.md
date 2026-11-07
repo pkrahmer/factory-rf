@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T13:43:42.333212Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-07T13:43:42.333212Z'
   stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T13:44:12.149654Z'
+  stage: review
+  run: 7f45b9c1d7ba42f18cedf61adb6ef8f8
 ---
 
 # The operator's folders say what they hold
@@ -219,3 +221,23 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green (not run again: passed on tree b97df92e9a1b at 2026-11-07T13:36:30Z)
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 15. factory: started review as vm.
+16. reviewer: Round 1 review. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item and the human's answer in entry 12. The diff has two changes: one line deleted from `src/factory/shared/domain/folder_readmes.py`, and the new test module `tests/shared/domain/test_folder_readmes_list.py`.
+
+    - **Group 1, acceptance criteria:** pass.
+      - Criterion 4: `FOLDER_READMES` now holds 22 paths, and `operator/template/README.md` is not among them; I read the tuple on the branch. `test_the_folder_readme_list_leaves_out_the_template_folder` checks both the length and the missing path in one assertion, and that also covers the failing side the Interface names.
+      - Criteria 1 to 3 and 6 belong to the docs stage, as the Interface says. The guard `tests/guards/test_folder_readmes.py:42` skips a README that does not exist yet and checks each one that does. `test_every_listed_readme_is_a_readme_of_a_folder_that_exists` still holds for the shorter list.
+      - `operator/template/README.md` is no longer named anywhere in `src`, `tests`, `docs/checked-documents.txt` or `operator/README.md`, except in the new test.
+      - The coder's `make check` was green (entries 7 and 14).
+    - **Group 2, architecture:** pass. The change stays in a shared domain constant, with no new import and no wiring.
+    - **Group 3, security:** pass. No secrets and no silencing markers.
+    - **Group 4, quality:** pass. The module docstring is present and the names say what they are. The 6 new `make duplicates` findings cannot come from a deleted tuple line.
+    - **Group 5, work item hygiene:** pass.
+      - The journal gives the main choice: delete the entry, rather than keep it and skip it in the guard.
+      - The Description matches what was built.
+      - The finding from round 0 (`docs/project-guide/shared.md:207` still says "23 in all") is settled by the human's answer in entry 12. Criterion 6 also names `shared.md`, which should say that `FOLDER_READMES` lists 22 paths and that `operator/template/` carries no README because an operator copies that folder into a new project. `docs/decisions.md` stays as it is.
+      - I did not write that addition into the text of criterion 6: the human said the reviewer reads entry 12 as part of criterion 6, and my role lets me correct only the Description. The documenter must read entry 12 together with criterion 6.
+    - **Documents:** the diff changes no document.
+
+    no findings
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
