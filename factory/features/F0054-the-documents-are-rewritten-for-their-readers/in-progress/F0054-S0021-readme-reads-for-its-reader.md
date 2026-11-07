@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T09:10:26.386254Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T09:10:26.386254Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:11:13.364093Z'
+  stage: docs-review
+  run: 673617d24aff49c0b5026dfc2e0f875f
 ---
 
 # The README reads for a newcomer
@@ -228,3 +230,19 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (58.1 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, and checked the README against `src/factory/shared/domain/documents.py`, `docs/decisions.md`, `docs/project-guide/glossary.md` and the old README on `main`.
+
+    All five round-1 findings are fixed:
+    - the opening's draft pull request;
+    - the list of what `make check` runs;
+    - *On Cloud Run*, named twice;
+    - "one folder each";
+    - the glossary links for "stories", "tick" and "work item".
+
+    No other document links to an old README heading. `docs/checked-documents.txt` gains `README.md`. I did not run `make documents`; the result in entry 13 is the documenter's.
+
+    Findings:
+    1. README.md:56 (*The document check*), second sentence: the text says a stop without its row is found in the project guide's *Kill points* or *Fault-injection paths*. The code does not check that. `_stop_rows` (`src/factory/shared/domain/documents.py:342-348`) checks stop rows only in `docs/operator-guide/stops.md` (`_stops_messages`, :412-417), and the row must name the stop's destination. The project guide check (`_project_guide_rows`, :351-363) covers only kill point cases and fault-injection paths. The paragraph also drops that the operator guide must have the sections *Install*, *Configuration* and *The stops* (`OPERATOR_GUIDE_SECTIONS`, :50, checked at :408-417). Fix: say the check finds a stop without a row naming its destination in the operator guide's stops file, an operator guide that lacks *Install*, *Configuration* or *The stops*, and a kill point case or fault-injection path without its row in the project guide's *Kill points* or *Fault-injection paths*. Also drop the vaguer "leaves a stop unnamed" in the first sentence.
+    2. README.md:73 (*How it is built*), last sentence: "[decisions.md](docs/decisions.md) records why" the planning history is kept at the tag. The decision log does not say why. `docs/decisions.md:3` and `:621` only say that the records and `factory/v1/` were removed and are kept at the tag `planning-history-2026-10-19`. Fix: say that decisions.md says what the tag holds (the planning records its older entries cite), or drop the clause.
+
+    Earlier tests: none. The diff changes no test file.
