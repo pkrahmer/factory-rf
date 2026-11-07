@@ -2,16 +2,12 @@
 stage: docs-only
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:49:03.443475Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,19 @@ journal:
   kind: started
   at: '2026-11-07T05:49:03.443475Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:58:07.075776Z'
+  stage: docs-only
+  run: ec6df42304d745be80379ede425345c6
+- number: 6
+  speaker: factory
+  kind: stall
+  at: '2026-11-07T05:58:07.458896Z'
+  stage: docs-only
+  run: ec6df42304d745be80379ede425345c6
+  reason: check_red
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -79,3 +88,40 @@ Expect: `1`
    - Architecture: the story only touches a project-guide page, which is a document the documenter may write. No code, test or agent file changes.
    - Scope: S0018 is listed in F0054's stories, and it changes nothing listed in "Out of scope" (`decisions.md`, `docs/runs/`, the playbook).
 4. factory: started docs-only as vm.
+5. documenter: Files changed:
+   - `docs/project-guide/pipeline.md`: rewritten for the developer about to change the pipeline area. Each section now opens with what the part is for, then the names and signatures in an indented block, then the rules one per bullet, then See also. Modules are linked once at their first mention. Feature, story and requirement IDs (R5) and the history lines ("of earlier versions", "went with the second user", "v1's order") are gone. Glossary words are linked at first use. Headings that other files cite are unchanged: *The pipeline definition*, *The rules of the definition*, *Starting a stage*, *After the agent run*, *The stage protocol*, *`StageFinisher.finish(aftermath)`*, *The take's rule*, *Asking the human*, *Boundaries*, *The idle shutdown*. One heading was renamed: *Stops, the clock and the factory log* is now *The stop records*, and nothing outside the file cited it.
+   - `docs/checked-documents.txt`: added the line `docs/project-guide/pipeline.md`.
+
+   What I did to the content:
+   - I moved text rather than cutting it. Every name, setting, fault text and rule of the old file is in the new one, and the test lists are kept as inline "Tests:" lines.
+   - I split the old miscellany at the end of the handlers section into headed sections: *Waiting out the provider's limit*, *The preflight in the tick*, *The stale branch*, *The agent run's environment*, *The settings*, *Boundaries in tests*, *`factory-health` and `factory-run`*, *`StopService`* and *The clock, the log and the stores*.
+   - I turned the "twelve rules" count into a table with a row 12 for the `not_read` rule, which the code runs last as the 11th entry of `_RULES` (the contract function gives rules 1 and 2). The old table stopped at 11.
+   - The runnable `uv run python` example now sits in a `console vm` block, copied from a real run in this checkout. It needs the project's environment, and the docs check container prints `Using CPython ...` for `uv run`. I replaced the old second half of the example, the `contrakt` fault, with a prose sentence. Its text is from the old file, and I did not re-run it.
+   - Style rule 8 (A code block holds no links) is met by linking the file above each signature block.
+
+   Not done, and why:
+   - There is no *Reference* section at the end. The detail stays in the rules of each section, and I did not move it. The reviewer may ask for one.
+   - I did not read each claim against the code. I checked the rule count and the names the code gave (`_RULES`, `CONTRACT_MAJOR`, `RETRY_WAITS`, `STALL_TAIL_LINES`, `ERROR_CAP`), and `make documents` resolved every name and link. The rest of the old claims are carried over unchecked, so a reviewer who compares against the code may find drift.
+   - `decisions.md` is untouched, as the story says; no "Why" or "Rejected" text was written.
+
+   Cross-read and found current: the operator-guide files that link into this file (`stops.md`, `pipeline.md`, `records.md`, `health.md`) and `machine.md`, `hosting.md`, `agents.md`, `work.md`, `watching.md`, `style.md` of the project guide. Their headings and links to this file still resolve.
+
+   Checks: `make documents` ended with `documents ok (15.9 s)`. I ran no `make check`, because every changed file is a document.
+
+   Stale text seen, not mine to fix: `docs/project-guide/README.md` lines 67 to 141 and 283 and `README.md:28` are reported by `make documents` under "Report (not checked yet)" as paths that do not exist (`support/...`, `project/factory/...`, `factory/stage.Containerfile`). These files are not on the checked list.
+6. factory: Stage docs-only stalled (attempt 1 of 2): a check is red after the stage: `check`
+   src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+   src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+   src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+   src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+   src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+   src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+   src/factory/work/domain/acceptance.py                  195      1     52      1    99%   367
+   ------------------------------------------------------------------------------------------------
+   TOTAL                                                11211     55   2254     52    99%
+
+   157 files skipped due to complete coverage.
+   Required test coverage of 90.0% reached. Total coverage: 99.21%
+   ======================================================================================= short test summary info ========================================================================================
+   FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/projec...ork-items.md'] == []
+   make: *** [Makefile:89: test] Error 1

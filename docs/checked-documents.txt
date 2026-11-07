@@ -19,3 +19,4 @@ docs/project-guide/work.md
 docs/project-guide/agents.md
 docs/project-guide/watching.md
 docs/project-guide/machine.md
+docs/project-guide/pipeline.md
