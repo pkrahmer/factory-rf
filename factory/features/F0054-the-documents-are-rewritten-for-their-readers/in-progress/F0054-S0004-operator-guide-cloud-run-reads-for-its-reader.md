@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:04:43.348004Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T00:04:37.977030Z'
   stage: docs-review
   run: 97dca653a4f1497db1ad6f5ed5918c70
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:04:43.348004Z'
+  stage: docs-only
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -130,3 +139,4 @@ Expect: `1`
    6. `docs/operator-guide/cloud-run.md:281-297`: the *Messages of `job.sh`* table leaves out `job: operator/vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it` (status 1, `operator/job/job.sh:161-162`), and :208 states this refusal without its message. Fix: add the row and quote the message at :208.
    7. `docs/operator-guide/cloud-run.md:3`: this breaks style rule 3 (link a factory word at its first use). The list claims the file uses [round cap] and [cost record], but neither appears in the text. It leaves out `tick` (first used at :125) and `story` (at :121), which are glossary words, and it links `base` again at :21. Fix: drop the word list, and link each glossary word where it is first used: stage, stop, crash, base, work item, tick, story.
    8. `docs/operator-guide/cloud-run.md:5`: this paragraph tells the operator about `make documents` and which blocks the docs check runs. That is the documenter's tooling, not something the operator does (style.md, *The operator guide*: the reader does not read the code). The text above each `sh` block already says where it runs. Fix: remove the paragraph.
+8. factory: started docs-only as vm.
