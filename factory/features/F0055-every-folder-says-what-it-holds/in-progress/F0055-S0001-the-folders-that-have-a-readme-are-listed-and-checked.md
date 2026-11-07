@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T10:14:26.254552Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T10:14:23.889133Z'
+  stage: tests
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:14:26.254552Z'
   stage: tests
 ---
 
@@ -156,3 +165,4 @@ Expect: `23 ['x: no README.md']`
 
    I changed no earlier test. Which earlier documenter tests the new sentence breaks depends on how the coder words it, so I can't name them yet. Under the leave in feature decision 5, I make that change after the coder's run names them.
 9. 2026-11-07 human: (a) to both: the 25 words count only the sentence after the backticked name, and <n> is the 1-based line number in the whole README, blank lines counted. What you settled yourself is confirmed: a subfolder line is a dash, the backticked name ending in /, a space and a sentence ending with a period; sentences are counted by their closing periods; each row of criterion 2 checks only its own line. Keep the tests as they are.
+10. factory: started tests as vm.
