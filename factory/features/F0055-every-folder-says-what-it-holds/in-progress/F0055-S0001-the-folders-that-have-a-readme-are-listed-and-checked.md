@@ -1,11 +1,11 @@
 ---
 stage: review
-blocked: round_cap
-round: 3
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 632
-comments_read: [6705414222, 6705474496]
+comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
 claim: null
 journal:
@@ -165,6 +165,11 @@ journal:
   stage: review
   run: 9696eb1530e54ff29e299d5f3f8e641c
   blocked: round_cap
+- number: 29
+  speaker: human
+  kind: comment
+  at: '2026-11-07T10:47:49.378141Z'
+  stage: review
 ---
 
 # The folders that have a README are listed and checked
@@ -446,3 +451,4 @@ Expect: `23 ['x: no README.md']`
     - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) copies `_run` from `tests/entry/test_check_documents_checked_files.py:50`. Under the standing leave it could move to `tests/support/check_documents_support.py`.
     - `tests/guards/test_folder_readmes.py:16` (`_subfolders`): a docstring on a private test helper.
 28. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+29. 2026-11-07 human: One more round, by the human's standing word. Both findings of the last review are real and small: the tester adds the row of criterion 10 (a README whose only link is root-absolute gives 'links to no guide'), and the coder removes the docstring of _Reading, keeping a why-comment if needed. The reviewer's two notes may be done in the same round under the standing leave (_run moved to tests/support/check_documents_support.py, the private helper's docstring removed), but they are not required. Nothing else changes.
