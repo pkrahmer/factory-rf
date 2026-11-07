@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T11:35:48.648536Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-07T11:35:43.458237Z'
   stage: review
   run: 4436660754b94cdca7a2af14be4c379d
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:35:48.648536Z'
+  stage: doing
 ---
 
 # A reference to another page's heading names a heading it has
@@ -214,3 +223,4 @@ Expect: `documents ok (<seconds> s)`
 
     Earlier tests:
     - `tests/entry/test_check_documents_checked_files.py`: none needed. It only adds constants and one test at the end, and every earlier test is unchanged. The story's Interface also allows rows in this module.
+13. factory: started doing as vm.
