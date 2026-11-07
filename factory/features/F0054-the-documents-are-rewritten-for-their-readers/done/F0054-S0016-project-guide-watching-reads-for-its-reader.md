@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -109,6 +109,11 @@ journal:
   at: '2026-11-07T05:02:40.561542Z'
   stage: docs-review
   run: 4706b693382d41028f4e547f8d80d6e3
+- number: 19
+  speaker: factory
+  kind: done
+  at: '2026-11-07T05:06:34.274753Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -332,3 +337,4 @@ Expect: `1`
     no findings
 
     Smoke test: `grep -cx "docs/project-guide/watching.md" docs/checked-documents.txt` holds by reading the file: the line is there once. I did not run it.
+19. factory: done (pull request merged); cost: 8 runs, 12.4 min, 103 turns, 368447 tokens in (4371701 more from cache), 64535 out, $3.71
