@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 1
 crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:57:21.471305Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-07T04:57:21.471305Z'
   stage: docs-review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:59:09.402745Z'
+  stage: docs-review
+  run: a2e88bf7b2d9439486867429096a4ea7
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -251,3 +253,25 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (16.1 s)
 13. factory: started docs-review as vm.
+14. reviewer: Round 1 docs review. I read `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `docs/project-guide/style.md` and the code on the branch. All 13 findings of entry 10 are fixed. I checked the code for each:
+    - the glossary links at first use;
+    - `ClaimService.status` and `observed_status` with `observed_claim_status` (`claims.py:73-81`, `lease.py:35-43`);
+    - `due_features`;
+    - `total` and `one_decimal`, which `bills.py:122` and `human_waits.py:53` both call;
+    - what `_completed` sets in `costs.py:144-173`;
+    - the links to `Name` and `Login`;
+    - "from `duration_seconds` to `cost_usd`";
+    - "that has a bill" (`bill.py:39-46`);
+    - each module linked once;
+    - the signature blocks, which match `transcripts.py`, `transcript_files.py`, `machine_files.py`, `factory_log.py`, `health_file.py`, `record_log_jsonl.py` and `watching/domain/machine.py`;
+    - the split sentences;
+    - the index entry.
+
+    I also checked the journal guard's lists against `tests/guards/test_no_journal_reading.py:9-25`, the heading *Transcripts* in `health.md`, and `watch.py`'s returns 0, 1 and 2. All hold. Findings:
+
+    1. `docs/project-guide/watching.md`, Interface and criterion 4 (each page linked once): `pipeline.md` is linked seven times (l.3, 27, 44, 89, 176, 273, 277) and `work.md` three times (l.27, 123, 129). Fix: link each page at its first mention and write the later mentions as plain `pipeline.md` and `work.md`, as `agents.md` does.
+    2. `watching.md:251`: "the only adapter import of the entry layer" is contradicted by the code. `src/factory/entry/check_documents.py:9-12` imports four adapters. Fix: say that `bill.py` imports no adapter itself and reaches them through `build_bill_service` in `wiring.py`.
+    3. `watching.md:228`: "the contents of the `work` volume" names something no code has (no `work` volume in `src/factory`); the dataset took its place. Fix: "the contents of the dataset".
+    4. `watching.md:101`: "It fetches and writes nothing. It returns 0." contradicts l.99 (it writes the event and the board) and l.102 (it returns 1). Fix: "It fetches nothing and writes no file. On success it returns 0."
+
+    The smoke test holds by reading `docs/checked-documents.txt`: the line is there once. I did not run it.
