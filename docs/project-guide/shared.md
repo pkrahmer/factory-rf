@@ -194,6 +194,14 @@ The command gives them the checkout's top-level entries and the real test of exi
 
 Never checked, whatever the kind: a placeholder in angle brackets such as `<instance>`, a glob such as `*` and an absolute path such as one under `/srv` or `/etc`. Anything inside a fenced code block is not checked either. The same holds for a section headed `## Replaced from v1` or `## Replaced in v1.2`, up to the next `##` heading. A name after that heading is checked again.
 
+**A reference to another page's heading.** `factory.shared.domain.heading_references` checks the one form in which the documents point to a section of another page: a heading in italics (`*...*`) or in double quotes, then an optional `)` or `,`, then `in` or `of`, then a relative link to a `.md` file, as in `see *The idle shutdown* in [machine.md](../operator-guide/machine.md)`. `heading_references` finds these references with their lines, and `unresolved_headings` turns the ones whose heading the linked page lacks into findings:
+
+    heading_references(document: str, text: str) -> list[HeadingReference]
+    unresolved_headings(references: list[HeadingReference], headings: Callable[[str], set[str] | None]) -> list[str]
+    page_headings(text: str) -> set[str]
+
+A finding reads `<document>:<line>: <heading> is no heading of <target>` and blocks or is reported by the same rule as the other findings of the name check. The command builds `headings(target)` from `page_headings`, the heading lines of the linked page at every level with only the backticks and asterisks removed, so `StageFinisher.finish` is not `StageFinisher.finish(aftermath)`: the reference names the heading as the page writes it. Not checked: plain text before `in` (`described in [machine.md](machine.md)`), another mark than `)` or `,` between the heading and `in`, a link with a `#` anchor, a link to a file that is not `.md`, a link to the document's own file, and a link to a page that is no document of the check (`headings` gives `None`). Only the span right before `in` counts when a line holds several. A paragraph that has a bold name and no heading of its own is named in the sentence (`the paragraph *In a job* under *The idle shutdown* in [machine.md](../operator-guide/machine.md)`), so that the heading right before `in` is a real one.
+
 ### The folder READMEs
 
 `FOLDER_READMES` in [folder_readmes.py](../../src/factory/shared/domain/folder_readmes.py), the module `factory.shared.domain.folder_readmes`, lists the path of every folder README of the repository, 23 in all. Each is a short pointer from a folder to the guide pages that explain it. Its form and limits are in *Folder READMEs* in [style.md](style.md).

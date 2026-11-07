@@ -288,3 +288,52 @@ def test_an_example_not_run_is_reported_after_the_reported_findings_and_never_bl
     assert lines.index(REPORT_HEADING) < lines.index(finding) < lines.index(not_run)
     assert re.fullmatch(TIME_LINE, lines[-1])
     assert status == 0
+
+
+RUN = "docs/runs/a-run.md"
+BROKEN_REFERENCE = "See *Nothing here* in [glossary.md](glossary.md)."
+HEADING_FINDING = (
+    f"{STYLE}:{line_of(_guide_page(BROKEN_REFERENCE), BROKEN_REFERENCE)}: "
+    f"Nothing here is no heading of {GLOSSARY}"
+)
+
+
+@pytest.mark.parametrize(
+    ("reference", "listed", "expected"),
+    [
+        pytest.param(
+            BROKEN_REFERENCE, [PROJECT_GUIDE], ([], [HEADING_FINDING]), id="broken-not-listed"
+        ),
+        pytest.param(BROKEN_REFERENCE, [STYLE], ([HEADING_FINDING], []), id="broken-listed"),
+        pytest.param(
+            "See *The two passes* in [glossary.md](glossary.md).", [STYLE], ([], []), id="valid"
+        ),
+        pytest.param(
+            "See *Nothing here* in [a-run.md](../runs/a-run.md).",
+            [STYLE],
+            ([], []),
+            id="no-document-of-the-check",
+        ),
+    ],
+)
+def test_a_reference_to_another_pages_heading_it_lacks_blocks_in_a_listed_file_only(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+    reference: str,
+    listed: list[str],
+    expected: tuple[list[str], list[str]],
+) -> None:
+    blocking, reported = expected
+    glossary = _guide_page("## The two passes\n\nThe factory works on work items.")
+    files = {STYLE: _guide_page(reference), GLOSSARY: glossary, RUN: "# A run\n\nPlain words.\n"}
+    _write(tmp_path, files, listed)
+
+    status, lines = _run(tmp_path, capsys)
+
+    findings = [line for line in lines if " is no heading of " in line]
+    assert findings == [*blocking, *reported]
+    assert status == (1 if blocking else 0)
+    if reported:
+        assert lines.index(reported[0]) > lines.index(REPORT_HEADING)
+    if blocking:
+        assert REPORT_HEADING not in lines

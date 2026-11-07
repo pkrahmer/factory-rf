@@ -38,6 +38,11 @@ from factory.shared.domain.documents import (
     unresolved,
 )
 from factory.shared.domain.folder_readmes import FOLDER_READMES
+from factory.shared.domain.heading_references import (
+    heading_references,
+    page_headings,
+    unresolved_headings,
+)
 from factory.shared.domain.sections import first_section
 
 _PROGRAM = "check-documents"
@@ -119,6 +124,16 @@ def _name_findings(root: Path, documents: Sequence[str]) -> list[GatedFinding]:
     ]
 
 
+def _heading_findings(root: Path, documents: Sequence[str]) -> list[GatedFinding]:
+    texts = {document: (root / document).read_text(encoding="utf-8") for document in documents}
+    headings = {document: page_headings(text) for document, text in texts.items()}
+    return [
+        GatedFinding(document=document, line=line)
+        for document, text in texts.items()
+        for line in unresolved_headings(heading_references(document, text), headings.get)
+    ]
+
+
 def _settings_guide_findings(root: Path) -> list[GatedFinding]:
     text = _read(root / OPERATOR_INSTALL)
     # A missing guide or section is already the operator guide's finding; a settings
@@ -187,6 +202,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     example_findings, not_run = _example_results(root, documents, ProcessExampleRunner(), fixtures)
     gated_findings = [
         *_name_findings(root, documents),
+        *_heading_findings(root, documents),
         *_settings_guide_findings(root),
         *example_findings,
     ]
