@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:13:52.370309Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-07T06:13:52.370309Z'
   stage: docs-only
+- number: 16
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:17:31.311279Z'
+  stage: docs-only
+  run: f0ebc6a8ae594923a1e31514f686ce6b
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -277,3 +279,32 @@ Expect: `1`
 
     Open, not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules are meant, so I left it for the human. The page still has no *Reference* section, which criterion 2 allows.
 15. factory: started docs-only as vm.
+16. documenter: Round 2: I fixed the reviewer's findings 1 to 10 as far as I could. Finding 10 (long sentences) is only partly done. `make documents` ends with `documents ok (16.5 s)`. I ran no `make check`, because every file I changed is a document.
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: findings 2 to 10, listed below.
+    - `docs/project-guide/README.md`: the index entry for `pipeline.md` now lists the current sections. *Stops, the clock and the factory log* became *The stop records* (with *The clock, the log and the stores*). *Boundaries* and *The idle shutdown* are named as top-level sections. This is finding 1. The index line occurs once in the file.
+
+    By finding:
+    1. Done in `README.md`, as above.
+    2. The glossary links for "round" (the prompt table) and "stall" (the Stalls opening) are added.
+    3. Both files are now linked above the Stalls block: `decisions.py` for `stall_reason_of`, and `post_texts.py` for `stall_cause` and `stall_note`. Their later links, in the decision-rules section, are plain.
+    4. The link to `factory.watching.application.machine` is at its first mention (the `Waiter` bullet). The later one is plain.
+    5. "The operator guide on work items ..." now starts with a capital.
+    6. The rule is back as its own bullet before the optional fields: none of the twenty-two fields from `git` to `containers` has a default or admits `None`. A `Boundaries(...)` without one is a `TypeError`, and `build_boundaries` sets all of them. I counted the twenty-two from the signature block. The orphan line "These eight ... are required" is gone.
+    7. `build_boundaries` is now described as building the container adapters first, with their `SettingsInvalid`, then the hosting service, then the other adapters.
+    8. The `StopService` and `StopPublisher` signature block is above the bullets, after the section's opening sentences. It sits outside any list, so it renders as a code block.
+    9. The "Record" and "Rerun is skipped" bullets under the crash cap are now sub-bullets of the "Steps 3 and 5 of `handle` change when ..." bullet.
+    10. Partly done. I split the sentences at the claim preconditions, `status` (a bullet for each of the three claim states), `observed_status`, the `factory-health` and `factory-run` paragraphs, the `StopPublisher` paragraph, `git_environment()` and the `MachineStopExit.observe()` sentence. I did not go through the whole page for every sentence over 25 words. The reviewer's other named lines (the `ask_crash_cap` paragraph, the `build_boundaries` environment line, the `IdleShutdown` introduction and a few more) still hold long sentences.
+
+    Not done:
+    - The page has no *Reference* section, as in earlier rounds. Criterion 2 allows that.
+    - I did not recompare the other claims on the page with the code. The reviewer's earlier spot-checks stand.
+
+    Stale text seen, not mine to fix:
+    - The story's Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. This is for the human.
+    - `docs/project-guide/README.md` lines 67 to 141 and 283, and `README.md:28`, name paths that do not exist. `make documents` lists them as not checked yet.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok (16.3 s)

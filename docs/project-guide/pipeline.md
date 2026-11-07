@@ -15,17 +15,23 @@ A claim says that one factory [instance](glossary.md) owns a stage of a work ite
     ClaimService.release(document) -> document
 
 - `instance` is the factory instance's name and must match `[a-z][a-z0-9-]*`, otherwise the constructor raises `ValueError`. `definition` is the `PipelineDefinition` the caller loaded, normally from `origin/main`; the [lease](glossary.md) is copied from it.
-- `claim` returns a `StageStart(commit, claim)`. It checks the preconditions first and writes nothing if one fails (`ValueError`): the document has a state; `stage` is the state's stage; `stage` is in the definition and has a [role](glossary.md); `branch` is `branch_name` of the id in the file name of `path`, so a claim is made only on the work item's own branch; the checkout is on `branch`.
+- `claim` returns a `StageStart(commit, claim)`. It checks the preconditions first and writes nothing if one fails (`ValueError`). The document has a state, and `stage` is the state's stage. `stage` is in the definition and has a [role](glossary.md). `branch` is `branch_name` of the id in the file name of `path`, so a claim is made only on the work item's own branch. The checkout is on `branch`.
 - It builds the `Claim`: the instance's name, the stage, the start time from `boundaries.clock` (UTC) and the `lease_duration` of the stage's role, copied now. A claim already in the document is replaced.
 - It sets `state.claim` and appends one [journal](glossary.md) entry (speaker `factory`, kind `started`, text `started <stage> as <instance>.`, see `started_text`). Nothing else in the document changes.
 - It writes the work item at `boundaries.checkout / path` and commits with the subject `work item <id>: <stage> starts as <instance>`, then pushes `branch`. Any outcome other than `"pushed"` raises `PushFailed`.
-- A rejected or unreachable push is no claim: the remote is unchanged, and the caller starts no agent run. The local commit stays on the local branch; the next tick's restore brings the branch back to the remote. `InjectedKill` at `BEFORE_PUSH` is not caught.
+- A rejected or unreachable push is no claim: the remote is unchanged, and the caller starts no agent run. The local commit stays on the local branch. The next tick's restore brings the branch back to the remote. `InjectedKill` at `BEFORE_PUSH` is not caught.
 - The stage-start commit is the last commit before the agent run. It stages every change in the work tree, so whatever the caller left uncommitted is part of it; for a new branch that is the work item's opening. It is therefore the baseline for what the agent may write and for the take's refusal rule.
-- `status(state)` returns a `ClaimStatus` ([lease.py](../../src/factory/pipeline/domain/lease.py), `factory.pipeline.domain.lease`): `"none"` (no claim), `"own"` (the claim's `instance` is the service's, whatever its age, so a restarted instance with the same name reruns its stage at once), `"held"` (another instance's claim, lease still running) or `"expired"` (another instance's, lease run out). It uses `boundaries.clock.now()` and the claim's own `lease_duration`, never the definition's, so a later change of the definition does not shorten a running claim.
-- `observed_status(state)` is `status` as a look from outside the instance's tick sees it (`observed_claim_status`, same clock): an own claim within its lease is `"held"`, since the tick may be running its stage, and at and past its lease `"own"`; every other claim, and no claim, gets what `status` gives. Only `Watcher(..., observer=True)` (`factory-watch`) uses it; the tick uses `status`.
+- `status(state)` returns a `ClaimStatus` ([lease.py](../../src/factory/pipeline/domain/lease.py), `factory.pipeline.domain.lease`): `"none"` (no claim), `"own"`, `"held"` or `"expired"`.
+  - `"own"`: the claim's `instance` is the service's, whatever its age, so a restarted instance with the same name reruns its stage at once.
+  - `"held"`: another instance's claim, lease still running.
+  - `"expired"`: another instance's claim, lease run out.
+- `status` uses `boundaries.clock.now()` and the claim's own `lease_duration`, never the definition's, so a later change of the definition does not shorten a running claim.
+- `observed_status(state)` is `status` as a look from outside the instance's tick sees it (`observed_claim_status`, same clock). An own claim within its lease is `"held"`, since the tick may be running its stage; at and past its lease it is `"own"`. Every other claim, and no claim, gets what `status` gives. Only `Watcher(..., observer=True)` (`factory-watch`) uses it; the tick uses `status`.
 - `lease_age(claim, now)` is `now - claim.started_at` (negative under clock skew); `lease_expired(claim, now)` is true when the age is at least `claim.lease_duration` minutes, and a negative age is never expired. Both are pure: `now` is passed in.
 - `release(document)` returns the document with `state.claim` set to `None`, for the stage's result commit. Journal, other state fields and body are unchanged and no entry is appended. A document without a claim comes back equal; one without a state raises `ValueError`.
-- `ClaimService` is the only module that builds or judges claims. Only `factory.pipeline.application.claims` imports `claim_status`, `lease_expired`, `lease_age` or `observed_claim_status`, and only it calls `Claim(...)`; [`tests/guards/test_claim_ownership.py`](../../tests/guards/test_claim_ownership.py) searches the source with `ast` and fails otherwise. Code that needs to know a claim's standing asks the service.
+- `ClaimService` is the only code that builds or judges claims.
+- Only `factory.pipeline.application.claims` imports `claim_status`, `lease_expired`, `lease_age` or `observed_claim_status`, and only it calls `Claim(...)`.
+- [`tests/guards/test_claim_ownership.py`](../../tests/guards/test_claim_ownership.py) searches the source with `ast` and fails otherwise. Code that needs to know a claim's standing asks the service.
 - In tests, set the work item up on its branch before `claim` (a state, a journal entry and a `## Journal` section, or `append_entry` raises `WorkItemFormatError`). `put_work_item` and `created_state` in [`tests/support/work_item_support.py`](../../tests/support/work_item_support.py) do it, and [`tests/pipeline/application/test_claims.py`](../../tests/pipeline/application/test_claims.py) uses them.
 
 See also: *The stage protocol* and *The tick*.
@@ -162,7 +168,7 @@ The caller gives `TaskComposer` the `Boundaries`, the `PipelineDefinition` and t
 |---|---|
 | `Work item: <path>`, `Id: <work item>`, `Stage: <stage>` | always |
 | `Allowed decisions: <decisions joined by ", ">` | always |
-| `Branch: <branch>`, `Pull request: <number>`, `Round: <round>` | always; the round is the document state's |
+| `Branch: <branch>`, `Pull request: <number>`, `Round: <round>` | always; the [round](glossary.md) is the document state's |
 | `Mode: a test change the human approved; the coder's journal entry <n> names it.` | only when `test_change_entry` is set |
 | `Format check: passed`, or `Format check found: 1. <message> 2. <message>` | only when `findings` is set (an empty list is `passed`) |
 | `END_LINE` | always |
@@ -251,7 +257,7 @@ Starting a stage means claiming the work item, finding its pull request and runn
 - `PatientRuns` builds no `AgentRunRequest` of its own.
 - The preflight's probe uses `run_sealed` without `run` and never waits.
 
-- `Waiter` (`factory.watching.application.machine`) is the interface of waiting: `wait(duration)` returns after it and raises `ValueError` for a negative one.
+- `Waiter` ([machine.py](../../src/factory/watching/application/machine.py), `factory.watching.application.machine`) is the interface of waiting: `wait(duration)` returns after it and raises `ValueError` for a negative one.
 - `SleepingWaiter` ([`factory.shared.adapters.clock`](../../src/factory/shared/adapters/clock.py)) calls `time.sleep`. `ManualWaiter(clock)` advances a `ManualClock` by the duration, records it in `waits` and returns at once. `build_boundaries` gives `SleepingWaiter()`.
 - Tests: [`tests/agents/application/test_patient_runs.py`](../../tests/agents/application/test_patient_runs.py), [`tests/pipeline/application/test_stage_provider_limit.py`](../../tests/pipeline/application/test_stage_provider_limit.py), [`tests/watching/adapters/test_waiters.py`](../../tests/watching/adapters/test_waiters.py).
 
@@ -259,7 +265,9 @@ See also: *After the agent run* and *Stalls*.
 
 ## Stalls
 
-A stall is the one way a stage ends without a result the factory can keep. It costs one attempt and is a value, never an exception. `StallService` in [stalls.py](../../src/factory/pipeline/application/stalls.py) (`factory.pipeline.application.stalls`) does it; the later steps (the branch, the decision, the form, a red check, a merge conflict) call it with their reason.
+A [stall](glossary.md) is the one way a stage ends without a result the factory can keep. It costs one attempt and is a value, never an exception. `StallService` in [stalls.py](../../src/factory/pipeline/application/stalls.py) (`factory.pipeline.application.stalls`) does it; the later steps (the branch, the decision, the form, a red check, a merge conflict) call it with their reason.
+
+`stall_reason_of` is in [decisions.py](../../src/factory/work/domain/decisions.py) (`factory.work.domain.decisions`), `stall_cause` and `stall_note` in [post_texts.py](../../src/factory/hosting/domain/post_texts.py) (`factory.hosting.domain.post_texts`).
 
     StallService(boundaries, instance, definition, stage_environment=None)
     StallService.stall(context, reason, detail="") -> StallResult
@@ -321,7 +329,7 @@ See also: *The take's rule* and *The decision rules*.
 
 ## The decision rules
 
-The agent names a decision, and code decides what the work item does next. `decide` in [decisions.py](../../src/factory/work/domain/decisions.py) (`factory.work.domain.decisions`) is pure; `StageFinisher` applies the move.
+The agent names a decision, and code decides what the work item does next. `decide` in `decisions.py` (`factory.work.domain.decisions`) is pure; `StageFinisher` applies the move.
 
     decide(definition, state, decision, findings=()) -> StageMove
 
@@ -343,7 +351,7 @@ The rules are tried in this order:
 | 6 | forward, no findings | `next[0]` | `None` | unchanged | `None` |
 | 7 | rework, stage has no `round_cap` | the decision | `None` | unchanged | `None` |
 
-The factory's own question texts are in [`factory.hosting.domain.post_texts`](../../src/factory/hosting/domain/post_texts.py): `round_cap_question(rounds, cap)`, `findings_question(findings)` (the messages numbered from 1, joined by one space) and `attempts_cap_question(stage, attempts, last_stall)`. That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
+The factory's own question texts are in `factory.hosting.domain.post_texts`: `round_cap_question(rounds, cap)`, `findings_question(findings)` (the messages numbered from 1, joined by one space) and `attempts_cap_question(stage, attempts, last_stall)`. That module imports `StallReason` and `FormFinding` only under `TYPE_CHECKING`, because `decisions` imports it.
 
 Tests: [`tests/work/domain/test_decision_rules.py`](../../tests/work/domain/test_decision_rules.py), [`tests/work/domain/test_question_texts.py`](../../tests/work/domain/test_question_texts.py).
 
@@ -528,9 +536,8 @@ A handler answers one kind of event. Every kind has one, and a handler that cann
 - `crash_cap` is a key of the pipeline definition (default 2; see *The keys*).
 - The cap counts the crashes since the last forward move. A forward move resets `crashes` in its result commit, and the human's answer resets it through `unblock` and `CommentHandler`. A rework move and a stall keep it.
 - Steps 3 and 5 of `handle` change when `at_crash_cap(<the crashed state>, definition.crash_cap)` (`factory.pipeline.domain.recovery`, true when `crashes >= crash_cap`) holds:
-
-- Record: the new state is `asking_crash_cap(<the crashed state>)` (`blocked` = `"crash_cap"`, the rest as it was) and the `crash` entry is followed by a `question` entry by `factory` with `crash_cap_question(stage, crashes, crash_cap)` (`factory.hosting.domain.post_texts`), in the same commit.
-- Rerun is skipped. After the push `handle` calls `ask_crash_cap(<the snapshot with the new document and the pushed commit>)` and returns without calling `run`.
+  - Record: the new state is `asking_crash_cap(<the crashed state>)` (`blocked` = `"crash_cap"`, the rest as it was) and the `crash` entry is followed by a `question` entry by `factory` with `crash_cap_question(stage, crashes, crash_cap)` (`factory.hosting.domain.post_texts`), in the same commit.
+  - Rerun is skipped. After the push `handle` calls `ask_crash_cap(<the snapshot with the new document and the pushed commit>)` and returns without calling `run`.
 - `ask_crash_cap(work_item)` raises `CannotHandle` when `blocked` is not `"crash_cap"` or when there is no `question` record by `factory` (`last_record`). Otherwise it posts through `StopService.post` a `WorkItemStop` keyed `PostKey(kind="crash_cap", n=<the record's number>)`, titled `<id>: <story title>` (`<id>` alone without a title), with the text `factory: <entry_text>`. That is the body and key `AskHandler` posts for a recorded question, so a repeat, or a repost after a kill, is a no-op (`StopPosted.outcome` is `"already_posted"`). When the post opened a pull request, `ask_crash_cap` checks the work item's branch out, sets `state.pull_request` and pushes one more commit (`pull request opened`); a push that is not `pushed` raises `PushFailed`.
 - `HostingServiceError` from the post propagates; the question stays recorded and pushed (recording comes before posting).
 - A boundary error after a pushed claim leaves the claim; the next tick raises `crash` and this handler records it like any crash. An error that repeats reaches the cap as the second crash, so the error cap of the dispatcher does not apply.
@@ -659,7 +666,7 @@ The order is fixed, and each step that changes the work item is pushed on its ow
 
 ### An illegal stage change is put back
 
-`RejectHandler(boundaries)` in [reject.py](../../src/factory/pipeline/application/handlers/reject.py) (`factory.pipeline.application.handlers.reject`) handles `reject`; it is registered for `reject`. It puts the stage back with a commit whose subject contains `moved back` (`MOVED_BACK_MARKER`, `factory.hosting.domain.post_texts`), and the journal gains a `move_back` entry. That entry is what exempts the correction from the move rule: the next evaluation sees a `StageChange` with `correction` true and does not reject it. the operator guide on work items says what the operator sees.
+`RejectHandler(boundaries)` in [reject.py](../../src/factory/pipeline/application/handlers/reject.py) (`factory.pipeline.application.handlers.reject`) handles `reject`; it is registered for `reject`. It puts the stage back with a commit whose subject contains `moved back` (`MOVED_BACK_MARKER`, `factory.hosting.domain.post_texts`), and the journal gains a `move_back` entry. That entry is what exempts the correction from the move rule: the next evaluation sees a `StageChange` with `correction` true and does not reject it. The operator guide on work items says what the operator sees.
 
 1. `target_of(event)`, then `WorkItemRecorder.check_out(snapshot.branch)`.
 2. The change is taken from the same source as the watcher's: `RemoteWorkItems(git, work_item_reader).last_stage_change(snapshot)`, the newest commit beyond `origin/main` that touched the work item's file, whatever later commits touched other files. `None` (no change, a merge commit, a parent without the file or with an unreadable one) and a change that is itself a correction raise `CannotHandle("reject", ...)` before anything is posted or written.
@@ -683,19 +690,19 @@ See also: *The tick* and *Boundaries*.
 
 A stop is a fact about the factory that the operator must see: a standing condition of the repository, the machine or one work item. This section covers how stops are raised, kept and published.
 
-- [`factory.pipeline.domain.stops`](../../src/factory/pipeline/domain/stops.py) holds `RepositoryStop` (scope, reason, detail, `at`) and `HealthStatus` (`stops`, `healthy`). Both are frozen and refuse unknown fields.
-- The rules (blank detail, scope against reason, naive `at`, one stop per reason) are in the formats of health.md (*The factory log and the health status file*) and are `ValidationError`s. `at` is typed `UtcDatetime` and so is converted to UTC.
-
     StopService(boundaries).raise_stop(stop) -> None
     StopService.clear_stop(reason) -> None
     StopService.post(stop: WorkItemStop) -> StopPosted
     StopPublisher(boundaries).publish() -> list[StopRecord]
 
+- [`factory.pipeline.domain.stops`](../../src/factory/pipeline/domain/stops.py) holds `RepositoryStop` (scope, reason, detail, `at`) and `HealthStatus` (`stops`, `healthy`). Both are frozen and refuse unknown fields.
+- The rules (blank detail, scope against reason, naive `at`, one stop per reason) are in the formats of health.md (*The factory log and the health status file*) and are `ValidationError`s. `at` is typed `UtcDatetime` and so is converted to UTC.
+
 ### The clock, the log and the stores
 
 The pipeline writes through four small interfaces: a clock, a factory log, a health status store and a disk-space reader. They are abstract, so tests replace them.
 
-[machine.py](../../src/factory/watching/application/machine.py) (`factory.watching.application.machine`) holds the abstract `Clock` (`now()`, aware and UTC), `FactoryLog` (`line(text)`), `HealthStatusStore` (`read()`, `write(status)`) and `DiskSpace` (`free_bytes(path)`, `used_bytes(path)`).
+`factory.watching.application.machine` holds the abstract `Clock` (`now()`, aware and UTC), `FactoryLog` (`line(text)`), `HealthStatusStore` (`read()`, `write(status)`) and `DiskSpace` (`free_bytes(path)`, `used_bytes(path)`).
 
 - Their first implementations are `SystemClock` and `ManualClock(start)` (tests; `advance(by)`; a naive start is a `ValueError`) in `factory.shared.adapters.clock`, `TimestampedFactoryLog(path, clock)` in [`factory.watching.adapters.factory_log`](../../src/factory/watching/adapters/factory_log.py), `JsonHealthStatusFile(path)` in [`factory.watching.adapters.health_file`](../../src/factory/watching/adapters/health_file.py) and `ShutilDiskSpace()` in [`factory.machine.adapters.disk_space`](../../src/factory/machine/adapters/disk_space.py).
 - `free_bytes` is `shutil.disk_usage(path).free`; `used_bytes` sums the regular files under a path without following links, 0 for a missing path; `Boundaries.disk` is `ShutilDiskSpace()` from `build_boundaries`.
@@ -706,8 +713,8 @@ The pipeline writes through four small interfaces: a clock, a factory log, a hea
 
 Two console scripts sit on the stop records. `factory-health` tells a container's health check whether a stop stands. `factory-run` starts the factory and records the stop of invalid settings.
 
-- `factory-health` ([`factory.entry.health`](../../src/factory/entry/health.py), `main(argv=None, *, store=None) -> int`) is the container's health check. It reads the health status from the health file of the state directory (`--state-directory <path>`, default the image's `/state`; on the VM the path is the `FACTORY_STATE` of the instance), or from the `HealthStatusStore` it is given. It prints `healthy` and returns 0, or prints one line per stop in force, `<reason> (<scope>): <detail> (since <at>)`, and returns 1. A missing health file prints `no health status: <path> is missing` and returns 1.
-- `factory-run` (`factory.entry.run.main(environ=None, *, runner=None, state_directory=STATE_DIRECTORY, clock=None)`) writes the stop of invalid settings (the log line `settings invalid: <variable>: <fault>` and the `preflight_failed` stop in `health.json`) to the directory `FACTORY_STATE` names (`named_state_directory` of [`factory.shared.domain.settings`](../../src/factory/shared/domain/settings.py): stripped, non-blank, absolute), else to `state_directory`. A relative `FACTORY_STATE` is itself the fault, and its stop goes to `state_directory`. The same holds for a `SettingsInvalid` the runner raises after the settings were read, such as the unreadable token file.
+- `factory-health` ([`factory.entry.health`](../../src/factory/entry/health.py), `main(argv=None, *, store=None) -> int`) is the container's health check. It reads the health status from the health file of the state directory, or from the `HealthStatusStore` it is given. The directory is `--state-directory <path>`, by default the image's `/state`. On the VM it is the `FACTORY_STATE` of the instance. It prints `healthy` and returns 0. Otherwise it prints one line per stop in force, `<reason> (<scope>): <detail> (since <at>)`, and returns 1. A missing health file prints `no health status: <path> is missing` and returns 1.
+- `factory-run` (`factory.entry.run.main(environ=None, *, runner=None, state_directory=STATE_DIRECTORY, clock=None)`) writes the stop of invalid settings (the log line `settings invalid: <variable>: <fault>` and the `preflight_failed` stop in `health.json`) to the directory `FACTORY_STATE` names, else to `state_directory`. `named_state_directory` of [`factory.shared.domain.settings`](../../src/factory/shared/domain/settings.py) accepts a stripped, non-blank, absolute path. A relative `FACTORY_STATE` is itself the fault, and its stop goes to `state_directory`. The same holds for a `SettingsInvalid` the runner raises after the settings were read, such as the unreadable token file.
 
 ### `StopService`
 
@@ -724,7 +731,7 @@ Every stop that is raised or cleared leaves a record, and the factory publishes 
 - `StopRecord` (`factory.pipeline.domain.stops`: `event` `raised` or `cleared`, `scope`, `reason`, `at`, `instance`; frozen, no unknown keys) is one event of a stop. It holds no detail. Its scope must match its reason by the same private function `RepositoryStop` uses.
 - `stop_records_text(records)` gives one `model_dump_json()` line per record, and `parse_stop_records(text)` reads back the lines that validate and skips the others.
 - `Boundaries.stop_records` (`RecordLog[StopRecord]`; `build_boundaries` sets a `JsonLinesRecordLog` at `<state directory>/records/stops.jsonl`) is where `StopService` appends: `raise_stop` appends a `raised` record when the health status it read held no stop of that reason (and none when the status cannot be read, so the records stay paired with the status), `clear_stop` appends a `cleared` record with the standing stop's scope. Each append is tried after the log line and the status like the other two, and its `OSError` is raised last.
-- `StopPublisher(boundaries).publish()` pushes the local records that `origin/main`'s `STOP_RECORDS_FILE` ([`factory/stops.jsonl`](../../factory/stops.jsonl)) does not hold, compared as whole records, and returns them. It reads the file with `git.show_file` (missing is empty) and returns `[]` without a git operation when there is nothing to add. Otherwise it stands on `main` through `WorkItemRecorder.check_out`, appends the missing records once each in local order (adding a newline when the file does not end in one; lines that do not validate stay), and commits and pushes through `WorkItemRecorder.publish(MAIN_BRANCH, "stops recorded")`. It raises `GitError`, `PushFailed` or `OSError`; the local records stay, so the next call pushes them.
+- `StopPublisher(boundaries).publish()` pushes the local records that `origin/main`'s `STOP_RECORDS_FILE` ([`factory/stops.jsonl`](../../factory/stops.jsonl)) does not hold, compared as whole records, and returns them. It reads the file with `git.show_file` (a missing file is empty). With nothing to add it returns `[]` without a git operation. Otherwise it stands on `main` through `WorkItemRecorder.check_out` and appends the missing records once each, in local order. It adds a newline when the file does not end in one, and lines that do not validate stay. It commits and pushes through `WorkItemRecorder.publish(MAIN_BRANCH, "stops recorded")`. It raises `GitError`, `PushFailed` or `OSError`; the local records stay, so the next call pushes them.
 - Tests: [`tests/pipeline/domain/test_stop_records.py`](../../tests/pipeline/domain/test_stop_records.py), [`tests/pipeline/application/test_stop_records_service.py`](../../tests/pipeline/application/test_stop_records_service.py), [`tests/pipeline/application/test_stop_publisher.py`](../../tests/pipeline/application/test_stop_publisher.py), [`tests/pipeline/application/test_tick_stop_records.py`](../../tests/pipeline/application/test_tick_stop_records.py), [`tests/entry/test_wiring_stop_records.py`](../../tests/entry/test_wiring_stop_records.py).
 - `STOP_TABLE` in [`factory.pipeline.domain.stop_table`](../../src/factory/pipeline/domain/stop_table.py) is a tuple of `StopRow`s, one per stop, each with its limits (`limits`), its `destination` (`health_status`, `pull_request` or `none`), its `reason` and the `test` that proves it. A row has a `reason` exactly when its destination is the health status. Each limit is the whole text `L` followed by ASCII digits, with nothing after it: `L7` is accepted; `L7x`, `L7 ` and `L7` followed by a newline are not, and neither is a digit outside ASCII. A refused row is a `pydantic.ValidationError`.
 
@@ -747,6 +754,7 @@ See also: *The tick* and *The handlers of the events*.
     CheckoutPreparer(git, settings).prepare() -> None
 
 - The fields are `git`, `hosting`, `agent_runtime`, `project_commands`, `work_item_reader`, `work_item_writer`, `cost_reader`, `cost_writer`, `pipeline_reader`, `agent_definitions`, `clock`, `log`, `health`, `checkout` (the checkout root, a `Path`), `settings`, `disk` (the `DiskSpace` of the disk check, see the tick's step 0), `disk_records` (the log of the disk records), `stop_records` (the log of the stop records, see *Stop records*), `waiter` (a `Waiter`; `build_boundaries` gives `SleepingWaiter()`; see *Starting a stage*) and `result_records` (the log of the known results, see machine.md, *Known results*). `snapshots` (a `Snapshots`) and `containers` (a `ContainerRuns`) follow them.
+- None of the twenty-two fields from `git` to `containers` has a default or admits `None`. A `Boundaries(...)` without one is a `TypeError`, and `build_boundaries` sets all of them.
 - Eight optional fields follow, each with a default:
   - `container_extra_environment`: what the operator adds to every container's environment; empty by default.
   - `image_path`: the `PATH` the containers' image configures; `SYSTEM_PATH` by default.
@@ -755,14 +763,13 @@ See also: *The tick* and *The handlers of the events*.
   - `image_store`: the folder of the image store, whose free space the cost records show; `None` by default.
   - `stop_requested`: whether the factory's own shutdown has been asked for, so that a command it cut off is not judged; `False` by default.
   - `transcripts`: the `TranscriptStore` that keeps each run's transcript; `None` keeps none.
-- These eight, `settings` to `containers`, are required
 - It takes keyword arguments only, so a positional call is a `TypeError`, and assigning to a field raises `FrozenInstanceError`. A story that needs another interface adds a field.
 - `snapshots` and `containers` hold the dataset's and the containers' interfaces. `stage_environment_of` gives the one `ContainerEnvironment` on them (see machine.md, *The container environment*).
 - `build_boundaries` fills `containers` with `PodmanRuns`, and `snapshots` with `ZfsSnapshots` or, when `settings.snapshots` is `copy`, `CopySnapshots(workspace, base)` (see machine.md, *The settings and the wiring*).
 - It refuses an instance without the dataset (ZFS), the base (copy), the workspace or the stage image before it builds anything, with a `SettingsInvalid` that names the variable. The `boundaries` fixture holds the fakes of the container environment.
 - Its `project_commands` is `RecordingProjectCommands` around `ContainerMakeCommands` (see machine.md, *The checks*).
 - `Boundaries.settings` (`InstanceSettings`) is the one place the services read the instance's settings from (the image identity, the instance's name, the provider limit); `build_boundaries` fills it.
-- `build_boundaries` resolves the hosting service first, so a URL with no `owner/name` fails (`SettingsInvalid`, `FACTORY_REPOSITORY_URL`) before any adapter exists: `hosting` when given (tests pass `FakeHostingService`), otherwise `pygithub_service(repository_name(settings.repository_url), token)` from [`factory.hosting.adapters.pygithub_hosting`](../../src/factory/hosting/adapters/pygithub_hosting.py), which builds the PyGithub client lazily (no network call).
+- `build_boundaries` first builds the container adapters (the snapshots and `PodmanRuns`) and so raises their `SettingsInvalid` first. It then resolves the hosting service, so a URL with no `owner/name` fails (`SettingsInvalid`, `FACTORY_REPOSITORY_URL`) before the other adapters exist: `hosting` when given (tests pass `FakeHostingService`), otherwise `pygithub_service(repository_name(settings.repository_url), token)` from [`factory.hosting.adapters.pygithub_hosting`](../../src/factory/hosting/adapters/pygithub_hosting.py), which builds the PyGithub client lazily (no network call).
 - It then builds, in this order:
   - `GitCli(settings.checkout, git_options(settings))`.
   - The agent runtime that `settings.agent_runtime` names: `OpencodeRuntime` for `opencode`, otherwise `ClaudeCodeRuntime`. Both run in the stage's containers.
@@ -774,7 +781,7 @@ See also: *The tick* and *The handlers of the events*.
 - With `images`, the containers' `PATH` is read from the stage image. Without it, or when the image cannot be read, it is `SYSTEM_PATH`, and the preflight reports a missing image.
 - `build_boundaries` writes nothing.
 - The token comes from `read_hosting_token(settings.token_file)`, which calls `read_setting_file(variable, path, read_file)` (`factory.shared.domain.settings`, the one reader of a setting's file, also used for the image identity; the reader is passed in so the domain does no I/O).
-- `git_options(settings)` gives `GitOptions(identity=settings.git_identity, environment=git_environment())`. `git_environment()` returns exactly seven entries: `GIT_CONFIG_COUNT=3`, and as `GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n` the pairs `credential.helper` = `CREDENTIAL_HELPER`, `core.hooksPath` = the null device (the factory's git runs no hooks) and `core.fsmonitor` = `false` (a child git started for a nested repository inherits the pairs, so that repository's `core.fsmonitor` never runs). There is no `core.sharedRepository`.
+- `git_options(settings)` gives `GitOptions(identity=settings.git_identity, environment=git_environment())`. `git_environment()` returns exactly seven entries: `GIT_CONFIG_COUNT=3` and three `GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n` pairs. The pairs are `credential.helper` = `CREDENTIAL_HELPER`, `core.hooksPath` = the null device and `core.fsmonitor` = `false`. The factory's git runs no hooks. A child git started for a nested repository inherits the pairs, so that repository's `core.fsmonitor` never runs. There is no `core.sharedRepository`.
 - Agent runs: `agent_runtime.run` is called in [`factory.machine.application`](../../src/factory/machine/application/__init__.py) by the stage environment's `run_agent` (machine.md), which returns the run's result as the runtime gave it, and by `PatientRuns`, which `StageLauncher.launch` passes as `run` and which waits out the provider's spend limit around the call. The factory seals nothing before a run and checks nothing after it: it does not look at the checkout's git folder, a repository nested in the work tree or the ignored paths. Tests: [`tests/pipeline/application/test_stage_nested_repository.py`](../../tests/pipeline/application/test_stage_nested_repository.py), [`tests/pipeline/application/test_dispatcher_counts_every_error.py`](../../tests/pipeline/application/test_dispatcher_counts_every_error.py).
 - `CheckoutPreparer(git, settings).prepare()` ([scheduler.py](../../src/factory/pipeline/application/scheduler.py), `factory.pipeline.application.scheduler`) returns nothing and raises `GitError`. When `checkout/.git` does not exist in any form (`os.path.lexists`) it clones; otherwise it does nothing: no check, no clone again, whatever the `.git` holds. A folder with files and no `.git` is still refused by the clone. It takes no log. Tests: [`tests/hosting/application/test_checkout_preparer.py`](../../tests/hosting/application/test_checkout_preparer.py).
 
@@ -822,7 +829,7 @@ A machine that has nothing to do can switch itself off, and a job that has a sta
 - `ProcessExit(request_stop)` (same module) is the second implementation of `PowerOff`: `power_off()` calls `request_stop` once and raises nothing. The setting `FACTORY_IDLE_SHUTDOWN_ACTION` (`InstanceSettings.idle_shutdown_action`, `"poweroff"` by default or `"exit"`; anything else is `SettingsInvalid` with `is neither poweroff nor exit`) picks between the two.
 - `idle_shutdown_of` gives `None` for `0`, else the `IdleShutdown` with `SystemctlPowerOff()` for `poweroff` or `ProcessExit(request_stop)` for `exit` (without a `request_stop`, `ValueError`), `boundaries.clock` and `boundaries.log`.
 - `run_instance(..., request_stop=None)` hands its `request_stop` on, and `run_until_stopped` passes its event's `set`, so the idle shutdown and the signal handlers stop the same loop and `main` returns 0 as after a `SIGTERM`. `run_instance` builds it once and hands it to `activity_tick(tick, idle)`, which runs the tick, gives the outcome to `idle.observe` and returns `activity(outcome)`, so the loop's pauses do not change.
-- `MachineStopExit` ([machine_stop_exit.py](../../src/factory/machine/application/machine_stop_exit.py), `factory.machine.application.machine_stop_exit`) ends the loop in a job when a machine stop stands: `observe()` reads the stops of scope `machine` from the health status, keeps for each reason the earliest `at` of an unbroken stretch (the preflight raises a stop again every tick with a new `at`), and when one has stood `MACHINE_STOP_LIMIT` (ten minutes, exactly is enough) logs `machine stop: standing for 10 minutes in a job, ending the factory's process: <reason>: <detail>` once and calls `request_stop`.
+- `MachineStopExit` ([machine_stop_exit.py](../../src/factory/machine/application/machine_stop_exit.py), `factory.machine.application.machine_stop_exit`) ends the loop in a job when a machine stop stands: `observe()` reads the stops of scope `machine` from the health status. For each reason it keeps the earliest `at` of an unbroken stretch, because the preflight raises a stop again every tick with a new `at`. When one has stood `MACHINE_STOP_LIMIT` (ten minutes, exactly is enough), it logs `machine stop: standing for 10 minutes in a job, ending the factory's process: <reason>: <detail>` once and calls `request_stop`.
 - `machine_stop_exit_of(settings, boundaries, request_stop)` gives `None` unless the idle shutdown is on (minutes above 0) with `exit`. `run_instance` wraps the prepare and tick callbacks with `_observed_iteration`, so it observes after each tick and after a `prepare` that left no tick, and raises `MachineStopStood` ([`factory.shared.domain.errors`](../../src/factory/shared/domain/errors.py)) after the scheduler ended on it; `main` returns 1 for it.
 
 The rules of the stretch, in `observe(outcome)`:
