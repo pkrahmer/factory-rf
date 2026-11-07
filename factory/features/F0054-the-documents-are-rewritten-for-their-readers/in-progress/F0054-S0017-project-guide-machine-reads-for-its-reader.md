@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:36:44.662687Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-07T05:36:44.662687Z'
   stage: docs-only
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:39:38.087315Z'
+  stage: docs-only
+  run: f5d765bffe1d441f8b10bd966fa3c325
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -409,3 +411,22 @@ Expect: `1`
 
     Earlier tests: none (the diff changes no test file).
 24. factory: started docs-only as vm.
+25. documenter: Round 4: I fixed the reviewer's two findings in entry 23, as the human asked in entry 21. I read `chosen_image` and `project_image_settings` in `src/factory/entry/wiring.py`, `_ProjectImageStart._choose` in `src/factory/entry/run.py`, and `ImageBuild` in `src/factory/machine/application/images.py` before I wrote.
+
+    Files changed:
+    - `docs/project-guide/machine.md`, in *The project's stage image* and in the Reference section *How the stage file is followed*:
+      - I added `chosen_image(...) -> ChosenImage | None` to the code block.
+      - The page now names `chosen_image` as the place where the image in use is chosen. It returns the settings and the sizes measured once. `project_image_settings` is described as the wrapper that returns only the settings.
+      - `_ProjectImageStart` is the caller, and it calls `chosen_image`.
+      - The `StageImageReport` is passed only when a stage file exists or at the start. A later follow without a stage file passes none.
+      - The `ImageBuild` field list now includes `warnings`: the count of output lines that warn, 0 by default.
+
+    Cross-read and found current: the other files from earlier rounds are unchanged. No heading was renamed.
+
+    Stale text I saw and did not touch, because it is unrelated to this story: `docs/project-guide/pipeline.md`, in the tick step, lists the preflight items without `metadata-block` and the `copy` variant, which machine.md states. No `docs/decisions.md` entry was written, because the criterion says none.
+
+    `make documents` ended `documents ok (16.2 s)`. I did not run `make check`, because the only changed file is a document.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok (16.2 s)

@@ -350,15 +350,16 @@ A project adds a layer to the stage image with the file `<project>/factory/stage
     stage_layer(text, base_identity) -> StageLayer
     Images.build(layer, base, tag, time_limit) -> ImageBuild
     Images.path(image) -> str
+    chosen_image(settings, git, images, stops, *, report=None) -> ChosenImage | None
     project_image_settings(...)
 
 - The rule is `stage_layer` in [stage_layer.py](../../src/factory/machine/domain/stage_layer.py) (`factory.machine.domain.stage_layer`). It returns a `StageLayer` (`text`, `digest`, `identity` = `<base identity>+<digest>`) or raises `StageLayerRefused`, whose `str()` is the reason.
 - `STAGE_FILE` and `project_image_tag(stage_image)` (`<stage image>-project`) are defined there once.
-- `Images` is the interface, in [images.py](../../src/factory/machine/application/images.py) (`factory.machine.application.images`). `build` returns an `ImageBuild` (`passed`, `duration`, `output_tail`: the last 20 lines).
+- `Images` is the interface, in [images.py](../../src/factory/machine/application/images.py) (`factory.machine.application.images`). `build` returns an `ImageBuild` (`passed`, `duration`, `output_tail`: the last 20 lines, and `warnings`: the count of output lines that warn, 0 by default).
 - `IMAGE_BUILD_TIME_LIMIT` is the one 30-minute limit.
 - `PodmanImages` in [podman_images.py](../../src/factory/machine/adapters/podman_images.py) is the implementation. It builds with `--build-arg FACTORY_BASE=<base>`, `--network=host`, `-t <tag>` and an empty context folder, then runs `image prune -f`. `FakeImages` in [fake_images.py](../../src/factory/machine/adapters/fake_images.py) is the fake the tests use.
 - `path` reads `image inspect --format '{{json .Config.Env}}'` and raises `ContainerError` when podman fails or prints no JSON. `PodmanImages` reaches podman through `run_podman` and puts the job profile's global options before each subcommand.
-- The one place where the image in use is chosen is `project_image_settings` in `factory.entry.wiring`.
+- The one place where the image in use is chosen is `chosen_image` in `factory.entry.wiring`. It returns a `ChosenImage` (the settings, and the image sizes measured once) or `None`. `project_image_settings` is a wrapper around it that returns only the settings.
 - It returns the settings unchanged without a stage file.
 - When the file builds, it returns the settings with `stage_image` = the project tag and `image` = the layer's identity.
 - It raises the machine [stop](glossary.md) `stage_image_failed` and returns `None` when the file breaks the rule or does not build.
@@ -366,7 +367,7 @@ A project adds a layer to the stage image with the file `<project>/factory/stage
 - A check that finds a valid file, or none, clears the stop.
 - The boundaries are built a second time from the chosen settings, so every container run and the preflight's stamp take the project image.
 - The `PATH` comes from `images.path(<the image in use>)` in `build_boundaries`, kept in `Boundaries.image_path`. The sync environment, `ContainerMakeCommands` and the agent environment (`production_environment(boundaries.image_path)`, the scripts folder first) take it. An image whose `path` raises gives `SYSTEM_PATH`.
-- `run_instance` calls `project_image_settings` once the checkout is ready, and again whenever the stage file changes on a new `origin/main`. *How the stage file is followed* in the *Reference* has the exact order.
+- `run_instance` has `_ProjectImageStart` call `chosen_image` once the checkout is ready, and again whenever the stage file changes on a new `origin/main`. *How the stage file is followed* in the *Reference* has the exact order.
 
 See also: *The preflight* and *The podman adapter*.
 
@@ -718,10 +719,10 @@ The refusals of `read_settings`:
 
 ### How the stage file is followed
 
-- `_ProjectImageStart` in [run.py](../../src/factory/entry/run.py) (`factory.entry.run`) calls `project_image_settings` once the checkout is ready, after a fetch, and again whenever the stage file changes on a new `origin/main`.
+- `_ProjectImageStart` in [run.py](../../src/factory/entry/run.py) (`factory.entry.run`) calls `chosen_image` once the checkout is ready, after a fetch, and again whenever the stage file changes on a new `origin/main`.
 - `_ProjectImageStart.prepare` fetches before every tick, beside where the preflight probes `main`. It reads the file with `stage_file_on_main` and compares its text with the one last handled. Equal text is equal digest, and it also covers a refused file, which has none.
 - The same text builds nothing and does not retry a failed one.
-- A different text calls `project_image_settings` with a `StageImageReport` (`stage_image_report`: log, clock, the commit's first 12 hex digits). It writes the `stage image:` lines and puts `at <commit>: ` before the stop's detail.
+- A different text calls `chosen_image`; it passes a `StageImageReport` when a stage file exists or at the start, and none for a later follow without a stage file (`stage_image_report`: log, clock, the commit's first 12 hex digits). It writes the `stage image:` lines and puts `at <commit>: ` before the stop's detail.
 - A passed build gives a new tick on boundaries built from the chosen settings (image, identity and `Boundaries.image_path` change together). A tick that is running keeps its own, so the change takes effect between stages.
 - `prepare` guards its fetch. `_follow_main` catches `FetchFailed` (any other `GitError` is not caught and reaches the scheduler's `iteration failed`), raises the repository stop `fetch_failed` with `str(error)` as its detail through `StopService`, and returns `False`. Then `prepare` returns `False` and no tick runs in that iteration. It reads no stage file then and leaves the image, identity, `PATH` and the stage file last handled as they were.
 - A fetch that passes calls `clear_stop("fetch_failed")` and compares as above.
