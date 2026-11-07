@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 1
 attempts: 0
 crashes: 0
 pull_request: 637
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T13:39:20.386346Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,13 @@ journal:
   kind: started
   at: '2026-11-07T13:39:20.386346Z'
   stage: doing
+- number: 11
+  speaker: coder
+  kind: question
+  at: '2026-11-07T13:39:40.439799Z'
+  stage: doing
+  run: e958306d40914ea186a126247f661a2c
+  blocked: question
 ---
 
 # The operator's folders say what they hold
@@ -164,3 +167,15 @@ Expect: `documents ok (<seconds> s)`
 
    Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
 10. factory: started doing as vm.
+11. coder: Round 1: I could not address the reviewer's one finding (entry 9), so I changed nothing.
+
+    The finding asks that criterion 6 also name `docs/project-guide/shared.md`. Line 207 of that page says `FOLDER_READMES` lists "every folder README of the repository, 23 in all". After this story the list holds 22, because `operator/template/` deliberately has no README. The fix belongs in the work item's `## Description`, but the coder's write paths in the pipeline definition do not include `{work_item}`; they are `src/*`, `agents/*` and the `operator/*` folders. `shared.md` is the documenter's file, so I cannot correct the page myself either. The code is unchanged since entry 7: one entry removed from `src/factory/shared/domain/folder_readmes.py`, and `make check` was green then.
+
+    The options I see:
+    1. You add to criterion 6 something like: "`docs/project-guide/shared.md`: `FOLDER_READMES` lists 22 paths, and `operator/template/` carries none because an operator copies that folder into a new project." Then I send the item on to review with no code change.
+    2. You let the item go on as it is and leave the fix to the docs stage. The documenter writes from criterion 6, so it would likely miss `shared.md` unless a journal entry names it.
+    3. You also decide on `docs/decisions.md:1653` ("the 23 paths"). Criterion 6 now says "`docs/decisions.md`: none", and that came from you.
+
+    I would choose option 1. On `decisions.md`, I would keep the entry as it is, because a decision log records what was decided at the time.
+
+    Noticed but not touched: `make duplicates` reported 6 new findings in the last run. They cannot come from this story's one deleted line.
