@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 629
 comments_read: [6704964498]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T09:23:30.414215Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -147,6 +151,11 @@ journal:
   at: '2026-11-07T09:23:24.962647Z'
   stage: docs-only
   run: bd767a85ad0943dcac966e8b3c703619
+- number: 26
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:23:30.414215Z'
+  stage: docs-review
 ---
 
 # The README reads for a newcomer
@@ -385,3 +394,4 @@ Expect: `1`
     `check`: check: green
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (58.1 s)
+26. factory: started docs-review as vm.
