@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T11:55:25.628230Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T11:55:25.620871Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:55:25.628230Z'
+  stage: intake
+---
+
 # Every file of code and every script names its license
 
 ## Description
@@ -31,3 +58,6 @@ git ls-files 'src/factory/*.py' | xargs -I{} head -1 {} | grep -vcx '# SPDX-Lice
 Expect: `0`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
