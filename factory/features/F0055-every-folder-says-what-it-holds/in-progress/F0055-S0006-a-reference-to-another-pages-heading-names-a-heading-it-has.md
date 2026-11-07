@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T11:35:48.648536Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-07T11:35:48.648536Z'
   stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-07T11:36:07.027902Z'
+  stage: doing
+  run: 03d0e3eb0796498fbc4dac9f0c5f200c
 ---
 
 # A reference to another page's heading names a heading it has
@@ -224,3 +226,13 @@ Expect: `documents ok (<seconds> s)`
     Earlier tests:
     - `tests/entry/test_check_documents_checked_files.py`: none needed. It only adds constants and one test at the end, and every earlier test is unchanged. The story's Interface also allows rows in this module.
 13. factory: started doing as vm.
+14. coder: No code changed. The reviewer's finding (entry 12) extends criterion 1 with three rows, and those rows need only a test change. The code already handles all three: `_REFERENCE` in `src/factory/shared/domain/heading_references.py` gives no reference for plain text or for a mark other than `)` or `,`, and takes only the span right before `in`.
+
+    The tester should add three rows to the existing parametrized test `tests/shared/domain/test_heading_references.py::test_a_reference_to_another_pages_heading_is_found_with_its_line_heading_and_target`, with no new test function:
+    - **Plain text, no reference:** `See the guide in [machine.md](machine.md).`
+    - **Another mark, no reference:** `*The two passes*; in [machine.md](machine.md)`
+    - **Two italic spans:** `*one* and *The two passes* in [machine.md](machine.md)` gives exactly one reference, with the heading `The two passes`.
+
+    I checked that the test has none of these rows yet (its current ids run from italics-in to neither-in-nor-of). The Description already lists the three rows in criterion 1, so it needs no rewrite.
+
+    Noticed, not touched: nothing beyond entry 10. `make documents` still blocks on `install.md:121`, `work-items.md:66` and the project guide's `machine.md:487` until the docs stage fixes them. The check does not catch the fourth reference, `agent-runtime.md:407`, so the documenter fixes it by hand.
