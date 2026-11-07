@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:59:31.239565Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -65,6 +69,11 @@ journal:
   at: '2026-11-07T03:59:26.248985Z'
   stage: docs-review
   run: fb36a262832f41b4b1a0c1bf0f847ba5
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:59:31.239565Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -190,3 +199,4 @@ Expect: `1`
     11. `docs/project-guide/work.md:182`: "the folders of the old layout" is history wording (style rules 1 and 7). It replaced "v1's folders". Fix: say what is ignored now, for example "any path that `folder_of` refuses", without naming an earlier layout.
     12. `docs/project-guide/work.md`: many words that the glossary defines are not linked at their first use (criterion 1, style rule 3). They are: acceptance (l.20), feature (l.27), claim (l.45), stage (l.91), approval, round cap, attempts cap and crash (l.92), stall (l.93), role (l.95), cost record (l.141), backlog (l.224), pipeline definition (l.205) and write paths (l.462, or wherever they first appear). Only work item, instance, journal and story are linked. Fix: link each to `glossary.md` at its first use in the file.
     13. `docs/project-guide/work.md:89,98,166,222,446`: modules the page names are not linked, as the Interface requires ("Each module, file or page ... is linked once"). They are `factory.work.domain.decisions` (`src/factory/work/domain/decisions.py`), `factory.watching.domain.cost_records`, `factory.entry.wiring` (`src/factory/entry/wiring.py`), `factory.hosting.domain.hand_over` (`src/factory/hosting/domain/hand_over.py`) and `factory.watching.application.costs` (`src/factory/watching/application/costs.py`). Fix: link each once at its first mention, or once in a See also.
+11. factory: started docs-only as vm.
