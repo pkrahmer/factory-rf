@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:33:12.788776Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -60,6 +64,11 @@ journal:
   stage: docs-only
   run: 26ddd06a1e0d4511ac11b3af7ba15bc2
   reason: check_red
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:33:12.788776Z'
+  stage: docs-only
 ---
 
 # The operator folder's README reads for its reader
@@ -154,3 +163,4 @@ Expect: `1`
    FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[vm/git-credential-factory] - AssertionError: assert ['operator/README.md'] == []
    FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/] - AssertionError: assert ['operator/README.md'] == []
    make: *** [Makefile:89: test] Error 1
+10. factory: started docs-only as vm.
