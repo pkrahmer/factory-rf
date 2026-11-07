@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:28:17.568534Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -163,6 +159,12 @@ journal:
   kind: started
   at: '2026-11-07T06:28:17.568534Z'
   stage: docs-only
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:32:01.179612Z'
+  stage: docs-only
+  run: 7c2affc25d5f4091b357c88dcfcbc3f2
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -486,3 +488,39 @@ Expect: `1`
     - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human has to decide which rules are meant.
     - The page has no *Reference* section. Criterion 2 allows that.
 27. factory: started docs-only as vm.
+28. documenter: Round after the human's answer (entry 24). I fixed findings 1 and 2 completely and finding 3 only in part.
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: the fixes below.
+
+    By finding:
+    1. In *Boundaries*, "builds the following, in this order" now lists what `entry/wiring.py` builds, in that order: `SystemClock`, `GitCli`, the log (`TimestampedFactoryLog`), the runtime, the project commands, the readers and writers, `ProjectAgentDefinitions`, and last `JsonHealthStatusFile`, which the code builds inside the `Boundaries(...)` call. I read `wiring.py:310-356` and checked the order against it.
+    2. In *`factory-health` and `factory-run`*, the condition is back: "When no stop is in force, it prints `healthy` and returns 0." I read `entry/health.py:30-45`, where `healthy` is printed only when `status.healthy` holds.
+    3. Partly done. I split these sentences:
+       - The stage, role and command field sentence is now two bullet lists.
+       - The hand-over description is now a list.
+       - The `Boundaries` field list is now a short list plus one bullet per field that needs an explanation.
+       - The `is_before_approval` sentence.
+       - The `yaml_fault` sentence.
+       - The acceptance `findings` sentence.
+       - The sentences about a body without a Journal section, the stage-start commit, a multi-line detail, `StallContext`, the stall's write paths and the `HostingServiceError` cases.
+       - The restore step, the stale-branch outcome and the `closed`/`merged` splits.
+       - `RecoveryHandler`, the `get_pull_request` routing and the gate.
+       - `unblock`, the `move_back` state, `clear_stop`, `stop_records`, the keyword-only test line, `SystemctlPowerOff`, the agent-run line and the line-3 intro.
+
+       I ran a script (a sentence is flagged at over 28 words or with more than one parenthesis; it counts link parentheses too). Its first run flagged 257 sentences, and 59 of them were over 38 words or had more than 3 parentheses. I fixed the longest and most nested ones. About 40 sentences between 34 and 39 words are still flagged, for example near lines 100, 160, 177, 211, 293, 322-323, 372, 386-388, 422, 486-487, 526-530, 542, 583-585, 669, 723, 791, 802 and 817, and many shorter ones that are flagged for parentheses only (mostly link parentheses). Finding 3 of the last review is therefore not closed. Another round can finish it, or the human can accept the 34-to-39-word sentences. The splits are plain text rewrites and add no new claim.
+
+    I did not re-read each function whose order or condition the page states, beyond the two above (`build_boundaries`, `factory-health`). The earlier reviews spot-checked the rest against the code.
+
+    `make documents`: `documents ok (16.3 s)`. I ran no `make check`, because every changed file is a document.
+
+    Cross-read and found current: the links into this file from the operator guide and the other project-guide files; no heading changed in this round.
+
+    Stale text seen, not mine to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - `docs/project-guide/README.md` and `README.md:28` name paths that do not exist; `make documents` lists them as not checked yet.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok (16.0 s)
