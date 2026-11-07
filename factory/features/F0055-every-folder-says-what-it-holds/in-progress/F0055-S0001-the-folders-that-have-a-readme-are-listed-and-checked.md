@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T10:48:52.387979Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -181,6 +185,11 @@ journal:
   at: '2026-11-07T10:48:47.228398Z'
   stage: review
   run: ebb23baa384040a2b7887eb56d45c329
+- number: 32
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:48:52.387979Z'
+  stage: doing
 ---
 
 # The folders that have a README are listed and checked
@@ -483,3 +492,4 @@ Expect: `23 ['x: no README.md']`
     Notes (the human made them optional in entry 29, so they do not send the work item back):
     - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) is a copy of `_run` in `tests/entry/test_check_documents_checked_files.py:50`. Under the standing leave it can move to `tests/support/check_documents_support.py`.
     - `tests/guards/test_folder_readmes.py:16` (`_subfolders`): a private test helper with a docstring.
+32. factory: started doing as vm.
