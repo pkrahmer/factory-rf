@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:39:22.327916Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T02:39:17.259617Z'
   stage: docs-review
   run: 9954e335cd7641ffa358c77127ae6b93
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:39:22.327916Z'
+  stage: docs-only
 ---
 
 # The operator guide's index reads for the operator
@@ -224,3 +233,4 @@ Expect: `1`
 
     Findings:
     1. `docs/operator-guide/README.md:39`, the sentence that starts "The stage environment is the containers; an instance without `FACTORY_WORKSPACE`…" and ends "…(with `FACTORY_SNAPSHOTS=copy` it runs without a dataset).": the round-2 addition makes it about 42 words with three conditions. That breaks style rule 2 (split a sentence of more than about 25 words), and rule 4 (common case first) suffers too. Fix: split it into short sentences with the same facts. For example: "The stage environment is the containers. An instance without `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE` is refused. With `zfs` snapshots it also needs `FACTORY_DATASET`. With `FACTORY_SNAPSHOTS=copy` it needs `FACTORY_SNAPSHOT_BASE` instead and runs without a dataset."
+16. factory: started docs-only as vm.
