@@ -1,12 +1,10 @@
 # The factory in a Cloud Run job
 
-A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md) who knows Linux and does not read the code. The factory's own words are explained in the [glossary](../project-guide/glossary.md); this file uses [stage](../project-guide/glossary.md), [stop](../project-guide/glossary.md), [crash](../project-guide/glossary.md), [round cap](../project-guide/glossary.md), [base](../project-guide/glossary.md), [cost record](../project-guide/glossary.md) and [work item](../project-guide/glossary.md).
-
-An `sh` block holds bare commands for a real machine or a cloud account. The text above it says where they run. `make documents` does not run them, and they show no output. It does run the `console` blocks.
+A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md) who knows Linux and does not read the code. The factory's own words are explained in the [glossary](../project-guide/glossary.md).
 
 ## On Cloud Run
 
-A Cloud Run job runs the factory without a VM. The job starts bare: its root file system is memory, nothing is installed and nothing persists. Every start therefore installs the tools, clones the code and builds the stage image again.
+A Cloud Run job runs the factory without a VM. The job starts bare: its root file system is memory, nothing is installed and nothing persists. Every start therefore installs the tools, clones the code and builds the [stage](../project-guide/glossary.md) image again.
 
 The job's command is [job-start.sh](../../operator/vm/job-start.sh), a POSIX `sh` script. It turns a bare `debian:trixie-slim` into a running instance and ends in `exec factory-run`. [job.sh](../../operator/job/job.sh) creates the job and puts that script in its command (see *Creating the job*).
 
@@ -16,9 +14,9 @@ Creating the job, its secrets and its schedule is yours. This chapter says what 
 
 Give the job these, in this order of importance.
 
-1. **Memory.** The job gets 4 vCPUs and 16 GiB unless `SITE_CPU` and `SITE_MEMORY` say otherwise. Memory is the limit to raise first. The root file system is memory, and so is the tmpfs that holds the image layers. The checkout, the base and the workspace count against it too.
+1. **Memory.** The job gets 4 vCPUs and 16 GiB unless `SITE_CPU` and `SITE_MEMORY` say otherwise. Memory is the limit to raise first. The root file system is memory, and so is the tmpfs that holds the image layers. The checkout, the [base](../project-guide/glossary.md) and the workspace count against it too.
    - The stage image is about 2.4 GB. The job builds it without the layer cache and removes the build's untagged leftovers at once, so only the tagged stage image and its base stay.
-   - The [base](../project-guide/glossary.md) is a plain copy (see *Without ZFS* in [machine.md](machine.md)), so the tree is held twice. A reset takes about 1.6 s per GiB.
+   - The base is a plain copy (see *Without ZFS* in [machine.md](machine.md)), so the tree is held twice. A reset takes about 1.6 s per GiB.
 2. **Time for a start.** A start takes a few minutes: the install, the clone and the image build.
 3. **A task timeout below the schedule's interval.** The platform allows 24 hours at most, and that is the default (`SITE_TIMEOUT`, 86400 seconds). A job executed every night must set `SITE_TIMEOUT` below it, such as `23h`. Two executions of one job must never overlap, because both would act as the one instance.
 4. **No retries.** Create the job with `--max-retries=0`. Otherwise a timeout starts a second execution at once. `job.sh` does this for you.
@@ -54,7 +52,7 @@ The job's environment is the instance's configuration. The script reads the vari
 | `FACTORY_REPOSITORY_URL` | The project. Required. | none | `https://github.com/owner/name.git` |
 | `FACTORY_CODE_URL` | The repository that holds the factory's code and `operator/vm/Dockerfile`. It is cloned without a credential (see *The code and the project apart* in [machine.md](machine.md)). Required. | none | `https://github.com/owner/factory.git` |
 | `FACTORY_CODE_REF` | A tag or a commit of the code repository. It has no default, so nothing pushed to the code's `main` reaches a job unseen: you move the ref on purpose. Required. | none | `v1.2.0` |
-| `FACTORY_TOKEN_FILE` | The path of the file that holds the hosting token. It must be a file the script can read, else `job-start: FACTORY_TOKEN_FILE is not a file` and status 2. The script never prints it. Required. | none | `/secrets/hosting-token/token` |
+| `FACTORY_TOKEN_FILE` | The path of the file that holds the hosting token. It must be a file the script can read, else `job-start: FACTORY_TOKEN_FILE is not a file` and status 2. The script never prints it. Required. | none | `/secrets/hosting-token` |
 | `HTTPS_PROXY` or `https_proxy` | The proxy for `apt` and every download. `HTTPS_PROXY` wins when both are given and not empty. The script exports `HTTPS_PROXY`, `https_proxy`, `HTTP_PROXY` and `http_proxy` to every later step, because the stage image's package manager fetches over plain HTTP. An `HTTP_PROXY` or `http_proxy` that the job sets to a value that is not empty keeps its own value. Optional. | none | `http://proxy.internal:3128` |
 | `FACTORY_JOB_ROOT` | The folder of everything the script makes. | `/srv/factory/<instance>` | `/srv/factory/kumpel` |
 | `FACTORY_STAGE_IMAGE` | The name of the stage image the job builds. | `factory-stage:<instance>` | `factory-stage:kumpel` |
@@ -95,9 +93,9 @@ status 2
 
 ### The steps
 
-The script prints `job-start: <step>` on standard output at each step, in this order.
+The checks of the required variables, the token file and `RUNC_SHA256` come before the first step line. After them the script prints `job-start: <step>` on standard output at each step, in this order.
 
-1. `inputs`: checks the variables above and derives the others. It copies a token whose folder is not private, and checks the transcript folder when `FACTORY_TRANSCRIPT_DIR` is set (that check prints no step line of its own). Then `PATH` becomes `<root>/tools/bin` followed by the `PATH` the script started with, so the preflight finds `uv` and the factory's commands that the `tools` step builds there.
+1. `inputs`: derives the other settings. It copies a token whose folder is not private, and checks the transcript folder when `FACTORY_TRANSCRIPT_DIR` is set (that check prints no step line of its own). Then `PATH` becomes `<root>/tools/bin` followed by the `PATH` the script started with, so the preflight finds `uv` and the factory's commands that the `tools` step builds there.
 2. `proxy`: with a proxy set, exports the four spellings and writes `/etc/apt/apt.conf.d/99proxy`.
 3. `packages`: runs `apt-get update`, then one `apt-get install` of `podman`, `uidmap`, `nftables`, `git`, `make`, `curl`, `ca-certificates`, `rsync`, `python3` and `python3-venv`, at the versions of the Debian release.
 4. `runc`: downloads `runc.amd64` of the release, checks it with `sha256sum -c` against the script's own checksum, and installs it as `/usr/local/bin/runc`. A mismatch stops with `job-start: runc: checksum does not match` and status 1. A checksum downloaded beside the binary would check nothing, so there is none. The download folder is removed whenever the step ends.
@@ -112,19 +110,19 @@ The script prints `job-start: <step>` on standard output at each step, in this o
 11. `token`: when `FACTORY_TOKEN_URL` is set, runs the refresher once and waits for it, which must succeed, then starts it in the background.
 12. `start`: runs `exec factory-run` of the code checkout's environment.
 
-Any other failing step stops the script with `job-start: <step>: failed` on standard error and status 1. `factory-run` is not started. The job's log ends with the last step printed.
+Any other failing step stops the script with `job-start: <step>: failed` on standard error and status 1. `factory-run` is not started. The job's log shows the last step printed, followed by its failure line.
 
 ### Starts, restarts and the end of an execution
 
 A start or a restart takes a few minutes, because the checkout, the base and the image are rebuilt. The state folder goes with the memory, so the factory log, `health.json` and the preflight stamp start empty, and the preflight runs at every start.
 
-A restart during a stage is a crash for the factory (see *A restart during a stage* in [work-items.md](work-items.md)). Recovery charges one crash to the stage in flight. After `crash_cap` crashes, two by default, the work item waits for your answer. A story in flight on two nights therefore waits once.
+A restart during a stage is a [crash](../project-guide/glossary.md) for the factory (see *A restart during a stage* in [work-items.md](work-items.md)). Recovery charges one crash to the stage in flight. After `crash_cap` crashes, two by default, the [work item](../project-guide/glossary.md) waits for your answer. A [story](../project-guide/glossary.md) in flight on two nights therefore waits once.
 
 How an execution ends:
 
-- **At the timeout** the platform sends `SIGTERM` to `factory-run` with no warning before it. The factory ends after the tick in progress. The platform marks the execution failed with `The configured timeout was reached`, even when the exit status is 0. A nightly timeout is planned and is not a fault.
+- **At the timeout** the platform sends `SIGTERM` to `factory-run` with no warning before it. The factory ends after the [tick](../project-guide/glossary.md) in progress. The platform marks the execution failed with `The configured timeout was reached`, even when the exit status is 0. A nightly timeout is planned and is not a fault.
 - **When `factory-run` exits with status 0** the execution ends as succeeded at once, background processes such as the refresher included. With `FACTORY_IDLE_SHUTDOWN_MINUTES` set, the factory exits this way when idle, because the script sets `FACTORY_IDLE_SHUTDOWN_ACTION=exit` (see *The idle shutdown* in [machine.md](machine.md)).
-- **A machine stop that stands for ten minutes** ends the execution with status 1, and the platform marks it failed.
+- **With `FACTORY_IDLE_SHUTDOWN_MINUTES` set, a [stop](../project-guide/glossary.md) of the machine that stands for ten minutes** ends the execution with status 1, and the platform marks it failed (see *The idle shutdown* in [machine.md](machine.md)).
 
 The next execution starts at the schedule, or when you run `sh operator/job/job.sh execute`.
 
@@ -134,7 +132,7 @@ When the model costs nothing, a price of 0 makes `budget_usd` inert. The time li
 
 ### Creating the job
 
-[job.sh](../../operator/job/job.sh) creates, updates, starts and deletes the job from the site file's values (see *The site file* in [site.md](site.md)). It never guesses a project, a region or a job's name. Every `gcloud` call carries `--project` from the file. Every `gcloud run` call carries `--region` too, because Cloud Logging has no region and `logging read` does not take it. When `SITE_IMPERSONATE` is set, every call carries `--impersonate-service-account`.
+[job.sh](../../operator/job/job.sh) creates, updates, starts and deletes the job from the site file's values (see *The site file* in [site.md](site.md)). It never guesses a project, a region or a job's name. Every `gcloud` call carries `--project` from the file. Every `gcloud run` call carries `--region` too. `logging read` does not, because Cloud Logging has no region. When `SITE_IMPERSONATE` is set, every call carries `--impersonate-service-account`.
 
 These commands run on your own machine, with the site file in place and `gcloud` logged in:
 
@@ -205,7 +203,7 @@ The job's command is one line of shell that decodes a script (base64, gzip). The
 3. It writes `operator/vm/job-start.sh` to `/tmp/job-start.sh`.
 4. It hands over to that file with `exec sh /tmp/job-start.sh`.
 
-The text of `operator/vm/job-start.sh` is taken from `SITE_CODE_REF` of the repository that holds `job.sh`, not from its working tree, so the job runs the code the ref names. A ref the repository does not know stops `create` and `update` with `job: <ref> is not known here; fetch it first` and status 1. A `operator/vm/job-start.sh` that holds a line `JOB_START_SH_END` is refused, because that line ends the text in the wrapper.
+The text of `operator/vm/job-start.sh` is taken from `SITE_CODE_REF` of the repository that holds `job.sh`, not from its working tree, so the job runs the code the ref names. A ref the repository does not know stops `create` and `update` with `job: <ref> is not known here; fetch it first` and status 1. A `operator/vm/job-start.sh` that holds a line `JOB_START_SH_END` is refused with `job: operator/vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it` and status 1, because that line ends the text in the wrapper.
 
 #### Create, update, start, delete
 
@@ -288,6 +286,7 @@ Lines that start, after the time, with `Selecting `, `Preparing to unpack`, `Unp
 | `job: <name> holds '@', the delimiter of the job's env list` | 1 | `create` or `update` refuses a value with `@`. |
 | `job: <name> is not a number` | 1 | `create` or `update` refuses a model cost. |
 | `job: <ref> is not known here; fetch it first` | 1 | `SITE_CODE_REF` is not in the local repository. |
+| `job: operator/vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it` | 1 | The script holds the line that ends it in the wrapper. |
 | `job: <job> exists; use update` | 1 | `create` on an existing job. |
 | `job: <job> does not exist; use create` | 1 | `update` on a missing job. |
 | `job: an execution of <job> is still running: <name>; two executions of one instance must not overlap` | 1 | `execute` while one runs. |

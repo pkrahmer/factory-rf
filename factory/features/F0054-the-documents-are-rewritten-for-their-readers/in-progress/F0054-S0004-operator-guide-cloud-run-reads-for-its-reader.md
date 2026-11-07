@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:04:43.348004Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T00:04:43.348004Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:07:27.569611Z'
+  stage: docs-only
+  run: 034919b05e504258bda5f67d329f61d2
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -140,3 +142,21 @@ Expect: `1`
    7. `docs/operator-guide/cloud-run.md:3`: this breaks style rule 3 (link a factory word at its first use). The list claims the file uses [round cap] and [cost record], but neither appears in the text. It leaves out `tick` (first used at :125) and `story` (at :121), which are glossary words, and it links `base` again at :21. Fix: drop the word list, and link each glossary word where it is first used: stage, stop, crash, base, work item, tick, story.
    8. `docs/operator-guide/cloud-run.md:5`: this paragraph tells the operator about `make documents` and which blocks the docs check runs. That is the documenter's tooling, not something the operator does (style.md, *The operator guide*: the reader does not read the code). The text above each `sh` block already says where it runs. Fix: remove the paragraph.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's eight findings in `docs/operator-guide/cloud-run.md`, the only file I changed. `make documents` ends with `documents ok (5.9 s)` and prints no line for this file. I did not run `make check`, because I changed only documents.
+
+   1. The machine-stop bullet now starts "With `FACTORY_IDLE_SHUTDOWN_MINUTES` set, a stop of the machine that stands for ten minutes" and points to *The idle shutdown* in machine.md.
+   2. The `--region` sentence now reads: every `gcloud run` call carries `--region`; `logging read` does not, because Cloud Logging has no region.
+   3. The token path example is now `/secrets/hosting-token`.
+   4. The *The steps* intro says the checks of the required variables, the token file and `RUNC_SHA256` come before the first step line. The `inputs` step now says it "derives the other settings", and the rest of that step's text is unchanged.
+   5. The failure sentence now says the log shows the last step printed, followed by its failure line.
+   6. The `JOB_START_SH_END` refusal message is quoted in the text, and a row for it is added to the *Messages of `job.sh`* table (status 1).
+   7. I dropped the word list at the top. Each glossary word is now linked where it first appears: instance, stage, base, crash, work item, story, tick and stop. I removed the second link on `base`.
+   8. I removed the paragraph about `make documents` and the `sh` and `console` blocks.
+
+   Cross-read: none beyond round 0.
+
+   Stale text I did not touch: the same as in round 0, namely the line in `docs/decisions.md` and `docs/runs/`.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (5.9 s)
