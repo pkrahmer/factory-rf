@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T07:27:58.217112Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T07:27:53.371414Z'
   stage: docs-review
   run: 01583a78a79c461182b05bb5f190a137
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T07:27:58.217112Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -193,3 +202,4 @@ Expect: `1`
     2. docs/project-guide/operator.md:3: "The exact detail (every status code, key and file) is in the *Reference*" is not true. The *Reference* holds the status codes, the names of the `site check` checks, `site_job_keys` and the test modules by script. It lists neither every key (those are in `site.env.example`) nor every file. Fix: name what the *Reference* actually holds.
     3. docs/project-guide/operator.md:7: the first sentence has two parentheses, "([site.sh](...))" and "([hosting.sh](...))". Style rule 2 allows at most one per sentence. Fix: split the sentence, or link the two files without parentheses, for example "The loader, [site.sh](...), and ...".
     4. docs/project-guide/operator.md:7: "keep it current from the docs criterion" uses a private word that the glossary does not explain (style rule 3). Fix: say it plainly, for example "update it when a story changes a file under `operator/`".
+12. factory: started docs-only as vm.
