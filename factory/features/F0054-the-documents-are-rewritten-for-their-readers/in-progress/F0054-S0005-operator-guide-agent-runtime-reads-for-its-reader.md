@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:36:56.645763Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-07T00:36:56.645763Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:37:27.030207Z'
+  stage: docs-review
+  run: c3c4000d0be0424fad83e07fb360dc43
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -350,3 +352,21 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (10.2 s)
 18. factory: started docs-review as vm.
+19. reviewer: Docs review, round 3. I read `docs/operator-guide/agent-runtime.md` on the branch against my two round-2 findings. I diffed the documenter's last commit (`d463bb7e1..dd91b4f33`) and compared the token steps with step 8 of "On GCP, step by step" in `docs/operator-guide/machine.md:514-521`.
+
+    Both round-2 findings are fixed:
+    1. *The agent's login token* (`:59-79`):
+       - Step 2 saves the token as `claude-token` in your own folder, and the Windows `Set-Content` variant with its UTF-16 note sits under that step.
+       - Step 3 installs the file with `sudo install -m 0600 -o factory -g factory` to `/home/factory/.secrets/claude-token` and removes the copy with `shred -u`. That matches `machine.md:518,520`.
+       - The steps now follow one another in order, and the reader is no longer sent back a step.
+    2. *How a call is made* (`:16`): the version check is told once, by the `agent-runtime-version` sentence with the `2.1.289` example, for both runtimes. The earlier sentence that named only `claude` is gone.
+
+    The round only changed those two places, and no heading changed. So criterion 4 still holds, and the facts checked in rounds 0 to 2 still stand. Criterion 3 holds: the file is on `docs/checked-documents.txt`, and the journal reports `documents ok (10.2 s)`.
+
+    These were dropped on purpose and stay accepted from round 0:
+    - the `planning/cloud-sandbox/` pointer;
+    - the F0043 and F0044 notes;
+    - "This repository's own build stays on the subscription";
+    - `limit_wait`.
+
+    no findings
