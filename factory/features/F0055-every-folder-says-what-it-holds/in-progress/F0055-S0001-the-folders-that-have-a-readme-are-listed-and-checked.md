@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-07T11:03:39.076385Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -245,6 +241,12 @@ journal:
   kind: started
   at: '2026-11-07T11:03:39.076385Z'
   stage: smoke-test
+- number: 43
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T11:04:06.306711Z'
+  stage: smoke-test
+  run: 84c3e9f81adc41c6bc10aaed74188fbb
 ---
 
 # The folders that have a README are listed and checked
@@ -650,3 +652,21 @@ Expect: `23 ['x: no README.md']`
     `secrets`: secrets: green (2.0 s)
     `documents`: documents ok (60.4 s)
 42. factory: started smoke-test as vm.
+43. smoke-tester: Ran the one smoke-test command from the repository root, exactly as written.
+
+    Command 1:
+    ```bash
+    uv run python -c "from factory.shared.domain.folder_readmes import FOLDER_READMES, readme_problems; print(len(FOLDER_READMES), readme_problems('x', None, []))"
+    ```
+    Output (exit 0):
+    ```
+    Bytecode compiled 4164 files in 50ms
+    23 ['x: no README.md']
+    ```
+    It met its `Expect:` line (`23 ['x: no README.md']`). The first line is uv's bytecode notice on stderr, not the program's output.
+
+    I also printed `FOLDER_READMES` on its own, outside the smoke test, to check it against the Interface and criterion 3. It holds the 23 paths in the order the Interface gives: agents, docs, the eight `operator/*` folders, security, `src/factory`, then its eight packages (agents, entry, hosting, machine, pipeline, shared, watching, work), then tests, `tests/support`, `tests/guards`. Every path ends in `/README.md`. This contradicts no acceptance criterion.
+
+    The smoke test does not reach the other criteria: the shape rules, the guard, the document check reading the READMEs, the documenter's text and the docs. I did not judge them here. They belong to the tests and to the gates of the earlier stages.
+
+    Findings: none.
