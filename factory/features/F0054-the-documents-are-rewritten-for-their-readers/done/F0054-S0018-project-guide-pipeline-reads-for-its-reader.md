@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -287,6 +287,11 @@ journal:
   at: '2026-11-07T07:12:41.494851Z'
   stage: docs-review
   run: 9f54c9c104de47349fe56d487bc7b721
+- number: 51
+  speaker: factory
+  kind: done
+  at: '2026-11-07T07:16:35.679044Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -903,3 +908,4 @@ Expect: `1`
     Still open, but not this stage's to fix:
     - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has only rules 1 to 8. The human decides which rules are meant.
     - The page has no *Reference* section, which criterion 2 allows.
+51. factory: done (pull request merged); cost: 22 runs, 53.1 min, 317 turns, 1195378 tokens in (14564245 more from cache), 245476 out, $13.56
