@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T10:52:21.070528Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -203,6 +207,11 @@ journal:
   at: '2026-11-07T10:52:15.877772Z'
   stage: tests
   run: 9d46e4fde71b43f29a6f0a3c0d2c80ac
+- number: 36
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:52:21.070528Z'
+  stage: doing
 ---
 
 # The folders that have a README are listed and checked
@@ -538,3 +547,4 @@ Expect: `23 ['x: no README.md']`
     Run: `uv run pytest -q` on the two files passed, with 23 guard cases skipped because their READMEs do not exist yet. `make lint` is green.
 
     `lint`: lint: green (0.1 s)
+36. factory: started doing as vm.
