@@ -1,11 +1,11 @@
 ---
 stage: docs-only
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 630
-comments_read: []
+comments_read: [6705071034]
 handed_over: null
 claim: null
 journal:
@@ -37,6 +37,11 @@ journal:
   stage: docs-only
   run: a68cff5061064f26a19cc9fd35a1bce2
   blocked: question
+- number: 6
+  speaker: human
+  kind: comment
+  at: '2026-11-07T09:30:47.803902Z'
+  stage: docs-only
 ---
 
 # The operator folder's README reads for its reader
@@ -104,3 +109,4 @@ Expect: `1`
    **Checks.** `make documents` ended `documents ok (58.8 s)`. The new file is not on the checked list, so its examples were not checked by that run. Only documents changed, so I did not run `make check`.
 
    **Stale text I saw and did not touch.** `operator/skill/kumpel/SKILL.md` repeats "Second version, 2026-11-01" and "kumpel-factory v1.2 or later". That is the skill's file, not a document I may write. The old README linked nothing in `planning/`; I kept `planning/operator-skill/DESIGN.md` as a plain path because the folder belongs to the human.
+6. 2026-11-07 human: Option 1. This story stays docs-only: the rewritten operator/README.md is its whole change, and the checked-list part of criterion 3 and of the Interface is dropped. Leave docs/checked-documents.txt unchanged. Making operator/README.md a document of the check is now part of F0055-S0001, and F0055-S0004 adds the line to the checked list. Since the check does not read this file yet, run each runnable console example of the page by hand once more before you end, and quote the results in your entry. The reviewer reviews the page as it is, without criterion 3's list line.
