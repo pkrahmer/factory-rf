@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:46:00.708607Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T01:45:55.424749Z'
   stage: docs-review
   run: 2df112b203084dc8b6373a0938816181
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:46:00.708607Z'
+  stage: docs-only
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -132,3 +141,4 @@ Expect: `1`
    12. `docs/operator-guide/records.md:128,129,130,131,139` (style rule 2): sentences run to 40–90 words and carry up to four parentheses. Line 129's first sentence has four. Line 131 is one bullet of three sentences with nested clauses. Fix: split them into sentences of about 25 words, one parenthesis at most each. Line 131 could become a table of exit status and meaning, like the one for `factory-bill` on lines 57-61.
 
    Open, not mine to fix: the documenter did not check the unchanged `factory-watch` prose line by line. I spot-checked its exit statuses, the `factory-watch: <fault>` and `settings invalid` messages, `is held by` and the `origin/main` git error against `src/factory/entry/watch.py` and `src/factory/pipeline/domain/evaluation.py:225`; they match.
+8. factory: started docs-only as vm.
