@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:18:22.419929Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T02:18:17.373245Z'
   stage: docs-review
   run: 0440ae7f0dbc49bfa5e2954101a175c2
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:18:22.419929Z'
+  stage: docs-only
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -193,3 +202,4 @@ Expect: `1`
     Findings:
     1. `docs/operator-guide/work-items.md:193` and `:197`: "round cap" is a glossary term (`docs/project-guide/glossary.md:22`), but the file never links it (style rule 3, criterion 1). Its first use is the heading at 193; line 197 then uses only the setting `round_cap`. Fix: link "round cap" to `../project-guide/glossary.md` at its first use in prose, for example "within the [round cap](../project-guide/glossary.md) (`round_cap`) of the stage …" on line 197.
     2. `docs/operator-guide/work-items.md:389`: the file `docs/project-guide/README.md` is named in backticks, not linked (style rule 8: link a file of the repository by a relative link). Fix: write it as `[README.md](../project-guide/README.md)`, or link it as the project guide.
+12. factory: started docs-only as vm.
