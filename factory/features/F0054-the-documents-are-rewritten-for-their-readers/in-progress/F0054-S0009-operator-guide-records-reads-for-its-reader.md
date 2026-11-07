@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T01:53:54.631694Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-07T01:53:49.736818Z'
   stage: docs-only
   run: 74c1af9baf704ce9b5602bc535b645b2
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:53:54.631694Z'
+  stage: docs-review
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -231,3 +240,4 @@ Expect: `1`
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (13.4 s)
+14. factory: started docs-review as vm.
