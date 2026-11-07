@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 3
 attempts: 0
@@ -113,6 +113,11 @@ journal:
   at: '2026-11-07T03:20:54.152769Z'
   stage: docs-review
   run: bbd94c94c24046a5ab89326eaa6bf022
+- number: 20
+  speaker: factory
+  kind: done
+  at: '2026-11-07T03:22:45.367637Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -446,3 +451,4 @@ Expect: `1`
     - The project guide's index, `docs/project-guide/README.md:29`, lists only some of shared.md's sections.
     - `machine.md:443` still says "(since F0044-S0010)". That text was already on `main`.
     - The docstring of `tests/guards/test_wrapper_search.py` says "the three wrappers", but the guard lists nine modules.
+20. factory: done (pull request merged); cost: 9 runs, 13.9 min, 110 turns, 390108 tokens in (3794908 more from cache), 81737 out, $4.16
