@@ -158,3 +158,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 04:12Z: F0054-S0015 (F0054-S0015-project-guide-agents-reads-for-its-reader) started.
 - 04:42Z: F0054-S0015 PR #623 merged at docs-approval: the project guide's agents.md rewritten and listed; the stale "until the style page exists" and the six-item checklist are gone, the reviewer's Documents item is described. $5.27, 9 runs, no question.
 - 04:42Z: F0054-S0016 (F0054-S0016-project-guide-watching-reads-for-its-reader) started.
+- 05:06Z: F0054-S0016 PR #624 merged at docs-approval: the project guide's watching.md rewritten and listed. $3.71, 8 runs, no question.
+- 05:06Z: F0054-S0017 (F0054-S0017-project-guide-machine-reads-for-its-reader) started.
