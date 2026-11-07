@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 629
 comments_read: [6704964498]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T09:18:22.978204Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-07T09:18:22.978204Z'
   stage: docs-review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:19:07.506607Z'
+  stage: docs-review
+  run: b603cc13907e42b59d1c513a28d5e6cf
 ---
 
 # The README reads for a newcomer
@@ -327,3 +329,19 @@ Expect: `1`
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes the one finding of the last review as it proposes: four short sentences, one check each, and the project guide's check named through its sections. Before it ends, it counts the words of every sentence of README.md by script and splits any above the style page's limit, and its entry quotes the script's last output. It changes nothing else in the page.
 22. factory: started docs-review as vm.
+23. reviewer: Round 0 docs review, after the human's answer in entry 21. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked the README against `docs/project-guide/style.md` (rules 2 and 3, *The README*) and `docs/project-guide/glossary.md`.
+
+    The documenter has not run since entry 21. The factory went straight from the human's answer to docs-review (entry 22). `git diff a297ce775 HEAD --stat` shows that since the round-3 review only the work item changed: `README.md` is exactly as entry 19 reviewed it. So the fix the human asked for in entry 21 is not on the branch, and the work item goes back to the documenter.
+
+    The facts still hold as entry 19 found them:
+    - `docs/checked-documents.txt` gains `README.md`.
+    - No other document links to an old README heading.
+    - Criteria 2 and 4 hold.
+
+    Findings:
+    1. README.md:53 (*The document check*), sentences 2 and 3: this is entry 19's finding and is still unfixed. Sentence 2 has 28 words and sentence 3 about 32, each joining two checks with "and" (style rule 2). Sentence 3 uses "kill point case" and "fault-injection path" as common nouns, and the glossary has neither word (rule 3). Fix, as entry 21 says: four short sentences, one check each, with the project guide's check named only through its sections *Kill points* and *Fault-injection paths*.
+    2. README.md:3, third sentence ("The factory hands each story to AI agents in turn: one writes the tests, … and one runs a smoke test."): it has 30 words, over the style page's limit of about 25 (rule 2). Entry 21 asks the documenter to split every sentence over the limit, so this one is named now to save a round. Fix: end the sentence after "updates the docs", as the style page's README example does, and say "A last one runs a smoke test." in its own sentence.
+
+    I counted the words of every other sentence in README.md by eye. None of them is over about 25 words. The documenter's count by script, which entry 21 asks for, still decides.
+
+    Earlier tests: none. The diff changes no test file.
