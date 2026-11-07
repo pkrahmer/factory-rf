@@ -17,7 +17,7 @@ This story writes the READMEs of the folders under `operator/` and `agents/`, in
   - `operator/template/README.md`
   - `operator/vm/README.md`
 - Each README says what its folder holds in one sentence and links to the operator guide's page that explains it (for example `operator/vm/` to `docs/operator-guide/machine.md`, `operator/job/` to `docs/operator-guide/cloud-run.md`). A folder of scripts names each script in one line, from the script's own header comment. `operator/README.md` names each of these folders with a link to its README. `agents/README.md` says what the shipped agent files and their settings are and links to `docs/project-guide/agents.md`.
-- `docs/checked-documents.txt` gains each new path.
+- `docs/checked-documents.txt` gains each new path, and `operator/README.md`, which S0001 made a document of the check. If the check finds something in `operator/README.md` once it is listed, this story fixes it.
 - No code and no test changes. The story takes the docs route.
 
 ## Acceptance criteria
