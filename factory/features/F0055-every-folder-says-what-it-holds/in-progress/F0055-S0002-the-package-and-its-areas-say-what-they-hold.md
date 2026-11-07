@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T12:38:57.965701Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -108,6 +104,12 @@ journal:
   kind: started
   at: '2026-11-07T12:38:57.965701Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-07T12:43:12.480560Z'
+  stage: doing
+  run: 7a62c1c1d89a45279281d2438c1e6df2
 ---
 
 # The package and its areas say what they hold
@@ -260,3 +262,16 @@ Expect: `documents ok (<seconds> s)`
 
     `lint`: lint: green (0.2 s)
 17. factory: started doing as vm.
+18. coder: I wrote no code and changed no file. This story takes the docs route, and the tester has already made the one test change the human allowed (journal 14). I ran `make check` on the branch as it stands, and it ends with `test: green (100.6 s)` and `check: green`. There was no failing test to implement against, so no diff of mine needed a refactor.
+
+    What this round built: nothing new from me. On the branch, the documenter wrote the nine READMEs: `src/factory/README.md` and `src/factory/{agents,entry,hosting,machine,pipeline,shared,watching,work}/README.md`. It also added their paths to `docs/checked-documents.txt`. The tester changed `tests/guards/test_old_layer_packages_removed.py`.
+
+    Main choice: I handed forward without touching any code. The rejected alternative was to add or adjust anything under `src/factory`, which the story rules out.
+
+    Noticed, not touched:
+    - The tester's rewrite of the work item's Description was left out by the factory because the path is outside the tester's write paths (journal 16). So the Description and Interface still say "No code and no test changes". Criterion 1 still shows the subfolder line with a colon, ``- `<name>/`: <one sentence>.``.
+    - The human's answer in journal 14 changes both points. The story now carries one test change, the README added to that guard's expected entries. Criterion 1 should give the form without the colon, ``- `<name>/` <one sentence>.``, which matches the guard and the style page.
+    - I did not rewrite the Description: I could not confirm that my write paths include the work item. Whoever may write it should apply those two changes.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
