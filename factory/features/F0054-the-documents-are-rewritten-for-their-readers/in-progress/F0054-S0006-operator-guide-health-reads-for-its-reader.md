@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T00:58:39.844289Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-07T00:58:34.792654Z'
   stage: docs-only
   run: c6ac785d4ecd462ab1f18c77b40da835
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:58:39.844289Z'
+  stage: docs-review
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -244,3 +253,4 @@ Expect: `1`
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (12.1 s)
+14. factory: started docs-review as vm.
