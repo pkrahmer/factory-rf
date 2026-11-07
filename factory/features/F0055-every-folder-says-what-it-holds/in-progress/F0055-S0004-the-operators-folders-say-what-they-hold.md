@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 637
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T13:33:16.304504Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T13:33:16.304504Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T13:33:41.984501Z'
+  stage: intake
+  run: 93060367fc564c0bb881aa6e36fcae59
 ---
 
 # The operator's folders say what they hold
@@ -68,3 +70,10 @@ Expect: `documents ok (<seconds> s)`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names eight concrete README paths, each with the guide page it links to (for example `operator/vm/` to `machine.md`, `operator/job/` to `cloud-run.md`). The one code change is named: `factory.shared.domain.folder_readmes.FOLDER_READMES` loses `operator/template/README.md`, which I confirmed is in the list now. The `operator/README.md` line for `template/` is specified. The leave for earlier guards is bounded and has to be named in the entry.
+   - Criteria: each is testable. 1 is the guard's shape check per README, with the subfolder line format. 2 and 3 are the document check. 4 is one test of the list's length (22) and of the removed path. 5 is the usual `make check`. The failing side of the list rule is covered by "not `operator/template/README.md`". Behaviours in the Interface that only the docs stage can show (the `template/` line text, each subfolder line linking its README) sit under criterion 6, which names them. They fall under the document check and the reviewer, as the Interface says.
+   - Smoke test: `uv run python -m factory.entry.check_documents | tail -1` is runnable and has no pytest `-q` problem. Its `Expect:` line gives the `documents ok (<seconds> s)` pattern, which the output can be checked against.
+   - Docs criterion: criterion 6 names the files and what must be true of them (each subfolder line links to its README; `docs/decisions.md` none). It dictates no sentences.
+   - Architecture: the folders `operator/bin`, `claude`, `job`, `lib`, `opencode`, `skill`, `template` and `vm` exist, and `agents/` holds `agents/` and `settings.json`. The operator guide pages the story names exist, and `docs/project-guide/agents.md` is on the checked list. The one code change stays in the shared domain constant.
+   - Scope: this is S0004 of F0055 and matches the feature's story list and decision 11. It stays out of the feature's out-of-scope folders (`agents/agents/`, `operator/skill/kumpel/`, `operator/template/factory/`, the commands folders). The route is `tests`, because the story changes the code constant.
