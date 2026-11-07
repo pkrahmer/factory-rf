@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:49:21.672538Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-11-07T04:49:21.672538Z'
   stage: docs-review
+- number: 10
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:51:57.079467Z'
+  stage: docs-review
+  run: 0cca5f9d25bc451985a97df360d69da0
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -177,3 +179,22 @@ Expect: `1`
    `secrets`: secrets: green (0.5 s)
    `documents`: documents ok (16.3 s)
 9. factory: started docs-review as vm.
+10. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `docs/project-guide/style.md`, the old page on `main` and the code on the branch. Most claims hold. I checked the move rule, the tiers, `run_watch` and its exit codes 0/1/2, `factory-bill`'s outputs and exit codes, the writer's key order and left-out keys (`machine` null only when asked), `CostRun.start_totals`, `complete`'s signature, the started-record validator, the transcript store and keeper, the machine readings, the factory log, the health file, `JsonLinesRecordLog`, the interfaces in `watching/application/machine.py` and every linked heading. Findings:
+
+    1. `docs/project-guide/watching.md` throughout, criterion 1: only "work item" links to the glossary, and not at its first use (line 17; the link is at line 29). These words are used and never linked: tick (l.3), claim and lease (l.21), stage and pipeline definition (l.23), feature (l.36), acceptance and story (l.58), approval (l.49), journal (l.76), cost record (l.124), instance and role (l.164), dataset (l.167), stall (l.168), take and write paths (l.169), attempts cap (l.297), stop (l.97). Fix: link each at its first use, as `work.md` and `agents.md` do.
+    2. `watching.md:21`, criterion 2: a rule of the old page is dropped. With `observer=True`, a claim at or past its lease is `own` again. The code is `observed_claim_status`, called from `ClaimService.observed_status` in `src/factory/pipeline/application/claims.py`. The tick's `ClaimService.status` is not named either (`watcher.py:49`). Fix: add both.
+    3. `watching.md:13-22`, criterion 2: the source of `due` is dropped. It is `AcceptanceReader.due_features()` (`src/factory/watching/application/watcher.py:45`). Fix: name it in the `Watcher.evaluate` bullet.
+    4. `watching.md:196,207-208`, criterion 2: the old rules that `total(stage_bills)` sums the stage bills field by field and that `one_decimal` gives one decimal, rounded half up, are gone. Fix: add a bullet for each.
+    5. `watching.md:165` and the `model_seconds` row at l.325, criterion 2: the page drops what `complete` sets apart from turns, tokens and cost. It sets `duration_seconds` from the result's duration, `model_seconds` from `model_duration` in seconds (`None` when unknown) and `end_reason` (`src/factory/watching/application/costs.py`, `_completed`). Fix: state it in that bullet or in the table row.
+    6. `watching.md:331`, criterion 2: the module of `Name` was dropped. Fix: link `src/factory/shared/domain/identifiers.py` there.
+    7. `watching.md:337`: "an API key, a subscription or none" reads as if `none` were `None`, but the code has the literal value `"none"` (`Login = Literal["api_key", "subscription", "none"]`, `src/factory/agents/domain/agent_runs.py:44`). The literal names were dropped on purpose to keep detect-secrets green. Fix: link `agent_runs.py` and say that `Login` is one of three literal values, one of them the string `none`, apart from `None` when there is no login file.
+    8. `watching.md:339`: "none of the measures from `duration_seconds` on" also covers `image` and `instance`, which follow it in field order, but a started record carries both (`cost_records.py`, `_measures_only_when_completed`). Fix: "from `duration_seconds` to `cost_usd`".
+    9. `watching.md:237`: "one block for each work item in flight" is not quite true. `_all_in_flight` (`src/factory/entry/bill.py:39-46`) skips a work item whose `for_work_item` returns `None`. Fix: "for each work item in flight that has a bill".
+    10. `watching.md`, criterion 4 (Interface: each file linked once): `costs.py` is linked at l.155 and again at l.192, `watching/application/machine.py` at l.182 and again at l.264, and `records.md` at l.90, l.186 and l.207. The modules named in prose at l.272-274 (`factory.work.domain.journal`, `factory.hosting.domain.hand_over`, `factory.pipeline.application.handlers.questions`, `factory.pipeline.application.recovery`, `factory.work.domain.acceptance`, `factory.shared.domain.sections`, `factory.work.domain.story_form`, `factory.work.adapters.work_item_markdown`, `factory.hosting.application.opening`) are not linked at all. Fix: keep one link per file, and link each of those modules once by a relative path.
+    11. `watching.md:174-184` and `:257-264`, style page (project guide): these two sections list their classes and functions in bullets and have no signature block. Bullets such as l.178 and l.182 are lists of names, not rules a test could check. Fix: put the names and signatures in a code block after the opening sentences, then the rules (e.g. `TranscriptKeeper(store, log).keep(work_item, run, transcript) -> TranscriptRef | None`, `session_transcripts(store, log, runtime, workspace) -> SessionTranscripts`, `CgroupMachineReadings(slice_folder, meminfo)`, `TimestampedFactoryLog(path, clock)`, `JsonHealthStatusFile(path)`, `JsonLinesRecordLog(path, model)`).
+    12. `watching.md:82`, `:210` and `:272`, style rule 2: l.82 has a sentence of about 40 words. l.210 has two parentheses in one sentence, and l.272 has three. Fix: split them.
+    13. `docs/project-guide/README.md:33`: the "Sections:" list leaves out subsections the page has, *The event*, *The four tiers*, *The watcher's command line*, *When a record is created, completed and committed*, *Transcripts and the machine's readings* and *The bill command*, while it names *The move rule* and *The board*. It also names `factory.watching.application.transcripts` but not the adapters the page describes (`transcript_files`, `machine_files`, `factory_log`, `health_file`, `record_log_jsonl`). Fix: list the top-level sections, then "Subsections other files refer to:" as the other entries do, and name those adapters.
+
+    Dropped on purpose, and accepted as unbacked by the code: the "(R24)" reference, the sentence about the dispatcher's cap on a `run` event, and the explanation "an unknown stage never reaches the definition's accessors". The `Login` literals are covered under 7.
+
+    Smoke test: `grep -cx "docs/project-guide/watching.md" docs/checked-documents.txt` holds by reading the file: the line is there once. I did not run it.
