@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:23:06.886506Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T04:23:01.847201Z'
   stage: docs-review
   run: 3a8f51c964b447be86869e162d367726
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:23:06.886506Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -159,3 +168,4 @@ Expect: `1`
    - the protected-path examples `factory/agentsx/coder.md`, `src/x.claude/a` and `src/pyproject.toml`, which line 386 now states as rules.
 
    The added `tool_uses` line matches `src/factory/agents/application/agent_runtime.py:34`.
+8. factory: started docs-only as vm.
