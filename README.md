@@ -1,6 +1,6 @@
 # kumpel-factory
 
-kumpel-factory builds software from [stories](docs/project-guide/glossary.md). You describe a [feature](docs/project-guide/glossary.md) as a few short stories. The factory hands each story to AI agents in turn: one writes the tests, one the code, one reviews it, one updates the docs and one runs a smoke test. Each story gets a draft pull request when its work starts. When the agents are done, you approve it or send it back.
+kumpel-factory builds software from [stories](docs/project-guide/glossary.md). You describe a [feature](docs/project-guide/glossary.md) as a few short stories. The factory hands each story to AI agents in turn: one writes the tests, one the code, one reviews it and one updates the docs. A last one runs a smoke test. Each story gets a draft pull request when its work starts. When the agents are done, you approve it or send it back.
 
 It runs on a Linux VM or as a Cloud Run job, with Claude Code or opencode as the agents. It builds this repository too.
 
@@ -50,7 +50,7 @@ To run a factory [instance](docs/project-guide/glossary.md) you need a prepared 
 
 ### The document check
 
-The check finds a document that is missing or that does not say what the factory does in its own words. It also finds a stop without a row naming its destination in the operator guide's stops file, and an operator guide that lacks *Install*, *Configuration* or *The stops*. It finds a kill point case or a fault-injection path without its row in the project guide's *Kill points* or *Fault-injection paths*, and a project guide that lacks one of those sections. These findings block in every file.
+The check finds a document that is missing or that does not say what the factory does in its own words. It finds a stop whose row in the operator guide's stops file does not name its destination. It finds an operator guide that lacks *Install*, *Configuration* or *The stops*. It finds a project guide that lacks *Kill points* or *Fault-injection paths*. It also finds one whose tables there leave out a case the code tests. These findings block in every file.
 
 Three more checks run on the documents:
 

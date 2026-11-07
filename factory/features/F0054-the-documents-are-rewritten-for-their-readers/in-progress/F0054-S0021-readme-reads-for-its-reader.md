@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 629
 comments_read: [6704964498]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:19:12.714339Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-07T09:19:12.714339Z'
   stage: docs-only
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:23:24.962647Z'
+  stage: docs-only
+  run: bd767a85ad0943dcac966e8b3c703619
 ---
 
 # The README reads for a newcomer
@@ -355,3 +357,31 @@ Expect: `1`
 
     Earlier tests: none. The diff changes no test file.
 24. factory: started docs-only as vm.
+25. documenter: Round after the human's answer (entry 21) and the reviewer's entry 23. I fixed both findings, only in `README.md`.
+
+    Files changed:
+    - `README.md` (finding 1), *The document check*: the old sentences 2 and 3 are now four short sentences, one check each. A stop whose row in the operator guide's stops file does not name its destination. An operator guide that lacks *Install*, *Configuration* or *The stops*. A project guide that lacks *Kill points* or *Fault-injection paths*. A project guide whose tables there leave out a case the code tests. "Kill point case" and "fault-injection path" no longer appear as common nouns; they appear only as the section names.
+    - `README.md` (finding 2), line 3: the 30-word sentence ends after "updates the docs", and "A last one runs a smoke test." stands alone.
+
+    I changed nothing else.
+
+    Word count by script (sentences of prose lines, skipping code blocks, table rows and headings; split at `.`, `!`, `?` followed by a space). It printed every sentence over 20 words; the last output was:
+    ```
+    3 25 The factory hands each story to AI agents in turn: one write...
+    29 21 - `agents/`: the agent files the factory ships (`agents/agen...
+    53 21 The check finds a document that is missing or that does not ...
+    57 22 - The name check finds a module, a repository path or a link...
+    59 22 - The example check runs the examples of the README and the ...
+    69 23 A project can add tools to its stage image with a file `<pro...
+    73 22 The instance of this factory builds this repository from `fa...
+    done
+    ```
+    The longest sentence is 25 words, so none is over the style page's limit of about 25.
+
+    Checks: `make documents` ends with `documents ok (59.0 s)`. I did not run `make check`, because only a document changed.
+
+    Cross-read: `README.md` against `docs/project-guide/style.md` rules 2 and 3; current. Stale text noticed and not touched: none.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (58.1 s)
