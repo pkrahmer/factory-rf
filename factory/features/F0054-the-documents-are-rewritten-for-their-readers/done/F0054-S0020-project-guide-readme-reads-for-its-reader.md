@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-11-07T08:39:24.756482Z'
   stage: docs-review
   run: 0e87b9930a744c4f912f2e5bf3ac826f
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-11-07T08:41:15.526603Z'
+  stage: docs-approval
 ---
 
 # The project guide's index reads for the developer
@@ -556,3 +561,4 @@ Expect: `1`
     No findings.
 
     Not checked: I did not run `make documents`. The documenter's run printed `documents ok`, and the factory runs it as the gate.
+28. factory: done (pull request merged); cost: 12 runs, 32.6 min, 194 turns, 623436 tokens in (8969561 more from cache), 129567 out, $7.12
