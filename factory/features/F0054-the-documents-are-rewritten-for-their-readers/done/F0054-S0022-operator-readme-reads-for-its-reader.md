@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -126,6 +126,11 @@ journal:
   at: '2026-11-07T09:51:33.814051Z'
   stage: docs-review
   run: 46d6f7a2bbd848f286e81f7792e87e9c
+- number: 22
+  speaker: factory
+  kind: done
+  at: '2026-11-07T09:53:24.174948Z'
+  stage: docs-approval
 ---
 
 # The operator folder's README reads for its reader
@@ -344,3 +349,4 @@ Expect: `1`
     Open, not a finding of this page: the story's Interface line for `docs/checked-documents.txt` and the list part of criterion 3 still name the list line. Journal 6 dropped both, and the review rules let me rewrite only the Description.
 
     no findings
+22. factory: done (pull request merged); cost: 9 runs, 12.4 min, 66 turns, 214843 tokens in (1531645 more from cache), 29500 out, $1.88
