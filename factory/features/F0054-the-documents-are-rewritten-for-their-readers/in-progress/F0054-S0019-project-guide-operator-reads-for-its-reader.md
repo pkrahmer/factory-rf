@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T07:23:18.256583Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T07:23:18.256583Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T07:26:51.386292Z'
+  stage: docs-only
+  run: 896e8139e3ee49eea8699b48a7c50555
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -142,3 +144,25 @@ Expect: `1`
    8. docs/project-guide/operator.md:142: "the next section lists them" is imprecise. The next section is *Reference*, whose first subsection is *Status of the site scripts*; the list is in *Test modules by script*. Fix: name *Test modules by script* in the *Reference*.
    9. docs/project-guide/README.md:36: the index's list of operator.md's sections stops at *Tests of the scripts* and leaves out the new *Reference*. The documenter's entry says this list still matches, but it no longer does. Fix: add *Reference* to the list.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the nine findings of the review. `make documents` ends `documents ok (16.7 s)` and prints nothing for operator.md. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/project-guide/operator.md`:
+     1. Glossary links at first use: "instance", "stops", "documenter" and "work item" now link to glossary.md.
+     2. The layout section links `site.sh`, `hosting.sh`, `site`, `sanitise` and `job.sh` at their first mention. It also links `setup.sh`, `factory.service`, `git-credential-factory`, the `Dockerfile`, the template's `CLAUDE.md` and `Makefile`, `SKILL.md`, and both `kumpel.md` files.
+     3. `comment.sh` and `reset-to-tag.sh` are linked above their block; the block now shows them relative to the skill's `scripts/` folder. `merge.sh` is linked at its mention.
+     4. The four support modules are linked at their bullets, and the intro to the block now ends "The helpers are:". I linked them in the bullets, not above the block as the reviewer asked; the reviewer's rule 8 says to link a file once, and the bullets are where the page first describes each module.
+     5. All ten test modules in *Test modules by script* are linked.
+     6. The `reset-to-tag.sh` rules are added: without `--yes` it only prints the plan, and it works only where `SITE_REPOSITORY` equals `SITE_RESET_REPOSITORY`. I checked both against the script's header and body.
+     7. "See also" lines are added to the hosting client, `job.sh`, the sanitiser, the skill's scripts and the tests. The layout and loader sections have extended ones.
+     8. "The next section lists them" now names *Test modules by script* in the *Reference*.
+     9. In `job.sh`, the `sanitise` link is now plain text, because the sanitiser's section links it.
+   - `docs/project-guide/README.md`: the list of operator.md's sections now ends with *Reference*.
+
+   I cross-read docs/project-guide/glossary.md for the four terms, and docs/project-guide/style.md for the link rules. I found both current.
+
+   Stale text I saw and did not touch, because it is unrelated to this story: the `make documents` report (not checked yet) for docs/project-guide/README.md lines 134 to 141 (`support/*.py` files that do not exist) and line 283 (`project/factory/pipeline.yml` and `story-form.md`).
+
+   `check`: check: green
+   `secrets`: secrets: green (0.5 s)
+   `documents`: documents ok (16.5 s)

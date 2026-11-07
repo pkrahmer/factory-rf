@@ -1,10 +1,10 @@
 # The operator's scripts
 
-This file covers the shell and Python scripts under `operator/`, and the tests that run them. They let an operator set up one machine from one site file, and drive an instance from a terminal. Read the index, [README.md](README.md), first. The exact detail (every status code, key and file) is in the *Reference* at the end. The operator's side (install, the values, the stops) is *Setting up an operator's machine* in [site.md](../operator-guide/site.md).
+This file covers the shell and Python scripts under `operator/`, and the tests that run them. They let an operator set up one machine from one site file, and drive an [instance](glossary.md) from a terminal. Read the index, [README.md](README.md), first. The exact detail (every status code, key and file) is in the *Reference* at the end. The operator's side (install, the values, the [stops](glossary.md)) is *Setting up an operator's machine* in [site.md](../operator-guide/site.md).
 
 ## The layout
 
-The scripts are small and each has one job. The loader and the hosting client are libraries that the others source; everything else is a command. [README.md](../../operator/README.md) in `operator/` is the documenter's table of the files; keep it current from the docs criterion and do not copy it here.
+The scripts are small and each has one job. The loader ([site.sh](../../operator/lib/site.sh)) and the hosting client ([hosting.sh](../../operator/lib/hosting.sh)) are libraries that the others source; everything else is a command: [site](../../operator/bin/site), [sanitise](../../operator/bin/sanitise) and [job.sh](../../operator/job/job.sh). [README.md](../../operator/README.md) in `operator/` is the [documenter](glossary.md)'s table of the files; keep it current from the docs criterion and do not copy it here.
 
     operator/site.env.example
     operator/lib/site.sh           site_path, site_load, site_require, site_value, site_refuse_repository, site_gcloud_with, site_job_keys
@@ -19,12 +19,12 @@ The scripts are small and each has one job. The loader and the hosting client ar
     operator/claude/commands/kumpel.md
 
 - [site.env.example](../../operator/site.env.example) holds every key of the site file, each with a comment and a made-up value. `site init` copies it.
-- `operator/vm/` sets up and runs an instance on a VM; its `Dockerfile` is the base image's.
-- `operator/template/` is what the operator copies into a new project.
-- The skill's `references/` hold the standing orders and how to answer, approve and shape. Its `scripts/` are `settings.sh`, `status.sh`, `wait.sh`, `approval.sh`, `next-story.sh`, `start-story.sh`, `comment.sh`, `merge.sh` and `reset-to-tag.sh`.
-- The two `kumpel.md` files are the `/kumpel` command, one for each tool.
+- `operator/vm/` sets up and runs an instance on a VM: [setup.sh](../../operator/vm/setup.sh), [job-start.sh](../../operator/vm/job-start.sh), [factory.service](../../operator/vm/factory.service) and [git-credential-factory](../../operator/vm/git-credential-factory). Its [Dockerfile](../../operator/vm/Dockerfile) is the base image's.
+- `operator/template/` is what the operator copies into a new project: [CLAUDE.md](../../operator/template/CLAUDE.md), [Makefile](../../operator/template/Makefile) and `factory/`.
+- The skill ([SKILL.md](../../operator/skill/kumpel/SKILL.md)) has `references/` that hold the standing orders and how to answer, approve and shape. Its `scripts/` are `settings.sh`, `status.sh`, `wait.sh`, `approval.sh`, `next-story.sh`, `start-story.sh`, `comment.sh`, `merge.sh` and `reset-to-tag.sh`.
+- The two `kumpel.md` files are the `/kumpel` command, one for each tool: [for opencode](../../operator/opencode/command/kumpel.md) and [for Claude](../../operator/claude/commands/kumpel.md).
 
-See also: *The skill's scripts* below.
+See also: *The skill's scripts* below, and [site.md](../operator-guide/site.md).
 
 ## The site file and its loader
 
@@ -50,7 +50,7 @@ The site file holds a site's own values, the `SITE_*` keys, as `KEY=value` lines
 - `site_gcloud_with` adds `--project` to every call, `--region` to every `gcloud run` call and `--impersonate-service-account` when `SITE_IMPERSONATE` is set. Nothing is left to gcloud's own defaults.
 - `site check` is read-only. It prints one `ok NAME` or `FAIL NAME: DETAIL` line for each check, and a check whose keys are missing fails on its keys and does not run.
 
-See also: *Status of the site scripts* in the *Reference*.
+See also: *The hosting client* below and *Status of the site scripts* in the *Reference*.
 
 ## The hosting client
 
@@ -71,6 +71,8 @@ The scripts talk to the hosting service through one small client, [hosting.sh](.
 - `hosting_git` runs git with a Basic header for https remotes.
 - The token is in no argument list. `hosting_api` writes curl's configuration (url, headers, body) to curl's standard input with `printf`, a builtin.
 - `hosting_git` passes the header through `GIT_CONFIG_COUNT` and `GIT_CONFIG_KEY_n`/`GIT_CONFIG_VALUE_n`, with an empty `credential.helper` so a stored credential does not answer. `ps` shows neither.
+
+See also: *The site file and its loader*.
 
 ## `job.sh`
 
@@ -93,7 +95,9 @@ The scripts talk to the hosting service through one small client, [hosting.sh](.
 - `execute` lists the executions and refuses while one has a running count of at least 1 (`running_execution`). It prints the new execution's name and writes it to `<state folder>/last-execution`; `log` and `status` default to it.
 - `delete` without `--yes` prints what it would do and exits 1.
 - `status` prints the newest executions and the factory's stop, if any (`stop_line`).
-- `log` passes the lines through `drop_noise` and [sanitise](../../operator/bin/sanitise); nothing unsanitised is printed.
+- `log` passes the lines through `drop_noise` and `sanitise`; nothing unsanitised is printed.
+
+See also: *The site file and its loader* and *The sanitiser*.
 
 ## The sanitiser
 
@@ -111,35 +115,43 @@ The sanitiser strips the site's names and the tokens from text that leaves the m
 - It exits 0 with `sanitise: clean`, 1 after printing `file:line: rule` for each hit, 2 on a fault and 3 without a rules file, because a check against nothing proves nothing.
 - A report names the file, the line and the rule, never the matched text.
 
+See also: *`job.sh`*.
+
 ## The skill's scripts
 
-The skill is `operator/skill/kumpel/`. Its scripts run from a project checkout where agents write files, so they take care with what they run and what they post.
+The skill is `operator/skill/kumpel/`. Its scripts, such as [comment.sh](../../operator/skill/kumpel/scripts/comment.sh) and [reset-to-tag.sh](../../operator/skill/kumpel/scripts/reset-to-tag.sh), run from a project checkout where agents write files, so they take care with what they run and what they post.
 
-    operator/skill/kumpel/scripts/comment.sh <pr> <file>
-    operator/skill/kumpel/scripts/reset-to-tag.sh <tag> [--yes]
+    scripts/comment.sh <pr> <file>
+    scripts/reset-to-tag.sh <tag> [--yes]
 
 - Every `python3` starts with `-I`, as its first option, for `-c` and for a program on standard input alike. It keeps a planted `json.py` out of the import path ([decisions.md](../decisions.md)).
 - [test_operator_python_isolation.py](../../tests/operator_scripts/test_operator_python_isolation.py) pins that rule.
 - A hosting read is assigned to a variable before it is parsed (`x=$(hosting_repo_api GET ...) || exit 1`), so a failing read ends with the client's message and not a traceback.
 - Comments are posted only through `comment.sh`. It appends the signature line (`— Kumpel, for the human who owns this project`) and the marker `<!-- kumpel -->` once.
-- `merge.sh` and the start commit carry Kumpel's signature as well.
+- [merge.sh](../../operator/skill/kumpel/scripts/merge.sh) and the start commit carry Kumpel's signature as well.
 - [test_operator_skill_signature.py](../../tests/operator_scripts/test_operator_skill_signature.py) and [test_operator_texts.py](../../tests/operator_scripts/test_operator_texts.py) pin the texts.
-- `reset-to-tag.sh` closes the open work-item pull requests, deletes the `work-item/` branches and moves `main` to the tag's commit by force. Each step stops at its first failure.
+- `reset-to-tag.sh` closes the open [work item](glossary.md) pull requests, deletes the `work-item/` branches and moves `main` to the tag's commit by force. Each step stops at its first failure.
+- Without `--yes` it only prints the plan, because the move cannot be undone.
+- It works only on the repository that is both `SITE_REPOSITORY` and `SITE_RESET_REPOSITORY`.
+
+See also: *The hosting client*.
 
 ## Tests of the scripts
 
-The scripts run for real, in `tmp_path`, with stand-ins on the `PATH` for `gcloud`, `gh` and `curl`. The stand-ins record their arguments and answer from a plan. The real `git` runs against a local bare repository. Nothing reaches the network.
+The scripts run for real, in `tmp_path`, with stand-ins on the `PATH` for `gcloud`, `gh` and `curl`. The stand-ins record their arguments and answer from a plan. The real `git` runs against a local bare repository. Nothing reaches the network. The helpers are:
 
     tests/support/operator_support.py
     tests/support/operator_job_support.py
     tests/support/operator_skill_support.py
     tests/support/site_check_support.py
 
-- `operator_support.py` holds the paths of the scripts, `INTERFACE_KEYS`, `operator_environment`, and runners for a script, `site`, a library and the hosting client.
-- `operator_job_support.py` holds the job's site values, `words` (the words of a recorded call), the wrapper's pattern and the `gcloud` stand-in.
-- `operator_skill_support.py` holds `SKILL`, `SCRIPTS`, the `curl` stand-in's `Request` records and `Operator`, a machine with a site, answers and a bare remote.
-- `site_check_support.py` holds `Machine`, a machine for `site check`, and the readers of its `ok`/`FAIL` lines.
-- The tests of the scripts are in `tests/operator_scripts/`; the next section lists them.
+- [operator_support.py](../../tests/support/operator_support.py) holds the paths of the scripts, `INTERFACE_KEYS`, `operator_environment`, and runners for a script, `site`, a library and the hosting client.
+- [operator_job_support.py](../../tests/support/operator_job_support.py) holds the job's site values, `words` (the words of a recorded call), the wrapper's pattern and the `gcloud` stand-in.
+- [operator_skill_support.py](../../tests/support/operator_skill_support.py) holds `SKILL`, `SCRIPTS`, the `curl` stand-in's `Request` records and `Operator`, a machine with a site, answers and a bare remote.
+- [site_check_support.py](../../tests/support/site_check_support.py) holds `Machine`, a machine for `site check`, and the readers of its `ok`/`FAIL` lines.
+- The tests of the scripts are in `tests/operator_scripts/`; *Test modules by script* in the *Reference* lists them.
+
+See also: *Test modules by script* in the *Reference*.
 
 ## Reference
 
@@ -155,10 +167,10 @@ The scripts run for real, in `tmp_path`, with stand-ins on the `PATH` for `gclou
 
 | Script | Test modules in `tests/operator_scripts/` |
 | --- | --- |
-| the site file, its example and `site check` | `test_operator_site.py`, `test_operator_site_example.py`, `test_operator_site_check.py` |
-| the hosting client | `test_operator_hosting.py` |
-| `job.sh` | `test_operator_job.py`, `test_operator_job_log.py` |
-| the sanitiser | `test_operator_sanitise.py` |
-| the skill's scripts | `test_operator_skill_scripts.py`, `test_operator_merge_reset.py`, `test_operator_skill_signature.py`, `test_operator_texts.py` |
-| the skill's name (neither skill text names the repository's old name) | `test_operator_skill_name.py` |
-| the Python isolation | `test_operator_python_isolation.py` |
+| the site file, its example and `site check` | [test_operator_site.py](../../tests/operator_scripts/test_operator_site.py), [test_operator_site_example.py](../../tests/operator_scripts/test_operator_site_example.py), [test_operator_site_check.py](../../tests/operator_scripts/test_operator_site_check.py) |
+| the hosting client | [test_operator_hosting.py](../../tests/operator_scripts/test_operator_hosting.py) |
+| `job.sh` | [test_operator_job.py](../../tests/operator_scripts/test_operator_job.py), [test_operator_job_log.py](../../tests/operator_scripts/test_operator_job_log.py) |
+| the sanitiser | [test_operator_sanitise.py](../../tests/operator_scripts/test_operator_sanitise.py) |
+| the skill's scripts | [test_operator_skill_scripts.py](../../tests/operator_scripts/test_operator_skill_scripts.py), [test_operator_merge_reset.py](../../tests/operator_scripts/test_operator_merge_reset.py), [test_operator_skill_signature.py](../../tests/operator_scripts/test_operator_skill_signature.py), [test_operator_texts.py](../../tests/operator_scripts/test_operator_texts.py) |
+| the skill's name (neither skill text names the repository's old name) | [test_operator_skill_name.py](../../tests/operator_scripts/test_operator_skill_name.py) |
+| the Python isolation | [test_operator_python_isolation.py](../../tests/operator_scripts/test_operator_python_isolation.py) |
