@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:48:11.155882Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T00:48:11.155882Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:50:41.573513Z'
+  stage: docs-review
+  run: d4c6da3cebaa49f78ee00a2c0bf0c5ef
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -120,3 +122,26 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (12.0 s)
 6. factory: started docs-review as vm.
+7. reviewer: I reviewed `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/health.md` and `docs/checked-documents.txt`. I compared the old and new `health.md` with each other, with the code (`preflight.py`, `entry/wiring.py`, `scheduler.py`, `pipeline/domain/stops.py`, `entry/health.py`, `operator/vm/git-credential-factory`) and with `docs/project-guide/style.md`.
+
+   Checked and true: the credential helper's rules, including "with `FACTORY_REPOSITORY_URL` unset, it answers every host". Also true: the probe's 0.10 dollar budget and its 2-minute and 10-minute limits; the `origin/main has no factory/pipeline.yml yet` detail, built by an f-string in `scheduler.py:136`; the corrected `scope` for `stage_image_failed`; and the default `/state` of `factory-health`. The VM paths under `/srv/factory/<instance>/state` (`setup.sh:425`) and every section another file names ("The service", "The steps", "The stop records on main" and the rest) are true too.
+
+   Criterion 2 is met without a *Reference* section. Things dropped on purpose: "PyGithub" became "the hosting-service client"; `Preflight.run` became "the preflight"; "behaves as before" became "answers every host"; and the cross-reference "The exception is a `main` that differs ... see the next bullet" was cut from the stale-stop bullet.
+
+   Findings:
+   1. `docs/operator-guide/health.md:93`: "They run in the order of the table" is wrong. `entry/wiring.py:746-752` runs `opencode` after `metadata-block`, just before `agent-run-probe`, but the table puts it right after `token-file` (line 102). Fix: move the `opencode` row to just before `agent-run-probe`.
+   2. `docs/operator-guide/health.md:27`: "A failed check raises a stop of the machine" is wrong for the probe of `main`. `preflight.py:549,559` raises `main_branch_failing` with scope `repository`. Fix: say the machine's items raise `preflight_failed`, a machine stop, and a red `lint` on `main` raises `main_branch_failing`, a repository stop.
+   3. `docs/operator-guide/health.md:137-143`: "a state directory that cannot be written" and "a missing agent `coder`" are listed as causes of a run that does not end `completed`. In `preflight.py:281-288` they raise before or instead of an end reason, and the detail is the error's own message, not `the probe run ended <reason>`. Fix: move them to a row of their own in the table above (what you see: the runtime's or the reader's message), as the old text kept them apart.
+   4. `docs/operator-guide/health.md:73`: "this one is copied from a real status" is a claim the documenter's own entry contradicts: the line was copied from the old file and never seen produced. Fix: say the line shows the format, built in `src/factory/entry/health.py:19`. Or replace it with a line from a named real run (style rules 6 and "A `vm` example comes from a real run").
+   5. `docs/operator-guide/health.md:262`: `Git.work_tree_id` names a class and method, which the operator guide's rule "Name no module or class" forbids. Fix: say "a hash of the files the command reads, without those its `not_read` leaves out".
+   6. `docs/operator-guide/health.md:181-186`: the `repository_unavailable` faults are a two-column table (what you see, what you do). The stop rule of the operator guide asks for three parts. Fix: add the column "What it means", as the token-file table at lines 56-61 has, and keep only the action in "What you do".
+   7. `docs/operator-guide/health.md:3, 27`: the glossary word "stop" is first used on line 3 ("Every stop it names") but is linked only on line 27 (style rule 3, criterion 1). Fix: link it on line 3.
+   8. `docs/operator-guide/health.md:109, 204`: "stage" is first used on line 109 ("as a stage makes it") but is linked on line 204. Fix: move the link to line 109.
+   9. `docs/operator-guide/health.md:356, 363`: "cost record" is first used on line 356 ("its cost record") but is linked on line 363. Fix: move the link to line 356.
+   10. `docs/operator-guide/health.md:79, 106, 145, 164, 204, 330`: glossary words with no link anywhere in the file: "work item" (line 79), "base" (line 106), "claim" (line 145, "claimed"), "tick" (line 164), "stage environment" (line 204) and "feature" (line 330). Fix: link each at its first use.
+   11. `docs/operator-guide/health.md:233, 255, 300, 320`: "`<state>/records/<file>`, in the state directory holds ..." has a stray comma between subject and verb, and lines 233 and 255 are also long sentences of 35 to 50 words. Fix: "`<file>` in the state directory holds ...", with the VM path in a sentence of its own.
+   12. `docs/operator-guide/health.md:153, 233, 324, 363`: each sentence has two parentheses (style rule 2 allows one). Fix: turn one parenthesis of each into its own sentence or list item.
+   13. `docs/operator-guide/health.md:3`: the opening sentence after "A topic of the operator guide." runs to about 45 words (style rule 2). Fix: split it into who the page is for and what it covers.
+   14. `docs/operator-guide/health.md:284, 346`: "runs as it did before" and "starts and runs as before" are history wording (style rule 7). The documenter removed the same phrase from the helper's rules. Fix: "the command runs" and "the factory starts and runs normally".
+
+   Also checked: criterion 3 (the file is on `docs/checked-documents.txt` and `make documents` printed `documents ok` per the journal) and criterion 4 (no changed heading, so the links from other files still resolve). The `sh` blocks of VM and gcloud commands each say where they run.
