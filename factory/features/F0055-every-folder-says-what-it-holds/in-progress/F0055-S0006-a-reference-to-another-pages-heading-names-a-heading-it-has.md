@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 633
-comments_read: []
+comments_read: [6706186597]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 859689049c09499790470f159007ff87
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-07T11:25:13.178242Z'
+  stage: intake
 ---
 
 # A reference to another page's heading names a heading it has
@@ -80,3 +85,10 @@ Expect: `documents ok (<seconds> s)`
    4. Description: "References within one page, and links with a `#` anchor, stay as they are." The anchor case has a row in criterion 1. The within-one-page case has no criterion at all. Please add a row or remove the sentence. I would choose to add a row, such as a reference to the document's own file, which gives no finding.
    5. Criterion 3 reports and blocks on "a broken reference". Please also require, in the same test, that a document with a valid reference gives no finding, and that a reference to a page that is no document of the check gives no finding in `main`. Otherwise the `None` branch of `headings` is only tested in the domain function.
    6. Criterion 4 requires fixing the four real references. Criterion 6 (docs) names only `shared.md` and `style.md`. Please list `install.md`, `work-items.md`, `machine.md` and `agent-runtime.md` as pages the documenter must fix, and say what the reader must be able to do afterwards: find each referenced section under the name the target page writes.
+4. 2026-11-07 human: Yes to all six, as you propose.
+   1. Add a ',' row to criterion 1.
+   2. Criterion 2 states the exact finding text: '<document>:<line>: <heading> is no heading of <target>'.
+   3. Add a row with asterisks inside the heading. Yes, the linked page's headings lose their backticks and asterisks too. factory.entry.check_documents builds headings(target) from the target's heading lines and strips them there, through a small public function in factory.shared.domain.heading_references (for example page_headings(text) -> set[str]) with its own parametrized rows: a heading with backticks matches the reference without them, and a heading with asterisks matches too. The real case is no match and stays a finding: 'StageFinisher.finish' is not 'StageFinisher.finish(aftermath)'; only the code marks are stripped, nothing else, and the documenter fixes the reference.
+   4. Add a row: a reference to the document's own file gives no reference (references within one page stay as they are).
+   5. Yes: criterion 3's test also has a row with a valid reference (no finding) and a row with a reference to a page that is no document of the check (no finding).
+   6. Yes: criterion 6 names install.md, work-items.md, machine.md (the project guide's) and agent-runtime.md as pages the documenter fixes; afterwards the reader finds each referenced section under the name the target page writes, or as a named paragraph under the heading it stands in.
