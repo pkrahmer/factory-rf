@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:27:30.030805Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -152,6 +148,12 @@ journal:
   kind: started
   at: '2026-11-07T06:27:30.030805Z'
   stage: docs-review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:28:12.369374Z'
+  stage: docs-review
+  run: 20ce2a5b1e424929a1fbc8fb29f3279a
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -464,3 +466,13 @@ Expect: `1`
 23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 24. 2026-11-07 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes findings 1 to 3 of the last review: the build order as the code has it, the condition back on `healthy`, and every sentence over about 25 words or with more than one parenthesis split. Before it ends, it checks the sentence lengths of the changed lines by script and reads each function whose order or condition it states.
 25. factory: started docs-review as vm.
+26. reviewer: Round 0 after the human's answer (entry 24). I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The documenter has not run since that answer: the factory went from entry 24 straight to docs-review (entry 25). Since the round-3 review (commit 31f92008e), the only branch commit touching `docs` or `src` is the merge of `origin/main`, and it changed only `docs/runs/2026-11-05-f0052/log.md`, which is the human's file and outside this story. So `docs/project-guide/pipeline.md` is the same text the round-3 review read, and the three findings the human told the documenter to fix are all still there. I checked each one against the code again.
+
+    Findings:
+    1. `docs/project-guide/pipeline.md:773-780`: "It then builds the following, in this order" does not match the code. The list puts `SystemClock`, the log and `JsonHealthStatusFile` first. `entry/wiring.py:318-320` builds `SystemClock()`, then `GitCli(...)`, then `machine_log(state, clock)` (a `TimestampedFactoryLog`). It builds `health_store(state)` only inside the `Boundaries(...)` call, after `ProjectAgentDefinitions` (`wiring.py:350-352`). Fix: list `SystemClock`, `GitCli`, the log, the agent runtime, the project commands, the readers and writers, `ProjectAgentDefinitions`, then `JsonHealthStatusFile`, as the code builds them. Or drop "in this order".
+    2. `docs/project-guide/pipeline.md:716`: "It prints `healthy` and returns 0." states no condition, so it reads as always true. `entry/health.py:39-40` prints `healthy` only when `status.healthy` holds. Fix: "When no stop is in force, it prints `healthy` and returns 0."
+    3. `docs/project-guide/pipeline.md`, style rule 2 (still open from round 3): many sentences run well past about 25 words or hold more than one parenthesis. The places entry 22 named are unchanged: lines 3, 68, 87, 137, 192, 237, 284, 291, 303, 541, 550, 640, 658, 707, 721, 733, 756, 772, 785, 811, 820 and 828. There are more, for example lines 227, 717 and 783. Fix: split each sentence to about 25 words with at most one parenthesis. As entry 24 asks, check the sentence lengths of the whole page by script before ending.
+
+    Open, not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human has to decide which rules are meant.
+    - The page has no *Reference* section. Criterion 2 allows that.
