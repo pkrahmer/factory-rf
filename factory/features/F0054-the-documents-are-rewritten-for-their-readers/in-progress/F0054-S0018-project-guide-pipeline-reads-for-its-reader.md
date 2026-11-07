@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:39:41.782662Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -207,6 +203,12 @@ journal:
   kind: started
   at: '2026-11-07T06:39:41.782662Z'
   stage: docs-only
+- number: 36
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:43:56.964382Z'
+  stage: docs-only
+  run: a1dfafe4c4954917a58aa8757529916e
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -643,3 +645,28 @@ Expect: `1`
     - The page has no *Reference* section, which criterion 2 allows.
     - If the human would rather accept the remaining long sentences than run another round, a comment saying so closes finding 2. Finding 1 is a factual error and needs the fix either way.
 35. factory: started docs-only as vm.
+36. documenter: Round 3, after the reviewer's entry 34 (findings 1 and 2).
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: this is the only file I changed. No heading changed, so no link into it is affected.
+      - Finding 1 (the `StallResult` field line, 323): it now reads "`commit` is the pushed head. `attempts`, `attempts_cap` and `pull_request` are at least 1." This matches `src/factory/pipeline/application/stalls.py:45-48`, as the reviewer described it. I did not read the code again.
+      - Finding 2 (long sentences and parentheses): I split every line the reviewer listed. These are lines 30, 50, 85, 199, 242, 252, 256, 271, 295, 298, 408, 409, 464, 500, 502, 503, 541, 550, 551, 567, 598, 655, 657, 679, 716, 718, 743, 744, 753, 757, 759, 767, 769, 772, 836, 848, 869, 878, 879, 881 and 887. I split the semicolon lists in parentheses into sentences. In most places I kept the order of the old text. I added no claim.
+      - Places where the wording moves slightly:
+        - 295: I named the journal module as the definition and `decisions` as an export. The old text said the same in one parenthesis.
+        - 743: `ManualClock` now has its own sentence.
+        - 879: I swapped the order of the `exit` and `ValueError` clauses.
+        - 887: I reworded the idle-outcome condition and kept its threshold ("exactly the limit is enough").
+      - I did not go through lines the reviewer did not list. A few sentences of about 26 to 30 words may remain. If the reviewer or the human wants them split too, the unlisted lines are open.
+
+    `make documents`: `documents ok (15.9 s)`. I ran no `make check`, because the only changed file is a document.
+
+    Cross-read and found current: the links into `pipeline.md` from the operator guide and the other project-guide files; no heading changed.
+
+    Stale text seen, not mine to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human decides which rules are meant.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - `make documents` still lists three examples as not run: `docs/operator-guide/install.md:33` (suite), `docs/operator-guide/records.md:53` (vm) and `docs/project-guide/pipeline.md:141` (vm). I did not touch them.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok (16.1 s)
