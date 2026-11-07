@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 635
-comments_read: [6706893353]
+comments_read: [6706893353, 6707004049]
 handed_over: null
 claim: null
 journal:
@@ -83,6 +83,11 @@ journal:
   stage: tests
   run: 196af7c5c2954d50a07b35be4417314d
   blocked: question
+- number: 14
+  speaker: human
+  kind: comment
+  at: '2026-11-07T12:36:18.120009Z'
+  stage: tests
 ---
 
 # The package and its areas say what they hold
@@ -205,3 +210,6 @@ Expect: `documents ok (<seconds> s)`
     Other criteria: criteria 1 to 3 are checked by the existing guards (`tests/guards/test_folder_readmes.py`) and by the document check, so I see no new test to write for them. Criterion 4 is the docs stage's `make documents`. If you want a test for criterion 3 (the layout link, the `contract/` sentence, each area's guide link, and `entry` with no subfolder lines), say so, and I would add it under `tests/guards/`.
 
     Files created: none. Modules the test run could not import: none (no run was made).
+14. 2026-11-07 human: 1. (a), with the human's leave: add "README.md" to the expected set, rename the test as you propose, and say the same in the module docstring; rewrite the story's 'no test changes' line to name this change. The leave also covers any other earlier guard whose only failure is a README.md of this story standing in its folder, changed the same way (the README added to the expected entries, the test keeping its name's purpose); the entry names each one.
+    2. (a): the criterion's wording follows the guard and the style page, the form with no colon.
+    No new test for criterion 3: the reviewer checks it.
