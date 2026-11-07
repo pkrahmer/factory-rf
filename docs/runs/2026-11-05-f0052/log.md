@@ -152,3 +152,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 02:57Z: F0054-S0012 (F0054-S0012-project-guide-shared-reads-for-its-reader) started, the first page of the project guide.
 - 03:23Z: F0054-S0012 PR #620 merged at docs-approval: the project guide's shared.md rewritten and listed; its stale sentence about the missing Default column is now true; a stale line in project-guide/machine.md fixed with it. $4.16, 9 runs, no question.
 - 03:23Z: F0054-S0013 (F0054-S0013-project-guide-hosting-reads-for-its-reader) started.
+- 03:47Z: F0054-S0013 PR #621 merged at docs-approval: the project guide's hosting.md rewritten and listed. $3.55, 9 runs, no question.
+- 03:47Z: F0054-S0014 (F0054-S0014-project-guide-work-reads-for-its-reader) started.
