@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987, 6707415610]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T13:22:52.688212Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,12 @@ journal:
   kind: started
   at: '2026-11-07T13:22:52.688212Z'
   stage: review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T13:23:30.576810Z'
+  stage: review
+  run: f8d3024f86a54342bc19b170fcaaec47
 ---
 
 # The tests say how they are laid out
@@ -143,7 +145,7 @@ This story writes the READMEs of `tests/`, `tests/support/` and `tests/guards/`,
   - `tests/README.md`
   - `tests/support/README.md`
   - `tests/guards/README.md`
-- `tests/README.md` says that the tests mirror the package (`tests/<area>/<layer>/`), names each special folder in one line (`support/`, `guards/`, `agent_files/`, `entry/`, `operator_scripts/`, `vm/`) and each area folder in one line, and links to `CLAUDE.md`, *Tests*. `tests/support/README.md` says in one sentence that the folder holds the shared test helpers and links to `docs/project-guide/README.md`, *Shared test helpers*, which keeps the full list of modules and fixtures (feature decision 4). `tests/guards/README.md` says in one sentence that the folder holds the guards and links to `docs/project-guide/README.md`, *The files*. Neither lists its modules: a module line is no part of the form, and the detail stays in the guide.
+- `tests/README.md` says that the tests mirror the package (`tests/<area>/<layer>/`), names each special folder in one line (`support/`, `guards/`, `agent_files/`, `entry/`, `operator_scripts/`, `vm/`) and each area folder in one line, and links to `CLAUDE.md`, *Tests*. `tests/support/README.md` says in one sentence that the folder holds the shared test helpers and links to `docs/project-guide/README.md`, *Shared test helpers*, which keeps the full list of modules and fixtures (feature decision 4). `tests/guards/README.md` says in one sentence that the folder holds the guards and links to `docs/project-guide/README.md`, *Shared test helpers*, where the guards and the layout guard are described. Neither lists its modules: a module line is no part of the form, and the detail stays in the guide.
 - `docs/checked-documents.txt` gains each new path.
 - No code changes, and no test changes but this one leave of the human's: an earlier guard whose only failure is a `README.md` of this story standing in its folder may add that README to the entries it expects, keeping its name's purpose; this includes `tests/guards/test_tests_layout.py::test_the_root_holds_only_conftest_and_packages` and any other check of that file or another earlier guard. The tester runs the guards with the three READMEs in place to find every such check, and its entry names each. The story takes the tests route.
 
@@ -153,7 +155,7 @@ This story writes the READMEs of `tests/`, `tests/support/` and `tests/guards/`,
 2. Every name, path and link in these files exists (the document check finds nothing), and each file is on `docs/checked-documents.txt`.
 3. `make documents` ends with `documents ok (<seconds> s)`.
 4. `make check` stays green.
-5. docs: the files of the Interface. `docs/project-guide/README.md` keeps its list of shared test helpers unchanged. `docs/decisions.md`: none.
+5. docs: the files of the Interface. In `docs/project-guide/README.md`, *Shared test helpers*, the sentence on what the root of `tests/` holds and the sentence on what the layout guard `tests/guards/test_tests_layout.py` fails on both name the root's `README.md`; the section's list of modules and fixtures stays unchanged. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -311,3 +313,23 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 21. factory: started review as vm.
+22. reviewer: Review, round 1. I went through groups 1 to 6 and the documents item against the branch again.
+
+    no findings
+
+    The finding from round 0 is fixed. `tests/guards/README.md:3` now links `docs/project-guide/README.md`, *Shared test helpers*, as answer 16 (1)(a) says. Its sentence is true of that section: the `tests/guards/` bullet names the guards, and the paragraph on `test_tests_layout.py` says what the layout guard keeps.
+
+    The coder could not carry the human's answer 16 into the work item, because the coder's write paths do not include `{work_item}` (entry 20). Answer 16 settles what the work item must say, so I updated the two places myself, as the corrections below. I changed nothing else in the work item.
+    - description corrected: Interface, the `tests/guards/README.md` sentence: "links to `docs/project-guide/README.md`, *The files*" -> "links to `docs/project-guide/README.md`, *Shared test helpers*, where the guards and the layout guard are described".
+    - description corrected: criterion 5: "`docs/project-guide/README.md` keeps its list of shared test helpers unchanged" -> in *Shared test helpers*, the sentence on what the root of `tests/` holds (line 63) and the sentence on what `tests/guards/test_tests_layout.py` fails on (line 72) both name the root's `README.md`, and the list of modules and fixtures stays unchanged. The documenter writes this next.
+
+    Checked and clean:
+    - Criterion 1: `tests/guards/test_test_folder_readmes.py` checks that each README exists, so the guard `tests/guards/test_folder_readmes.py` cannot skip it. That guard already holds the three rows in `FOLDER_READMES`.
+    - Criterion 2: the checked-list test, one row per README. `docs/checked-documents.txt` has the three paths.
+    - Criteria 3 and 4: entry 20 records `documents ok (59.1 s)` and `check: green`.
+    - The Interface states no limit and no rejected input.
+    - `tests/README.md` names all 13 direct subfolders in the form the guard expects. `tests/support/README.md` and `tests/guards/README.md` list no modules, and their links exist.
+    - No changes under `src/`, no markers, no secrets.
+
+    Earlier tests:
+    - `tests/guards/test_tests_layout.py`: changed under the human's leave (the Interface; journal entry 4). `README.md` was added to the expected root files of `test_the_root_holds_only_conftest_and_packages`, and the module docstring was changed to match. The test keeps its name and purpose.
