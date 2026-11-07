@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:30:53.112330Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T01:30:53.112330Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:31:48.510450Z'
+  stage: docs-review
+  run: 309152586ca84b47813dc26d52df0cd5
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -188,3 +190,23 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (13.1 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 of the docs review. I read `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/pipeline.md` and `docs/checked-documents.txt`, against the work item, `docs/project-guide/style.md` and `docs/project-guide/glossary.md`. I also checked it against `src/factory/entry/check_story.py` (the usage text, `cannot read <path>: <reason>`, `_FAILURE = 2`), `src/factory/agents/domain/write_paths.py` (`PROTECTED_PATHS`), `factory/pipeline.yml` (the `not_read` line and `sync: {time_limit: 5}`) and `pyproject.toml` (the `factory-check-story` script).
+
+    The three findings of entry 7 are fixed:
+    - The glossary links were added at first use for story, stops, write paths, approval, rounds, stalls, crashes, acceptance, claim, work item, feature, backlog and stage environment.
+    - Step 2 of "Checking a story before it starts" now points to the runnable `console` example. No bare command block is left.
+    - The exit status 2 row is split into one sentence per cause.
+
+    Criteria 2 to 4 still hold:
+    - The old text's names, settings and rules are in the new file. The `sync` row was dropped on purpose, as entry 5 says, and is covered by the bullet at l.146.
+    - The protected paths match `PROTECTED_PATHS`.
+    - The linked headings still exist: "The agent files" in `agent-runtime.md`, "The stop `pipeline_definition_invalid`" in `stops.md`, "The known results" in `health.md` and "The rules of the definition" in `docs/project-guide/pipeline.md`.
+    - `docs/checked-documents.txt` lists the file.
+
+    Findings:
+    1. `docs/operator-guide/pipeline.md` l.210, "renumber the journal entries": the glossary word "journal" is used here for the first time and is not linked. This breaks criterion 1 and style rule 3. Fix: link "journal" at l.210 to `../project-guide/glossary.md`, as l.141 does for work item.
+
+    Rejected as findings:
+    - The tense mix in the l.178 table cell ("There was no path, and it prints the usage line"): no style rule covers it.
+    - The inline `python -m factory.entry.check_story` at l.156: entry 7 already rejected it, and the reason still holds.
+    - `attempts_cap` and `round_cap` at l.52, l.109 and l.122 are key names in code, not prose uses of the glossary words.
