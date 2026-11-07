@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T08:53:18.729510Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T08:53:14.015007Z'
   stage: intake
   run: 2ef7ecf4ac59493d923e2804b97ca887
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T08:53:18.729510Z'
+  stage: docs-only
 ---
 
 # The README reads for a newcomer
@@ -67,3 +76,4 @@ Expect: `1`
    - Docs criterion: criterion 6 refers to criteria 1 to 4 for what the reader must know and dictates no sentences. `docs/decisions.md` is marked "none".
    - Architecture: it is a documents-only change, with no layer or module touched.
    - Scope: the story is S0021 in `feature.md`'s list and within its scope. It touches none of the out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`).
+4. factory: started docs-only as vm.
