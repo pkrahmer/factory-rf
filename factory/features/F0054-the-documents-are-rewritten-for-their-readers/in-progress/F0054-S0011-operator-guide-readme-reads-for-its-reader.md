@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:35:12.302164Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T02:35:12.302164Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:35:51.400402Z'
+  stage: docs-review
+  run: d9879a24280b4a7db8888f03988eea15
 ---
 
 # The operator guide's index reads for the operator
@@ -161,3 +163,17 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (13.6 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1. I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the code on the branch and `docs/project-guide/style.md`.
+
+    All five findings of entry 7 are fixed:
+    - the `FACTORY_DATASET` condition (`src/factory/shared/domain/settings.py:165`);
+    - the VM-only `--userns=keep-id` and the Cloud Run job profile (`src/factory/machine/adapters/podman_runs.py:47-52`);
+    - the dataset as the only writable mount and the login files mounted read-only (`src/factory/agents/adapters/agent_launch.py:205`);
+    - `factory-watch` taking only `--help` (`src/factory/entry/watch.py:72-73`);
+    - the *Reference* opening line.
+
+    Leaving out the sync container's read-only mounts is acceptable. The bullet is about the agent's container. The `README.md:28` link fix and the `docs/checked-documents.txt` line still hold. The list of things dropped on purpose in entry 5 stays accepted under criterion 2.
+
+    Findings:
+    1. `docs/operator-guide/README.md`, *What the stage environment is*, bullet 1: the bullet lists the settings without which the instance is refused, and it says "with `FACTORY_SNAPSHOTS=copy` it runs without a dataset". It leaves out that copy snapshots require `FACTORY_SNAPSHOT_BASE` (`src/factory/shared/domain/settings.py:168`, `required="with copy"`). An operator who switches to `copy` would expect to need nothing else. Fix: add "and one without `FACTORY_SNAPSHOT_BASE` when the snapshots are `copy`".
+    2. `docs/operator-guide/README.md`, *What the stage environment is*, bullets 2 and 7: style rule 8 says a file of the repository is linked by a relative link. "(see `cloud-run.md`)" names the file in backticks with no link. So do `operator/vm/Dockerfile`, `operator/vm/git-credential-factory` and `operator/vm/setup.sh`. `docs/operator-guide/machine.md:129` already links `[Dockerfile](../../operator/vm/Dockerfile)` this way. Fix: write `[cloud-run.md](cloud-run.md)`, `[Dockerfile](../../operator/vm/Dockerfile)`, `[setup.sh](../../operator/vm/setup.sh)` and `[git-credential-factory](../../operator/vm/git-credential-factory)`. Leave the installed path `/usr/local/bin/git-credential-factory` in backticks.
