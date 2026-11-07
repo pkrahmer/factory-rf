@@ -2,7 +2,7 @@
 
 The guide for the person who runs an [instance](../project-guide/glossary.md) of the factory this repository implements. It shows how to install and configure an instance, how to watch it, and what to do when it [stops](../project-guide/glossary.md).
 
-An instance runs on a VM with ZFS and rootless Podman, and every [stage](../project-guide/glossary.md) runs in throwaway containers on one ZFS [dataset](../project-guide/glossary.md). "The machine" in [machine.md](machine.md) describes that VM. You know Linux, git and a terminal; you do not need to read the code.
+An instance usually runs on a VM with ZFS and rootless Podman, where every [stage](../project-guide/glossary.md) runs in throwaway containers on one ZFS [dataset](../project-guide/glossary.md). It can also run without ZFS, in a Cloud Run job ([cloud-run.md](cloud-run.md)). "The machine" in [machine.md](machine.md) describes that VM. You know Linux, git and a terminal; you do not need to read the code.
 
 ## Where to start
 

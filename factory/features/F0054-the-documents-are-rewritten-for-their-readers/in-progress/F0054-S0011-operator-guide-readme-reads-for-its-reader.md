@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:51:34.395764Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-07T02:51:34.395764Z'
   stage: docs-only
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:54:16.918055Z'
+  stage: docs-only
+  run: 51f7747bb5314f87994152e33d1bda36
 ---
 
 # The operator guide's index reads for the operator
@@ -369,3 +371,12 @@ Expect: `1`
     Findings:
     1. `docs/operator-guide/README.md:5`: the line says "An instance runs on a VM with ZFS and rootless Podman, and every stage runs in throwaway containers on one ZFS dataset". The code and the guide itself say otherwise. `src/factory/shared/domain/settings.py:98` and `:168` allow `FACTORY_SNAPSHOTS=copy`, which needs no ZFS. `docs/operator-guide/machine.md:111-113` (*Without ZFS*) and `cloud-run.md:73` run an instance in a Cloud Run job without ZFS. Line 39 of this same file says that with `copy` the instance "runs without a dataset". Fix: keep the common case first and add the other one. For example: "An instance usually runs on a VM with ZFS and rootless Podman, where every stage runs in throwaway containers on one ZFS dataset. It can also run without ZFS, in a Cloud Run job ([cloud-run.md](cloud-run.md))." Keep the dataset link at its first use.
 28. factory: started docs-only as vm.
+29. documenter: Fixed the reviewer's one finding from entry 27. I changed one file, `docs/operator-guide/README.md`, line 5. The sentence now says an instance "usually" runs on a VM with ZFS and rootless Podman, where every stage runs in throwaway containers on one ZFS dataset. It adds that an instance can also run without ZFS, in a Cloud Run job, with a link to `cloud-run.md`. The common case stays first. The dataset and stage links stay at their first use. I checked the claim against `docs/operator-guide/machine.md` (*Without ZFS*) and the reviewer's code references (`FACTORY_SNAPSHOTS=copy`). `make documents` ends with `documents ok (13.6 s)`. I changed only documents, so I did not run `make check`.
+
+    Cross-read and found current: the rest of the guide's README and the earlier fixes, as in entries 5, 9, 13 and 25.
+
+    Stale text seen, not touched: only the items entry 5 lists. They belong to other stories.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (13.6 s)
