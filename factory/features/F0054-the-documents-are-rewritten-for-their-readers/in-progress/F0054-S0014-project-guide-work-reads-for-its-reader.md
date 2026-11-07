@@ -2,16 +2,12 @@
 stage: docs-only
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:48:17.098338Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,19 @@ journal:
   kind: started
   at: '2026-11-07T03:48:17.098338Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:54:29.515097Z'
+  stage: docs-only
+  run: f10b8f15d2ff4e719281ec3db598b09d
+- number: 6
+  speaker: factory
+  kind: stall
+  at: '2026-11-07T03:54:29.920118Z'
+  stage: docs-only
+  run: f10b8f15d2ff4e719281ec3db598b09d
+  reason: check_red
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -79,3 +88,48 @@ Expect: `1`
    Architecture: the only paths changed are `docs/project-guide/work.md` and `docs/checked-documents.txt`, both documents the documenter may write. The docs-only route is chosen because the story changes only documents.
    Scope: it is S0014 of F0054, one file, and the feature scope lists "each of the 22 files, one story each". It touches nothing in the feature's Out of scope: `docs/decisions.md`, `docs/runs/`, the operator playbook and behaviour changes.
 4. factory: started docs-only as vm.
+5. documenter: Rewrote `docs/project-guide/work.md` for its reader and added it to the checked list. `make documents` prints `documents ok (9.6 s)`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/project-guide/work.md`: rewritten in the order style.md gives (idea, names in a block, one rule per bullet, See also). The old headings stay, so links from other files still resolve. Detail that the sections only summarise moved to a new closing section, *Reference*. It holds the path constants, the field tables, the full acceptance rules (reader, opening, hand-over, facts), the records-contract schema text and the layout of the written file with its notation. Module files are linked once at first mention. The six examples are now `console` blocks. I ran them, copied the real output, and `make documents` runs them again.
+   - `docs/checked-documents.txt`: added the line `docs/project-guide/work.md`.
+   - `docs/project-guide/README.md`: the index entry for `work.md` now lists the new *Reference* section.
+
+   Corrections and removals, checked against the code:
+   - The records-contract version in the old text was `2.0`; `RECORDS_CONTRACT` is `4.4`. I wrote `4.4`.
+   - I removed history wording: "from now on", "moved there from", "so existing imports stay valid", "a record written before they existed", and the reference to the feature's decision 4.
+   - Writing `factory/agents` as `<project>/factory/agents`, as the style page asks, was needed to pass the name check.
+
+   Examples that changed:
+   - Each console command is now one line, because the runner does not accept `>` continuation lines.
+   - The error example now shows the last line of the traceback, `factory.shared.domain.errors.WorkItemFormatError: unknown key: colour`, where the old text printed only the fault.
+   - The sections example uses tilde fences, so its output can sit inside a backtick block.
+
+   Compare old and new:
+   - I tried to keep every name, rule and message of the old file, either in a section or in the Reference.
+   - I wrote the new text from the old text. I did not re-read all of the code behind each rule, only a sample: the contract version, the existence of the handlers and functions, the journal's private `_state_of`, `cost_table_key` and `BRANCH_PREFIX`.
+   - The reviewer should compare the old and new files, especially the acceptance bullets I condensed.
+   - I dropped two sentences on purpose: a duplicated cross-reference to *The wiring* and the closing "Plain string order... is the human's only priority".
+   - I shortened the acceptance-status, hand-over and facts text to a bullet each in the section and kept the full rules in the Reference.
+
+   Cross-read and found current: the index `docs/project-guide/README.md` other than the new *Reference* entry, `docs/operator-guide/pipeline.md` (*Checking a story before it starts*) and `docs/operator-guide/work-items.md` (*When a feature acceptance is due*). I did not touch `docs/decisions.md`.
+
+   Not touched, unrelated to this story: `docs/project-guide/README.md` keeps names like `support/site_check_support.py` that `make documents` reports under "not checked yet" (README is not on the checked list). `agents.md` and `machine.md` have the same kind of report lines. I cut a "Plain string order alone would put ... " sentence from the order section, so check that the key's purpose is still clear.
+
+   No findings for the coder.
+6. factory: Stage docs-only stalled (attempt 1 of 2): a check is red after the stage: `check`
+   src/factory/watching/application/transcripts.py         61      2     10      0    97%   91-92
+   src/factory/watching/domain/board.py                    55      0      4      1    98%   77->75
+   src/factory/watching/domain/machine.py                  52      3     18      5    89%   44->42, 47, 59, 77->75, 79
+   src/factory/watching/domain/transcripts.py              10      2      0      0    80%   20-21
+   src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   239
+   src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+   src/factory/work/domain/acceptance.py                  195      1     52      1    99%   367
+   ------------------------------------------------------------------------------------------------
+   TOTAL                                                11211     55   2254     52    99%
+
+   157 files skipped due to complete coverage.
+   Required test coverage of 90.0% reached. Total coverage: 99.21%
+   ======================================================================================= short test summary info ========================================================================================
+   FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/projec...ork-items.md'] == []
+   make: *** [Makefile:89: test] Error 1
