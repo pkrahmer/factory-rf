@@ -1,12 +1,12 @@
 # kumpel-factory
 
-kumpel-factory builds software from stories. You describe a [feature](docs/project-guide/glossary.md) as a few short [stories](docs/project-guide/glossary.md). The factory hands each story to AI agents in turn: one writes the tests, one the code, one reviews it, one updates the docs and one runs a smoke test. Then it opens a pull request, and you approve it or send it back.
+kumpel-factory builds software from [stories](docs/project-guide/glossary.md). You describe a [feature](docs/project-guide/glossary.md) as a few short stories. The factory hands each story to AI agents in turn: one writes the tests, one the code, one reviews it, one updates the docs and one runs a smoke test. Each story gets a draft pull request when its work starts. When the agents are done, you approve it or send it back.
 
 It runs on a Linux VM or as a Cloud Run job, with Claude Code or opencode as the agents. It builds this repository too.
 
 ## Try it
 
-Install the packages with `uv sync`, then run the checks. The last line must be `check: green`:
+Install the packages with `uv sync`, then run the checks. `make check` runs lint, types, layers, sast, secrets, licenses and tests. The last line must be `check: green`:
 
 ```console
 $ make check
@@ -14,7 +14,7 @@ $ make check
 check: green
 ```
 
-To run a factory [instance](docs/project-guide/glossary.md) you need a prepared machine. [The machine](docs/operator-guide/machine.md) in the operator guide takes you from a fresh VM to a running service. [docs/operator-guide/cloud-run.md](docs/operator-guide/cloud-run.md) does the same for a Cloud Run job.
+To run a factory [instance](docs/project-guide/glossary.md) you need a prepared machine. [The machine](docs/operator-guide/machine.md) in the operator guide takes you from a fresh VM to a running service. *On Cloud Run* in [docs/operator-guide/cloud-run.md](docs/operator-guide/cloud-run.md) does the same for a Cloud Run job.
 
 ## Where to read next
 
@@ -25,7 +25,7 @@ To run a factory [instance](docs/project-guide/glossary.md) you need a prepared 
 - [docs/operator-playbook.md](docs/operator-playbook.md): how the human runs the factory day to day.
 - [CLAUDE.md](CLAUDE.md): the rules every change follows (architecture, tests, checks).
 - [operator/README.md](operator/README.md): the map of the operator's scripts.
-- [demo/README.md](demo/README.md): the demos the factory ships.
+- [demo/README.md](demo/README.md): the demos the factory ships, one folder each.
 - `agents/`: the agent files the factory ships (`agents/agents/<role>.md` and `agents/settings.json`), written in Claude Code's format and read by both runtimes. The stage image copies them to `/etc/factory/agents`.
 
 ## Reference
@@ -36,9 +36,9 @@ To run a factory [instance](docs/project-guide/glossary.md) you need a prepared 
 
 | Command | What it does |
 | --- | --- |
-| `factory-run` | runs one instance, one tick per iteration, until a signal stops it |
+| `factory-run` | runs one instance, one [tick](docs/project-guide/glossary.md) per iteration, until a signal stops it |
 | `factory-check-story <path>...` | checks a story against the story form before it starts |
-| `factory-bill [<work item id>]` | shows what a work item cost |
+| `factory-bill [<work item id>]` | shows what a [work item](docs/project-guide/glossary.md) cost |
 | `factory-watch` | shows what the next tick would do and the board of features and work items; it changes nothing |
 | `factory-health` | prints `healthy`, or one line per stop in force |
 
@@ -50,7 +50,7 @@ To run a factory [instance](docs/project-guide/glossary.md) you need a prepared 
 
 ### The document check
 
-The check finds a document that is missing, does not say what the factory does in its own words, or leaves a stop unnamed, or leaves out the project guide's *Kill points* or *Fault-injection paths*. These findings block in every file.
+The check finds a document that is missing, does not say what the factory does in its own words, or leaves a stop unnamed. It also finds a stop, a kill point case or a fault-injection path without its row in the project guide's *Kill points* or *Fault-injection paths*, and a project guide that lacks one of those sections. These findings block in every file.
 
 Three more checks run on the documents:
 
@@ -64,7 +64,7 @@ The findings of these three block only in a file listed in `docs/checked-documen
 
 The factory runs as a service on a Linux VM with ZFS and rootless Podman. Every [stage](docs/project-guide/glossary.md) runs in throwaway containers on one ZFS [dataset](docs/project-guide/glossary.md). `operator/vm/setup.sh` prepares the VM.
 
-In a Cloud Run job, `operator/vm/job-start.sh` builds the instance at every start; see [cloud-run.md](docs/operator-guide/cloud-run.md).
+In a Cloud Run job, `operator/vm/job-start.sh` builds the instance at every start; see *On Cloud Run* in [cloud-run.md](docs/operator-guide/cloud-run.md).
 
 A project can add tools to its stage image with a file `<project>/factory/stage.Containerfile` on its `main`; see *The project's stage file* in [machine.md](docs/operator-guide/machine.md).
 

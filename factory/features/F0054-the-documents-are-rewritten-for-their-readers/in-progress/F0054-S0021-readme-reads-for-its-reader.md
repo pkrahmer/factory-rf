@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:06:05.300865Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T09:06:05.300865Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:10:21.261250Z'
+  stage: docs-only
+  run: 9de4c4f7740940b0a94c1c45fb09b9e6
 ---
 
 # The README reads for a newcomer
@@ -198,3 +200,21 @@ Expect: `1`
 
     Earlier tests: none. The diff changes no test file.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: fixed the reviewer's five findings, all in `README.md`.
+
+    Files changed:
+    - `README.md` (1): the opening now says each story gets a draft pull request when its work starts, and that you approve it or send it back when the agents are done.
+    - `README.md` (2): the document-check paragraph is split. One sentence covers the missing document, the missing words and the unnamed stop. A second sentence covers a stop, a kill point case or a fault-injection path without its row in the project guide's *Kill points* or *Fault-injection paths*, and a project guide that lacks one of those sections.
+    - `README.md` (3): the sentence above the `make check` block lists what it runs: lint, types, layers, sast, secrets, licenses and tests.
+    - `README.md` (4): *On Cloud Run* is named beside both cloud-run.md links (Try it and the machine section). "One folder each" is back on the demos line.
+    - `README.md` (5): the "stories" link moved to its first use in the first sentence. "tick" and "work item" in the console table link to the glossary.
+
+    Checks: `make documents` ends with `documents ok (58.4 s)`. I did not run `make check`, because only a document changed.
+
+    Cross-read: `README.md` against the reviewer's cited code in `documents.py` and `opening.py` (as they describe it), the glossary and the old README on `main`. I found it current. I did not re-read `documents.py` myself.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (58.1 s)
