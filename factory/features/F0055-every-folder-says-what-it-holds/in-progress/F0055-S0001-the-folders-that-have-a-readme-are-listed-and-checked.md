@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T10:52:21.070528Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -212,6 +208,12 @@ journal:
   kind: started
   at: '2026-11-07T10:52:21.070528Z'
   stage: doing
+- number: 37
+  speaker: coder
+  kind: result
+  at: '2026-11-07T10:56:45.925389Z'
+  stage: doing
+  run: ed50df14391f4660a6aa880070a5ed16
 ---
 
 # The folders that have a README are listed and checked
@@ -548,3 +550,25 @@ Expect: `23 ['x: no README.md']`
 
     `lint`: lint: green (0.1 s)
 36. factory: started doing as vm.
+37. coder: Round 1, after the tester's entry 35. Both findings of the reviewer's entry 31 are now fixed, so I changed no code in this run.
+    - Finding 2 (code) was fixed in my entry 33. The private `_Reading` in `src/factory/shared/domain/folder_readmes.py` no longer has a docstring. A why-comment above the class says why it is mutable: one pass over the lines classifies each line once.
+    - Finding 1 (test) was fixed by the tester in entry 35. Criterion 10 now has its row, `only-link-root-absolute`, in `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule`. It passes without any code change, because `relative_link_targets` in `src/factory/shared/domain/documents.py` refuses a target that starts with `/`.
+
+    I ran `make check` on the working tree as the tester left it, and it is green (`test: green (107.2 s)`, `check: green`, coverage 99.21 %).
+
+    What is built, unchanged from earlier rounds:
+    - `src/factory/shared/domain/folder_readmes.py`
+    - `src/factory/shared/domain/documents.py` (`relative_link_targets`, `_is_relative_link_target`)
+    - `src/factory/entry/check_documents.py` (`_named_documents`)
+    - `agents/agents/documenter.md`
+
+    Main decision: with both findings closed and the check green, I made no changes. I rejected also doing the optional `_run` move into `tests/support/check_documents_support.py`: it is a test change, which is the tester's to make, and the tester chose not to make it.
+
+    Refactor pass: nothing in the diff needed changing. The journal changed nothing in the Description beyond what entry 27 already corrected.
+
+    Noticed but not touched:
+    - `_run` is still copied in `tests/entry/test_check_documents_folder_readmes.py` and `tests/entry/test_check_documents_checked_files.py`. The human made moving it optional in entry 29.
+    - `folder_readmes` imports the large `documents` module. Both are domain layers, so this is allowed.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 39 known, 4 gone
