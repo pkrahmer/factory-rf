@@ -2,16 +2,12 @@
 stage: docs-only
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:42:40.791112Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,19 @@ journal:
   kind: started
   at: '2026-11-07T04:42:40.791112Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:46:18.596612Z'
+  stage: docs-only
+  run: c48ee18bcf9f48688601bc7d6d0c4db5
+- number: 6
+  speaker: factory
+  kind: stall
+  at: '2026-11-07T04:46:18.797918Z'
+  stage: docs-only
+  run: c48ee18bcf9f48688601bc7d6d0c4db5
+  reason: check_red
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -79,3 +88,49 @@ Expect: `1`
    Architecture: documentation only. It leaves the code layers alone and fits the project guide's structure.
    Scope: it is S0016 of F0054 (the project guide's watching page). The feature's out-of-scope files (`decisions.md`, runs, playbook) are untouched. The criteria are the story's own list.
 4. factory: started docs-only as vm.
+5. documenter: Rewrote the project guide's watching page for its reader, after reading the code it describes on the branch. `make documents` ends with `documents ok (16.3 s)`, with no finding for `watching.md`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/project-guide/watching.md`: rewritten to `docs/project-guide/style.md`.
+     - Each section opens with a short idea, then the names in a code block, then one rule per bullet, then See also.
+     - Each module is linked once at its first mention, and the factory's own words link to the glossary.
+     - The exact detail moved to a new *Reference*: the tiers, the move rule's `None` cases, the cost record fields, the file format and faults, the bill texts.
+     - The old `bash` example is now a runnable `console` example, and a second one shows `cost_line` and `cost_table`. Both ran under `make documents`.
+     - Headings *Cost records*, *Bills* and *The watcher's command line* are kept. `work.md` links to *Cost records*.
+   - `docs/checked-documents.txt`: added `docs/project-guide/watching.md`. The story's smoke test (`grep -cx ...`) should print 1.
+   - `docs/project-guide/README.md`: rewrote the `watching.md` entry in *The files* to the page's new title and sections, and to the modules it now describes.
+
+   Corrections where the code disagreed with the old text or the old text was incomplete:
+   - The cost record has the fields `machine` (`MachineMeasures`), `transcript` (`TranscriptRef`) and `tools` (`ToolUse`). They were missing. The writer's key order and omitted keys, and `CostRun.start_totals`, are corrected to match the code.
+   - `run_watch` also catches `AgentDefinitionInvalid` and returns 1. Only `PipelineDefinitionInvalid` was named.
+   - `factory-bill`'s outputs and exit statuses (0, 1 for no work item, 2 for a bad id or a usage error) are stated from `src/factory/entry/bill.py`.
+   - Added what the old text lacked:
+     - the transcript store, keeper and session reader;
+     - the machine readings (domain, interface, cgroup adapter);
+     - the factory log, the health file and the record log adapters;
+     - the idle detail `<work item> waits for the human`.
+   - Dropped as unbacked by the code: the "(R24)" reference, and the sentence that the dispatcher caps a `run` event.
+
+   Cross-read and found current: `docs/operator-guide/records.md`, which already covers `machine`, `tools` and `transcript` and agrees with the page. `work.md`, `pipeline.md` and `src/factory/watching/__init__.py` point at `watching.md` without a heading link that changed.
+
+   Noticed, not touched, not part of this story:
+   - Under `make documents` the not-yet-checked pages print old findings. `docs/project-guide/README.md` has `support/...` paths that do not exist, from line 121. `docs/project-guide/machine.md` has `src/new.py`, `.venv/...` and `factory/stage.Containerfile`. Neither page is on the checked list yet.
+   - The index `README.md` still mentions *Replaced in v1.2* and *Replaced from v1*. These are version-history notes (the style page asks for removal), left for the stories that rewrite those pages.
+
+   No `Rejected` lines were written, and `docs/decisions.md` is unchanged, as the story says.
+6. factory: Stage docs-only stalled (attempt 1 of 2): a check is red after the stage: `check`
+   sast: green (2.2 s)
+   Bytecode compiled 4164 files in 54ms
+   ERROR: Potential secrets about to be committed to git repo!
+
+   Secret Type: Secret Keyword
+   Location:    docs/project-guide/watching.md:337
+
+   Possible mitigations:
+     - For information about putting your secrets in a safer place, please ask in
+       #security
+     - Mark false positives with an inline `pragma: allowlist secret` comment
+
+   If a secret has already been committed, visit
+   https://help.github.com/articles/removing-sensitive-data-from-a-repository
+   make: *** [Makefile:65: secrets] Error 1
