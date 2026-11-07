@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 628
 comments_read: [6704529250]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T08:32:19.274950Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-07T08:32:19.274950Z'
   stage: docs-review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T08:33:07.511917Z'
+  stage: docs-review
+  run: c3a755079e194bb6b42fb44b10a0d1f9
 ---
 
 # The project guide's index reads for the developer
@@ -459,3 +461,24 @@ Expect: `1`
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes findings 1 to 5 of the last review, each read from the source. For findings 3 and 4 it checks completeness by script before it ends: every module of tests/support/ and every fixture defined in tests/conftest.py is named on the page, and its entry quotes the script's last output (an empty list of missing names). Where a count is not needed, the page names what is shared or checked instead of a number. The reviewer checks completeness by the same script.
 22. factory: started docs-review as vm.
+23. reviewer: Review after the human's answer (entry 21). I read `git diff main...HEAD -- README.md docs operator/README.md`: `docs/project-guide/README.md` is rewritten and `docs/checked-documents.txt` gains one line. No documenter ran between entry 19 and this review. `git diff bdb45b083 HEAD` shows no change to either document since the round-3 review, so the five findings of entry 19 all still stand. I checked each one again on the branch.
+
+    The human asked for a completeness check by script. I ran this one; the documenter should use the same check:
+    - For every `tests/support/*.py` module except `__init__`, grep its stem in the page.
+    - For every function under `@pytest.fixture` in `tests/conftest.py`, grep `` `name` `` in the page.
+
+    The script's output on the branch is in findings 3 and 4.
+
+    Findings:
+    1. `docs/project-guide/README.md:109`: the page says "`assert_taken_and_pushed` makes the five assertions". `tests/support/container_support.py:337-343` holds seven `assert`s. Fix: say what the helper checks (the pushed commit, `INSIDE` taken, `NOTES` not taken but named in the journal, one timing line, a clean checkout) and give no count.
+    2. `docs/project-guide/README.md:149`: the page says "`in_order` and `lines_with` are shared by the three text modules of `operator/vm/setup.sh`". This is false:
+       - `in_order` is imported by four `tests/vm/test_vm_setup_*.py` modules and by `tests/operator_scripts/test_operator_merge_reset.py`.
+       - `lines_with` is imported by `test_vm_setup_idle_shutdown.py`, `test_vm_setup_text.py` and `tests/vm/test_vm_job_start_image.py`.
+       - Fix: name the tests that share each helper, without the count.
+    3. `docs/project-guide/README.md:100`: the page says "Every module of `tests/support/`", but the script finds these modules nowhere on the page: `claude_stand_in`, `container_runtime_support`, `guide_files_support`, `machine_readings_support`, `opencode_stand_in`, `push_retry_support`, `pygithub_stand_ins`, `remote_outage_support`, `sized_images`, `tool_use_support` and `transcript_support`. Fix: add an entry for each, read from its source. The stand-ins may point to `agents.md` and `hosting.md`. Quote the script's empty output in the documenter's entry.
+    4. `docs/project-guide/README.md:102`: the `tests/conftest.py` entry leaves out these fixtures: `without_agent_login`, `code`, `token`, `workspace`, `fake`, `probe_settings`, `image_file`, `environment`, `run_environment`, `sudo_stand_in`, `failed_after_claim`, `podman_recorder`, `runs`, `dataset`, `holder_file`, `restored_signals`, `secret_file`, `login_file`, `environ`, `instance_settings`, `on_the_manual_clock` and `result_case`. `operator`, `installed` and `podman` match only as words elsewhere on the page, so check them by hand. Fix: name each fixture, read from `tests/conftest.py`. Quote the script's empty output.
+    5. `docs/project-guide/README.md:102`: the conftest entry is one bullet of about 350 words with about 30 rules, against `docs/project-guide/style.md:113` ("the rules, one per bullet"). Fix: make it a nested list with one fixture per item, under its existing groups.
+
+    Criterion 2 still holds. The only names dropped on purpose are the per-area package names, now one `factory.<area>.<layer>` block, and `factory.adapters.landlock`, which does not exist.
+
+    Not checked: I did not run `make documents`; the factory runs it as the gate.
