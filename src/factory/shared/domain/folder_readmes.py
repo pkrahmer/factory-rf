@@ -45,10 +45,9 @@ _SUBFOLDER_LINE = re.compile(r"- `(?P<name>[^`]+)/`(?P<rest>.*)")
 _SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
 
 
+# Mutable, so that one pass over the lines can classify each line once.
 @dataclass
 class _Reading:
-    """What one pass over a README's lines found."""
-
     named: list[str] = field(default_factory=list)
     long_lines: list[str] = field(default_factory=list)
     opening: list[str] = field(default_factory=list)

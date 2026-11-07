@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T10:48:52.387979Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -190,6 +186,12 @@ journal:
   kind: started
   at: '2026-11-07T10:48:52.387979Z'
   stage: doing
+- number: 33
+  speaker: coder
+  kind: result
+  at: '2026-11-07T10:51:20.009727Z'
+  stage: doing
+  run: 9a9e46d8d45a429290526af103755303
 ---
 
 # The folders that have a README are listed and checked
@@ -493,3 +495,16 @@ Expect: `23 ['x: no README.md']`
     - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) is a copy of `_run` in `tests/entry/test_check_documents_checked_files.py:50`. Under the standing leave it can move to `tests/support/check_documents_support.py`.
     - `tests/guards/test_folder_readmes.py:16` (`_subfolders`): a private test helper with a docstring.
 32. factory: started doing as vm.
+33. coder: Round 1, after the human's entry 29 and the reviewer's entry 31. I fixed the code finding. The other finding needs only a test, so I am handing it to the tester.
+
+    Code (finding 2): in `src/factory/shared/domain/folder_readmes.py` I removed the docstring of the private `_Reading`, as CLAUDE.md *Docs* asks ("none on private names"). In its place, above the class, is a why-comment: the record is mutable so that one pass over the lines can classify each line once. Nothing else changed under `src/`. `make check` is green (`test: green (101.9 s)`, `check: green`).
+
+    For the tester (finding 1): criterion 10 needs its test. It is one more row of `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule`: a README whose only link is root-absolute (`[guide](/docs/operator-guide/README.md)`) gives `<folder>: links to no guide`. The code already does this, because `relative_link_targets` in `src/factory/shared/domain/documents.py` refuses a target that starts with `/`, so the row should pass without any code change. Entry 29 also allows the tester to act on the reviewer's two optional notes under the standing leave:
+    - move `_run` from `tests/entry/test_check_documents_folder_readmes.py` and `tests/entry/test_check_documents_checked_files.py` into `tests/support/check_documents_support.py`;
+    - remove the docstring of the private `_subfolders` in `tests/guards/test_folder_readmes.py`.
+
+    Main decision: I kept the reason for the one-pass record as a comment instead of deleting it with the docstring. I did not choose plain removal because the mutable dataclass is the less obvious choice, and the comment says why it is there.
+
+    Refactor pass: the diff is one line, and nothing else needed changing. I did not rewrite the Description; the journal changed no meaning beyond what entry 27 already corrected. I did not touch any test.
+
+    Noticed but not touched, as in earlier entries: `folder_readmes` imports the large `documents` module. Both are domain layers, so this is allowed.
