@@ -14,7 +14,7 @@ What the folders hold:
 - [`lib/`](lib/README.md) The shell code the scripts share.
 - [`opencode/`](opencode/README.md) The skill's command for opencode.
 - [`skill/`](skill/README.md) The skill `kumpel`.
-- `template/` The start of a new project, copied into it; it carries no README of its own.
+- `operator/template/` The start of a new project, copied into it; it carries no README of its own.
 - [`vm/`](vm/README.md) The files that set up a VM.
 
 Where to read next:

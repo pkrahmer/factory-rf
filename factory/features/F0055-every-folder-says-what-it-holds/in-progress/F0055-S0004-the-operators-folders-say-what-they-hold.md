@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T13:48:16.742494Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-11-07T13:48:16.742494Z'
   stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T13:52:39.057627Z'
+  stage: docs
+  run: 6c3aba1bf6c84c3dbb080633619b92be
 ---
 
 # The operator's folders say what they hold
@@ -301,3 +303,24 @@ Expect: `documents ok (<seconds> s)`
     FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/] - AssertionError: assert ['operator/README.md'] == []
     make: *** [Makefile:89: test] Error 1
 20. factory: started docs as vm.
+21. documenter: Round 1 fix for the red `check` after my first docs run (entry 19). The failing test was `tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/]`, with `AssertionError: assert ['operator/README.md'] == []`. My new line in `operator/README.md` named the folder as a bare `template/`, which the guard reads as the old root folder.
+
+    Files changed:
+    - `operator/README.md`: the `template/` line now names the folder as `operator/template/`. The text is otherwise unchanged. The `operator/template/` line still says it is the start of a new project, copied into it, and carries no README of its own. The other seven folder lines are unchanged.
+
+    Checks I ran after the edit:
+    - `uv run pytest -q tests/guards/test_root_operator_folders_removed.py tests/guards/test_folder_readmes.py` passes.
+    - `make documents` ends with `documents ok (60.7 s)`.
+    - I did not run `make check`, because I changed only a document. The factory runs it after this stage.
+
+    The files from the first docs run (entry 18) are unchanged: the eight new READMEs, `docs/checked-documents.txt` and the sentence in `docs/project-guide/shared.md`.
+
+    Cross-read and found current: the same documents as in entry 18.
+
+    Stale text noticed and not touched: `docs/decisions.md:1653` still says "the 23 paths". The human said it stays as it is, because the decision log records what was decided at the time.
+
+    I set aside no project skill.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (59.1 s)
