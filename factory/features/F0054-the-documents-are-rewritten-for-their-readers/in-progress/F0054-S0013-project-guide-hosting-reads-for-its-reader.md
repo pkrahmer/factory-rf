@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:23:43.483206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T03:23:38.463034Z'
   stage: intake
   run: a5f213ccc4ed4c88af53b22d7be4159e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:23:43.483206Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    Docs criterion: criterion 7 points to criteria 1 to 5 (what the reader must know: the hosting area's names, rules and commands, true to the code). It dictates no sentences.
    Architecture: the story touches only documents, so the code's layering is not involved. It stays on the project guide's hosting page, which matches CLAUDE.md's docs layout.
    Scope: it is S0013 of F0054, one file rewritten and added to the checked list. It touches nothing in the feature's Out of scope (`decisions.md` is explicitly "none").
+4. factory: started docs-only as vm.
