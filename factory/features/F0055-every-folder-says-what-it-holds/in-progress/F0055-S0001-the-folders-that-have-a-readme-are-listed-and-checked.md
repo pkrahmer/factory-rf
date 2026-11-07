@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T10:32:52.122835Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -103,6 +107,11 @@ journal:
   at: '2026-11-07T10:32:46.752909Z'
   stage: doing
   run: 18f6f4149156497cb901a69315899819
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:32:52.122835Z'
+  stage: review
 ---
 
 # The folders that have a README are listed and checked
@@ -285,3 +294,4 @@ Expect: `23 ['x: no README.md']`
 
     `check`: check: green
     `duplicates`: duplicates: 7 new, 39 known, 4 gone
+18. factory: started review as vm.
