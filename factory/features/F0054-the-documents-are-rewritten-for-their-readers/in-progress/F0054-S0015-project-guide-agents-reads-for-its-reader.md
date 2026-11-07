@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:36:19.031417Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T04:36:13.425418Z'
   stage: docs-review
   run: f819b69486cd47c4afe133736799599e
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:36:19.031417Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -332,3 +341,4 @@ Expect: `1`
     3. `docs/project-guide/agents.md:491`: "`named_wait(text)` is the earliest wait the text names" can be read as the shortest wait. The code takes the first match in the text (`_WAIT.search`, docstring "The first wait `text` names", `src/factory/agents/domain/provider_limits.py:80-81`). Fix: "the first wait the text names".
 
     Notes (not findings): line 345 ends with a trailing space after "checks.".
+16. factory: started docs-only as vm.
