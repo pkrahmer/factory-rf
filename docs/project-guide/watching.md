@@ -274,7 +274,7 @@ See also: *The handlers of the events* in `pipeline.md`.
 
 ## The factory log and the health file
 
-Three small adapters in this area keep what the operator reads. The tick uses them; see *Stops, the clock and the factory log* in `pipeline.md`.
+Three small adapters in this area keep what the operator reads. The tick uses them; see *The clock, the log and the stores* in `pipeline.md`.
 
 [factory_log.py](../../src/factory/watching/adapters/factory_log.py), [health_file.py](../../src/factory/watching/adapters/health_file.py) and [record_log_jsonl.py](../../src/factory/watching/adapters/record_log_jsonl.py) hold them. The interfaces `Clock`, `Waiter`, `FactoryLog`, `HealthStatusStore`, `DiskSpace`, `MachineReadings` and `PowerOff` are in the application layer's `machine.py`, linked above.
 

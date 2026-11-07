@@ -21,7 +21,7 @@ The factory reaches an agent only through one interface, so that a second tool c
 
 The details of the two DTOs are in *Reference: the request and the result*.
 
-See also: *The agent's container* in [machine.md](machine.md); *The take* in [pipeline.md](pipeline.md).
+See also: *The agent's container* in [machine.md](machine.md); *The take's rule* in [pipeline.md](pipeline.md).
 
 ### The `claude -p` runtime
 
@@ -378,7 +378,7 @@ What an agent may write is decided in one place, for the [take](glossary.md) of 
 - `ValueError` when `work_item_path` is not `factory/features/<feature directory>/<lifecycle folder>/<work item file name>`. `PipelineDefinitionInvalid`, naming the fault, when the definition is absent or invalid at the commit, when the stage is not in it or has no role, and when a write path holds a placeholder other than the two below.
 - Tests: [test_write_paths.py](../../tests/agents/domain/test_write_paths.py) and [test_write_paths.py](../../tests/pipeline/application/test_write_paths.py). A later version of the definition is made with `human.push_file("main", "factory/pipeline.yml", text)` and `checkout.fetch()`.
 
-See also: *The take* in `pipeline.md`.
+See also: *The take's rule* in `pipeline.md`.
 
 ### Matching and placeholders
 
@@ -491,7 +491,7 @@ A reply that is an error whose `result` holds the provider limit, or, when no re
 - `named_wait(text)` is the first wait the text names (`in|after <n> <unit>`, unit `s`/`sec`/`second(s)`, `m`/`min`/`minute(s)`, `h`/`hour(s)` or none for seconds, or `retry-after[:] <n>` seconds, `<n>` of one to six digits), `None` for none or zero.
 - A call ends `provider_limit` only when it did not reach its time limit and was not stopped by its budget, and the limit is in the error reply's `result` (never in `structured_output`) or, with no parsable reply, in a line of standard error.
 - The result keeps the reply's measures, as a `died` one does, and its `limit_wait` is `named_wait` of that text. A budget-stop resume that ends `provider_limit` makes the run `provider_limit` with both calls' measures.
-- `StallReason` has `provider_limit` too; its sentence is `the provider's spend limit lasted past the waiting ceiling`. `PatientRuns` (see *PatientRuns* in `pipeline.md`) waits the limit out and resumes the run, until the waits reach the ceiling. Only a run that still ends `provider_limit` at the ceiling is a stall.
+- `StallReason` has `provider_limit` too; its sentence is `the provider's spend limit lasted past the waiting ceiling`. `PatientRuns` (see *Waiting out the provider's limit* in `pipeline.md`) waits the limit out and resumes the run, until the waits reach the ceiling. Only a run that still ends `provider_limit` at the ceiling is a stall.
 - The cost recorder treats the end reason as a run that replied: `denials` and `denied_paths` are set.
 
 **Resuming a session.** Every result's `session` is the id of `--session-id` or, for a request with `resume_session`, that id. Such a request is called with `--resume <resume_session>` in place of `--session-id <new id>`, with the request's prompt and the agent's budget; the run's files are named by a fresh id. A budget stop of that call resumes the same session once. `resumed_result` takes the second call's `session` (the first's when the second has none) and `limit_wait`.
