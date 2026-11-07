@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:31:02.573025Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T03:30:57.845939Z'
   stage: docs-review
   run: c82a7f044efa49f78ae1255cd806a8d3
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:31:02.573025Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -163,3 +172,4 @@ Expect: `1`
    - `git clean -fd` in the Reference against `--force -d` in the section: they are equivalent.
 
    Open: nothing beyond the findings above.
+8. factory: started docs-only as vm.
