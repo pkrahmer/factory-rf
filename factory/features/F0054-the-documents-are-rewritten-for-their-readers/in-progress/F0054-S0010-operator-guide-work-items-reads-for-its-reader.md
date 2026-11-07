@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T02:11:56.999472Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-07T02:11:52.156587Z'
   stage: docs-only
   run: 9231e6e5a1804fa3b6ce428c3d802039
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:11:56.999472Z'
+  stage: docs-review
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -112,3 +121,4 @@ Expect: `1`
    `check`: check: green
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (13.6 s)
+6. factory: started docs-review as vm.
