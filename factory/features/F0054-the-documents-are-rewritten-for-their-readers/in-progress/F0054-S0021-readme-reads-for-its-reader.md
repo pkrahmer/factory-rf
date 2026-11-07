@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:00:14.856111Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T09:00:09.670067Z'
   stage: docs-review
   run: 3dea17ba485b42789aad6eb5eba85a6e
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:00:14.856111Z'
+  stage: docs-only
 ---
 
 # The README reads for a newcomer
@@ -130,3 +139,4 @@ Expect: `1`
    5. README.md:50: the sentence runs to about 29 words with a list inside a list (rule 2). It also uses "kill point" and "fault-injection path", which are private words not in the glossary (rule 3). Fix: split it in two, and name the project guide's sections *Kill points* and *Fault-injection paths* as section names, with a link, instead of using the words as common nouns.
 
    Earlier tests: none. The diff changes no test file.
+8. factory: started docs-only as vm.
