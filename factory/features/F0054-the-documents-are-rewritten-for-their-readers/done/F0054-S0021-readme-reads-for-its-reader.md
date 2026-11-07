@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-11-07T09:23:59.565146Z'
   stage: docs-review
   run: 5841f4cde4124ab99a6edcf4325385a7
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-11-07T09:24:48.881609Z'
+  stage: docs-approval
 ---
 
 # The README reads for a newcomer
@@ -410,3 +415,4 @@ Expect: `1`
     no findings
 
     Earlier tests: none. The diff changes no test file.
+28. factory: done (pull request merged); cost: 12 runs, 13.0 min, 78 turns, 278918 tokens in (1686458 more from cache), 37161 out, $2.64
