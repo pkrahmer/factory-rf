@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:55:18.375060Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T01:55:13.055844Z'
   stage: docs-review
   run: 11d19d0c3dfb45c889ee8508c0541359
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:55:18.375060Z'
+  stage: docs-only
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -267,3 +276,4 @@ Expect: `1`
     Dropped on purpose (criterion 2), unchanged since round 0: the version-by-version list of the records contract (style rule 1).
 
     Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files, as the documenter noted. The round cap of `docs-review` is 3, so one more round remains.
+16. factory: started docs-only as vm.
