@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:42:11.107489Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,19 @@ journal:
   kind: started
   at: '2026-11-07T02:42:11.107489Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:43:00.150501Z'
+  stage: docs-review
+  run: f758a314bc3242da931c6d57c9fc2a8e
+- number: 20
+  speaker: factory
+  kind: question
+  at: '2026-11-07T02:43:00.150501Z'
+  stage: docs-review
+  run: f758a314bc3242da931c6d57c9fc2a8e
+  blocked: round_cap
 ---
 
 # The operator guide's index reads for the operator
@@ -257,3 +266,20 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (13.6 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3. I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the code on the branch and `docs/project-guide/style.md`.
+
+    The finding from entry 15 is fixed. Bullet 1 of *What the stage environment is* is now four short sentences with the same facts. These still hold: the facts of rounds 1 and 2, the `README.md:28` link fix, the `docs/checked-documents.txt` line, and the list of things dropped on purpose in entry 5 (accepted under criterion 2).
+
+    Earlier rounds missed a gap in criterion 1. The criterion says each factory word is linked to the glossary at its first use. Style rule 3 says the same. I checked every term in `docs/project-guide/glossary.md` against the file:
+
+    Findings:
+    1. `docs/operator-guide/README.md`: three linked words are not linked at their first use.
+       - "dataset" is first used unlinked at line 5 ("on one ZFS dataset"), but linked only at line 40.
+       - "stage environment" is first used unlinked at line 35 ("How the stage environment works"), but linked only at line 39.
+       - "pipeline definition" is first used unlinked at line 27 (the `pipeline.md` row), but linked only at line 44.
+       Fix: move each link to the first use: `[dataset](../project-guide/glossary.md)` at line 5, `[stage environment](...)` at line 35, `[pipeline definition](...)` at line 27. Then remove the later links.
+    2. `docs/operator-guide/README.md`, the file table (lines 26-29), bullet 5 of *What the stage environment is* (line 43) and *This repository's own history* (line 53): these glossary words are never linked.
+       - In the table: "stalls" (line 26), "story" (line 27), "work item" (line 28), "feature", "acceptance", "approval", "lease" and "claims" (line 29).
+       - At line 43: "role", "write paths" and "journal".
+       Fix: link each one to `../project-guide/glossary.md` at its first use in the file. Later uses stay plain.
+20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
