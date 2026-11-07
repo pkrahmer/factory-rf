@@ -37,12 +37,15 @@ from factory.shared.domain.documents import (
     split_findings,
     unresolved,
 )
+from factory.shared.domain.folder_readmes import FOLDER_READMES
 from factory.shared.domain.sections import first_section
 
 _PROGRAM = "check-documents"
 _CLEAN = 0
 _FINDINGS = 1
 _REPORT_HEADING = "Report (not checked yet):"
+# The operator's README keeps a form of its own, so it is read but is no folder README.
+_OPERATOR_README = "operator/README.md"
 
 
 def _read(path: Path) -> str | None:
@@ -69,8 +72,9 @@ def _named_documents(root: Path) -> list[str]:
         for path in folder.rglob("*.md")
         if path.is_file()
     )
-    readme = [root / README] if (root / README).is_file() else []
-    return [path.relative_to(root).as_posix() for path in [*readme, *inside]]
+    readmes = [root / path for path in (README, *FOLDER_READMES, _OPERATOR_README)]
+    existing = [path for path in readmes if path.is_file()]
+    return [path.relative_to(root).as_posix() for path in [*existing, *inside]]
 
 
 def _module_or_attribute_exists(name: str) -> bool:

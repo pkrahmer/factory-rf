@@ -496,10 +496,19 @@ def _backticked_kind(text: str, top_level: frozenset[str]) -> ReferenceKind | No
     return None
 
 
-def _link_name(document: str, target: str) -> str | None:
+def _is_relative_link_target(target: str) -> bool:
     if target.startswith((_FRAGMENT, _PATH_SEPARATOR, _MAIL_PREFIX)) or _WEB_ADDRESS in target:
-        return None
-    if any(marker in target for marker in _PLACEHOLDER_OR_GLOB):
+        return False
+    return not any(marker in target for marker in _PLACEHOLDER_OR_GLOB)
+
+
+def relative_link_targets(line: str) -> list[str]:
+    """The targets of the line's Markdown links that are relative, in their order."""
+    return [target for target in _LINK_TARGET.findall(line) if _is_relative_link_target(target)]
+
+
+def _link_name(document: str, target: str) -> str | None:
+    if not _is_relative_link_target(target):
         return None
     relative = target.split(_FRAGMENT, 1)[0]
     return posixpath.normpath(posixpath.join(posixpath.dirname(document), relative))
