@@ -2,16 +2,12 @@
 stage: docs-only
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:30:50.272505Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,19 @@ journal:
   kind: started
   at: '2026-11-07T09:30:50.272505Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:33:05.445761Z'
+  stage: docs-only
+  run: 26ddd06a1e0d4511ac11b3af7ba15bc2
+- number: 9
+  speaker: factory
+  kind: stall
+  at: '2026-11-07T09:33:05.829927Z'
+  stage: docs-only
+  run: 26ddd06a1e0d4511ac11b3af7ba15bc2
+  reason: check_red
 ---
 
 # The operator folder's README reads for its reader
@@ -120,3 +129,28 @@ Expect: `1`
    **Stale text I saw and did not touch.** `operator/skill/kumpel/SKILL.md` repeats "Second version, 2026-11-01" and "kumpel-factory v1.2 or later". That is the skill's file, not a document I may write. The old README linked nothing in `planning/`; I kept `planning/operator-skill/DESIGN.md` as a plain path because the folder belongs to the human.
 6. 2026-11-07 human: Option 1. This story stays docs-only: the rewritten operator/README.md is its whole change, and the checked-list part of criterion 3 and of the Interface is dropped. Leave docs/checked-documents.txt unchanged. Making operator/README.md a document of the check is now part of F0055-S0001, and F0055-S0004 adds the line to the checked list. Since the check does not read this file yet, run each runnable console example of the page by hand once more before you end, and quote the results in your entry. The reviewer reviews the page as it is, without criterion 3's list line.
 7. factory: started docs-only as vm.
+8. documenter: Following the human's answer (option 1), this round changes no file. `operator/README.md` stays as I rewrote it in the first round. It is the story's whole change. `docs/checked-documents.txt` is unchanged, on purpose: F0055-S0001 makes the file a document of the check and F0055-S0004 adds the list line. The story's criterion 3 and its Interface list line therefore do not apply here, and the reviewer judges the page without them.
+
+   Runnable examples, run by hand because the check does not read this page yet. The page has one `console` example, `sh operator/bin/site init`, in step 1 of *Installing*. I ran it from the repository root with `HOME` and `XDG_CONFIG_HOME` set to a temporary directory that removed itself afterwards. It printed `site: wrote /tmp/tmp.DB6w1e00oa/kumpel/site.env; edit it, then run: site check` and exited with 0. The file `kumpel/site.env` appeared under that directory. This matches the page's example, where `<path>` stands for the file's location. All other commands on the page are in `sh` blocks, marked as touching the machine, an account or `~`. I did not run those. `git status` showed no change in the repository from the run.
+
+   `make documents` ended `documents ok (58.8 s)` in the first round, and no document has changed since. I did not run `make check`, because only documents changed.
+
+   Cross-read, found current: `docs/operator-guide/site.md` (points to this file and to the heading *Installing*, which is kept), `docs/project-guide/operator.md` and `agents.md` (link only the file), and `docs/operator-guide/pipeline.md` (names the file).
+
+   Stale text I saw and did not touch: `operator/skill/kumpel/SKILL.md` repeats "Second version, 2026-11-01" and "kumpel-factory v1.2 or later". That is the skill's file, not a document I may write.
+9. factory: Stage docs-only stalled (attempt 1 of 2): a check is red after the stage: `check`
+   src/factory/work/application/work_items.py              90      2     24      2    96%   133, 169
+   src/factory/work/domain/acceptance.py                  195      1     52      1    99%   367
+   ------------------------------------------------------------------------------------------------
+   TOTAL                                                11211     55   2254     52    99%
+
+   157 files skipped due to complete coverage.
+   Required test coverage of 90.0% reached. Total coverage: 99.21%
+   ======================================================================================= short test summary info ========================================================================================
+   FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[vm/setup.sh] - AssertionError: assert ['operator/README.md'] == []
+   FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[vm/job-start.sh] - AssertionError: assert ['operator/README.md'] == []
+   FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[vm/Dockerfile] - AssertionError: assert ['operator/README.md'] == []
+   FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[vm/factory.service] - AssertionError: assert ['operator/README.md'] == []
+   FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[vm/git-credential-factory] - AssertionError: assert ['operator/README.md'] == []
+   FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/] - AssertionError: assert ['operator/README.md'] == []
+   make: *** [Makefile:89: test] Error 1
