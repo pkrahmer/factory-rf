@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T10:28:08.859752Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -101,6 +97,12 @@ journal:
   kind: started
   at: '2026-11-07T10:28:08.859752Z'
   stage: doing
+- number: 17
+  speaker: coder
+  kind: result
+  at: '2026-11-07T10:32:46.752909Z'
+  stage: doing
+  run: 18f6f4149156497cb901a69315899819
 ---
 
 # The folders that have a README are listed and checked
@@ -261,3 +263,25 @@ Expect: `23 ['x: no README.md']`
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
 16. factory: started doing as vm.
+17. coder: Round 1: I fixed both review findings from entry 15 in `src/factory/shared/domain/folder_readmes.py` and changed nothing else. `make check` is green (`check: green`, `test: green (106.6 s)`).
+
+    1. **Line 1 is now checked** (finding 1). `_read` now looks at the first line. It is passed over only when it is the title, that is `# ` followed by a non-blank text (`_TITLE`). If it is not the title, the README has no opening. So `_Reading` starts with `past_opening=True`, and every line goes through `_read_line`, line 1 included:
+       - a heading that is not a title (`## A`, or `# ` alone) gives `has a section`;
+       - a line of prose gives `line 1 is no part of the form`;
+       - a link line still counts as a link.
+       
+       I checked these by hand: `## A` + link gives `['x: has a section']`, and `prose.` + link gives `['x: line 1 is no part of the form']`.
+    2. **Fences come from the shared reader** (finding 2). I removed the private `_FENCE` toggle and the `in_fence` field. The fenced lines now come from `factory.shared.domain.sections`, through `split_lines`, `code_blocks` and `lines_outside_blocks`. A `~~~` fence and an indented fence now give `has a code block`. Lines inside such a fence are not read as opening, heading or prose lines. I checked both cases by hand: each gives `['x: has a code block']`.
+
+    Main decision: I made a missing title mean there is no opening. Every line is then held to the form, as after the list. I rejected only patching the first line and leaving the opening logic as it was. With that, a README without a title would still have its prose counted as an opening and get no line finding, which goes against the Interface's definition of the opening as the lines after the title.
+
+    Refactor pass: I simplified the first version of the loop. It had a flag-or-index expression inside the loop; now `has_title` is computed once and sets `past_opening` before the loop. Nothing else needed changing.
+
+    Open, as the reviewer noted:
+    - Criterion 2 has no row for a first line that is not `# <title>`. The fix is in the code, but no test pins it. A row "a first line that is not `# <title>`" (heading → `has a section`, prose → `line 1 is no part of the form`) needs a criterion from the human or the reviewer, and the tester to write it.
+    - Criterion 2 also has no row for a `~~~` fence or an indented fence.
+
+    I changed no test.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 39 known, 4 gone

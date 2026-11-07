@@ -5,6 +5,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Final
 
+from factory.shared.domain.sections import code_blocks, lines_outside_blocks, split_lines
+
 FOLDER_READMES: Final[tuple[str, ...]] = (
     "agents/README.md",
     "docs/README.md",
@@ -37,7 +39,7 @@ SUBFOLDER_LINE_WORDS: Final = 25
 BASE_LINES: Final = 10
 
 _HEADING = re.compile(r"#+ ")
-_FENCE = "```"
+_TITLE = re.compile(r"# \S")
 _SUBFOLDER_LINE = re.compile(r"- `(?P<name>[^`]+)/`(?P<rest>.*)")
 _RELATIVE_LINK = re.compile(r"\[[^\]]*\]\((?![a-z][a-z0-9+.-]*:|#)[^)\s]+\)")
 _SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
@@ -55,7 +57,6 @@ class _Reading:
     has_code_block: bool = False
     has_link: bool = False
     past_opening: bool = False
-    in_fence: bool = False
 
 
 def _sentences(text: str) -> int:
@@ -74,11 +75,7 @@ def _read_subfolder_line(reading: _Reading, name: str, rest: str) -> None:
 
 
 def _read_line(reading: _Reading, number: int, line: str) -> None:
-    if line.startswith(_FENCE):
-        reading.has_code_block = True
-        reading.in_fence = not reading.in_fence
-        return
-    if reading.in_fence or not line.strip():
+    if not line.strip():
         return
     if _HEADING.match(line):
         reading.has_section = True
@@ -98,9 +95,13 @@ def _read_line(reading: _Reading, number: int, line: str) -> None:
 
 
 def _read(readme: str) -> _Reading:
-    reading = _Reading()
-    for number, line in enumerate(readme.splitlines()[1:], start=2):
-        _read_line(reading, number, line)
+    lines = split_lines(readme)
+    has_title = bool(lines) and _TITLE.match(lines[0]) is not None
+    # Without a title there is no opening: every line, the first included, must fit the form.
+    reading = _Reading(has_code_block=bool(code_blocks(lines)), past_opening=not has_title)
+    for index in lines_outside_blocks(lines):
+        if index > 0 or not has_title:
+            _read_line(reading, index + 1, lines[index])
     return reading
 
 
