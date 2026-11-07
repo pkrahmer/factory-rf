@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-07T15:04:33.892180Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T15:04:33.892180Z'
   stage: smoke-test
+- number: 13
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T15:05:00.611144Z'
+  stage: smoke-test
+  run: 0ded7499e5d244d4b6d3750b15936aa3
 ---
 
 # A listed folder README that is missing fails the guard
@@ -209,3 +211,26 @@ Expect: `missing-fails`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (59.1 s)
 12. factory: started smoke-test as vm.
+13. smoke-tester: Smoke test passed with no findings. I ran both commands from the repository root exactly as written, in order.
+
+    Command 1: `uv run pytest -rs tests/guards/test_folder_readmes.py 2>&1 | tail -1 | grep -c skipped`
+    ```
+    0
+    ```
+    It met `Expect: 0`. The summary line it read was `31 passed in 0.03s`, with no skips. (`grep -c` exits 1 when the count is 0; the output is what the expectation checks.)
+
+    Command 2: I cloned to a `mktemp -d` directory that cleans itself up with its own `trap`, removed `security/README.md`, and ran the guard with `-o addopts=`:
+    ```
+    missing-fails
+    ```
+    It met `Expect: missing-fails`, so the guard reported `security: no README.md` and failed.
+
+    Checked against the acceptance criteria:
+    - Criterion 1: not contradicted. Command 2 shows a listed README with no file giving `<folder>: no README.md`.
+    - Criterion 2: not contradicted. Command 1 ran every row of `FOLDER_READMES` on the repository: all passed and none was skipped.
+    - Criterion 3: not contradicted. I did not run `make check` because the smoke test does not call it. The factory's checks after the doing and docs stages recorded `check: green`.
+    - Criterion 4: not contradicted. `docs/project-guide/shared.md:212`, under *The folder READMEs*, says that a listed README with no file fails the guard with `<folder>: no README.md` and that nothing is skipped.
+
+    Findings: none.
+
+    Still open, as earlier entries say: `tests/guards/test_test_folder_readmes.py` now does the same job as this guard, and whether to remove it is the human's call. I left nothing behind in `/tmp`.
