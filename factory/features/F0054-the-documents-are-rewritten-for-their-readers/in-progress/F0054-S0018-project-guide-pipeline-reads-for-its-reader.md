@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:17:36.564063Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-07T06:17:36.564063Z'
   stage: docs-review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:18:57.320125Z'
+  stage: docs-review
+  run: 8c2a5102f19449d68212244c3d8b8a43
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -318,3 +320,32 @@ Expect: `1`
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok (16.3 s)
 17. factory: started docs-review as vm.
+18. reviewer: Round 2 review. I read `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `docs/project-guide/style.md` and the code on the branch. I read the whole new `docs/project-guide/pipeline.md` and checked the round-1 findings against it.
+
+    Fixed since round 1:
+    - Findings 1 to 9 are fixed.
+    - `docs/project-guide/README.md:35` lists the current sections.
+    - "round" (line 171) and "stall" (line 268) are linked to the glossary.
+    - `decisions.py` and `post_texts.py` are linked above the Stalls block (line 270), and their later mentions are plain.
+    - `factory.watching.application.machine` is linked at its first mention (line 260).
+    - The capital at line 617 is fixed.
+
+    Checked against the code:
+    - The required-fields rule (line 757): the 22 fields from `git` to `containers` and the 8 optional fields with their defaults match `boundaries.py:42-78`.
+    - `build_boundaries` builds the container adapters first and then the hosting service (line 772), as `wiring.py:313-316` does.
+    - The `StopService` block now stands outside the list (line 693).
+    - The crash-cap sub-bullets are indented (lines 538-540).
+    - Every section the page cites in another file exists: stops.md, health.md, machine.md, work-items.md and the decision log's "The factory alone writes the checkout's `.git`".
+    - The citations in `agents.md` and `watching.md` resolve.
+
+    Findings:
+    1. `docs/project-guide/pipeline.md:811`: "It also sets the six required fields" contradicts line 757, which says twenty-two fields are required. It also leaves out what the fixture sets for `snapshots` and `containers` (`FakeSnapshots` and `FakeContainerRuns` over `<tmp_path>/workspace`, through `fake_dataset`) and for `machine` (`FakeMachineReadings()`) (`tests/conftest.py`, the `boundaries` fixture). The fixture sentence at line 769 sits in a bullet about `build_boundaries`. Fix: write "It also sets these fields", add the three, and move line 769's sentence here.
+    2. `docs/project-guide/pipeline.md:773-779`: "It then builds, in this order" puts the `SystemClock` last. The code builds the clock before `GitCli` and the log right after it (`entry/wiring.py:318-320`). Fix: drop "in this order", or list the clock and the log before `GitCli`.
+    3. `docs/project-guide/pipeline.md:484`: "is no longer `origin/main`" breaks style rule 7 (no "no longer"). Fix: "differs from `origin/main`".
+    4. `docs/project-guide/pipeline.md` (style rule 2, round-1 finding 10 still open; the documenter's entry 16 says it is only partly done): sentences still run far past about 25 words or hold several parentheses.
+       - Sentences of 45 words or more stand at lines 87, 192, 284, 303, 442, 448, 550, 640, 658, 756 and 828.
+       - Long sentences also stand at lines 541, 772 and 820.
+       - Several parentheses in one sentence stand at lines 68, 237, 291, 707, 721 and 733.
+       - Fix: split each into sentences of about 25 words with at most one parenthesis, then go through the rest of the page the same way.
+
+    Open, not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria say which rules are meant, so this is left for the human. The page has no *Reference* section, which criterion 2 allows.
