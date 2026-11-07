@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T01:39:43.332643Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T01:39:43.332643Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T01:40:00.049524Z'
+  stage: intake
+  run: 871a78ae3eb145c787aa0f4e5e53a45b
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete paths only: `docs/operator-guide/records.md` (exists; covers the records contract, `factory-bill`, `factory-watch`), `docs/checked-documents.txt` (does not list it yet), link fixes. No code, tests or agent files.
+   - Criteria: each is checkable by the reviewer or a command: style compliance (judged), old-versus-new fact comparison (judged), file on the checked list plus `make documents` printing `documents ok`, no dead links, `make check` green. No Interface rule states a limit, default or error, so no failing side is owed.
+   - Smoke test: `grep -cx "docs/operator-guide/records.md" docs/checked-documents.txt` is runnable and `Expect: 1` is checkable. It prints 0 now and 1 after the story.
+   - Docs criterion: criterion 6 says "as criteria 1 to 4", which name what the reader must know only by reference to style and facts, but it dictates no sentences. I accepted it, since it is the same shape across this feature.
+   - Architecture: every path the Interface changes is one the documenter may write (`docs/*`), so the docs route applies. No `factory/` change.
+   - Scope: within F0054's scope (one file, one story, S0009) and outside its out-of-scope list (`decisions.md` is untouched).
