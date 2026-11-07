@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T08:59:01.810505Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T08:59:01.810505Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:00:09.670067Z'
+  stage: docs-review
+  run: 3dea17ba485b42789aad6eb5eba85a6e
 ---
 
 # The README reads for a newcomer
@@ -116,3 +118,15 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (58.8 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed the diff to `README.md` and `docs/checked-documents.txt` against the code on the branch, the criteria and `docs/project-guide/style.md` (rules for all documents, *Runnable examples*, *The README*).
+
+   These claims match the code or the repository: the five console commands (`pyproject.toml` `[project.scripts]`), the modules `factory.entry.contract`, `check_documents` and `check_demos` (`src/factory/entry/`), `tests/entry/test_demos.py`, `operator/vm/setup.sh`, `operator/vm/job-start.sh`, `agents/settings.json`, `/etc/factory/agents` (`src/factory/machine/application/stage_environment.py:30`, `operator/vm/Dockerfile:58`), and the headings *The machine*, *The project's stage file* and *On Cloud Run*. No document outside `factory/` and `planning`/`docs/runs` links to or names an old README heading, so criterion 4 holds. Dropping `--follow` is right: `docs/decisions.md:379` already records it, as rule 7 asks.
+
+   Findings:
+   1. README.md:10-12: the Try-it commands `uv sync` and `make check` are in an indented plain block. That is neither a runnable `console` example nor one marked `console vm`/`github`/`model`, so it breaks the Description ("every command the file shows is a runnable example or is marked") and style rule 6 (each command followed by what it prints). Fix: make it a `console` block that shows the output, with `$ make check`, `...` and `check: green`; `make check` is skipped as `suite` with no mark. Or use `console vm` and name the real run it was copied from.
+   2. README.md:3, 14, 50, 62: factory words appear unlinked at their first use. These are "feature" (:3), "instance" (:14), "stop" (:50, :18), and "stage" and "dataset" (:62, first in :26). This breaks criterion 1 and style rule 3. The documenter's entry says these words appear only inside *Reference*, but "feature" and "instance" stand above it, and rule 3 makes no exception for *Reference*. Fix: link each to `docs/project-guide/glossary.md` at its first use in the file.
+   3. README.md:18: the old file named the section *Setting up an operator's machine* in `site.md` (the heading exists at `docs/operator-guide/site.md:277`). The new line drops that name without saying so, which breaks criterion 2. Fix: name the section and link `site.md` (`[site.md](docs/operator-guide/site.md)`, *Setting up an operator's machine*).
+   4. README.md:70: "The history of the first implementation (github.com/pkrahmer/factory), which built this one until the handover of 2026-10-18, is kept at …" is version history. Criterion 1 and style's README section ("no history") forbid it, and the sentence runs to about 30 words (rule 2). Fix: keep a single pointer, such as "The planning history is kept at the tag `planning-history-2026-10-19`; [decisions.md](docs/decisions.md) records why." Drop the handover narration.
+   5. README.md:50: the sentence runs to about 29 words with a list inside a list (rule 2). It also uses "kill point" and "fault-injection path", which are private words not in the glossary (rule 3). Fix: split it in two, and name the project guide's sections *Kill points* and *Fault-injection paths* as section names, with a link, instead of using the words as common nouns.
+
+   Earlier tests: none. The diff changes no test file.
