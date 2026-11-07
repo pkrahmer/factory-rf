@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T10:15:08.069062Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -70,6 +74,11 @@ journal:
   at: '2026-11-07T10:15:03.152206Z'
   stage: tests
   run: 3f4256f068f34b6e979f73365a105d0c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:15:08.069062Z'
+  stage: doing
 ---
 
 # The folders that have a README are listed and checked
@@ -190,3 +199,4 @@ Expect: `23 ['x: no README.md']`
     Open: I changed no earlier test. Which earlier documenter-text tests the new sentence breaks depends on how the coder words it. Under the leave of feature decision 5, I make that change once the coder's run names those tests.
 
     `lint`: lint: green (0.2 s)
+12. factory: started doing as vm.
