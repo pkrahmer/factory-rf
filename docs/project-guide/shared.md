@@ -11,10 +11,15 @@ Every command-line tool the factory runs is started in one module, [process.py](
     run_or_raise(argv, *, time_limit, fault, cwd=ROOT, accepted=(0,)) -> ProcessResult
 
 - Only `process.py` imports `subprocess`. Nine other modules import `process.py`, as [test_wrapper_search.py](../../tests/guards/test_wrapper_search.py) lists them.
-- The git wrapper ([git_cli.py](../../src/factory/hosting/adapters/git_cli.py)), the make class ([make_commands.py](../../src/factory/machine/adapters/make_commands.py)), the `claude -p` runtime ([claude_runtime.py](../../src/factory/agents/adapters/claude_runtime.py)), the tests' container fake ([fake_containers.py](../../src/factory/machine/adapters/fake_containers.py)) and the example runner of the document check ([document_examples.py](../../src/factory/shared/adapters/document_examples.py)) use `run_process`.
-- The opencode runtime ([opencode_runtime.py](../../src/factory/agents/adapters/opencode_runtime.py)) uses `run_process` and, for a run it watches line by line, `run_streaming`.
-- The Podman wrapper ([podman_runs.py](../../src/factory/machine/adapters/podman_runs.py)) uses `run_process` for a container run and `run_or_raise` for its queries.
-- The ZFS wrapper ([zfs_snapshots.py](../../src/factory/machine/adapters/zfs_snapshots.py)) and the power-off ([power_off.py](../../src/factory/machine/adapters/power_off.py)) use `run_or_raise` only.
+- These modules use `run_process`:
+  - the git wrapper, [git_cli.py](../../src/factory/hosting/adapters/git_cli.py);
+  - the make class, [make_commands.py](../../src/factory/machine/adapters/make_commands.py);
+  - the `claude -p` runtime, [claude_runtime.py](../../src/factory/agents/adapters/claude_runtime.py);
+  - the tests' container fake, [fake_containers.py](../../src/factory/machine/adapters/fake_containers.py);
+  - the example runner of the document check, [document_examples.py](../../src/factory/shared/adapters/document_examples.py).
+- The opencode runtime, [opencode_runtime.py](../../src/factory/agents/adapters/opencode_runtime.py), uses `run_process`. For a run it watches line by line, it uses `run_streaming`.
+- The Podman wrapper, [podman_runs.py](../../src/factory/machine/adapters/podman_runs.py), uses `run_process` for a container run. It uses `run_or_raise` for its queries.
+- The ZFS wrapper, [zfs_snapshots.py](../../src/factory/machine/adapters/zfs_snapshots.py), uses `run_or_raise` only. So does the power-off, [power_off.py](../../src/factory/machine/adapters/power_off.py).
 - `ProcessRequest` holds `argv`, `cwd`, `env`, `time_limit` and `merge_stderr`; it is frozen and forbids unknown keys.
 - `argv` has at least one element and is passed as given. There is never a shell, so `$HOME; echo x` reaches the child as that text.
 - `env=None` lets the child inherit the environment. A mapping is the child's whole environment, and nothing is added.
@@ -46,12 +51,13 @@ No agent code runs on the host: every agent call and every [project command](glo
 
 ### run_streaming
 
-`run_streaming` is for a runtime that must act on a run's output as it comes, such as the opencode runtime with its budget and its provider limit. It starts the child as `run_process` does and calls `on_line(stream, line)` for every line of standard output (`"stdout"`) and standard error (`"stderr"`).
+`run_streaming` is for a runtime that must act on a run's output as it comes, such as the opencode runtime with its budget and its provider limit. It starts the child as `run_process` does and calls `on_line(stream, line)` for every line of standard output, which is `"stdout"`. It does the same for standard error, which is `"stderr"`.
 
 - A line comes without its line feed, decoded as UTF-8 with replacement. With `merge_stderr` every line is `"stdout"`.
 - A last line without a line feed is passed when its stream ends, not when the drain runs out. Its bytes stay in `stdout`.
 - The calls come one at a time from the calling thread, from a selector loop, not from reader threads.
-- A line reaches the callback once and whole, however many reads it takes: a line longer than one 64 KiB read, or one split by a pause, is passed once. `stdout` and `stderr` of the result hold the whole output.
+- A line reaches the callback once and whole, however many reads it takes. A line longer than one 64 KiB read, or one split by a pause, is passed once.
+- `stdout` and `stderr` of the result hold the whole output.
 - `on_line` returns `True` to stop. The group is killed at once, no further line is passed (also not one already read in the same chunk), and the result has `stopped=True`, `exit_status=None` and `timed_out=False`.
 - A stop on a last line without a line feed ends the call at once, also while the other stream is still open.
 - At the `time_limit` the group is killed as in `run_process`, also when the child closed both streams and kept running. No line read after the kill is passed.
@@ -90,7 +96,7 @@ See also: *A command stopped at its time limit loses every process of its sessio
 
 ## The duplicates report
 
-`make duplicates` prints what the reviewer would otherwise have to spot by eye: blocks of similar code and dead code that no one accepted. It runs pylint (only its duplicate-code messages, R0801, as JSON) and vulture (text), both development dependencies. It hands both outputs to the command, which compares the findings with the baseline of accepted ones in [duplicates-baseline.txt](../../security/duplicates-baseline.txt). The report is a record for the reviewer, not a gate.
+`make duplicates` prints what the reviewer would otherwise have to spot by eye: blocks of similar code and dead code that no one accepted. It runs pylint for its duplicate-code messages, R0801, as JSON. It also runs vulture, as text. Both are development dependencies. It hands both outputs to the command, which compares the findings with the baseline of accepted ones in [duplicates-baseline.txt](../../security/duplicates-baseline.txt). The report is a record for the reviewer, not a gate.
 
 The command is [check_duplicates.py](../../src/factory/entry/check_duplicates.py). The rules are pure functions in [duplicates.py](../../src/factory/shared/domain/duplicates.py). The command only reads the files, prints and returns the exit status.
 
@@ -100,8 +106,13 @@ The command is [check_duplicates.py](../../src/factory/entry/check_duplicates.py
 - The command reads its three files through `read_input` of [inputs.py](../../src/factory/entry/inputs.py). `read_input` raises `UnreadableInput` for a file that is missing or not UTF-8, and the command turns that into status 2, like a parse fault.
 - The pipeline runs the report after the coder and writes its last line into the coder's [journal](glossary.md) entry, whatever the exit status. `make check` does not run it.
 - A pylint message or a vulture line out of form is refused with a `ValueError`. The command turns it into status 2, so a change in a tool's output stops the report and is not hidden.
-- The output is, in this order: `new <key> at <where>: <message>` for each finding whose key is not in the baseline, `gone <key>` for each baseline key that no finding has any more (remove it from the baseline), and the last line `duplicates: <n> new, <k> known, <g> gone`.
-- The exit status is 0 when nothing is new (gone keys alone do not change it), 1 when something is new, and 2 when a file or the baseline cannot be read or a text cannot be parsed. Then one line `check-duplicates: <reason>` goes to standard error.
+- The output has three parts, in this order.
+  - `new <key> at <where>: <message>` for each finding whose key is not in the baseline.
+  - `gone <key>` for each baseline key that no finding has any more. Remove it from the baseline.
+  - The last line, `duplicates: <n> new, <k> known, <g> gone`.
+- The exit status is 0 when nothing is new. Gone keys alone do not change it.
+- The status is 1 when something is new.
+- The status is 2 when a file or the baseline cannot be read or a text cannot be parsed. Then one line `check-duplicates: <reason>` goes to standard error.
 - Without `--baseline` argparse refuses with status 2.
 
 ### The keys and the baseline
@@ -111,7 +122,8 @@ Each finding has a key that holds no line number, so editing code above or below
 - Similar code: `similar-code <modules>: <first code line>`. The modules are those the message names, sorted, unique and joined by `, `.
 - The first code line is the first non-blank line after the message's `==<module>:[<start>:<end>]` lines, stripped. Example: `similar-code factory.hosting.domain.git, factory.pipeline.domain.stops: @field_validator("at")`.
 - Dead code: `dead-code <path>: <message>`, from a vulture line `<path>:<line>: <message> (<n>% confidence)`. An optional `, <m> lines` may stand before the parenthesis. Example: `dead-code src/factory/x.py: unused function 'helper'`.
-- A pylint message is refused when it is not a JSON array, when a `duplicate-code` object has no string message, or when a message has no module line, a malformed `==` line or no code line.
+- A pylint message is refused when it is not a JSON array. It is also refused when a `duplicate-code` object has no string message.
+- It is refused too when a message has no module line, a malformed `==` line or no code line.
 
 The baseline holds the accepted findings, one key per line. Blank lines and lines starting with `#` (after stripping) are skipped.
 
@@ -124,21 +136,23 @@ See also: *What the agent runtimes share lies in one module* in [decisions.md](.
 
 ## The document check
 
-`make documents` runs the document check. It reads the README, the two guides and the decision log, prints one finding per line and exits 1, or, when nothing blocks, ends with `documents ok (<seconds> s)`. It is a check of the docs stage, not of `make check`. A missing row or an old word is found where the documents are written, before the human sees the pull request. Red holds the [work item](glossary.md) at the docs stage.
+`make documents` runs the document check. It reads the README, the two guides and the decision log, prints one finding per line and exits 1, or, when nothing blocks, ends with `documents ok (<seconds> s)`. It is a check of the docs [stage](glossary.md), not of `make check`. A missing row or an old word is found where the documents are written, before the human sees the pull request. Red holds the [work item](glossary.md) at the docs stage.
 
 The command is [check_documents.py](../../src/factory/entry/check_documents.py) and only reads files. `--root` names another checkout. The rules are pure functions in [documents.py](../../src/factory/shared/domain/documents.py), above all `check_documents`.
 
     uv run python -m factory.entry.check_documents [--root <checkout>]
 
-A [story](glossary.md) that adds a row to `STOP_TABLE`, `KILL_POINT_CASES` or `FAULT_PATHS`, changes one of the four documents or changes a file of the guide runs the check and ends with `documents ok`.
+A [story](glossary.md) that adds a row to `STOP_TABLE`, `KILL_POINT_CASES` or `FAULT_PATHS` runs the check. So does a story that changes one of the four documents or a file of the guide. Each ends with `documents ok`.
 
 - The four documents are the README, the operator guide, the project guide and the decision log. The operator guide is its index [README.md](../operator-guide/README.md) and ten topic files, listed in `OPERATOR_GUIDE_FILES`. A missing one is reported as `docs/operator-guide/<file>: missing`.
 - The operator guide must have the sections *Install* and *Configuration* in [install.md](../operator-guide/install.md) and *The stops* in [stops.md](../operator-guide/stops.md). The last has a table row for each row of `STOP_TABLE`, holding the [stop](glossary.md)'s id in backticks and its destination in words.
 - The decision log must hold at least one decision. An absent or empty file is reported as `missing` or `empty`, and a log without one is reported as `no decision recorded`.
 - The guide's index, `docs/project-guide/README.md`, must have the sections *Kill points* and *Fault-injection paths*. Each has a table row for each case of `KILL_POINT_CASES` and each path of `FAULT_PATHS`, with its id or test name in backticks.
 - None of the phrases of `REPLACED_PHRASES` and none of the retired words of `GLOSSARY_FORBIDDEN` may stand outside a `## Replaced from v1` section. The decision log is exempt from both lists.
-- Every other `.md` file directly in `docs/project-guide/` is read too, for the phrases and the retired words only, so that a section moved out of the index does not leave the check. `is_guide_file` says which files: not the index, none in a subfolder, no other extension. Its findings follow those of the four documents, in path order. A folder, a file in a subfolder and a missing folder add nothing.
-- The pipeline definition, `factory/pipeline.yml`, runs it through `make documents` as a check of the docs stage. `make check` does not run it.
+- Every other `.md` file directly in `docs/project-guide/` is read too. It is read for the phrases and the retired words only, so that a section moved out of the index does not leave the check.
+- `is_guide_file` says which files: not the index, none in a subfolder, no other extension. Its findings follow those of the four documents, in path order.
+- A folder, a file in a subfolder and a missing folder add nothing.
+- The [pipeline definition](glossary.md), [pipeline.yml](../../factory/pipeline.yml), runs it through `make documents` as a check of the docs stage. `make check` does not run it.
 
 ### The checked documents and the report
 
@@ -174,14 +188,15 @@ The command gives them the checkout's top-level entries and the real test of exi
 - In a pytest node id (a test file, then `::`, then the test name) only the path before `::` is read.
 - The text has no whitespace, does not start with `/` or `~`, and has no `:` before its first `/`.
 - So a web address such as `https://host/x` is no path, and neither is a scp-style git address such as `git@github.com:owner/project.git`. A `:` after the first `/` changes nothing.
-- It must either start with a top-level entry of the checkout or end in a file name with an extension, so a path whose first folder was renamed is still checked. `origin/main` is not a path. It exists when it resolves to something inside the checkout.
+- It must either start with a top-level entry of the checkout or end in a file name with an extension. So a path whose first folder was renamed is still checked, and `origin/main` is not a path.
+- It exists when it resolves to something inside the checkout.
 - **A link:** the target of a relative Markdown link, read from the document's own folder (`../` included) with any `#fragment` left off. A web address, a `mailto:` address, an absolute path and a link to a heading alone (`#...`) are not checked.
 
-Never checked, whatever the kind: a placeholder in angle brackets (`<instance>`), a glob (`*`) and an absolute path such as one under `/srv` or `/etc`. Anything inside a fenced code block is not checked either. The same holds for a section headed `## Replaced from v1` or `## Replaced in v1.2`, up to the next `##` heading. A name after that heading is checked again.
+Never checked, whatever the kind: a placeholder in angle brackets such as `<instance>`, a glob such as `*` and an absolute path such as one under `/srv` or `/etc`. Anything inside a fenced code block is not checked either. The same holds for a section headed `## Replaced from v1` or `## Replaced in v1.2`, up to the next `##` heading. A name after that heading is checked again.
 
 ### The examples
 
-After the settings lines the command runs the `console` blocks of every document it reads for names. How to write one is in [style.md](style.md), *Runnable examples*. This section is the machinery.
+After the settings lines the command runs the `console` blocks of every document it reads for names. How to write one is in [style.md](style.md), *Runnable examples*. This section is the machinery. [document_examples.py](../../src/factory/shared/application/document_examples.py) holds the two interfaces `Fixture` and `ExampleRunner`.
 
     examples(text: str) -> Examples
     first_difference(expected: Sequence[str], actual: Sequence[str]) -> int | None
@@ -190,10 +205,12 @@ After the settings lines the command runs the `console` blocks of every document
 
 - `examples(text)` of `documents.py` returns `Examples` with `runnable` and `skipped`. A runnable `Example` holds its line, its fixture and its `Command`s with their expected lines. A `Skipped` holds a line and a kind.
 - The spaces or tabs before a block's opening fence are removed from each of its lines before they are read, so a block indented under a numbered step reads as at column 0, with the same line numbers. A line indented less than the fence keeps what it has.
-- A `console` block with no `$ ` line is neither runnable nor skipped. Its fence line is in `without_command`. The command turns each into the finding `<document>:<line>: the example has no command` (`NO_COMMAND`). It goes through the same path as the runner's findings, so it blocks in a listed document and is reported in any other.
+- A `console` block with no `$ ` line is neither runnable nor skipped. Its fence line is in `without_command`.
+- The command turns each such line into the finding `<document>:<line>: the example has no command`, named `NO_COMMAND`.
+- It goes through the same path as the runner's findings. So it blocks in a listed document and is reported in any other.
 - A block marked `vm`, `github` or `model`, or with a command for which `runs_the_suite` holds, is skipped. A line for a skipped block reads `<document>:<line>: not run (<kind>)`.
 - `first_difference` is the match, with `...` and `<placeholder>`.
-- [document_examples.py](../../src/factory/shared/application/document_examples.py) holds the two interfaces. `Fixture.prepare(folder)` fills an empty folder and returns the extra environment. `ExampleRunner.run_document(document, examples, fixtures)` returns the document's findings.
+- `Fixture.prepare(folder)` fills an empty folder and returns the extra environment. `ExampleRunner.run_document(document, examples, fixtures)` returns the document's findings.
 - `ProcessExampleRunner` of [document_examples.py](../../src/factory/shared/adapters/document_examples.py) runs each command through `run_process` as `env -i <variables> sh -c <command>`.
 - The fixed variables come last, so a fixture cannot replace `PATH`, `HOME`, `TZ` or `LANG`.
 - Its default limit is 60 seconds, and a test passes a shorter one.
@@ -220,10 +237,13 @@ The settings code is the one source of the [instance](glossary.md)'s settings. `
 - `default` is `None` where the code has none. The other defaults are built from the module's own constants, so the table cannot drift from what `read_settings` applies.
 - A story that makes `read_settings` read another variable adds its row. [test_settings_table.py](../../tests/shared/domain/test_settings_table.py) calls `read_settings` with a mapping that records every key looked up and compares those keys with the names in `SETTINGS`.
 - The command reads the section *Configuration* of `docs/operator-guide/install.md` with `guide_tables`. It returns the tables of the section and its subsections as `GuideTable` (`heading` is the nearest heading above the table, then `header` and `rows`).
-- Both finding functions are pure, and each line is prefixed with the guide's path. Like the name and example findings, they follow the list of checked documents: in a listed `docs/operator-guide/install.md` they block the command (exit status 1), and in an unlisted one they are only reported after the heading.
+- Both finding functions are pure, and each line is prefixed with the guide's path.
+- Like the name and example findings, they follow the list of checked documents. In a listed `docs/operator-guide/install.md` they block the command with exit status 1. In an unlisted one they are only reported after the heading.
 - `settings_findings` counts only a table whose first column is `Name` or `Variable`. Any other table is ignored, such as one with the first column `Setting` or one under another heading.
 - A setting the code reads and no such table names, and a name that no setting has, are one finding each.
-- A default is compared only in a table with a `Default` column, against `SettingDoc.default`. The cell is read as the name cell is: its first backticked text if it has one, the whole cell otherwise, and a finding quotes the cell as written. `None` matches an empty cell or `none`. Without that column only names are compared.
+- A default is compared only in a table with a `Default` column, against `SettingDoc.default`. Without that column only names are compared.
+- The cell is read as the name cell is: its first backticked text if it has one, the whole cell otherwise. A finding quotes the cell as written.
+- `None` matches an empty cell or `none`.
 - When no table counts and `SETTINGS` is not empty, the one finding is `no settings table (first column Name or Variable) in Configuration`. So the check says that it cannot compare instead of passing silently. With an empty `SETTINGS` there is no finding.
 - A missing `install.md` or a missing *Configuration* section adds no settings finding. `check_documents` skips both settings checks there, and the operator guide's own finding stands.
 - `refusal_findings` counts only a table under the heading `The refusals` whose first column is `Refusal`. A refusal is the backticked text of its first cell.
@@ -240,7 +260,9 @@ A test starts from `minimal_documents(root)` of [minimal_documents_support.py](.
     minimal_documents(root)
     add_and_commit(root, {path: text})
 
-- It writes a git repository in one commit with the smallest documents the check accepts: the README, the operator guide's index and every file of `OPERATOR_GUIDE_FILES`, the project guide's index and one page for each area, and an empty `docs/checked-documents.txt`.
+- It writes a git repository in one commit with the smallest documents the check accepts.
+  - They are the README, the operator guide's index and every file of `OPERATOR_GUIDE_FILES`.
+  - They are also the project guide's index, one page for each area and an empty `docs/checked-documents.txt`.
 - It builds them with `clean_texts()` of [document_texts.py](../../tests/support/document_texts.py). That reads `STOP_TABLE`, `KILL_POINT_CASES`, `FAULT_PATHS` and `SETTINGS` from the modules that define them each time it is called. So the documents follow the code's tables, and a test can extend a table with `monkeypatch`.
 - On them `main(["--root", str(root)])` prints `documents ok (<seconds> s)` alone. They hold no runnable example.
 - A test adds what its rule needs and nothing more.

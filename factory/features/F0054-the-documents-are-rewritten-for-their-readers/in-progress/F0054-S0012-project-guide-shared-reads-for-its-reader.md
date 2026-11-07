@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:11:56.014235Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T03:11:56.014235Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:15:01.820787Z'
+  stage: docs-only
+  run: ec7038d003b246adb72ead22b1fddd20
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -291,3 +293,33 @@ Expect: `1`
 
     Not a finding: `docs/project-guide/machine.md:443` still says "(since F0044-S0010)". That text was already on `main`, and `machine.md` is outside this story's rewrite.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's five round-1 findings in `docs/project-guide/shared.md`. `make documents` ends with `documents ok (9.0 s)`. Its report lines name other files (for example `work.md:13`, `install.md`, `records.md`), none `shared.md`. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/shared.md`: the fixes below. It is the only file I changed this round.
+
+    Findings:
+    1. Fixed. "stage" in the document check section and "pipeline definition" now link to `glossary.md` at their first use. The glossary has an entry **stage**; my round-1 statement that it had none was wrong.
+    2. Fixed. `factory/pipeline.yml` is linked once, as [pipeline.yml](../../factory/pipeline.yml).
+    3. Fixed. The link to `src/factory/shared/application/document_examples.py` now stands in the sentence above *The examples* signature block, and the bullet below no longer carries it.
+    4. Fixed. The parentheses are gone from the sentences you named:
+       - The module list is now a nested bullet list with one link per module.
+       - The opencode, Podman and ZFS/power-off bullets are split into short sentences.
+       - The `"stdout"` and `"stderr"` parentheses are rewritten as separate sentences.
+       - The duplicates intro sentence is split.
+       - The `<instance>` and `*` parentheses are rewritten as "such as".
+    5. Fixed. I split the long sentences: the `PIPE_DRAIN`-adjacent line-reading bullet, the duplicates output and exit-status bullets, the pylint refusal bullet, the opening of the story sentence, the guide-file bullet, the repository-path bullet, `NO_COMMAND`, the settings finding bullets, the default-compare bullet and the `minimal_documents` bullet. No fact was dropped.
+
+    Dropped on purpose: nothing new.
+
+    Cross-read and found current: `docs/project-guide/README.md`, `docs/project-guide/style.md` (its link to *How the check is tested* resolves), `docs/checked-documents.txt` (the line is there once).
+
+    Stale text I noticed and did not touch:
+    - `docs/project-guide/machine.md:443` still says "(since F0044-S0010)". That text is older than this story.
+    - The docstring of `tests/guards/test_wrapper_search.py` says "the three wrappers", while the set lists nine modules. It is code, so not mine to edit.
+    - `docs/project-guide/README.md` describes `shared.md` as covering only the process module, although the page also holds the duplicates report and the document check. The index is outside this story.
+    - `docs/project-guide/work.md:13` is reported by the name check ("factory/agents does not exist"). It is a report line, not a blocker, and is not part of this story.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (9.0 s)
