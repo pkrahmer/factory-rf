@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T05:48:44.085536Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T05:48:44.085536Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T05:48:58.672149Z'
+  stage: intake
+  run: 0adfeb41fe064d398392476350541833
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete files only (`docs/project-guide/pipeline.md`, `docs/checked-documents.txt` with its one line) and rules for links and headings. It states no code behaviour, and the docs route fits because every path it changes is under `docs/`.
+   - Criteria: each can be checked on the documents. `make documents` covers 3 and 4 mechanically, and the reviewer compares the old and new file for 1 and 2. The Interface states no rule with a failing side, so none is missing a criterion. The rule on links to changed headings has criterion 5, and the "linked once" rule has criterion 4.
+   - Smoke test: `grep -cx "docs/project-guide/pipeline.md" docs/checked-documents.txt` is runnable, and `Expect: 1` can be checked. It runs no pytest.
+   - Docs criterion: criterion 7 says what the reader must know (criteria 1 to 5, meaning the page is true to the code and complete). It quotes no sentences.
+   - Architecture: the story only touches a project-guide page, which is a document the documenter may write. No code, test or agent file changes.
+   - Scope: S0018 is listed in F0054's stories, and it changes nothing listed in "Out of scope" (`decisions.md`, `docs/runs/`, the playbook).
