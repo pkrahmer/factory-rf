@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T03:47:57.825123Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T03:47:57.825123Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T03:48:12.406452Z'
+  stage: intake
+  run: 10e66264532943fd8db09367d103f89d
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete paths (`docs/project-guide/work.md`, `docs/checked-documents.txt` with exactly one line), states link and heading rules, and says no code, test or agent file changes. It contains no signatures to test, since the story only changes documents.
+   Criteria: 1 to 5 can each be judged or checked. The style and the old-versus-new comparison go to the reviewer, as the feature's decision 2 says. The checked list, `documents ok` and broken links are checked by `make documents`. The Interface states no rule with a failing side beyond the link and heading rules, which criteria 4 and 5 cover. 6 is `make check`.
+   Smoke test: `grep -cx "docs/project-guide/work.md" docs/checked-documents.txt` is runnable, and `Expect: 1` can be checked against its output. It runs no pytest.
+   Docs criterion: it names what the reader must know, in the form "as criteria 1 to 5", and dictates no sentences. `docs/decisions.md` is stated as none.
+   Architecture: the only paths changed are `docs/project-guide/work.md` and `docs/checked-documents.txt`, both documents the documenter may write. The docs-only route is chosen because the story changes only documents.
+   Scope: it is S0014 of F0054, one file, and the feature scope lists "each of the 22 files, one story each". It touches nothing in the feature's Out of scope: `docs/decisions.md`, `docs/runs/`, the operator playbook and behaviour changes.
