@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T14:18:14.260525Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-07T14:18:14.260525Z'
   stage: docs-only
+- number: 20
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:22:32.870164Z'
+  stage: docs-only
+  run: db250fc7f6f04ee0be730e34818851a4
 ---
 
 # The top folders say what they hold
@@ -268,3 +270,19 @@ Expect: `documents ok (<seconds> s)`
     - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
     - I cannot give a reason why I did not name these two findings in round 1. The rule and the file were the same then.
 19. factory: started docs-only as vm.
+20. documenter: Fixed the reviewer's two round-3 findings and nothing else.
+
+    Files changed:
+    - `docs/README.md`: line 5, "the stops" now links to `project-guide/glossary.md` at its first use in the file (finding 1). Line 7, "no stage writes them" now links "stage" to the same page (finding 2). Rule 3 of *Rules for all documents* in `docs/project-guide/style.md` asks for the link at the first use of a glossary word in a file.
+
+    `make documents` ends with `documents ok (59.4 s)`. I changed only a document, so I did not run `make check`; the factory runs it after this stage.
+
+    Cross-read and found current: `security/README.md` (it uses no glossary word) and the root `README.md` `## The folders`, which the reviewer already checked.
+
+    Open or noted, not mine to fix:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it), so its root line has no link.
+    - The `agents/` line in the root `## Where to read next` duplicates its line in `## The folders`. Criterion 6 says to leave `## Where to read next` unchanged.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (59.4 s)
