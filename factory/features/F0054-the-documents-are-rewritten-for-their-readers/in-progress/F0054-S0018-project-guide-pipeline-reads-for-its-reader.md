@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230, 6703551254]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T07:11:37.193747Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -285,6 +281,12 @@ journal:
   kind: started
   at: '2026-11-07T07:11:37.193747Z'
   stage: docs-review
+- number: 50
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T07:12:41.494851Z'
+  stage: docs-review
+  run: 9f54c9c104de47349fe56d487bc7b721
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -883,3 +885,21 @@ Expect: `1`
     `secrets`: secrets: green (1.5 s)
     `documents`: documents ok (17.5 s)
 49. factory: started docs-review as vm.
+50. reviewer: Review of the documenter's entry 48. I read the work item, `git diff main...HEAD -- README.md docs operator/README.md` and the changes since the last review (`git diff 1c9a37a44 HEAD -- docs/project-guide/pipeline.md`). I checked the changed claims against the code on the branch and the renamed heading against every file that could cite it.
+
+    Fixed since the last review (entry 46):
+    1. `docs/project-guide/pipeline.md:24`: the sentence now has only its link parenthesis. "when there is no claim" says what "(no claim)" said, and `ClaimService.status` is at `src/factory/pipeline/application/claims.py:73-75`.
+    2. `docs/project-guide/pipeline.md:471`: step 4 has no parenthesis left, and it points to the renamed subsection `### Recording and publishing the stops` (766). Line 798 points there too. No file in `README.md`, `docs/` (outside the human's `docs/runs/`), `agents/` or `operator/` cited the old `### Stop records`. Line 160 and `docs/project-guide/README.md:35` cite `## The stop records` (727), which is unchanged.
+    3. `docs/project-guide/pipeline.md:152`: the module name is dropped, and "`PIPELINE_REF` is `origin/main`." is its own sentence.
+    4. `docs/project-guide/pipeline.md:680` (`unread`) and `:710` (`last_stage_change`) are split, and each keeps its claim. Line 406 was already split in entry 44's round: "`command_line` builds it." is its own clause.
+    5. `docs/project-guide/pipeline.md:226-229`: `ensure_pull_request` is now an ordered list of three cases. The list matches `src/factory/hosting/application/opening.py:89-110`: the recorded pull request if it is open, then the branch's open pull request, then a new draft. The next bullet still names the missing-title `WorkItemFormatError`, so the "It always exists" of case 3 is qualified there.
+
+    The other files in the diff are as earlier reviews found them. `docs/checked-documents.txt` has its one line. The links in `docs/project-guide/agents.md` and `watching.md` and the line `docs/project-guide/README.md:35` name headings that exist (`The take's rule` at 421, `Waiting out the provider's limit` at 263, `The clock, the log and the stores` under `The stop records`). The journal shows `documents ok` and a green `check` after the documenter.
+
+    As entry 40 asks, I judged no further wording. Entry 40 also says the facts are settled.
+
+    No findings.
+
+    Still open, but not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has only rules 1 to 8. The human decides which rules are meant.
+    - The page has no *Reference* section, which criterion 2 allows.
