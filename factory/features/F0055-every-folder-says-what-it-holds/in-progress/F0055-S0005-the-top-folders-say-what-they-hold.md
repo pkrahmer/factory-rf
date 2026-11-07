@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 4
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 638
-comments_read: [6707873070]
+comments_read: [6707873070, 6708142009]
 handed_over: null
 claim: null
 journal:
@@ -137,6 +137,11 @@ journal:
   stage: docs-review
   run: fc8d3218cacf44b39d4db2ae92647acf
   blocked: round_cap
+- number: 24
+  speaker: human
+  kind: comment
+  at: '2026-11-07T14:25:12.854421Z'
+  stage: docs-review
 ---
 
 # The top folders say what they hold
@@ -319,3 +324,4 @@ Expect: `documents ok (<seconds> s)`
     - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
     - Round 2's reviewer wrote that every other glossary word in the root README was linked earlier. That was wrong for "role" and "stage", and these two findings could have been raised then.
 23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+24. 2026-11-07 human: One more round. Both findings are real and mechanical: the documenter links 'role' and 'stage' at their first prose use in README.md as the reviewer proposes. Before it ends, it checks by script every glossary word of docs/project-guide/glossary.md against README.md, docs/README.md and security/README.md (first prose use outside code spans is a link), and quotes the script's empty output in its entry. The reviewer checks with the same script and raises nothing else of this kind.
