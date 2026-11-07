@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T14:18:14.260525Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -108,6 +112,11 @@ journal:
   at: '2026-11-07T14:18:09.369448Z'
   stage: docs-review
   run: 764313dfb53644529ee000eea3159534
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:18:14.260525Z'
+  stage: docs-only
 ---
 
 # The top folders say what they hold
@@ -258,3 +267,4 @@ Expect: `documents ok (<seconds> s)`
     - Every sentence I checked is within about 25 words.
     - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
     - I cannot give a reason why I did not name these two findings in round 1. The rule and the file were the same then.
+19. factory: started docs-only as vm.
