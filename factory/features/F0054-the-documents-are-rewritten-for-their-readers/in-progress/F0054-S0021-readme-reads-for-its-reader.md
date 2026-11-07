@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 629
 comments_read: [6704964498]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:19:12.714339Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-07T09:19:07.506607Z'
   stage: docs-review
   run: b603cc13907e42b59d1c513a28d5e6cf
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:19:12.714339Z'
+  stage: docs-only
 ---
 
 # The README reads for a newcomer
@@ -345,3 +354,4 @@ Expect: `1`
     I counted the words of every other sentence in README.md by eye. None of them is over about 25 words. The documenter's count by script, which entry 21 asks for, still decides.
 
     Earlier tests: none. The diff changes no test file.
+24. factory: started docs-only as vm.
