@@ -132,3 +132,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 23:47Z: F0054-S0003 PR #611 hit the round cap (3) at docs-review ($5.31, 10 runs); the findings are real, mostly sentence length (rule 2). One more round answered by the human's word for tonight, with the hint to count the words of each changed sentence by script before ending.
 - 23:58Z: F0054-S0003 PR #611 merged at docs-approval: machine.md rewritten and listed; style.md gained the rule for unrun commands (bare commands in an sh block, the text says where they run). $6.21, 13 runs, one question and one round cap.
 - 23:58Z: F0054-S0004 (F0054-S0004-operator-guide-cloud-run-reads-for-its-reader) started.
+- 00:16Z: F0054-S0004 PR #612 merged at docs-approval: cloud-run.md rewritten and listed; checked its job command (job-start.sh, debian:trixie-slim, exec factory-run) against operator/vm/job-start.sh and job.sh. $2.44, 7 runs, no question, the cheapest page so far.
+- 00:16Z: F0054-S0005 (F0054-S0005-operator-guide-agent-runtime-reads-for-its-reader) started.
