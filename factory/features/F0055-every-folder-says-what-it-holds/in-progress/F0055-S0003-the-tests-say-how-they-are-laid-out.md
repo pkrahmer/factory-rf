@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T13:11:50.177574Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,13 @@ journal:
   kind: started
   at: '2026-11-07T13:11:50.177574Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: question
+  at: '2026-11-07T13:12:50.927568Z'
+  stage: review
+  run: bf3958f6364c47ee904394dc00c555e9
+  blocked: question
 ---
 
 # The tests say how they are laid out
@@ -206,3 +209,21 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 14. factory: started review as vm.
+15. reviewer: Review, round 0. Groups 1 to 4 are clean. Two document problems trace back to the human's answers and the docs criterion, and no stage can fix them without the human's word. That is why I'm asking instead of sending the story to doing.
+
+    Findings:
+    1. `tests/guards/README.md:3`: the README says "[The project guide], *The files*, says what the guards keep." That is false. *The files* in `docs/project-guide/README.md:31-57` describes the guide's own pages and names only one guard (`test_project_guide_files.py`). The guards are described under *Shared test helpers*: the `tests/guards/` bullet at `docs/project-guide/README.md:64` and the layout-guard paragraph at line 72. The link comes from the human's answer 2 (journal entry 4). That answer accepted intake's claim that the guards bullet sits under *The files* "(line 66)", but that bullet is in *Shared test helpers*, which starts at line 59. Fix: link *Shared test helpers*, the same target as `tests/support/README.md`, which needs the human to revise answer 2. Or keep *The files* and drop the claim that it says what the guards keep, but then the link explains nothing about the folder.
+    2. Criterion 5 (the docs criterion), together with `docs/project-guide/README.md:61` and `:72`: the guide still says "The root of `tests/` holds `conftest.py` and folders". It also says `test_tests_layout.py` "fails when the root holds anything but `conftest.py` and packages". After this story both are false, because `tests/README.md` is in the root and the guard now expects `["README.md", "conftest.py"]` (`tests/guards/test_tests_layout.py:264`). Criterion 5 says the guide's list "unchanged", so the documenter will leave those two sentences stale. Fix: add to criterion 5 that those two sentences in the guide's *Shared test helpers* also name the root's `README.md`, with the module list itself unchanged. The same stale sentence is in `CLAUDE.md`, *Tests*: "the root of `tests/` holds only `conftest.py` and folders". `CLAUDE.md` is the human's file, so only the human can change it.
+
+    Checked and clean:
+    - Every criterion has its test. Criterion 1: `tests/guards/test_test_folder_readmes.py` plus the existing `test_folder_readmes.py`, whose `FOLDER_READMES` already holds the three rows (`src/factory/shared/domain/folder_readmes.py:33-35`). Criterion 2: the checked-list test. The journal records `make check` green after the coder.
+    - Every subfolder line matches the tree: 13 entries in `tests/`; `tests/support/` and `tests/guards/` have no subfolders. Every area folder has `adapters/`, `application/` and `domain/`. The special-folder lines follow their `__init__.py` docstrings.
+    - No code changes, no markers, and nothing for the architecture or security groups.
+
+    Question for the human:
+    (1) Which link should `tests/guards/README.md` carry? (a) *Shared test helpers* in `docs/project-guide/README.md`, where `tests/guards/` and its guards are actually described. (b) *The files*, as answered, with the sentence changed so that it no longer says the section describes the guards. I would choose (a).
+    (2) May criterion 5 be extended so that the documenter updates the two sentences of *Shared test helpers* (`docs/project-guide/README.md:61` and `:72`) to name the root's `README.md`, leaving the list of modules and fixtures unchanged? I would choose yes. And will you change the matching sentence in `CLAUDE.md`, *Tests*, yourself?
+    Once you answer, the coder (or the documenter, if you move the READMEs to it) can make the change, and I'd pass the rest.
+
+    Earlier tests:
+    - `tests/guards/test_tests_layout.py`: changed under the human's leave in the Interface and journal entry 4. `README.md` was added to the expected root files of `test_the_root_holds_only_conftest_and_packages`, and the module docstring was rewritten to match. The test keeps its name and purpose.
