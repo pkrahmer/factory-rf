@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T10:56:51.206974Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -223,6 +219,12 @@ journal:
   kind: started
   at: '2026-11-07T10:56:51.206974Z'
   stage: review
+- number: 39
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T10:57:42.907874Z'
+  stage: review
+  run: 85b721fa68cb4928a64c8e7305ddd4f1
 ---
 
 # The folders that have a README are listed and checked
@@ -582,3 +584,25 @@ Expect: `23 ['x: no README.md']`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 39 known, 4 gone
 38. factory: started review as vm.
+39. reviewer: Review, round 1. I read the work item, the diff stat and name-status, and the whole diff outside `factory/`. That is `src/factory/shared/domain/folder_readmes.py`, `src/factory/shared/domain/documents.py` (`relative_link_targets`, `_is_relative_link_target`), `src/factory/entry/check_documents.py`, `agents/agents/documenter.md` and the four new test files. Both findings of entry 31 are fixed. `_Reading` has no docstring now; a why-comment sits above it at `folder_readmes.py:48`. Criterion 10 has its row `only-link-root-absolute` in `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule`.
+
+    no findings
+
+    What I checked and found sound:
+    - Group 1, acceptance criteria:
+      - Criteria 1 to 10 each have a test, and each test checks what its criterion says.
+      - Every stated limit is tested on both sides: an opening of 2 and of 3 sentences, a subfolder line of 25 and of 26 words, a subfolder line of one sentence (the plain rows) and of two, and the line limit at 12 and at 13.
+      - Every rule of the Interface has a test of its failing side: no README; an unnamed subfolder; a named subfolder that does not exist; a line without a sentence; a section, both after the list and as line 1; prose after the list and as line 1; a backtick fence, a `~~~` fence and an indented fence; a README whose only link is a web address or root-absolute.
+      - Criterion 5 covers the folder README and `operator/README.md`, each listed and unlisted. Criterion 7 pins the unchanged `checked_list_findings` finding. Criterion 8 tests the guard's `_subfolders` with parametrized rows.
+      - The journal shows `make check` green after the coder (entry 37).
+    - Group 2, architecture: `folder_readmes` is a pure domain module in `shared` and does no I/O. It reuses `sections` for fences and `documents` for relative links; domain-to-domain imports are allowed. The wiring stays in `factory.entry.check_documents`.
+    - Group 3, security: no secrets, no markers that silence a check, no shell or SQL built from strings.
+    - Group 4, quality: the names say what things are, and the public docstrings and the module docstring are present. No private name has a docstring any more, in `src/` or in the guard. `_link_name` and `readme_problems` decide "relative link" through one function, `_is_relative_link_target`, so no second copy of the link or fence reading is left. `readme_problems` has no caller under `src/`, which `make duplicates` reports as unused. That is what the Interface designs: its caller is the guard.
+    - Group 5, work item hygiene: the Description matches what was built, including the `operator/README.md` sentence corrected in entry 27. The journal gives the main decisions and what was rejected: one pass over the lines, a missing title means no opening, the shared link helper. Docs criterion 12 still says what the reader must know.
+    - Documents: the diff changes no `README.md`, nothing under `docs/` and no `operator/README.md`. `agents/agents/documenter.md` is not one of the documenter's documents.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
+
+    Notes:
+    - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) is still a copy of `_run` in `tests/entry/test_check_documents_checked_files.py:50`. The human made moving it to `tests/support/check_documents_support.py` optional in entry 29.
+    - `tests/guards/test_folder_readmes.py:10` (`ROOT = Path(__file__).parents[2]`) repeats the `ROOT` that `tests/support/shipped_agents.py:13`, `tests/support/operator_support.py:10` and others already define. Many guards follow the same pattern.
