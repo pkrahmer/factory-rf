@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070, 6708142009]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T14:30:24.034875Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -164,6 +168,11 @@ journal:
   at: '2026-11-07T14:30:18.493520Z'
   stage: docs-only
   run: 2057c84c6fd34f1cb9aa04b972bf78f5
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:30:24.034875Z'
+  stage: docs-review
 ---
 
 # The top folders say what they hold
@@ -395,3 +404,4 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (60.5 s)
+29. factory: started docs-review as vm.
