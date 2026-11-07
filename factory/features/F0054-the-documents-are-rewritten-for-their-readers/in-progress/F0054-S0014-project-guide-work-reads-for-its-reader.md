@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:48:17.098338Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T03:48:12.406452Z'
   stage: intake
   run: 10e66264532943fd8db09367d103f89d
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:48:17.098338Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    Docs criterion: it names what the reader must know, in the form "as criteria 1 to 5", and dictates no sentences. `docs/decisions.md` is stated as none.
    Architecture: the only paths changed are `docs/project-guide/work.md` and `docs/checked-documents.txt`, both documents the documenter may write. The docs-only route is chosen because the story changes only documents.
    Scope: it is S0014 of F0054, one file, and the feature scope lists "each of the 22 files, one story each". It touches nothing in the feature's Out of scope: `docs/decisions.md`, `docs/runs/`, the operator playbook and behaviour changes.
+4. factory: started docs-only as vm.
