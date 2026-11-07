@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:07:21.672092Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-07T04:07:21.672092Z'
   stage: docs-review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:07:59.836372Z'
+  stage: docs-review
+  run: 6a121f4d89ab42fa98eebd4203754d6c
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -304,3 +306,26 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (10.0 s)
 17. factory: started docs-review as vm.
+18. reviewer: Round 2 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md` (3 files: `docs/checked-documents.txt`, `docs/project-guide/README.md`, `docs/project-guide/work.md`). I checked the two round-1 findings against the code and read the whole of the new `docs/project-guide/work.md` again.
+
+    Round-1 findings, both fixed and checked against the code:
+    - `docs/project-guide/work.md:13` now gives `work_item_order(id) -> tuple[str, int, str]`, which matches `src/factory/shared/domain/identifiers.py:81`.
+    - `docs/project-guide/work.md:508` now says that every unset field of a journal record (`at`, `stage`, `run`, `blocked`, `reason`) is left out of the file, and that every key of the state itself stays. This matches `src/factory/work/adapters/work_item_markdown.py`: `render` uses `state.model_dump()` for the state and `record.model_dump(exclude_none=True)` for each record. It also agrees with the fields of `JournalRecord` (`src/factory/work/domain/journal.py:71-78`) and with line 92 of the same page.
+
+    Further spot-checks on this pass, all of which match the code:
+    - `RECORDS_CONTRACT` is `"4.4"` (`src/factory/shared/domain/contract.py:15`).
+    - The signature of `factory.entry.check_story.main` is right (`check_story.py:145`).
+    - The behaviour of `factory.entry.contract.main` is right: its usage line, its return value of 2, and the line `contract: <n> schemas written` (`contract.py:12,28-36`).
+    - Every message in the form-check table and the place table matches `src/factory/work/domain/story_form.py`: lines 107, 114, 140, 144, 163, 182, 185, 192 and 195 for the form check, and lines 38 and 253-261 for the place check.
+    - The values in `JournalKind` are right.
+
+    The criteria:
+    - Criterion 1 (style) holds.
+    - Criterion 2 holds. Rules that were condensed are kept in full in *Reference*. Two sentences were dropped on purpose and named in entry 5: a duplicate cross-reference to *The wiring*, and the sentence calling plain string order "the human's only priority". Neither drops a rule; the reason for the order key stays at line 26.
+    - Criteria 3 and 4 rest on the factory's `make documents` (`documents ok` in entry 16) and on `docs/checked-documents.txt`, which carries the line `docs/project-guide/work.md`.
+    - Criterion 5 holds. No heading that a link points to was removed, as round 0 found, and no heading changed since.
+    - Criterion 7: `docs/decisions.md` is untouched.
+
+    I agree with round 1's reading that `python -m factory.entry.check_story` at line 366 names the module's entry point and is not a command for the reader to run.
+
+    no findings
