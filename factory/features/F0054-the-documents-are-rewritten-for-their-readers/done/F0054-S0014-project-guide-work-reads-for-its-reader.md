@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 1
@@ -109,6 +109,11 @@ journal:
   at: '2026-11-07T04:07:59.836372Z'
   stage: docs-review
   run: 6a121f4d89ab42fa98eebd4203754d6c
+- number: 19
+  speaker: factory
+  kind: done
+  at: '2026-11-07T04:11:53.034771Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -329,3 +334,4 @@ Expect: `1`
     I agree with round 1's reading that `python -m factory.entry.check_story` at line 366 names the module's entry point and is not a command for the reader to run.
 
     no findings
+19. factory: done (pull request merged); cost: 8 runs, 10.7 min, 80 turns, 344417 tokens in (2761323 more from cache), 58515 out, $3.23
