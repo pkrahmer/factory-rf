@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:01:15.123650Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-11-07T06:01:15.123650Z'
   stage: docs-review
+- number: 10
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:05:14.575538Z'
+  stage: docs-review
+  run: 705f029ae1e54dde9870105f8e18dcb4
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -163,3 +165,28 @@ Expect: `1`
    `secrets`: secrets: green (0.7 s)
    `documents`: documents ok (16.3 s)
 9. factory: started docs-review as vm.
+10. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` (`docs/project-guide/pipeline.md`, `docs/checked-documents.txt`) against the work item, `docs/project-guide/style.md` and the code on the branch. I compared the old file with the new one, then spot-checked the claims against `src/factory`. Correct against the code: the twelve rules with row 12 (`_RULES` in `pipeline_definition.py:255`, where `_contract_faults` gives rules 1 and 2), the thirteen event kinds, `CONTRACT_MAJOR`, `MACHINE_STOP_LIMIT`, `POWER_OFF_TIME_LIMIT`, and the signatures of `StageLauncher`, `AfterAgent`, `StageRunner`, `Tick`, `IdleShutdown` and `build_handlers`. Criterion 3 is met: the line is on the checked list, and the factory's gate printed `documents ok`.
+
+    Dropped on purpose, and acceptable (criterion 2): `tool_paths` "of earlier versions" (history, style rule 1); the `try/except` half of the old example, now a prose sentence; the subheadings `prepare`, `ensure_pull_request` and *The sidecar*, whose text was merged into their sections. There is no *Reference* section, and the criterion allows that.
+
+    Findings:
+    1. `docs/project-guide/pipeline.md` (criterion 1): only pipeline definition, claim, take, tick and work item are linked to the glossary. These factory words are used unlinked at their first use: stop (line 3), instance (9), lease (17), role (18), journal (20), project command (35), approval and write paths (44), crash (59), acceptance and feature (60), round (62), story (70), round cap (71), stall (165), backlog (197), stage environment and cost record (223), attempts cap (263), dataset (279). Fix: link each to `glossary.md` at that first use.
+    2. `docs/project-guide/pipeline.md` (Interface, criterion 4): 31 modules the page names are never linked to their file. They are `factory.hosting.domain.post_texts`, `factory.work.domain.journal`, `.labels`, `.archive`, `.answers`, `.acceptance`, `factory.agents.domain.agent_runs`, `.provider_limits`, `factory.shared.adapters.clock`, `.validation_faults`, `.atomic_file`, `.printed_output`, `.process`, `factory.shared.application.files`, `factory.shared.domain.settings`, `.errors`, `factory.pipeline.domain.stops`, `.stop_table`, `.evaluation`, `.recovery`, `.tick_status`, `factory.machine.application.preflight`, `factory.machine.domain.preflight`, `.disk`, `factory.machine.adapters.disk_space`, `factory.watching.adapters.factory_log`, `.health_file`, `factory.entry.health`, `factory.hosting.adapters.pygithub_hosting`, `factory.pipeline.application.handlers` and `factory.machine.application`. The Stalls block (lines 252-256) mixes functions of `decisions.py` and `post_texts.py`, and only `stalls.py` is linked above it. Fix: link each file once, at its first mention or above the block that shows it.
+    3. `docs/project-guide/pipeline.md` (Interface: "each module, file or page"): no file path the page names is linked. That is the roughly 70 `tests/...` paths (for example lines 28, 121, 131, 183), `tests/support/*.py`, `tests/conftest.py`, `operator/vm/git-credential-factory` (449) and `factory/pipeline.yml` (35). Fix: link each once by a relative link.
+    4. `docs/project-guide/pipeline.md` (Interface "linked once"): these files are linked more than once. `stage.py` 3 times (lines 208, 290, 340); `recovery.py` twice (436, 487); `../operator-guide/work-items.md` 4 times (545, 558, 569, 620); `../operator-guide/stops.md` 3 times; `../operator-guide/health.md` 3 times; `machine.md` 10 times; `work.md` twice. Fix: keep the first link and name the file in plain text after it.
+    5. `docs/project-guide/watching.md:277` (criterion 5): it still cites *Stops, the clock and the factory log* in `pipeline.md`, and this diff renamed that heading. The journal says nothing outside the file cited it. Fix: cite *The stop records* (or *The clock, the log and the stores*).
+    6. `docs/project-guide/agents.md:494` and `:381` (criterion 5): they cite *PatientRuns* and *The take* in `pipeline.md`, and neither heading exists there. Fix: cite *Waiting out the provider's limit* and *The take's rule*.
+    7. `docs/project-guide/pipeline.md:378-379`: the signature block shows `read_baseline(...)` and `restore_work_item(...)` instead of their signatures. Code: `read_baseline(boundaries, commit, work_item_path) -> WorkItemDocument` and `restore_work_item(boundaries, commit, work_item_path, baseline) -> bool` (`take.py:107`, `take.py:119`). Line 385 names `refusal(path, settings)` without its module (`agents/domain/write_paths.py`) and without saying that `is_refused` applies both cases; the old file said so. Fix: write the real signatures and restore that sentence.
+    8. `docs/project-guide/pipeline.md:445`: it gives the preflight items as `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode`, `agent-run-probe` unconditionally. The code also adds `metadata-block` after `stage-image` under `container_profile == "job"` (`entry/wiring.py:766`). With copy snapshots, the single `snapshots_item` replaces `zfs` and `dataset` (`wiring.py:590`). Fix: state both cases.
+    9. `docs/project-guide/pipeline.md:684-693`: the `Boundaries` signature and "The fields are ..." leave out the optional fields `container_extra_environment`, `image_path`, `machine`, `base_image_bytes`, `project_layer_bytes`, `image_store`, `stop_requested` and `transcripts` (`pipeline/application/boundaries.py:65-78`). Fix: list them, with their defaults.
+    10. `docs/project-guide/pipeline.md:688`: `build_boundaries(settings, token, *, hosting=None)` is missing `images=None` (`entry/wiring.py:305`). Fix: add it, and say what it does (the containers' `PATH` from the stage image).
+    11. `docs/project-guide/pipeline.md:699` contradicts the code and the page's own line 696. The code builds the runtime with `_agent_runtime` (`OpencodeRuntime` or `ClaudeCodeRuntime`, `wiring.py:619-636`). Its `project_commands` is `RecordingProjectCommands(ContainerMakeCommands(...))`, not `MakeProjectCommands(settings.checkout)` (`wiring.py:327`). Its `agent_definitions` is `ProjectAgentDefinitions(git, FrontmatterAgentDefinitionReader(settings.agent_home))` (`wiring.py:347`). Fix: rewrite the sentence from `build_boundaries`.
+    12. `docs/project-guide/pipeline.md:695`: "fills them with `ZfsSnapshots` and `PodmanRuns` ... refuses an instance without a dataset" leaves out the copy case. There `CopySnapshots(workspace, base)` is built and the base is required (`wiring.py:583-590`, and the docstring at `wiring.py:310`). Fix: name both kinds of snapshots and what each requires.
+    13. `docs/project-guide/pipeline.md:677`: `test_stop_publisher.py` and `test_tick_stop_records.py` are written below the root (style rule 8). Fix: `tests/pipeline/application/test_stop_publisher.py` and `tests/pipeline/application/test_tick_stop_records.py`.
+    14. `docs/project-guide/pipeline.md:703`: "raises `GitError` as before" is history wording (style rule 7). Fix: "raises `GitError`".
+    15. `docs/project-guide/pipeline.md`: these sections do not open with two or three plain sentences on what the part does and why (project-guide style): *Faults* (75), *The rules of the definition* (85), *The pipeline loader* (123), *`StallService.stall`* (267), *`StageFinisher.finish(aftermath)`* (354), *The preflight in the tick* (443), *The clock, the log and the stores* (649), *`factory-health` and `factory-run`* (658), *Stop records* (671), *Boundaries* (682), *The settings* (713). *Starting a stage* (208) and *The stage protocol* (340) open with a single sentence of names. Fix: add the opening sentences.
+    16. `docs/project-guide/pipeline.md`: three top-level sections have no "See also": *The handlers of the events* (455-636), *The stop records* (638-679) and *Boundaries* (680-729). Fix: add one to each.
+    17. `docs/project-guide/pipeline.md`: rules stand in paragraphs, not one per bullet, at lines 242-244, 496-498, 516, 554, 565, 642, 651 and 707. The `RunHandler` paragraph (516) sits under the run gate's heading, *The pull request is read before every agent run*. Fix: make each rule a bullet, and give `RunHandler` its own heading.
+    18. `docs/project-guide/pipeline.md` (style rule 2): many sentences run far past 25 words and hold several parentheses. Lines 362, 445, 692 and 699 are clear cases, and about 34 sentences are over 40 words. Fix: split them, with one parenthesis at most per sentence.
+
+    Open, and not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Also outside this story: `README.md:28` and `docs/project-guide/README.md`, which the documenter reported as unresolved paths.
