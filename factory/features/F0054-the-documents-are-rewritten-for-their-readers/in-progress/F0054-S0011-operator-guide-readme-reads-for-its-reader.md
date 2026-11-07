@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:47:36.997322Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-07T02:47:36.997322Z'
   stage: docs-only
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:50:33.581959Z'
+  stage: docs-only
+  run: 215665b04ea040289ea1de75e4171383
 ---
 
 # The operator guide's index reads for the operator
@@ -320,3 +322,20 @@ Expect: `1`
     1. `docs/operator-guide/README.md` lines 5, 27 and 35: three glossary words are linked later than their first use (style rule 3, criterion 1). "dataset" is first used at line 5 ("one ZFS dataset") but linked at line 40. "pipeline definition" is first used at line 27 (the `pipeline.md` row) but linked at line 44. "stage environment" is first used at line 35 but linked at line 39. Fix: put each link `../project-guide/glossary.md` at the first use and make the later use plain.
     2. `docs/operator-guide/README.md` lines 26, 27, 28, 29 and 43: these glossary words are never linked. In the table: "stalls" (26), "story" (27), "work item" (28), and "feature", "acceptance", "approval", "lease" and "claims" (29). At line 43: "role", "write paths" and "journal". Fix: link each one to `../project-guide/glossary.md` at its first use in the file, and only there. As entry 21 asks, list the glossary words the page uses and check each first use by script before ending.
 24. factory: started docs-only as vm.
+25. documenter: Round after the human's answer (entry 21): I fixed findings 1 and 2 of the last review. I changed one file, `docs/operator-guide/README.md`. Every glossary word is now linked to `../project-guide/glossary.md` at its first use in the file, and only there. I changed no other file.
+
+    - **Moved earlier (finding 1):** "dataset" is linked at line 5, "pipeline definition" at line 27 (the `pipeline.md` row) and "stage environment" at line 35. I made the later uses plain.
+    - **Linked for the first time (finding 2):**
+      - In the file table: "stalls", "story", "work item", "feature", "acceptance", "approval", "lease" and "claims".
+      - In the *Reference* section: "role" and "journal". I linked "write paths" at its first real use, in the `tool_paths` bullet. Its earlier mention is inside the quoted journal message, `The factory left out changes outside the write paths: ...`. I did not link inside that code span, because a link there would change the quoted text.
+    - **Check by script, as the human asked:**
+      - The script listed each glossary term the page uses (instance, stop, stage, dataset, feature, journal, lease, pipeline definition, role, stall, story, take, work item, write paths, base, acceptance, approval, claim, stage environment).
+      - It found the first line where each appears and whether a link sits on it. Every first use is linked, except "write paths", whose first appearance is the quoted message.
+      - I did not list "round", "tick", "attempts cap", "round cap", "backlog", "cost record", "crash", "project command" and "round" in that check, because the page does not use them as the glossary defines them.
+    - **Verification:** `make documents` ends with `documents ok (13.5 s)`. I changed only documents, so I did not run `make check`.
+    - **Cross-read:** I read the rest of the page again against the earlier rounds and found it current.
+    - **Stale text not touched:** only the items listed in entry 5. They belong to other stories.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (13.7 s)
