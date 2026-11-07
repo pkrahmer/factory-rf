@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-07T05:44:11.533902Z'
   stage: docs-review
   run: 12fad60eaa554c3492cda28943b64f08
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-07T05:48:05.669402Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -507,3 +512,4 @@ Expect: `1`
     No findings.
 
     Earlier tests: none needed (the diff changes no test file).
+32. factory: done (pull request merged); cost: 14 runs, 19.9 min, 175 turns, 563660 tokens in (7842246 more from cache), 104969 out, $6.26
