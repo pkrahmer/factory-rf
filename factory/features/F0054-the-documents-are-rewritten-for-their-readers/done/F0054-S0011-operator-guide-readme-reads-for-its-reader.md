@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -180,6 +180,11 @@ journal:
   at: '2026-11-07T02:54:49.091171Z'
   stage: docs-review
   run: b88628f68d8b47c7ac465ed5b1f6890b
+- number: 32
+  speaker: factory
+  kind: done
+  at: '2026-11-07T02:56:40.796228Z'
+  stage: docs-approval
 ---
 
 # The operator guide's index reads for the operator
@@ -407,3 +412,4 @@ Expect: `1`
     Criteria 1 to 4 and the docs criterion are met.
 
     no findings
+32. factory: done (pull request merged); cost: 14 runs, 9.8 min, 99 turns, 301515 tokens in (2316808 more from cache), 38477 out, $2.86
