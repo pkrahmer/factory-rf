@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:36:17.961068Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T03:36:17.961068Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:38:55.370366Z'
+  stage: docs-only
+  run: 764af9f6881d46f2abc0ef48bc9e1416
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -246,3 +248,24 @@ Expect: `1`
 
     Open: nothing beyond the findings above.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's four findings in `docs/project-guide/hosting.md`. `make documents` ends with `documents ok (9.3 s)`. I did not run `make check`, because the only file I changed is a document.
+
+    Files changed:
+    - `docs/project-guide/hosting.md` is the only file. `docs/checked-documents.txt` stays as it was.
+
+    How each finding was handled:
+    1. Branch deletion: the "Used by" row now names the tick's restore of the checkout (`delete_branch`) and the recovery's stale remote branches (`delete_remote_branch`) beside the merge and the discard. The "Who uses them" sentence of *Deleting and merging branches* says the same. The opening paragraph says the tick and the recovery delete the branches. I took both places from the reviewer's citations (`tick.py:199-200`, `recovery.py:247`) and did not read that code myself.
+    2. `take` is linked to `glossary.md` at "The take's restore" in *Restoring the checkout*, as the reviewer asked. The italic section name "The take" in the See also of *The git wrapper* is earlier on the page and stays unlinked. Moving the link there is a one-line change if the reviewer wants it.
+    3. `work item` is linked at its first use in *Deleting and merging branches*. The later mention is plain.
+    4. The first sentence of the `work_tree_id` Reference row is split. The `TreeId` description, the `left_out` matching and the list of what counts are now separate short sentences, with no parentheses.
+
+    Cross-read: `docs/project-guide/README.md` and `docs/project-guide/machine.md` still agree with the page, because no heading changed.
+
+    Not touched, not mine to fix:
+    - The area `hosting` also holds `application/opening.py`, `application/pushes.py`, `domain/hand_over.py`, `domain/post_texts.py`, `adapters/checkout_fixture.py` and `adapters/instance_fixture.py`. The old page did not describe them either.
+    - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder although it looks like a machine-area test.
+    - I wrote no "Rejected" line in `docs/decisions.md`; the story names none and that file is out of scope.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (8.8 s)

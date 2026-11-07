@@ -153,7 +153,7 @@ Push never forces. It runs `git push --porcelain --set-upstream origin refs/head
 
 ### Deleting and merging branches
 
-A merge or a discard of a work item removes its branch from the remote and from the checkout. Preparing a stage merges the main branch into the work item's branch. Both return a value for the outcomes a caller must decide on, and raise `GitError` for the rest.
+A merge or a discard of a [work item](glossary.md) removes its branch from the remote and from the checkout. The tick and the recovery delete the branches. Preparing a stage merges the main branch into the work item's branch. Both return a value for the outcomes a caller must decide on, and raise `GitError` for the rest.
 
     GitCli.delete_remote_branch(branch) -> PushOutcome
     GitCli.delete_branch(branch) -> None
@@ -178,7 +178,7 @@ A merge or a discard of a work item removes its branch from the remote and from 
 - An unknown `ref`, and any other refusal that leaves no merge in progress (for example local changes the merge would overwrite), is a `GitError` and changes nothing.
 - `delete_branch` deletes the local branch even when it is not merged. The checked-out branch is a `GitError` and stays. A branch that does not exist is no error and changes nothing.
 
-Who uses them: preparing a stage merges the main branch into a [work item](glossary.md)'s branch. A merge or a discard deletes branches, remote and local.
+Who uses them: preparing a stage merges the main branch into a work item's branch. After a merge or a discard, the tick deletes the local work item branches when it restores the checkout, and the recovery deletes the stale remote branches of stories that are back in the backlog or done.
 
 ### Restoring the checkout
 
@@ -195,7 +195,7 @@ These three make the checkout disposable: whatever a stage or a [crash](glossary
 - `move(source, destination)` creates the destination's parent folders and runs `git mv`. The move is staged as a rename, but `status()` and `changed_paths()` still show it as a deletion plus an addition.
 - A `source` that is not tracked, or a `destination` that exists, is a `GitError`.
 
-Who uses them: a [stall](glossary.md) or a crash reverts or resets. The tick resets the checkout to the remote. The take's restore of a broken work item is `revert_paths`. A merge or a discard moves the [story](glossary.md) file.
+Who uses them: a [stall](glossary.md) or a crash reverts or resets. The tick resets the checkout to the remote. The [take](glossary.md)'s restore of a broken work item is `revert_paths`. A merge or a discard moves the [story](glossary.md) file.
 
 ### The argument and branch rules
 
@@ -242,7 +242,7 @@ Why: see `decisions.md`.
 | `ignored` | the take: which changed paths of the [dataset](glossary.md) the host's own ignore rules ignore (see *The take*, `machine.md`) |
 | `status`, `reset_to` | the tick: looks at the checkout and resets it to the remote; `status` is also read by the claim and by the stall handling |
 | `reset_to` | also the stage's preparation and the crash recovery: a stall or a crash |
-| `delete_remote_branch`, `delete_branch`, `move` | the merge and the discard |
+| `delete_remote_branch`, `delete_branch`, `move` | the merge and the discard; the tick when it restores the checkout (`delete_branch`) and the recovery for stale remote branches (`delete_remote_branch`) |
 | `work_tree_id` | the known results: the key of a known project-command result is the tree the command would read |
 | `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and writes, used by the tick, the stages and the [claim](glossary.md), and `clone` by the checkout preparer |
 
@@ -306,7 +306,7 @@ The settings `FACTORY_CHECKOUT` and `FACTORY_STATE` (`CHECKOUT_VARIABLE`, `STATE
 | `move(source, destination)` | `None` |
 | `log(ref, *, since=None, path=None)` | `list[CommitInfo(commit, parents, subject, author, committed_at)]`: the commits reachable from `ref`, newest first, a commit always before its parents (a merge commit has two). `commit` and `parents` are full ids, `subject` is the first line of the message, `author` the author's name, `committed_at` the committer date in UTC. With `since`, only commits not reachable from it (`since == ref` gives `[]`); with `path`, only commits that changed that file or anything under that directory. An unknown `ref` or `since` is a `GitError` |
 | `changed_paths(since)` | `list[ChangedPath(path, change)]`: the net difference between the commit `since` and the work tree, whether committed, staged, unstaged or untracked. Untracked files that are not ignored count, as `"added"`; ignored paths do not. A path added and deleted again, or changed and restored, is not listed. Sorted by path in plain string order. An unknown `since` is a `GitError` |
-| `work_tree_id(left_out=())` | `TreeId` (`factory.hosting.domain.git`, 40 lower-case hex characters, the pattern of `CommitId`): the id of the tree a commit of the work tree would record now, less the paths that match `left_out` (`matches_any`, as for [write paths](glossary.md): case-sensitive, `*` also crosses `/`). Tracked files count with their content in the work tree, untracked files that are not ignored count, deleted and ignored files do not; a tracked file that `.gitignore` matches still counts, as in a commit. The tree is built in a temporary index, which is set through `GIT_INDEX_FILE` and removed afterwards. The index is a copy of the checkout's own, made with `shutil.copy2` so that it keeps the modification time. Git's racily-clean rule therefore applies to the copy as to the own index, and git rehashes a file changed in the tick of the last index write. The steps are `add --all`, then `update-index --force-remove --` for the left-out paths (literal paths, never pathspecs), then `write-tree`. The checkout's index, `HEAD`, refs and work tree stay as they are; the tree object itself is written to the object store. Any git failure is a `GitError` |
+| `work_tree_id(left_out=())` | `TreeId`: the id of the tree a commit of the work tree would record now, less the paths that match `left_out`. `TreeId` is in `factory.hosting.domain.git` and is 40 lower-case hex characters, the pattern of `CommitId`. `left_out` is matched by `matches_any`, as for [write paths](glossary.md): case-sensitive, and `*` also crosses `/`. Tracked files count with their content in the work tree. Untracked files that are not ignored count. Deleted and ignored files do not. A tracked file that `.gitignore` matches still counts, as in a commit. The tree is built in a temporary index, which is set through `GIT_INDEX_FILE` and removed afterwards. The index is a copy of the checkout's own, made with `shutil.copy2` so that it keeps the modification time. Git's racily-clean rule therefore applies to the copy as to the own index, and git rehashes a file changed in the tick of the last index write. The steps are `add --all`, then `update-index --force-remove --` for the left-out paths (literal paths, never pathspecs), then `write-tree`. The checkout's index, `HEAD`, refs and work tree stay as they are; the tree object itself is written to the object store. Any git failure is a `GitError` |
 | `status()` | `WorkTreeStatus(branch, head, changes)`: `branch` is `None` when HEAD is detached, `head` is `None` in a repository without commits (`branch` then names the unborn branch). `changes` has one `ChangedPath` per path that differs from HEAD, staged, unstaged or untracked, listed once and sorted by path. A deleted path is `"deleted"`, a path HEAD lacks (untracked or newly staged, even if edited again) is `"added"`, anything else `"modified"`. Ignored paths are never listed |
 
 ### The result models
