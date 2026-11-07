@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:58:10.011916Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,19 @@ journal:
   kind: started
   at: '2026-11-07T01:58:10.011916Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:59:03.203607Z'
+  stage: docs-review
+  run: 9a0e04b47b3244408b382e4412e9ce36
+- number: 20
+  speaker: factory
+  kind: question
+  at: '2026-11-07T01:59:03.203607Z'
+  stage: docs-review
+  run: 9a0e04b47b3244408b382e4412e9ce36
+  blocked: round_cap
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -308,3 +317,21 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (13.7 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/records.md` and `docs/checked-documents.txt`. I read the round-3 changes (commit 3ecb1d3e7 against 24c8144cc) and the whole file against `docs/project-guide/style.md`, `src/factory/entry/watch.py` and `src/factory/watching/domain/cost_records.py`.
+
+    Fixed from round 2:
+    - Finding 1 is fixed. The `factory-watch` exit table now gives exit 2 for an unknown option its own sentence: the usage line and `factory-watch: error: unrecognized arguments: <option>`. That matches `parser.parse_args` in `watch.py:72-73`. The `settings invalid` sentence now covers only the environment and the token file.
+    - Finding 2 is fixed. The text above the bill example now says where it ran: the factory's VM, a checkout of the factory's own repository, after `git fetch`.
+    - Finding 3 is fixed. The four long sentences (lines 5, 155, 174 and 217) are split, and the repeated "`factory-bill` does not print these keys" is gone.
+
+    Still met:
+    - Criterion 3: the file is on the checked list, and the journal shows `documents ok`.
+    - Criterion 4: no link points to a renamed heading.
+
+    Findings:
+    1. `docs/operator-guide/records.md:170` (criterion 2, and a sentence the code contradicts): the new sentence "The optional keys of a cost record." presents the Reference's list as complete. The list has `denials`, `denied_paths`, `login`, `machine` and `tools`. `CostRecord` in `src/factory/watching/domain/cost_records.py:131` also has the optional `transcript`. On `main` the only mention of `transcript` was in the version list that was dropped on purpose, so a reader of this page no longer learns that the key exists. Fix: add one sentence to the Reference introduction, for example "`transcript` names the run's kept transcript; it is explained under \"Transcripts\" in [health.md](health.md)." Or make the introduction say "Some optional keys of a cost record."
+
+    Dropped on purpose (criterion 2), unchanged since round 0: the version-by-version list of the records contract (style rule 1).
+
+    Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files. This is round 3, the round cap of `docs-review`, so the factory asks the human rather than loop again.
+20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
