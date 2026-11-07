@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 637
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T13:33:46.646940Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T13:33:46.646940Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-07T13:34:11.461903Z'
+  stage: tests
+  run: 196f4835ebe74815bfcf2852c16850e5
 ---
 
 # The operator's folders say what they hold
@@ -87,3 +89,19 @@ Expect: `documents ok (<seconds> s)`
    - Architecture: the folders `operator/bin`, `claude`, `job`, `lib`, `opencode`, `skill`, `template` and `vm` exist, and `agents/` holds `agents/` and `settings.json`. The operator guide pages the story names exist, and `docs/project-guide/agents.md` is on the checked list. The one code change stays in the shared domain constant.
    - Scope: this is S0004 of F0055 and matches the feature's story list and decision 11. It stays out of the feature's out-of-scope folders (`agents/agents/`, `operator/skill/kumpel/`, `operator/template/factory/`, the commands folders). The route is `tests`, because the story changes the code constant.
 4. factory: started tests as vm.
+5. tester: Wrote one test, for criterion 4, the story's only code change. As the Interface says, no test needs one of this story's READMEs to exist or to be listed.
+
+   - criterion 1: no new test. The existing guard `tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder` covers it. It is parametrized over `FOLDER_READMES` and skips a README that does not exist yet. Criterion 1 is met when the docs stage writes the READMEs and the guard skips none of them.
+   - criterion 2: no test. The document check (`make documents`) and the reviewer cover it, as the Interface says.
+   - criterion 3: no test. It is the docs stage's check `make documents`.
+   - criterion 4: `tests/shared/domain/test_folder_readmes_list.py::test_the_folder_readme_list_leaves_out_the_template_folder`. It checks in one assertion that the list holds exactly 22 paths and not `operator/template/README.md`.
+   - criterion 5: `make check`, the coder's.
+   - criterion 6: docs stage.
+
+   Files created: `tests/shared/domain/test_folder_readmes_list.py`. No earlier test changed.
+
+   Test run: `uv run pytest -q tests/shared/domain/test_folder_readmes_list.py` fails with an AssertionError for the right reason: the list still has 23 entries, `operator/template/README.md` among them. Every module imported; nothing failed to import. `make lint`: green.
+
+   Open: no earlier test checks the list's length or the template path, so I found none that the human's leave would need to change.
+
+   `lint`: lint: green (0.1 s)
