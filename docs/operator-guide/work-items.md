@@ -2,7 +2,7 @@
 
 A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md).
 
-It tells you what the factory does with a [work item](../project-guide/glossary.md) after the agents have worked on it: how a feature's [acceptance](../project-guide/glossary.md) becomes due, what the hand-over at the [approval](../project-guide/glossary.md) shows you, and what your merge or close of a pull request makes the factory do. It also covers what the factory does after a [crash](../project-guide/glossary.md) or an expired [lease](../project-guide/glossary.md). Your acts are all on the pull request: comment, close or merge. Exact texts, commit subjects and error names are in *Reference* at the end.
+It tells you what the factory does with a [work item](../project-guide/glossary.md) after the agents have worked on it: how a feature's [acceptance](../project-guide/glossary.md) becomes due, what the hand-over at the [approval](../project-guide/glossary.md) shows you, and what your merge or close of a pull request makes the factory do. It also covers what the factory does after a [crash](../project-guide/glossary.md) or an expired [lease](../project-guide/glossary.md). Your acts on a work item are on its pull request: comment, close or merge. Exact texts, commit subjects and error names are in *Reference* at the end.
 
 The [stops](../project-guide/glossary.md) and the questions that these sections name are in [stops.md](stops.md).
 
@@ -10,9 +10,9 @@ The [stops](../project-guide/glossary.md) and the questions that these sections 
 
 The factory starts a [feature](../project-guide/glossary.md)'s acceptance when the feature is complete and no recorded report covers exactly its archived stories. It reads only the files on `origin/main` and the remote acceptance branches, never your checkout. Without an `acceptance_stage` in the [pipeline definition](../project-guide/glossary.md) nothing is ever due.
 
-A feature is complete when it has at least one [story](../project-guide/glossary.md) file in `done` and no story file waits in `backlog` or `in-progress`.
+A feature is complete when it has at least one [story](../project-guide/glossary.md) file in `done` and no story file waits in the [backlog](../project-guide/glossary.md) (`backlog/`) or in `in-progress`.
 
-- Only story files count, and only directly in `backlog/`, `in-progress/` or `done/` of the feature. A story file in a subfolder, such as `done/old/`, neither archives a story nor keeps the feature incomplete.
+- Only story files count (named `<feature id>-S<n>-<slug>.md`), and only directly in `backlog/`, `in-progress/` or `done/` of the feature. A story file in a subfolder, such as `done/old/`, neither archives a story nor keeps the feature incomplete.
 - A `.gitkeep`, a `README.md`, a note and an acceptance's report beside the stories never keep a feature incomplete and never make it complete.
 
 A report covers the archived stories when it is at `done` on `main` and its `stories` list equals the set of archived stories. A report with fewer or more stories does not cover them. So a story archived after an acceptance makes the feature due again.
@@ -47,13 +47,13 @@ The prompt also has the line `Human interventions of the stories: ...` right aft
 ### The order of the work
 
 - The next acceptance id of a feature is one above the highest acceptance id among its reports on `main` and on remote acceptance branches. `factory-watch` and the board command use the same rule.
-- A running acceptance is a work item like a story and is picked in the same order, by id. A waiting work item and a held claim come first, as for stories.
+- A running acceptance is a work item like a story and is picked in the same order, by id. A waiting work item and a held [claim](../project-guide/glossary.md) come first, as for stories.
 - A due acceptance is not started before the feature's own stories. The next event is `acceptance_due:<feature>` only when no story of that feature or of an earlier feature can run. It still comes before the stories of a later feature.
 - `factory-watch` shows the event as `event: acceptance_due:<feature>  acceptance of <feature> is due`.
 
 ## The hand-over at the approval
 
-When a work item reaches an approval stage, the factory shows you on its pull request what to decide. It does this when it handles the `hand_over` event, in this order:
+When a work item reaches an approval [stage](../project-guide/glossary.md), the factory shows you on its pull request what to decide. It does this when it handles the `hand_over` event, in this order:
 
 1. **It replaces the pull request description.** What you or the factory wrote there before is gone. The new description has these sections, each headed `## <name>`:
    - Description and Acceptance criteria: the story's own sections, verbatim.
@@ -61,12 +61,12 @@ When a work item reaches an approval stage, the factory shows you on its pull re
    - Commits: a code block with one line per commit beyond `main`, the first seven characters of the id and the subject.
    - A closing paragraph: a merge accepts the story, and a close with a comment sends it back.
 
-   A story section that is missing or empty, and a report whose role never recorded a `result`, show `none`. The reviewer's entry under Review ends with the earlier tests the story changed and the leave for each. The reports are found by the journal's data (speaker and kind), never by the text of an entry.
+   A story section that is missing or empty, and a report whose [role](../project-guide/glossary.md) never recorded a `result`, show `none`. The reviewer's entry under Review ends with the earlier tests the story changed and the leave for each. The reports are found by the [journal](../project-guide/glossary.md)'s data (speaker and kind), never by the text of an entry.
 2. **It marks the pull request ready for review.** A draft says the factory works; ready says you decide.
-3. **It posts the cost table**, headed `Cost of this work item so far`, read from the cost records committed on the work item's branch (see "What a work item cost" in [records.md](records.md)). The `Human:` line follows it (see "The cost table" in [records.md](records.md)). The post is keyed by the number of the latest `result` entry, so a repeat does not post it twice.
+3. **It posts the cost table**, headed `Cost of this work item so far`, read from the [cost records](../project-guide/glossary.md) committed on the work item's branch (see "What a work item cost" in [records.md](records.md)). The `Human:` line follows it (see "The cost table" in [records.md](records.md)). The post is keyed by the number of the latest `result` entry, so a repeat does not post it twice.
 4. **It records `handed_over = <stage>`** in the work item and pushes, in one commit. This comes last.
 
-The stage that reaches the approval writes the description first, before its push. The hand-over on the next tick writes it again, unchanged, then marks the pull request ready and posts the cost table. If the stage's write failed, the log says `pull request #<number>: description not written before the push` and the hand-over writes it.
+The stage that reaches the approval writes the description first, before its push. The hand-over on the next [tick](../project-guide/glossary.md) writes it again, unchanged, then marks the pull request ready and posts the cost table. If the stage's write failed, the log says `pull request #<number>: description not written before the push` and the hand-over writes it.
 
 A work item whose `handed_over` already equals its stage is left alone: no description change, no post, no commit. A stage that is not an approval, or a work item without a pull request, cannot be handed over; the factory changes nothing.
 
@@ -110,7 +110,7 @@ Each acceptance has its own report and its own cost records, so the cost on its 
 
 **A close or a merge handled again.** A kill at any point is harmless. The recorded close is not recorded twice, a report already in `done/` is not booked twice, and a rerun after the branch is gone only finds the report in `done/`. After a kill only the branch deletion of a merge is repeated.
 
-- If the branch is gone and the report is in neither place, the factory changes nothing and counts an error: `no report on the branch or the main branch`.
+- If the branch is gone and the report is in neither place, the factory changes nothing and counts an error. A close names it `no report on the branch or the main branch`; a merge names it `no report on the main branch`, which it raises when the report is in neither `in-progress/` nor `done/` on `main`.
 - If `main` moved since the last fetch, the push is rejected and the event is retried. A rejected close push comes after the close is recorded, and the branch stays until the booking is pushed.
 - If the remote refuses to delete the branch, the booking is already pushed. The branch stays, and the error is counted.
 
@@ -185,7 +185,7 @@ The factory works in this order, and each step that changes the work item is pus
 
 1. **It records the close.** Your unread comments are copied into the journal, a `close` entry (speaker `human`, text `closed the pull request.`, dated today in UTC) is added, and `handed_over` is cleared. A story that already holds a `close` entry since its latest `result` gets no second one, so a retry does not close twice. After an earlier send-back and a new stage result, a new close is recorded again.
 2. **It reopens the pull request, as a draft.**
-3. **It records the decision.** A `send_back` entry (`sent back to doing, round 3.`) is added, `stage` is set to the target, `round` goes up by one and the claim is released. When a question is needed, a `question` entry is added with `blocked` set to `send_back`.
+3. **It records the decision.** A `send_back` entry (`sent back to doing, round 3.`) is added, `stage` is set to the target, [`round`](../project-guide/glossary.md) goes up by one and the claim is released. When a question is needed, a `question` entry is added with `blocked` set to `send_back`.
 4. **It rewrites the labels** of the pull request to the new stage, so it does not keep `stage:approval`.
 
 The factory posts nothing itself in these steps. A question is posted by the `ask` handler, like the others in "The factory's own questions" in [stops.md](stops.md).
@@ -194,7 +194,7 @@ The factory posts nothing itself in these steps. A question is posted by the `as
 
 A comment of yours counts as the reason when it was written after the latest `result` of the story, whether copied earlier or at the close. The factory reads only the journal's records, never what you wrote, so the text of the comment does not matter.
 
-With a reason, and with the new [round](../project-guide/glossary.md) within the `round_cap` of the stage that hands over to the approval, the story simply goes back to work with your comments as the findings. That stage is the first one in the pipeline definition that has a cap.
+With a reason, and with the new round within the `round_cap` of the stage that hands over to the approval, the story simply goes back to work with your comments as the findings. That stage is the first one in the pipeline definition that has a cap.
 
 Otherwise the factory asks, and `blocked` is `send_back`. The question starts with one of these texts and goes on with the options below:
 
@@ -218,7 +218,10 @@ The question has three options, all of them things you can already do:
 
 The factory reads a work item's state from its branch `origin/work-item/<id>`. A story in `in-progress/` on `main` with no such branch is read as a new start: it is at the first stage with fresh counters, whatever its file says.
 
-So turn off the hosting setting that deletes head branches when a pull request is merged ("Automatically delete head branches" on GitHub). With it on, a merged story whose file is still in `in-progress/` loses its branch and starts again.
+With the hosting setting that deletes head branches on merge turned on, a merged story whose file is still in `in-progress/` loses its branch and starts again. Turn it off. On GitHub (marked for GitHub; not run here):
+
+1. Open the repository's *Settings*, section *General*.
+2. Under *Pull Requests*, clear *Automatically delete head branches*.
 
 ## An idle tick that is not empty
 
@@ -267,7 +270,7 @@ These are not counted as an illegal change:
 
 ### Never edit a running work item on main
 
-Do not edit the file of a work item in `in-progress/` on `main`. Answer in its pull request instead. The agents amend the story on its branch (the description, the criteria), and your edit on `main` changes the same file. At the next stage start the factory merges `main` into the branch, the merge conflicts, and the stage stalls with the reason `merge_conflict`. When it has happened, revert the edit on `main`; the stage then starts again from the branch's story.
+Do not edit the file of a work item in `in-progress/` on `main`. Answer in its pull request instead. The agents amend the story on its branch (the description, the criteria), and your edit on `main` changes the same file. At the next stage start the factory merges `main` into the branch, the merge conflicts, and the stage [stalls](../project-guide/glossary.md) with the reason `merge_conflict`. When it has happened, revert the edit on `main`; the stage then starts again from the branch's story.
 
 ## A restart during a stage
 
@@ -284,11 +287,11 @@ A commit that you pushed to the branch while the stage ran is on the remote, so 
 
 If the push of the crash commit is rejected because someone pushed in between, the event is a counted error as under "An event that keeps failing" in [stops.md](stops.md). A push to the branch makes the factory look again. A claim of another instance name is handled only once its lease has expired (see "An expired lease").
 
-The recovery is proved by tests that kill the factory at each of its six kill points and walk each of the thirteen fault paths. The tests are listed in *Reference*.
+The recovery is proved by tests that kill the factory at each of its six kill points and walk each of the thirteen fault paths. They are listed in *Reference*.
 
 ### The crash cap
 
-`crash_cap` in the pipeline definition (default 2) is the number of crashes after which the factory asks you instead of rerunning. The count is `crashes` in the work item's state. A forward move of the stage and your answer reset it, and a rework move and a [stall](../project-guide/glossary.md) keep it. So it counts the crashes since the last forward move.
+`crash_cap` in the pipeline definition (default 2) is the number of crashes after which the factory asks you instead of rerunning. The count is `crashes` in the work item's state. A forward move of the stage and your answer reset it, and a rework move and a stall keep it. So it counts the crashes since the last forward move.
 
 When a crash brings `crashes` up to the cap, the stage is not rerun. The same commit that records the crash records a question by `factory` and sets `blocked` to `crash_cap`. The factory pushes the commit and only then posts the question on the pull request, once. If the work item has no pull request yet, it opens a draft first. The question reads:
 
@@ -298,7 +301,7 @@ Stage doing crashed 2 times, which is the crash cap of 2. The factory has not re
 
 - A comment you write after the question was posted ends the wait: `crashes` goes back to 0, `attempts` stay, and the stage runs again.
 - Closing the pull request discards the story.
-- A boundary error after the factory pushed its claim leaves the claim on the remote. Such an error is one of the hosting service, the agent runtime, a project command, git or a rejected result push. The next look treats the claim as a crash and reruns the stage. If that fails again, it is the second crash and ends here with this question. It does not end in the error report of "An event that keeps failing" in [stops.md](stops.md), because each rerun is a new event on a new remote state.
+- A boundary error after the factory pushed its claim leaves the claim on the remote. Such an error is one of the hosting service, the agent runtime, a [project command](../project-guide/glossary.md), git or a rejected result push. The next look treats the claim as a crash and reruns the stage. If that fails again, it is the second crash and ends here with this question. It does not end in the error report of "An event that keeps failing" in [stops.md](stops.md), because each rerun is a new event on a new remote state.
 - If posting fails, the question stays recorded and pushed, and the failure is a counted error of the event. The `ask` handler posts a question lost between its record and its post again when the work item has a pull request. For a work item without one it is not posted again.
 
 ## An expired lease
@@ -340,7 +343,7 @@ An instance claims a stage by pushing the stage-start commit. The [claim](../pro
 | Story sent back | `work item <id>: sent back` |
 | Illegal stage change corrected | `work item <id>: stage <to> -> <from>, moved back` |
 
-The archive and booking commits of a merge or a close change only the report and its cost records file (acceptance), or only the story file and its cost records file (story).
+The commits of a merge or a close change only the report and its cost records file (acceptance booking), the story file and its cost records file (story archive), or only the story file (discard at a close before the approval; its cost records go with the branch).
 
 ### Journal entries the factory writes
 
@@ -359,7 +362,7 @@ The factory counts these errors and reports them as in "An event that keeps fail
 
 | Name | Where it arises |
 | --- | --- |
-| `CannotHandle` | A hand-over for a stage that is not an approval or a work item without a pull request. A close at an approval with one stage in `next`, or without a pull request number. An acceptance close or merge when the report is on neither the branch nor `main` (`no report on the branch or the main branch`). A `reject` that cannot be corrected. |
+| `CannotHandle` | A hand-over for a stage that is not an approval or a work item without a pull request. A close at an approval with one stage in `next`, or without a pull request number. An acceptance close when the report is on neither the branch nor `main` (`no report on the branch or the main branch`); an acceptance merge when the report is in neither `in-progress/` nor `done/` on `main` (`no report on the main branch`). A `reject` that cannot be corrected. |
 | `PushFailed` | A push is rejected because `main` or the branch moved, or the remote refuses a branch deletion. The outcome is `rejected`. |
 | `HostingServiceError` | The reopen of a pull request fails at a send-back. |
 
@@ -383,4 +386,4 @@ The factory counts these errors and reports them as in "An event that keeps fail
 
 ### The recovery tests
 
-The tests that prove the recovery are `tests/hosting/domain/test_kill_points.py`, `tests/shared/domain/test_fault_paths.py` and `tests/shared/domain/test_fault_paths_7_to_13.py`. The cases and paths are listed in the sections *Kill points* and *Fault-injection paths* of `docs/project-guide/README.md`.
+The cases and paths of the recovery tests are listed in the sections *Kill points* and *Fault-injection paths* of `docs/project-guide/README.md`.

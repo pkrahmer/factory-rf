@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:13:51.544703Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T02:13:51.544703Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:17:06.304775Z'
+  stage: docs-only
+  run: d9eb47380b794325b875673fa1aa91c7
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -144,3 +146,21 @@ Expect: `1`
 
    Named as dropped, and acceptable under style rule 1: the example file names `F0001-S0001-name.md`, `done/old/F0001-S0001-name.md` and `F0002-a`/`F0002-b`, the example id `F0001-A0002`, and "v1's" before "thirteen fault-injection paths". Line 15 now says "Only story files count" without saying what a story file is named. The documenter may give the pattern with placeholders, such as `<feature id>-S<n>-<slug>.md`.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's five findings, all in `docs/operator-guide/work-items.md`. `make documents` ends with `documents ok (17.1 s)`. I ran no `make check`, because I changed only documents.
+
+   Fixes by finding:
+   1. The `CannotHandle` row in *Reference* and the "branch is gone" bullet now give the close and merge texts separately. The close says `no report on the branch or the main branch`. The merge says `no report on the main branch`, raised when the report is in neither `in-progress/` nor `done/` on `main`.
+   2. The commit-subjects note now says what each commit changes. A booking changes the report and its cost records file. A story archive changes the story file and its cost records file. The discard at a close before the approval changes only the story file, and its cost records go with the branch.
+   3. I linked each glossary term at its first use: backlog, claim (in the order-of-work section), stage, role, journal, cost records, tick, round, stall (in the section on editing a running work item) and project command. The later, now redundant links to round and to stall (in *The crash cap*) are plain text.
+   4. I dropped the three recovery-test paths from *Reference* and from the sentence in *A restart during a stage*. The old `uv run pytest ...` command is dropped on purpose: the operator neither runs nor edits those files. *Reference* now points only to the *Kill points* and *Fault-injection paths* sections of `docs/project-guide/README.md`.
+   5. The opening sentence now says "Your acts on a work item are on its pull request: comment, close or merge". The task *Branch deletion on merge must be off* is now numbered steps, marked as GitHub and not run here.
+
+   I also gave the story-file name pattern with placeholders: `<feature id>-S<n>-<slug>.md`.
+
+   Cross-read: the other operator-guide files that link to this file, and the project-guide and decisions quotes of its headings, were checked in round 0. I kept every heading, so they are unchanged.
+
+   Stale text seen, not touched: the first paragraph of `docs/operator-guide/README.md` mentions v1.2 and v1.1 history.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (13.4 s)
