@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T05:07:33.466602Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T05:07:28.449664Z'
   stage: intake
   run: 29d84c9e47de4a3da742810a8bc5a650
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:07:33.466602Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    - Docs criterion: it names what the reader must know. The page is rewritten for its reader, every fact is kept or moved to *Reference*, and the examples are runnable. It dictates no sentences.
    - Architecture: the page covers the machine area, which `CLAUDE.md` lists with containers, images, snapshots, disks and the preflight. The story changes only a document in `docs/project-guide/`, so no layer is touched.
    - Scope: this is S0017 in the feature's list, and the feature's scope is each file rewritten with its own story. `decisions.md`, `runs/` and the playbook are not touched. Route: docs-only.
+4. factory: started docs-only as vm.
