@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 616
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T01:20:39.836540Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T01:20:39.836540Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T01:20:55.732384Z'
+  stage: intake
+  run: 85aa48470a8a40dfbc7509742ac9debc
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete paths only, `docs/operator-guide/pipeline.md` and `docs/checked-documents.txt`, and states that no code, test or agent file changes. Every path is one the documenter may write, so the story takes the docs route.
+   Criteria: all six concern documents only. Criteria 1 and 2 are judged by the reviewer against the style guide and the code. Criterion 3 is checked by `make documents` printing `documents ok`, and criterion 4 by link resolution. Criterion 5 is `make check`. The Interface states no limits, defaults or error rules, so there is no failing side to cover.
+   Smoke test: the `grep -cx` command is runnable from the repository root and its `Expect: 1` can be checked against the output. It runs no pytest, so no `-q` issue arises.
+   Docs criterion: criterion 6 refers back to criteria 1 to 4, which say what the reader gets (a rewritten operator guide page that is accurate, complete and checked). It dictates no sentences.
+   Architecture: documentation only, no code placement. It sits in the operator guide, where CLAUDE.md puts operator material. `docs/decisions.md` is left alone, as the feature requires.
+   Scope: this is S0008 of F0054's list. It is one file, and it avoids the feature's Out of scope items (`decisions.md`, `docs/runs/`, the playbook).
