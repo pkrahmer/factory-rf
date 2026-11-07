@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -91,6 +91,11 @@ journal:
   at: '2026-11-07T00:59:02.587961Z'
   stage: docs-review
   run: cd447a95522c4e07b22f37c8b07a8b68
+- number: 16
+  speaker: factory
+  kind: done
+  at: '2026-11-07T01:00:53.583507Z'
+  stage: docs-approval
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -271,3 +276,4 @@ Expect: `1`
     Criterion 2 is met without a *Reference* section. Entry 7 names what was dropped on purpose.
 
     No findings.
+16. factory: done (pull request merged); cost: 7 runs, 9.6 min, 78 turns, 275415 tokens in (2615281 more from cache), 48601 out, $2.80
