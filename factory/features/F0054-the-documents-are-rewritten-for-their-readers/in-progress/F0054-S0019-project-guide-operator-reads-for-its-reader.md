@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 627
 comments_read: [6704005122]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T07:40:08.050021Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-07T07:40:02.937829Z'
   stage: docs-review
   run: 0ac368b789a84b76af49b27caea4b106
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-07T07:40:08.050021Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -340,3 +349,4 @@ Expect: `1`
     3. docs/project-guide/operator.md:176: `test_operator_python_isolation.py` is linked again in the table, after its first link on line 128. Fix: write it plain in the table.
     4. docs/project-guide/operator.md:24: `comment.sh`, `merge.sh` and `reset-to-tag.sh` are first named here without links, and are linked only later (lines 122 and 131). Fix: link all three on line 24, write the mentions on lines 122 and 131 plain, and drop "such as …" from line 122's sentence.
     5. docs/project-guide/operator.md:3: the command `site` (`operator/bin/site`) is first mentioned here in "the checks of `site check`", but its link comes only on line 7. This is the same rule as finding 4, and a script run under entry 21 would catch it. Fix: link `site` at line 3, for example "the checks of [`site check`](../../operator/bin/site)", and write line 7's `site` plain. Or reword line 3 so that line 7 really is the first mention.
+24. factory: started docs-only as vm.
