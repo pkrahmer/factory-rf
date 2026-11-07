@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T04:42:20.808882Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T04:42:20.808882Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T04:42:35.772262Z'
+  stage: intake
+  run: cf42321b42c046cba894ac90b7a56096
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete paths only (`docs/project-guide/watching.md`, `docs/checked-documents.txt`). Both are documenter-writable (`docs/*`), and the story says no code, test or agent file changes. Route is docs-only.
+   Criteria: all concern documents. 1 and 2 are judged by the reviewer against the style page and the code, which is how the docs route works. 3 is checked by `make documents` and the checked list. 4 and 5 are checked by link checks. 6 is `make check`. Each Interface rule (link once, one line on the checked list, changed headings relinked) has a criterion (4, 3, 5). No rule has a failing side that needs its own criterion.
+   Smoke test: `grep -cx ... docs/checked-documents.txt` is runnable, and `Expect: 1` is checkable. It runs no pytest.
+   Docs criterion: criterion 7 asks for criteria 1 to 5, which say what the reader must know (facts from the code, nothing dropped, names linked). It dictates no sentences.
+   Architecture: documentation only. It leaves the code layers alone and fits the project guide's structure.
+   Scope: it is S0016 of F0054 (the project guide's watching page). The feature's out-of-scope files (`decisions.md`, runs, playbook) are untouched. The criteria are the story's own list.
