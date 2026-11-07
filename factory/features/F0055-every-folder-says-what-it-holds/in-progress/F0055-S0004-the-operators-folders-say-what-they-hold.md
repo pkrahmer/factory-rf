@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-07T13:48:16.742494Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -115,6 +119,11 @@ journal:
   stage: docs
   run: 4204eca921364b3ab075e87beed6fc47
   reason: check_red
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:48:16.742494Z'
+  stage: docs
 ---
 
 # The operator's folders say what they hold
@@ -291,3 +300,4 @@ Expect: `documents ok (<seconds> s)`
     ======================================================================================= short test summary info ========================================================================================
     FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/] - AssertionError: assert ['operator/README.md'] == []
     make: *** [Makefile:89: test] Error 1
+20. factory: started docs as vm.
