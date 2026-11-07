@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:50:38.651074Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-07T02:50:38.651074Z'
   stage: docs-review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:51:29.161485Z'
+  stage: docs-review
+  run: 654a9ca211904f71af5361182f23e77b
 ---
 
 # The operator guide's index reads for the operator
@@ -349,3 +351,11 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (13.7 s)
 26. factory: started docs-review as vm.
+27. reviewer: Round 1 after the human's answer (entry 21). I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the code on the branch, `docs/project-guide/style.md` and `docs/project-guide/glossary.md`.
+
+    Both findings from entry 23 are fixed. I went through every term in the glossary against `docs/operator-guide/README.md`. Each term the page uses is linked at its first use and only there: instance and stop (line 3); stage and dataset (line 5); stall (26); pipeline definition and story (27); work item (28); feature, acceptance, approval, lease and claim (29); stage environment (35); base (41); take, role and journal (43). "write paths" is first linked at line 44. Its earlier mention on line 43 is inside the quoted journal message in a code span, so it stays unlinked. I accept that: the quote must keep its exact text, and a code span holds no links.
+
+    These still hold: the settings in bullet 1 (`src/factory/shared/domain/settings.py:165-169`), the container boundary, the take's journal line, `tool_paths`, the relative links, `factory-watch`, the `README.md:28` link fix and the `docs/checked-documents.txt` line. The list of things dropped on purpose in entry 5 stays accepted under criterion 2.
+
+    Findings:
+    1. `docs/operator-guide/README.md:5`: the line says "An instance runs on a VM with ZFS and rootless Podman, and every stage runs in throwaway containers on one ZFS dataset". The code and the guide itself say otherwise. `src/factory/shared/domain/settings.py:98` and `:168` allow `FACTORY_SNAPSHOTS=copy`, which needs no ZFS. `docs/operator-guide/machine.md:111-113` (*Without ZFS*) and `cloud-run.md:73` run an instance in a Cloud Run job without ZFS. Line 39 of this same file says that with `copy` the instance "runs without a dataset". Fix: keep the common case first and add the other one. For example: "An instance usually runs on a VM with ZFS and rootless Podman, where every stage runs in throwaway containers on one ZFS dataset. It can also run without ZFS, in a Cloud Run job ([cloud-run.md](cloud-run.md))." Keep the dataset link at its first use.
