@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T11:36:12.008837Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-07T11:36:07.027902Z'
   stage: doing
   run: 03d0e3eb0796498fbc4dac9f0c5f200c
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:36:12.008837Z'
+  stage: tests
 ---
 
 # A reference to another page's heading names a heading it has
@@ -236,3 +245,4 @@ Expect: `documents ok (<seconds> s)`
     I checked that the test has none of these rows yet (its current ids run from italics-in to neither-in-nor-of). The Description already lists the three rows in criterion 1, so it needs no rewrite.
 
     Noticed, not touched: nothing beyond entry 10. `make documents` still blocks on `install.md:121`, `work-items.md:66` and the project guide's `machine.md:487` until the docs stage fixes them. The check does not catch the fourth reference, `agent-runtime.md:407`, so the documenter fixes it by hand.
+15. factory: started tests as vm.
