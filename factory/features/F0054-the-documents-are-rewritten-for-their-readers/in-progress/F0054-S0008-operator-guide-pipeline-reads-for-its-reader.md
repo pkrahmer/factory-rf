@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:27:54.763611Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T01:27:49.784131Z'
   stage: docs-review
   run: 9f403fbcea604dd4bea6612e03f45e55
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:27:54.763611Z'
+  stage: docs-only
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -149,3 +158,4 @@ Expect: `1`
    - `python -m factory.entry.check_story` (l.159) names a module, but it is a command the operator runs, and criterion 2 keeps it.
    - The sync bullet's "the container that prepares the tools after a checkout" matches `_SYNC_SCRIPT`, which runs the checkout and then `make sync`.
    - The l.86 sentence is about 27 words, which is within "about 25".
+8. factory: started docs-only as vm.
