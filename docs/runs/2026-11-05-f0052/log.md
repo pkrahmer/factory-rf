@@ -184,3 +184,6 @@ Times are UTC. The plan: `night-plan.md`.
 - 08:40Z: F0054-S0020 PR #628 merged at docs-approval: the project guide's README (its index) rewritten and listed; my own script finds every tests/support module and every conftest fixture named. $7.12, 12+ runs, one round cap.
 - 08:51Z: F0054-S0021 (README reads for its reader) started.
 - 09:01Z: the human: F0055 must not shorten the project guide's index, which is long on purpose for the agents. F0055 decision 4 changed: the list of shared test helpers stays in docs/project-guide/README.md; tests/support/README.md and tests/guards/README.md (S0003) are pointers to the guide's sections and list no modules. Rejected: moving the list and exempting tests/support/README.md from the shape limits. S0003 passes factory-check-story.
+- 09:17Z: F0054-S0021 PR #629 hit the round cap (3) at docs-review; the last finding is real but mechanical (two long sentences with private words, sent back once before). One more round answered by the human's word for tonight, with sentence length checked by script and nothing else changed.
+- 09:24Z: F0054-S0021 PR #629 merged at docs-approval: the README rewritten for a newcomer and listed. $2.64, 12 runs, one round cap.
+- 09:25Z: F0054-S0022 (operator/README.md reads for its reader) started.
