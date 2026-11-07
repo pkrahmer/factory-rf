@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-07T12:10:51.841718Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -75,6 +79,11 @@ journal:
   at: '2026-11-07T12:10:46.925133Z'
   stage: review
   run: c1058f0ae7354e18b403021ae233ccf6
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:10:51.841718Z'
+  stage: docs
 ---
 
 # Every file of code and every script names its license
@@ -171,3 +180,4 @@ Expect: `0`
 
     Earlier tests:
     - tests/vm/test_stage_image.py: changed under the human's leave in the Interface ("an earlier test whose only failure is the one added header line ... may be changed so far as that line requires"). Only the line index in `test_the_first_line_names_the_build_command_with_the_runtime` changes, from `[0]` to `[1]`, plus a comment explaining why. Its name and what it checks are unchanged, and the tester's entry 8 names it.
+13. factory: started docs as vm.
