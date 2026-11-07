@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987, 6707415610]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T13:17:29.095008Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-07T13:17:24.077030Z'
   stage: review
   run: bd77f179cfd64f12aa49aa0ff9296eba
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:17:29.095008Z'
+  stage: doing
 ---
 
 # The tests say how they are laid out
@@ -265,3 +274,4 @@ Expect: `documents ok (<seconds> s)`
 
     Earlier tests:
     - `tests/guards/test_tests_layout.py` was changed under the human's leave (the Interface; journal entry 4). `README.md` was added to the expected root files of `test_the_root_holds_only_conftest_and_packages`, and the module docstring was adjusted to match. The test keeps its name and purpose.
+19. factory: started doing as vm.
