@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:52:02.538601Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -65,6 +69,11 @@ journal:
   at: '2026-11-07T04:51:57.079467Z'
   stage: docs-review
   run: 0cca5f9d25bc451985a97df360d69da0
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:52:02.538601Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -198,3 +207,4 @@ Expect: `1`
     Dropped on purpose, and accepted as unbacked by the code: the "(R24)" reference, the sentence about the dispatcher's cap on a `run` event, and the explanation "an unknown stage never reaches the definition's accessors". The `Login` literals are covered under 7.
 
     Smoke test: `grep -cx "docs/project-guide/watching.md" docs/checked-documents.txt` holds by reading the file: the line is there once. I did not run it.
+11. factory: started docs-only as vm.
