@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T05:26:09.079609Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T05:26:03.837065Z'
   stage: docs-review
   run: ac2049448324424db88634e5973c6c63
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:26:09.079609Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -249,3 +258,4 @@ Expect: `1`
     3. Style, project-guide section order ("Then comes See also"): in *The fakes* the "Tests:" list (:96-103) comes after "See also" (:94), and in *Known results* "Tests:" (:484) comes after "See also" (:482). Fix: put "Tests:" before "See also" in both, as the other sections do.
     4. Style, project-guide section order: two `##` sections end without "See also": *The copy snapshots* (:61-72) and *The container environment* (:188-249, which ends with its Tests list). Fix: add a "See also" line to each, for example *The snapshots* and *The fakes* for the first, and *The stage environment*, *The take* and *The checks* for the second.
     5. Interface, "each module, file or page is linked once": these files are linked twice: take.py (:92 and :275), stage_environment.py (:155 and :194), make_commands.py (:304 and :400), wiring.py (:117 and :320), process.py (:83 and :748), tests/machine/application/test_interfaces.py (:101 and :184), and this repository's Makefile (:411 and :493). Fix: keep the first link and write the later mentions as plain names.
+12. factory: started docs-only as vm.
