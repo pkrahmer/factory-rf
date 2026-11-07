@@ -16,3 +16,4 @@ docs/operator-guide/README.md
 docs/project-guide/shared.md
 docs/project-guide/hosting.md
 docs/project-guide/work.md
+docs/project-guide/agents.md
