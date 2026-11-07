@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 633
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T11:21:05.922101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-07T11:21:05.922101Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-07T11:21:24.041594Z'
+  stage: intake
+  run: 859689049c09499790470f159007ff87
+  blocked: question
 ---
 
 # A reference to another page's heading names a heading it has
@@ -71,3 +74,9 @@ Expect: `documents ok (<seconds> s)`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface rule: the reference may have `)` or `,` between the heading and `in`/`of`. Criterion 1 has a row for `)` but none for `,`. Please add a `,` row. I would choose that.
+   2. Interface rule: "A finding reads `<document>:<line>: <heading> is no heading of <target>`". Criterion 2 only says "one finding", so no test pins the text. Please state the exact finding text in criterion 2, or add a criterion for it. I would choose to add it to criterion 2.
+   3. Interface rule: the heading text loses its backticks and asterisks. Criterion 1 has a backtick row but none for asterisks, which are the italics markers and may also appear inside the heading. Please say whether a row for a heading with asterisks inside is wanted. I would choose to add one. Also say whether `headings(target)` must strip backticks and asterisks from the linked page's headings (the Interface says so). If it must, which module does that, and which criterion tests it? As written, the real-document case, *`StageFinisher.finish`* against the heading *`StageFinisher.finish(aftermath)`*, has no test, and neither does a match against a heading that has backticks.
+   4. Description: "References within one page, and links with a `#` anchor, stay as they are." The anchor case has a row in criterion 1. The within-one-page case has no criterion at all. Please add a row or remove the sentence. I would choose to add a row, such as a reference to the document's own file, which gives no finding.
+   5. Criterion 3 reports and blocks on "a broken reference". Please also require, in the same test, that a document with a valid reference gives no finding, and that a reference to a page that is no document of the check gives no finding in `main`. Otherwise the `None` branch of `headings` is only tested in the domain function.
+   6. Criterion 4 requires fixing the four real references. Criterion 6 (docs) names only `shared.md` and `style.md`. Please list `install.md`, `work-items.md`, `machine.md` and `agent-runtime.md` as pages the documenter must fix, and say what the reader must be able to do afterwards: find each referenced section under the name the target page writes.
