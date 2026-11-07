@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T08:18:56.059280Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T08:18:56.059280Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T08:21:42.508013Z'
+  stage: docs-review
+  run: 292318554dc94ef7baf685935d7c1a46
 ---
 
 # The project guide's index reads for the developer
@@ -320,3 +322,38 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (57.0 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 review of `git diff main...HEAD -- README.md docs operator/README.md`: `docs/project-guide/README.md` (rewritten) and `docs/checked-documents.txt` (one line added). I read the whole page against the code, the criteria and `docs/project-guide/style.md`.
+
+    The five round-1 findings are fixed:
+    - The `walk` fixture has no feature id.
+    - The `work.md` sections are in page order. `grep '^## '` on `work.md` gives Identity, Data, Journal, Reading and writing, Sections, Form check, Reference.
+    - The paths that round 1 named start at the root.
+    - The *The demos* block matches `src/factory/entry/check_demos.py:126` and `:141`.
+
+    Facts checked and found true:
+    - `tests/hosting/domain/test_kill_points.py` and `tests/shared/domain/test_kill_point_cases.py` exist. `uv run pytest -q` on them with `tail -1` ends with a dot line and `[100%]`, which the block's `<name>[100%]` matches.
+    - The five fault-path test files exist.
+    - The headings *The bearer token* (`agents.md:136`) and *The examples* (`shared.md:197`) exist.
+    - The newly linked glossary words exist in `glossary.md`: instance, role, crash, backlog, round cap, attempts cap.
+
+    Findings:
+    1. `docs/project-guide/README.md` lines 49, 51, 52, 55, 85, 87, 88, 97, 118, 130, 136, 141, 149, 154, 155, 159, 161 and 364: each has a sentence with two or more prose parentheses. Examples: line 88, "`committed` (…) and `values` (…)"; line 97, four glosses; line 52, `(factory-watch)`, `(factory-bill)` and the machine readings. This is against style rule 2, and style.md's project-guide section says the prose around code names follows the rules for all documents. Fix: give each name its gloss after a colon or in a sentence of its own, so each sentence has at most one parenthesis.
+    2. `docs/project-guide/README.md` lines 74, 76, 143, 279, 339, 355, 369, 385 and 388: sentences run far past about 25 words, against style rule 2. Examples:
+       - Line 74: the removal-guard sentence, about 50 words.
+       - Line 76: the `test_shared_*`/`test_shared_bodies` sentence.
+       - Line 143: the `AGENT_TEXT` sentence.
+       - Line 279: "Each case drives …", about 45 words.
+       - Line 339: the *Path 9* sentence.
+       - Line 355: the `rerun_seconds`/`branch_state` sentence, about 45 words.
+       - Line 369: the `check_demos` command sentence.
+       - Line 385: the sentence about `RuamelPipelineDefinitionReader` sits inside the semicolon list of findings.
+       - Line 388: the first sentence, about 50 words.
+       Fix: split each into sentences of one idea. Move the reader remark at 385 out of the findings list into a sentence of its own.
+    3. `docs/project-guide/README.md` lines 161, 209, 210, 211, 218, 220, 240, 357 and 392: paths start below the repository root, against style rule 8. They are `stage_run_support.py`'s, `machine.md`, `agents.md`, `shared.md`, `pipeline.md` and `work.md`, written plain. The page entries at 46-55 are the guard's exception. Fix: write `tests/support/stage_run_support.py`. Link each page relatively, as lines 208 and 224 already do with [`pipeline.md`](pipeline.md), or write it from the root (`docs/project-guide/machine.md`).
+    4. `docs/project-guide/README.md:277-313` (*The kill-point cases*) and `:315-357` (*Fault-injection paths*): the names and signatures are only in prose, and the shape in style.md's project-guide section asks for a code block. This is the same gap round 1 named for *The demos*. The names are `run_case(case, root)`, `violations(result, case, conditions)`, `build_world(root, template=…)`, `rerun(world, empty_disk=False)`, `work_item_file(world, work_item)`, `rerun_seconds(result)`, `branch_state(world, work_item)` of `tests/support/proof_support.py`, and `FAULT_PATHS`/`FaultPath(number, title, case, test)` of `factory.pipeline.domain.fault_paths`. Fix: put a block with these signatures, read from the source, above each section's rules, and link the files above the block.
+
+    Criterion 2 still holds: the names dropped on purpose are the per-area package names, now one `factory.<area>.<layer>` block, and `factory.adapters.landlock`, which does not exist. Both are justified, and nothing else from the old file is missing.
+
+    This list is meant to be complete for the page as it stands. I went through every sentence for rules 2 and 8 and every section for the project-guide shape.
+
+    Not checked: the one-line descriptions of the `tests/support/` modules against their source; no stage has done this. I did not run `make documents`; the documenter's run printed `documents ok`, and the factory runs it as the gate.
