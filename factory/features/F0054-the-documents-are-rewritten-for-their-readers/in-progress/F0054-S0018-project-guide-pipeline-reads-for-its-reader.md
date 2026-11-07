@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:19:02.503945Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-07T06:19:02.503945Z'
   stage: docs-only
+- number: 20
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:22:18.249257Z'
+  stage: docs-only
+  run: 3313acc018b94704b198263efaa219f1
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -359,3 +361,33 @@ Expect: `1`
 
     Open, not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria say which rules are meant, so this is left for the human. The page has no *Reference* section, which criterion 2 allows.
 19. factory: started docs-only as vm.
+20. documenter: Round 3. I fixed the reviewer's findings 1 to 3 and part of finding 4. `make documents` ends with `documents ok (16.3 s)`. I ran no `make check`, because the only file I changed is a document.
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: the fixes below.
+
+    By finding:
+    1. In *Boundaries in tests*, the fixture bullet now reads "It also sets these fields". It adds `snapshots` (`FakeSnapshots`) and `containers` (`FakeContainerRuns`), both over `<tmp_path>/workspace` through `fake_dataset`. It also adds `machine` (`FakeMachineReadings()`). The fixture sentence moved here from the `build_boundaries` bullet. I took these names from the reviewer's reading of `tests/conftest.py`; I did not read the fixture myself.
+    2. The `SystemClock` and log bullet is now first in the "builds in this order" list. This matches the order the reviewer found in `entry/wiring.py:318-320`.
+    3. "is no longer `origin/main`" is now "differs from `origin/main`".
+    4. Partly done. I split the long sentences in these places:
+       - the `not_read` pattern rule;
+       - the tick's opening paragraph;
+       - the `fetched=True` step;
+       - the reason for the publish step's position;
+       - the `StopPublisher` paragraph;
+       - the `RunGate` introduction;
+       - the `SettingsInvalid` sentence in `build_boundaries`.
+
+       The other long sentences the reviewer named are still open: the stall-step list, the `ask_crash_cap` paragraph, the hand-over description, the `build_boundaries` environment line, the `IdleShutdown` introduction and the several-parentheses lines. I did not go through the whole page.
+
+    Cross-read and found current, as in earlier rounds: the claims the reviewer spot-checked against the code. I did not recompare the rest.
+
+    Stale text seen, not mine to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. This is for the human.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - `docs/project-guide/README.md` and `README.md:28` name paths that do not exist. `make documents` lists them as not checked yet.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.3 s)
+    `documents`: documents ok (16.7 s)
