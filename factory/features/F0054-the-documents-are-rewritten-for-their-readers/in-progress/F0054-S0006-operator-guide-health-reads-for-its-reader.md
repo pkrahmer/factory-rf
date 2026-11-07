@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:42:24.153318Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T00:42:18.510260Z'
   stage: intake
   run: d94a1610a34048dc9c1b92f1c0fa1371
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:42:24.153318Z'
+  stage: docs-only
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    - Docs criterion: it names the reader (an operator who knows Linux and does not read the code) and what the file must hold (the facts of the old file, corrected against the code). It quotes no sentences to write.
    - Architecture: no code is touched, so nothing conflicts with the layers in `CLAUDE.md`.
    - Scope: the story is S0006 of F0054's list and in its scope. It touches none of the out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`).
+4. factory: started docs-only as vm.
