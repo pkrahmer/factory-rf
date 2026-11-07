@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T14:59:31.657840Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T14:59:26.801759Z'
   stage: doing
   run: 0296d9a54f3946eeb3a2f1c5d48602b1
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:59:31.657840Z'
+  stage: review
 ---
 
 # A listed folder README that is missing fails the guard
@@ -136,3 +145,4 @@ Expect: `missing-fails`
 
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
+8. factory: started review as vm.
