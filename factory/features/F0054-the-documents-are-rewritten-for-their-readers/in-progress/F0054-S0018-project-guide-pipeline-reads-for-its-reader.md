@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T06:33:25.994447Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -176,6 +180,11 @@ journal:
   at: '2026-11-07T06:33:20.812245Z'
   stage: docs-review
   run: b14a0e981c3d4786bdfc67d65d2ec676
+- number: 31
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:33:25.994447Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -566,3 +575,4 @@ Expect: `1`
     - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human decides which rules are meant.
     - The page has no *Reference* section, which criterion 2 allows.
     - If the human would rather accept the remaining sentences of 26 to 39 words than run another round, saying so in a comment closes finding 1. Nothing else is open.
+31. factory: started docs-only as vm.
