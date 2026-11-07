@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 634
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T11:55:25.628230Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-07T11:55:25.628230Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-07T11:55:44.841915Z'
+  stage: intake
+  run: 755291ad19934da1a32655fb68c05bd9
+  blocked: question
 ---
 
 # Every file of code and every script names its license
@@ -61,3 +64,8 @@ Expect: `0`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Scope rule has an uncovered clause. The Interface says the scope under `operator/` is files that are a `*.sh` file, a Dockerfile, or start with `#!`. Criterion 3 only covers `tests/` and `operator/template/` as outside the scope. Nothing tests that a non-script under `operator/` (for example a `README.md` or a `.json` file without a shebang) is outside the scope, or that a Dockerfile and a `*.sh` file without a shebang are inside it. I would add rows to criterion 3 (a non-script file under `operator/` is outside) and to criterion 2 (a Dockerfile or a `*.sh` file without the header on its first line fails, naming the file).
+   2. Criterion 2's failing sides are incomplete. The Interface also puts the header "as its first line, before the module docstring" for Python modules. Criterion 2 only has a module with no header. I would add a row for a Python module whose header is on line 2, after a docstring or another line, and fails. I would also add the second branch for scripts: a script with a shebang and the header on the line after it passes, and one without a shebang takes the header on the first line.
+   3. Criterion 4 says `bash -n` runs on each `#!/bin/bash` script. Scripts under `operator/` with another shebang, such as `#!/usr/bin/env bash` or `#!/bin/sh` with no `.sh` suffix, are not named. Say which interpreter each shebang needs, or whether `sh -n` should cover them.
+   My choice: add the rows above to criteria 2 and 3, and for criterion 4 check by shebang (`bash` shebangs with `bash -n`, `sh` shebangs and `*.sh` files with `sh -n`).
+   Checked and fine: the Interface names concrete files and modules, and the smoke test is runnable with a checkable `Expect: 0` (no pytest `-q` involved). The docs criterion names what the reader must know and dictates no sentences. The architecture and the scope fit the feature: S0007 is in the feature's Scope and Decisions 7 to 9, and the tests are excluded as the feature says.
