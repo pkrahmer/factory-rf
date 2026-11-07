@@ -143,3 +143,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 01:39Z: F0054-S0008 PR #616 merged at docs-approval: pipeline.md rewritten and listed; its quoted check line equals factory/pipeline.yml. $1.99, 7 runs, no question, the cheapest page so far.
 - 01:39Z: F0054-S0009 (F0054-S0009-operator-guide-records-reads-for-its-reader) started.
 - 02:00Z: F0054-S0009 PR #617 hit the round cap (3) at docs-review ($2.89, 9 runs); the last review had one real finding (the Reference's list of a cost record's optional keys claimed to be complete). One more round answered by the human's word for tonight.
+- 02:07Z: F0054-S0009 PR #617 merged at docs-approval: records.md rewritten and listed. $3.36, 12 runs, one round cap.
+- 02:07Z: F0054-S0010 (F0054-S0010-operator-guide-work-items-reads-for-its-reader) started.
