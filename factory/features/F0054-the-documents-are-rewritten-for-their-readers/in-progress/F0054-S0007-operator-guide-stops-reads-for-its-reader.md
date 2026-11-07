@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:01:51.170541Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T01:01:46.356028Z'
   stage: intake
   run: b042b84a37d0422eba00902f2941d37f
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:01:51.170541Z'
+  stage: docs-only
 ---
 
 # The operator guide's the stops reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    Docs criterion: criterion 6 says "as criteria 1 to 4", so it names what the reader must know (the stops, from the code) and dictates no sentences.
    Architecture: documents only; it matches the docs route and the CLAUDE.md docs split.
    Scope: it is one of the 22 per-file stories of F0054 (S0007), and `decisions.md` is untouched, which is outside the Out of scope list.
+4. factory: started docs-only as vm.
