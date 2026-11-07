@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T07:23:18.256583Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T07:23:12.946917Z'
   stage: docs-review
   run: a833f90cfe6843a7a99cd7354135b7eb
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T07:23:18.256583Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -132,3 +141,4 @@ Expect: `1`
       - the tests: *Test modules by script*
    8. docs/project-guide/operator.md:142: "the next section lists them" is imprecise. The next section is *Reference*, whose first subsection is *Status of the site scripts*; the list is in *Test modules by script*. Fix: name *Test modules by script* in the *Reference*.
    9. docs/project-guide/README.md:36: the index's list of operator.md's sections stops at *Tests of the scripts* and leaves out the new *Reference*. The documenter's entry says this list still matches, but it no longer does. Fix: add *Reference* to the list.
+8. factory: started docs-only as vm.
