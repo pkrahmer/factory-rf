@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T11:36:12.008837Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-07T11:36:12.008837Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-07T11:36:37.144745Z'
+  stage: tests
+  run: d293f9c974014d938e5a65530b49e376
 ---
 
 # A reference to another page's heading names a heading it has
@@ -246,3 +248,20 @@ Expect: `documents ok (<seconds> s)`
 
     Noticed, not touched: nothing beyond entry 10. `make documents` still blocks on `install.md:121`, `work-items.md:66` and the project guide's `machine.md:487` until the docs stage fixes them. The check does not catch the fourth reference, `agent-runtime.md:407`, so the documenter fixes it by hand.
 15. factory: started tests as vm.
+16. tester: Made the test change that the reviewer's finding (entry 12) and the coder's entry 14 call for. I changed no other test and added no new test function.
+
+    Change: `tests/shared/domain/test_heading_references.py::test_a_reference_to_another_pages_heading_is_found_with_its_line_heading_and_target` has three new rows on criterion 1's refused side and on the two-span case:
+    - plain-text: `See the guide in [machine.md](machine.md).` gives no reference.
+    - another-mark-before-in: `*The two passes*; in [machine.md](machine.md)` gives no reference.
+    - two-italic-spans: `*one* and *The two passes* in [machine.md](machine.md)` gives exactly one reference, heading `The two passes`, target `docs/project-guide/machine.md`.
+
+    Criterion mapping (unchanged apart from the new rows):
+    - criterion 1: tests/shared/domain/test_heading_references.py::test_a_reference_to_another_pages_heading_is_found_with_its_line_heading_and_target (now 14 rows)
+    - criterion 2: tests/shared/domain/test_heading_references.py::test_a_reference_to_a_heading_the_linked_page_does_not_have_is_one_finding and ::test_a_pages_headings_lose_their_code_marks_and_nothing_else
+    - criterion 3: tests/entry/test_check_documents_checked_files.py::test_a_reference_to_another_pages_heading_it_lacks_blocks_in_a_listed_file_only
+
+    Files: I changed `tests/shared/domain/test_heading_references.py` (this story's own file) and created none. The test runner could import every module.
+
+    Run: `uv run pytest -q tests/shared/domain/test_heading_references.py` passed all 20 tests, so the existing code already handles the new rows, as the coder said. `make lint` is green.
+
+    `lint`: lint: green (0.2 s)

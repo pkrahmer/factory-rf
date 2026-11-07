@@ -86,6 +86,21 @@ def _found(heading: str, target: str) -> list[HeadingReference]:
             [],
             id="neither-in-nor-of",
         ),
+        pytest.param(
+            "See the guide in [machine.md](machine.md).",
+            [],
+            id="plain-text",
+        ),
+        pytest.param(
+            "*The two passes*; in [machine.md](machine.md)",
+            [],
+            id="another-mark-before-in",
+        ),
+        pytest.param(
+            "*one* and *The two passes* in [machine.md](machine.md)",
+            _found("The two passes", MACHINE),
+            id="two-italic-spans",
+        ),
     ],
 )
 def test_a_reference_to_another_pages_heading_is_found_with_its_line_heading_and_target(
