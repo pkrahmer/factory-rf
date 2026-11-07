@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T07:17:13.843323Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T07:17:13.843323Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T07:17:29.028461Z'
+  stage: intake
+  run: 41130474e6c645c3ae6261b17c0586cf
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete paths (`docs/project-guide/operator.md`, `docs/checked-documents.txt`), and every path is one the documenter may write (`docs/*`); no code, test or agent file changes, so the docs route fits.
+   Criteria: each is checkable. 1 and 2 are judged by the reviewer against `style.md` and the old file, as the feature's decision 2 provides. 3 is `make documents` printing `documents ok` plus the list entry. 4 is the link rule, and `make documents` finds broken links. 5 is the links to changed headings. 6 is `make check`. Every Interface rule has a criterion; the rules are documents-only, with no failing-side limits.
+   Smoke test: `grep -cx` on the checked list is runnable and `Expect: 1` can be checked against the output. It runs no pytest.
+   Docs criterion: names what the reader must know (style, completeness against the code, checked status, links) and dictates no sentences.
+   Architecture: the page is the project guide's page for the operator's scripts, a path the documenter may write; nothing in `src` changes.
+   Scope: one file of the 22 in feature F0054, S0019, and nothing in the feature's Out of scope (no `decisions.md`, no behaviour change).
