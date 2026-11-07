@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:10:08.841954Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T01:10:03.912055Z'
   stage: docs-review
   run: 0e21600d445b4e71b21834f4857cdafd
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:10:08.841954Z'
+  stage: docs-only
 ---
 
 # The operator guide's the stops reads for the operator
@@ -144,3 +153,4 @@ Expect: `1`
    8. `docs/operator-guide/stops.md:53,97,119,160,245,287,361` (style rule 2): these sentences run well past 25 words, and lines 53 and 245 hold two parentheses each. Fix: split them, one idea and at most one parenthesis per sentence.
    9. `docs/operator-guide/stops.md:300` ("The preflight in the tick") and `:359` ("Stops that cannot be done"): these describe stops without the three parts that style.md asks of every stop (what you see, what it means, what you do). Fix: give each the **You see** / **It means** / **You do** form, as the other stop sections have.
    10. Work item journal entry 5: the documenter says "I read nothing else in the code. The other claims were carried over from the old file unchanged." The Description says the facts come from the code, not from the old text. Findings 1 to 3 are carried-over claims that the code contradicts. Fix: check the remaining carried-over claims against the code and name the ones checked.
+8. factory: started docs-only as vm.
