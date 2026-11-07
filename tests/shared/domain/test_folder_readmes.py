@@ -19,13 +19,14 @@ def _subfolder_line(name: str, sentence: str = "holds files of the operator.") -
 
 def _readme(
     *,
+    title: str = TITLE,
     opening: Sequence[str] = (OPENING,),
     links: Sequence[str] = (LINK,),
     subfolders: Sequence[str] = ("bin", "lib"),
     extra: Sequence[str] = (),
 ) -> str:
     lines = [
-        TITLE,
+        title,
         "",
         *opening,
         "",
@@ -156,6 +157,36 @@ FREE_PROSE = "This line says more than the form allows."
             f"{FOLDER}: is longer than 12 lines",
             1,
             id="one-line-past-the-line-limit",
+        ),
+        pytest.param(
+            _readme(title="## A"),
+            f"{FOLDER}: has a section",
+            1,
+            id="first-line-a-heading-other-than-the-title",
+        ),
+        pytest.param(
+            _readme(title="What the folder holds."),
+            f"{FOLDER}: line 1 is no part of the form",
+            1,
+            id="first-line-of-prose",
+        ),
+        pytest.param(
+            _readme(extra=("", "~~~", "factory status", "~~~")),
+            f"{FOLDER}: has a code block",
+            1,
+            id="tilde-fence",
+        ),
+        pytest.param(
+            _readme(extra=("", "   ```", "   factory status", "   ```")),
+            f"{FOLDER}: has a code block",
+            1,
+            id="fence-indented-by-spaces",
+        ),
+        pytest.param(
+            _readme(links=("The guide is on the web: [the guide](https://example.org/guide).",)),
+            f"{FOLDER}: links to no guide",
+            1,
+            id="only-link-a-web-address",
         ),
     ],
 )

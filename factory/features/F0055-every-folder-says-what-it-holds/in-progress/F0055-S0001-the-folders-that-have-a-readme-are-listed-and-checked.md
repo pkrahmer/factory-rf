@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T10:39:23.980499Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-07T10:39:23.980499Z'
   stage: tests
+- number: 23
+  speaker: tester
+  kind: result
+  at: '2026-11-07T10:40:06.979228Z'
+  stage: tests
+  run: 6422c9e797e2418194922323e8c02445
 ---
 
 # The folders that have a README are listed and checked
@@ -350,3 +352,22 @@ Expect: `23 ['x: no README.md']`
 
     Noticed but not touched: `folder_readmes` now imports `documents`, which imports pipeline-domain tables. That is allowed, since both are domain layers, but it makes the small module depend on a big one.
 22. factory: started tests as vm.
+23. tester: Round 2, tests for criterion 9. The coder's entry 21 says criterion 9, which the reviewer added, needs only its test. As step 0 says for such a criterion, I wrote its rows into the criterion-2 test. I changed no other test.
+
+    Mapping:
+    - criterion 9: tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule, with five new rows:
+      - `first-line-a-heading-other-than-the-title`: `## A` as line 1 gives `has a section`.
+      - `first-line-of-prose`: line 1 is prose and gives `line 1 is no part of the form`.
+      - `tilde-fence`: a `~~~` fence gives `has a code block`.
+      - `fence-indented-by-spaces`: a fence indented by three spaces gives `has a code block`.
+      - `only-link-a-web-address`: a README whose only link is `https://example.org/guide` gives `links to no guide`.
+
+    To build these rows, the file's own `_readme` helper takes a new `title` keyword. Its default is the old title, so the existing rows did not change.
+
+    Files changed: `tests/shared/domain/test_folder_readmes.py`, a file this story's tester wrote. I created no new files.
+
+    Run: `uv run pytest -q tests/shared/domain/test_folder_readmes.py` passed all 22 tests. The code was already in place from rounds 1 and 2, so none of the new rows failed first. `make lint` is green. The test run could import every module.
+
+    Not tested: a README whose only link is root-absolute (`[guide](/docs/operator-guide/README.md)` gives `links to no guide`). The reviewer offered this row in entry 19 and the coder built the behaviour in round 2. But it is in no criterion, and criterion 9 names only the `https://…` case. The tester tests only what the criteria say, so this row needs to be added to criterion 9 (by the reviewer or the human) before I write it. Once added, it is one more row of the same test.
+
+    `lint`: lint: green (0.2 s)
