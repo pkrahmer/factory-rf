@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 3
 attempts: 0
@@ -113,6 +113,11 @@ journal:
   at: '2026-11-07T00:37:27.030207Z'
   stage: docs-review
   run: c3c4000d0be0424fad83e07fb360dc43
+- number: 20
+  speaker: factory
+  kind: done
+  at: '2026-11-07T00:41:20.834773Z'
+  stage: docs-approval
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -370,3 +375,4 @@ Expect: `1`
     - `limit_wait`.
 
     no findings
+20. factory: done (pull request merged); cost: 9 runs, 10.7 min, 90 turns, 349990 tokens in (2921355 more from cache), 55360 out, $3.44
