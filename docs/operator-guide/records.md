@@ -167,7 +167,7 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 
 ## Reference
 
-The optional keys of a cost record. `factory-bill` prints none of them; they are for a reader of the records on GitHub. A reader ignores a key it does not know.
+Some optional keys of a cost record: `denials`, `denied_paths`, `login`, `machine` and `tools`. `factory-bill` prints none of them; they are for a reader of the records on GitHub. A reader ignores a key it does not know. `transcript` names the run's kept transcript; it is explained under *Transcripts* in [health.md](health.md#transcripts).
 
 ### Cost record: refused tool calls
 

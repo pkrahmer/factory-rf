@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 617
 comments_read: [6700706147]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:01:27.493149Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-07T02:01:27.493149Z'
   stage: docs-only
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:04:11.145093Z'
+  stage: docs-only
+  run: 1dad7fb26b1740738ac33fd2dd5c968d
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -373,3 +375,14 @@ Expect: `1`
 
     Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files.
 24. factory: started docs-only as vm.
+25. documenter: Round after the human's answer (journal 21). I fixed the reviewer's last finding in `docs/operator-guide/records.md`, the only file I changed. The Reference introduction (line 170) no longer calls its list "the optional keys of a cost record". It now says "Some optional keys of a cost record" and names `denials`, `denied_paths`, `login`, `machine` and `tools`. It also has a sentence for `transcript`: it names the run's kept transcript and is explained under *Transcripts* in [health.md](health.md#transcripts). That heading exists at `health.md:338`, and the link resolves under `make documents`. I checked `transcript` against `CostRecord` in `src/factory/watching/domain/cost_records.py`, where it is a `TranscriptRef`, `None` when no transcript was kept.
+
+    `make documents` printed `documents ok (13.6 s)`. The `console vm` block at `records.md:53` is listed as not run (vm). I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current: `docs/checked-documents.txt` (it lists `docs/operator-guide/records.md`).
+
+    Stale text I saw and did not touch: `docs/decisions.md:1560` still lists `records.md` among ten topic files, which is history.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (13.6 s)
