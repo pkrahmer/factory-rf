@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T07:31:50.918143Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T07:31:45.939057Z'
   stage: docs-review
   run: 468576cd35824a5eb7be89fc2e657800
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T07:31:50.918143Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -249,3 +258,4 @@ Expect: `1`
     Findings:
     1. docs/project-guide/operator.md:3: the round-2 rewrite of the intro names `site.env.example` for the first time here, unlinked; its link comes only on line 21. The Interface says each file is linked once, at its first mention or in See also. Fix: move the link `[site.env.example](../../operator/site.env.example)` to line 3 and leave line 21's mention plain.
     2. docs/project-guide/operator.md:27, 31, 57, 79 and 104: these files are linked twice, but the Interface says once, and the documenter's own entry 13 reads it as exactly once. The doubles are `site.md` (lines 3 and 27), `site.sh` and `site` (lines 7 and 31), `hosting.sh` (lines 7 and 57), `job.sh` (lines 7 and 79) and `sanitise` (lines 7 and 104). Fix: keep the first link of each and write the later mentions as plain names, as entry 9 already did for `sanitise` in *`job.sh`*. For `site.md`, keep line 3's link and write line 27's See also as *Setting up an operator's machine* in site.md, plain.
+16. factory: started docs-only as vm.
