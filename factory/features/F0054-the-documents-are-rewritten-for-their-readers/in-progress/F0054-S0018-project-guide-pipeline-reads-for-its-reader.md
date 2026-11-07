@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:37:44.670301Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -196,6 +192,12 @@ journal:
   kind: started
   at: '2026-11-07T06:37:44.670301Z'
   stage: docs-review
+- number: 34
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:39:36.377482Z'
+  stage: docs-review
+  run: f2c351392d7f4028949af54232689bda
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -611,3 +613,23 @@ Expect: `1`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok (16.2 s)
 33. factory: started docs-review as vm.
+34. reviewer: Review of the documenter's entry 32. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read the changes since the last review (`git diff f8a631c51 HEAD -- docs/project-guide/pipeline.md`) and then the whole page against `docs/project-guide/style.md`. I checked each changed claim against the earlier text and, where its meaning could have shifted, against the code.
+
+    Fixed since the last review:
+    - Most sentence splits keep the old claims unchanged. These are the loader, the lease rule, the stall step 1, the take and restore step, the crash guards (now a list), the restore step, `_clear_stale_failing_stop`, the reject step 2, `target_of`, `unblock`, `build_boundaries`, the fixture list and the idle shutdown bullets.
+    - The other files in the diff are as the last review found them: `docs/checked-documents.txt`, `docs/project-guide/README.md:35`, `agents.md` and `watching.md`.
+
+    Findings:
+    1. `docs/project-guide/pipeline.md:323`: "`attempts_cap`, `commit` and `pull_request` are at least 1" is wrong. The code is `src/factory/pipeline/application/stalls.py:45-48`. There `commit` is a `CommitId`, not a number. `attempts`, `attempts_cap` and `pull_request` are the three `PositiveInt` fields, and the page leaves `attempts` out. Fix: "`commit` is the pushed head. `attempts`, `attempts_cap` and `pull_request` are at least 1."
+    2. `docs/project-guide/pipeline.md`, style rule 2: some sentences are still longer than about 25 words, or hold more than one parenthesis or a nested one. The human's entry 24 asks for every such sentence to be split, and entry 32 says the work is open. Clear cases on the branch, by line:
+       - 30, 50 (the `Values are taken` sentence and the write-path sentence), 85 (first sentence), 199 (both sentences), 242, 252, 256, 271, 295, 298;
+       - 408, 409 (the `The text is` and `A HostingServiceError there` sentences), 464, 500, 502, 503;
+       - 541, 550, 551, 567, 598, 655, 657, 679, 716, 718;
+       - 743, 744, 753, 757, 759, 767, 769, 772;
+       - 836, 848, 869, 878, 879, 881, 887.
+       Fix: split each into sentences of about 25 words, with at most one parenthesis and none nested. A Markdown link's `(path)` does not count. A parenthesis that holds a semicolon list, as at 743, 767 and 878, becomes its own sentence or bullet. Then go through the rest of the page the same way.
+
+    Open, not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human decides which rules are meant.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - If the human would rather accept the remaining long sentences than run another round, a comment saying so closes finding 2. Finding 1 is a factual error and needs the fix either way.
