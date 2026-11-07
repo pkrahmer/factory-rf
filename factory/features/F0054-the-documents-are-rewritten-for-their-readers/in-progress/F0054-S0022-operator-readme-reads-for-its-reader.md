@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T09:39:41.026135Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -71,6 +75,11 @@ journal:
   at: '2026-11-07T09:39:35.979719Z'
   stage: docs-only
   run: 3c28904ff60e4988ba5f5376230097ad
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:39:41.026135Z'
+  stage: docs-review
 ---
 
 # The operator folder's README reads for its reader
@@ -190,3 +199,4 @@ Expect: `1`
     `check`: check: green
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (59.0 s)
+12. factory: started docs-review as vm.
