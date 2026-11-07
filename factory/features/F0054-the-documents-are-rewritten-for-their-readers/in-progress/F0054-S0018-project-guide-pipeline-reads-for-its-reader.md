@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T06:13:52.370309Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-11-07T06:13:46.990863Z'
   stage: docs-review
   run: 14aaa5315b774040a2b84bde5e1c5771
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:13:52.370309Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -267,3 +276,4 @@ Expect: `1`
     10. `docs/project-guide/pipeline.md` (style rule 2, round-0 finding 18 still open, as the documenter's entry 12 says): many sentences still run far past 25 words, or hold several parentheses. Clear cases are line 17 (the preconditions after `claim`), 22 (four parentheses in one sentence), 233, 283, 434, 440, 476, 534, 709, 710, 727, 777 and 825. Fix: split each into sentences of about 25 words with at most one parenthesis, and go through the rest of the page the same way.
 
     Open, not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules are meant, so I left it for the human. The page still has no *Reference* section, which criterion 2 allows.
+15. factory: started docs-only as vm.
