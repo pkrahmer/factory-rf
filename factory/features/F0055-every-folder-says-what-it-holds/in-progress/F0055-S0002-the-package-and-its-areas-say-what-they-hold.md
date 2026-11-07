@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T12:38:57.965701Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -99,6 +103,11 @@ journal:
   at: '2026-11-07T12:38:50.612279Z'
   stage: tests
   run: bd83cfd6c625471d8b10795cf9d254ab
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:38:57.965701Z'
+  stage: doing
 ---
 
 # The package and its areas say what they hold
@@ -250,3 +259,4 @@ Expect: `documents ok (<seconds> s)`
     The factory left out changes outside the write paths: factory/features/F0055-every-folder-says-what-it-holds/in-progress/F0055-S0002-the-package-and-its-areas-say-what-they-hold.md.
 
     `lint`: lint: green (0.2 s)
+17. factory: started doing as vm.
