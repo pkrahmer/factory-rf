@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:28:41.478829Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T00:28:41.478829Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:30:06.713196Z'
+  stage: docs-review
+  run: b3f7a2b855844a619f3813f216335331
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -213,3 +215,27 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (10.5 s)
 10. factory: started docs-review as vm.
+11. reviewer: Docs review, round 1. I read `docs/operator-guide/agent-runtime.md` on the branch against the round-0 findings, the code and `docs/project-guide/style.md`.
+
+    Round-0 findings 1 to 8 and 10 to 12 are fixed. I checked these facts against the code and found them true:
+    - the allow list of six names (`src/factory/agents/domain/agent_runs.py:39`);
+    - the refused container names (`src/factory/shared/domain/settings.py:86`);
+    - `FACTORY_OPENCODE`'s default `opencode` (`settings.py:91`);
+    - `FACTORY_AGENT_RUNTIME`'s default `claude`;
+    - `--runtime opencode` (`operator/vm/setup.sh:21`);
+    - `AGENT_RUNTIME`, `OPENCODE_VERSION=1.19.5` and the model pin (`operator/vm/Dockerfile:5,67`);
+    - the 180-minute sum against a lease of 60 (`factory/pipeline.yml:23`);
+    - every heading quoted from `machine.md`, `health.md`, `stops.md`, `work-items.md` and `install.md`.
+
+    Criterion 3 holds: the file is on the list and the journal reports `documents ok`. Criterion 4 holds: no heading changed this round.
+
+    Round-0 finding 9 is only partly fixed, and three more points remain:
+
+    1. `docs/operator-guide/agent-runtime.md:16`: the first use of "claim" ("before any claim") is not linked. The link stands at `:194`. Style rule 3 asks for the link at the first use. Fix: link "claim" at `:16` and leave `:194` plain.
+    2. `docs/operator-guide/agent-runtime.md:50` and `:335`: "project commands'" (`:50`) and "the stop `agent_definition_invalid`" (`:335`, its first use in the glossary's sense outside a quoted heading) are glossary words, and neither is linked. Rule 3 makes no exception for a word used in passing. Fix: link both to `../project-guide/glossary.md`.
+    3. `docs/operator-guide/agent-runtime.md:96`: "or the value for the API key" leaves out a value the code names exactly: `login` is `api_key` (`src/factory/agents/domain/agent_runs.py:44`, and the page itself shows `factory-login-used: api_key` at `:400`). Fix: write "`subscription`, `api_key` or `none`".
+    4. `docs/operator-guide/agent-runtime.md:74-78`: the Windows `Set-Content` command is a PowerShell command, but it stands in an `sh` block outside any numbered step. *Examples that are not run* puts such a command under its numbered step. Fix: make it the Windows variant of step 2 of *The agent's login token*, with its block indented under that step.
+    5. `docs/operator-guide/agent-runtime.md:16`: the version check is told twice. First "The preflight compares it with `FACTORY_CLAUDE_VERSION`", then `agent-runtime-version` "compares the first word of its output with the pinned version". Fix: say once that the item `agent-runtime-version` runs `claude --version` or `opencode --version` in the stage image and compares its first word with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`.
+    6. `docs/operator-guide/agent-runtime.md:288`: the paragraph "Starting it with the instance…" starts with a stray space. Fix: remove it.
+
+    Dropped on purpose, still accepted from round 0: the `planning/cloud-sandbox/` pointer, the F0043 and F0044 notes, "This repository's own build stays on the subscription", and `limit_wait`.
