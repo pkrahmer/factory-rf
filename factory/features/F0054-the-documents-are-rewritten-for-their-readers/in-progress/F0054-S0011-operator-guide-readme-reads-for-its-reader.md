@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:26:39.711230Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T02:26:34.915531Z'
   stage: intake
   run: 28486f415358463cb254047a9233ada2
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:26:39.711230Z'
+  stage: docs-only
 ---
 
 # The operator guide's index reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    - Docs criterion: it names what the reader must know (criteria 1 to 4), not sentences to write. It says `docs/decisions.md` gets no change.
    - Architecture: it touches no code, so the layers are not affected. It leaves out the playbook, `decisions.md` and `docs/runs/`, which `CLAUDE.md` keeps for the human.
    - Scope: it is S0011 of F0054 and matches the story list in `feature.md`. It is not in "Out of scope".
+4. factory: started docs-only as vm.
