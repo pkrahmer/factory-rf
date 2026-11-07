@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T04:12:31.274946Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T04:12:31.274946Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T04:12:45.946559Z'
+  stage: intake
+  run: f9c96d4ca24f45e6a60fd82371ed819b
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -60,3 +62,12 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete paths only (`docs/project-guide/agents.md`, `docs/checked-documents.txt` with its one line), and says no code, test or agent file changes. Every path it changes is one the documenter may write.
+   - Criteria: on the docs route there are no tests, so criteria 1 and 2 are judged by the reviewer against `docs/project-guide/style.md` and the code. Criteria 3 to 5 are checked by `make documents` (`documents ok`, no broken link) and by the link rule. Criterion 6 is `make check`. The failing side is covered: a dropped fact, a broken link and a missing checked-list entry each fail a criterion.
+   - Smoke test: `grep -cx "docs/project-guide/agents.md" docs/checked-documents.txt` is runnable, and `Expect: 1` can be checked against its output. It does not run pytest.
+   - Docs criterion (7): says docs are as criteria 1 to 5 and `docs/decisions.md` is unchanged. It names what the reader must know and dictates no sentences.
+   - Architecture: a documents-only change to the project guide's page on the agents area. It touches nothing in `factory/`, `src/` or `tests/`, and the story does not use the `.claude/` or `planning/` paths.
+   - Scope: within F0054's scope (S0015 is listed, one file per story). It touches nothing in the feature's out-of-scope list (`decisions.md`, `docs/runs/`, the operator playbook, behaviour changes).
+
+   Route: docs-only.
