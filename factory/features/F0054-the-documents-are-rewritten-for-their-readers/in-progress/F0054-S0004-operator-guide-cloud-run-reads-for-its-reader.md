@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:02:59.838631Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T00:02:59.838631Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:04:37.977030Z'
+  stage: docs-review
+  run: 97dca653a4f1497db1ad6f5ed5918c70
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -117,3 +119,14 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (5.9 s)
 6. factory: started docs-review as vm.
+7. reviewer: Docs review, round 0. I read `docs/operator-guide/cloud-run.md` on the branch against the file on `main`, `operator/vm/job-start.sh`, `operator/job/job.sh`, `src/factory/entry/run.py` and `src/factory/machine/application/machine_stop_exit.py`, and against `docs/project-guide/style.md` and the glossary. Every heading the file links to in another document exists. The headings that `site.md` and `README.md` link to are kept. `docs/checked-documents.txt` holds the path. The items dropped on purpose are acceptable as history: the P15/P16/P18/P20 labels, the measurement date, and the "candidate for later" sentence. `FACTORY_CLAUDE_HOME` = `<root>/factory/agents` is correct (`job-start.sh:61,68`).
+
+   Findings:
+   1. `docs/operator-guide/cloud-run.md:127`: the bullet "A machine stop that stands for ten minutes ends the execution with status 1" lost its condition. The code ends the process only when the idle shutdown is on and its action is `exit` (`machine.md` *A machine stop in a job*; `src/factory/entry/run.py:56,194`). On `main` the sentence stood under the idle-shutdown bullet. Fix: start the bullet with "With `FACTORY_IDLE_SHUTDOWN_MINUTES` set," and point to *The idle shutdown* in machine.md.
+   2. `docs/operator-guide/cloud-run.md:137`: "Every `gcloud run` call carries `--region` too, because Cloud Logging has no region and `logging read` does not take it" gives the wrong cause. Cloud Logging having no region is why `logging read` is the exception, not why `gcloud run` calls carry `--region`. Fix: "Every `gcloud run` call carries `--region` too. `logging read` does not, because Cloud Logging has no region."
+   3. `docs/operator-guide/cloud-run.md:57`: the example `/secrets/hosting-token/token` contradicts the code. `job.sh` mounts the token at, and sets `FACTORY_TOKEN_FILE` to, `/secrets/hosting-token` (`operator/job/job.sh:18,98`). Fix: make the example `/secrets/hosting-token`.
+   4. `docs/operator-guide/cloud-run.md:100` (with :98): the text says the script prints `job-start: inputs` and then checks the variables. In fact the required-variable, token-file and `RUNC_SHA256` checks run before the `inputs` line is printed (`job-start.sh:45-56`), and the file's own example at :91-93 shows a refusal with no `inputs` line. Fix: say that these checks come before the first step line, and that `inputs` covers the derived settings, the token copy, the transcript check and `PATH`.
+   5. `docs/operator-guide/cloud-run.md:115`: "The job's log ends with the last step printed" is false. After the step line, the script prints `job-start: <step>: failed` on standard error, and the job's log carries it too (`job-start.sh:12-19`). Fix: "The job's log shows the last step printed, followed by its failure line" (or keep `main`'s "has the last step printed").
+   6. `docs/operator-guide/cloud-run.md:281-297`: the *Messages of `job.sh`* table leaves out `job: operator/vm/job-start.sh holds the line JOB_START_SH_END; the wrapper cannot carry it` (status 1, `operator/job/job.sh:161-162`), and :208 states this refusal without its message. Fix: add the row and quote the message at :208.
+   7. `docs/operator-guide/cloud-run.md:3`: this breaks style rule 3 (link a factory word at its first use). The list claims the file uses [round cap] and [cost record], but neither appears in the text. It leaves out `tick` (first used at :125) and `story` (at :121), which are glossary words, and it links `base` again at :21. Fix: drop the word list, and link each glossary word where it is first used: stage, stop, crash, base, work item, tick, story.
+   8. `docs/operator-guide/cloud-run.md:5`: this paragraph tells the operator about `make documents` and which blocks the docs check runs. That is the documenter's tooling, not something the operator does (style.md, *The operator guide*: the reader does not read the code). The text above each `sh` block already says where it runs. Fix: remove the paragraph.
