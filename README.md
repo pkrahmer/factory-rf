@@ -50,7 +50,7 @@ To run a factory [instance](docs/project-guide/glossary.md) you need a prepared 
 
 ### The document check
 
-The check finds a document that is missing, does not say what the factory does in its own words, or leaves a stop unnamed. It also finds a stop, a kill point case or a fault-injection path without its row in the project guide's *Kill points* or *Fault-injection paths*, and a project guide that lacks one of those sections. These findings block in every file.
+The check finds a document that is missing or that does not say what the factory does in its own words. It also finds a stop without a row naming its destination in the operator guide's stops file, and an operator guide that lacks *Install*, *Configuration* or *The stops*. It finds a kill point case or a fault-injection path without its row in the project guide's *Kill points* or *Fault-injection paths*, and a project guide that lacks one of those sections. These findings block in every file.
 
 Three more checks run on the documents:
 
@@ -70,4 +70,4 @@ A project can add tools to its stage image with a file `<project>/factory/stage.
 
 ### How it is built
 
-The instance of this factory builds this repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, one folder for each feature. One stage agent at a time takes a story through tests, code, review, docs and smoke test. A story's pull request carries the whole story, and merging it accepts the story. The planning history is kept at the tag `planning-history-2026-10-19`; [decisions.md](docs/decisions.md) records why.
+The instance of this factory builds this repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, one folder for each feature. One stage agent at a time takes a story through tests, code, review, docs and smoke test. A story's pull request carries the whole story, and merging it accepts the story. The planning history is kept at the tag `planning-history-2026-10-19`; [decisions.md](docs/decisions.md) says what the tag holds.

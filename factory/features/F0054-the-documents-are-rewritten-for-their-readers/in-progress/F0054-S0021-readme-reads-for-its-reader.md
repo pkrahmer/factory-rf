@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:11:18.540414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T09:11:18.540414Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:15:28.548690Z'
+  stage: docs-only
+  run: 30595a0c3fd9437c8625d3671eb05f22
 ---
 
 # The README reads for a newcomer
@@ -256,3 +258,18 @@ Expect: `1`
 
     Earlier tests: none. The diff changes no test file.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: fixed the reviewer's two findings, both in `README.md`.
+
+    Files changed:
+    - `README.md` (1), *The document check*: I read `_stop_rows`, `_stops_messages` and `_project_guide_rows` in `src/factory/shared/domain/documents.py`. The paragraph now says what the code checks, in three sentences. The first covers a missing document and one that lacks the factory's own words, and drops "leaves a stop unnamed". The second covers a stop without a row naming its destination in the operator guide's stops file, and an operator guide that lacks *Install*, *Configuration* or *The stops*. The third covers a kill point case or fault-injection path without its row in the project guide's *Kill points* or *Fault-injection paths*, and a project guide that lacks one of those sections.
+    - `README.md` (2), *How it is built*: "decisions.md records why" is now "decisions.md says what the tag holds". `docs/decisions.md:3` says the planning records its older entries cite are kept at the tag.
+
+    Checks: `make documents` ends with `documents ok (57.8 s)`. I did not run `make check`, because only a document changed.
+
+    Cross-read: `README.md` against `documents.py` (the stop, kill point and fault-injection checks, `OPERATOR_GUIDE_SECTIONS`) and `docs/decisions.md:3`; current.
+
+    Stale text noticed and not touched: none.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (58.0 s)
