@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:57:38.933244Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T02:57:33.384305Z'
   stage: intake
   run: 64a688050a464c798e3238f9457573f8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:57:38.933244Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    - Docs criterion: criterion 7 points at criteria 1 to 5 (reader's knowledge: the style, the old file's facts kept, working examples, links). It quotes no sentences to write.
    - Architecture: the change touches only documents, matching CLAUDE.md's Docs section. It keeps `docs/decisions.md` unchanged and writes nothing to `factory/`, `planning/` or `docs/runs/`.
    - Scope: this is S0012 of F0054's list (the project guide's page on the shared area), within Scope and outside Out of scope.
+4. factory: started docs-only as vm.
