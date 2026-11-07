@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-07T14:48:22.910146Z'
   stage: acceptance
   run: 48815cb0854d4f36b369a026d1957c88
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-07T14:52:18.600781Z'
+  stage: done
 stories: [F0055-S0001, F0055-S0002, F0055-S0003, F0055-S0004, F0055-S0005, F0055-S0006, F0055-S0007]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of Every folder says what it holds
@@ -253,3 +258,4 @@ The human answered 13 questions (11 questions, 2 at the round cap) and the stori
    7 Slow checks: `make documents` ok (59.7 s). `make duplicates` reports 6 new, 1 of them this feature's. No scan, no SBOM. Disk free dropped 0.7 GB on the pool with dataset use unchanged at 1.5 GB, which the feature's text files do not explain.
    8 Cost: 81 runs, 122.2 min, $19.54. S0001 took a third ($6.48, 19 runs: two open counts, three review rounds, the round cap). The human answered 13 questions (11 questions, 2 at the round cap) and the stories waited 0.6 h. S0001 and S0003 needed the human most, 3 answers each; S0003's because no role could write tests/README.md on the tests route.
    Proposed: F0055-S0008 (a missing listed README fails the guard) and F0055-S0009 (the opening and link lines of a folder README keep their limits). Both pass `factory-check-story`, and both smoke tests are red today.
+3. factory: done (pull request merged); cost: 1 runs, 13.4 min, 39 turns, 115251 tokens in (2528311 more from cache), 36959 out, $2.17
