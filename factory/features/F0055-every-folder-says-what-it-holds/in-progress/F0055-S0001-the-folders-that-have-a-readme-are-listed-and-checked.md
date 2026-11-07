@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T10:47:51.748206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -169,6 +173,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T10:47:49.378141Z'
+  stage: review
+- number: 30
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:47:51.748206Z'
   stage: review
 ---
 
@@ -452,3 +461,4 @@ Expect: `23 ['x: no README.md']`
     - `tests/guards/test_folder_readmes.py:16` (`_subfolders`): a docstring on a private test helper.
 28. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 29. 2026-11-07 human: One more round, by the human's standing word. Both findings of the last review are real and small: the tester adds the row of criterion 10 (a README whose only link is root-absolute gives 'links to no guide'), and the coder removes the docstring of _Reading, keeping a why-comment if needed. The reviewer's two notes may be done in the same round under the standing leave (_run moved to tests/support/check_documents_support.py, the private helper's docstring removed), but they are not required. Nothing else changes.
+30. factory: started review as vm.
