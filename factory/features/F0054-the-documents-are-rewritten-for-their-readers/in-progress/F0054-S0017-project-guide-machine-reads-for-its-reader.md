@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:39:43.497303Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-07T05:39:43.497303Z'
   stage: docs-review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:40:29.181072Z'
+  stage: docs-review
+  run: 3bd8a4b992404a31a76f5e1116af456f
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -440,3 +442,16 @@ Expect: `1`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok (16.2 s)
 26. factory: started docs-review as vm.
+27. reviewer: Docs-review of the round-4 change, after the human's answer in entry 21. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked the rewritten parts of *The project's stage image* and of the Reference section *How the stage file is followed* against `chosen_image`, `project_image_settings` and `_base_image` (src/factory/entry/wiring.py:455-530), `_ProjectImageStart._follow_main` and `_choose` (src/factory/entry/run.py:240-285), `ImageBuild` (src/factory/machine/application/images.py:15-24) and `BUILD_OUTPUT_TAIL_LINES` (podman_images.py:18).
+
+    Both findings from entry 23 are fixed, and the new text matches the code:
+    - `chosen_image(settings, git, images, stops, *, report=None) -> ChosenImage | None` is now in the code block. The page names it as the place where the image is chosen and as what `_ProjectImageStart` calls (run.py:267). `project_image_settings` is described as the wrapper that returns `chosen.settings` (wiring.py:468-469).
+    - The report rule matches `told = report if has_stage_file or at_start else None` (run.py:266).
+    - The `ImageBuild` field list now has `warnings`, a `NonNegativeInt` that defaults to 0 (images.py:24). The 20 lines match `BUILD_OUTPUT_TAIL_LINES`.
+
+    The three one-line changes from entry 5 have not changed and are still right. No heading was renamed.
+
+    Findings:
+    1. docs/project-guide/machine.md:725, the bullet this round rewrote, breaks style rule 2 (`docs/project-guide/style.md`:8: one idea per sentence, split anything over about 25 words). The sentence "A different text calls `chosen_image`; it passes a `StageImageReport` when a stage file exists or at the start, and none for a later follow without a stage file (`stage_image_report`: log, clock, the commit's first 12 hex digits)." runs to about 37 words and joins two ideas with a semicolon. Fix: split it. For example: "A different text calls `chosen_image`. It passes a `StageImageReport` (`stage_image_report`: log, clock, the commit's first 12 hex digits) when a stage file exists or at the start. A later follow without a stage file passes none."
+
+    Earlier tests: none needed (the diff changes no test file).
