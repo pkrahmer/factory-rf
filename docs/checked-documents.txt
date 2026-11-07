@@ -6,3 +6,4 @@ docs/operator-guide/install.md
 docs/operator-guide/site.md
 docs/operator-guide/machine.md
 docs/operator-guide/cloud-run.md
+docs/operator-guide/agent-runtime.md
