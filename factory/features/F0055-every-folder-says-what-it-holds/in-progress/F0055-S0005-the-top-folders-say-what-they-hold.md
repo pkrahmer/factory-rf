@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T14:06:50.747586Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-07T14:06:50.747586Z'
   stage: docs-only
+- number: 12
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:11:14.255009Z'
+  stage: docs-only
+  run: 768a5c9f736b4c699f214568d1ea3dd1
 ---
 
 # The top folders say what they hold
@@ -161,3 +163,20 @@ Expect: `documents ok (<seconds> s)`
 
     Checked and found true: the root `## The folders` section sits between `## Where to read next` (unchanged) and `## Reference`. It has ten lines in the subfolder-line form, and links to the six READMEs that exist (`src/` links to `src/factory/README.md`; `src/` itself has no README). It names `factory/`, `planning/` and `session-logs/` as the human's, and `session-logs/` is ignored in `.gitignore:15-16`. `docs/README.md` names all four documents and has a line for each of the three subfolders. `security/README.md` matches the `sast` and `duplicates` targets and links `CLAUDE.md`, *Checks*. `docs/checked-documents.txt` gains both paths. The trailing link sentence of `docs/README.md` passes the guard (`_read_line` takes any line with a link) and serves criterion 8; I left it as it is.
 11. factory: started docs-only as vm.
+12. documenter: Fixed the reviewer's three findings and nothing else.
+
+    Files changed:
+    - `security/README.md`: finding 1. "The vendored semgrep rules that `make sast` applies" is now "The semgrep rules that `make sast` applies". The rules are this project's own.
+    - `docs/README.md`: findings 2 and 3. The `runs/` line now reads "The human's logs and reports of finished runs; no stage writes them." This matches `CLAUDE.md`, *The human's files*, and the run logs and reports that `docs/runs/` actually holds.
+
+    `make documents` ends with `documents ok (61.1 s)`. I changed only documents, so I did not run `make check`. The factory runs it after this stage.
+
+    Cross-read and found current: the root `README.md` section `## The folders`, which the reviewer had already checked against the code.
+
+    Open:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it). The root line for it has no link.
+    - The `agents/` line in the root `## Where to read next` now duplicates its line in `## The folders`. Criterion 6 says to leave `## Where to read next` unchanged, so I did not touch it.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (59.7 s)
