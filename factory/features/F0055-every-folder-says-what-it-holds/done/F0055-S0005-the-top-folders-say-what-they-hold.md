@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -175,6 +175,11 @@ journal:
   at: '2026-11-07T14:30:50.839569Z'
   stage: docs-review
   run: ed759dc1567a4582869c570ad06704b7
+- number: 31
+  speaker: factory
+  kind: done
+  at: '2026-11-07T14:34:44.145632Z'
+  stage: docs-approval
 ---
 
 # The top folders say what they hold
@@ -427,3 +432,4 @@ Expect: `documents ok (<seconds> s)`
     Open, not a finding:
     - The `agents/` line in `## Where to read next` covers the same folder as its line in `## The folders`. Criterion 6 keeps the old section unchanged.
     - `session-logs/` is ignored by git (`.gitignore`), so its line has no link.
+31. factory: done (pull request merged); cost: 13 runs, 13.4 min, 80 turns, 272896 tokens in (1634372 more from cache), 30050 out, $2.43
