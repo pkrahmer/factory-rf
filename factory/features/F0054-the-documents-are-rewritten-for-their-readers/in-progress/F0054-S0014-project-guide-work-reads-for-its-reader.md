@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 1
 crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:03:43.356129Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-07T04:03:43.356129Z'
   stage: docs-review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:04:39.047762Z'
+  stage: docs-review
+  run: 3bc60657c3ae4cb08f23a223525744aa
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -242,3 +244,26 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (10.0 s)
 13. factory: started docs-review as vm.
+14. reviewer: Round 1 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, then checked the new `docs/project-guide/work.md` against the code on the branch and against the round-0 findings.
+
+    All 13 round-0 findings are fixed, and I checked each against the code:
+    - `check_story_place` and `check_story_form` now return `list[FormFinding]` (`src/factory/work/domain/story_form.py:200,244`).
+    - `write_contract` now returns `list[Path]` (`src/factory/entry/contract.py:17`).
+    - `folder_of` and `acceptance_status` now carry the code's types.
+    - The contract command is now a `console` example. It matches `main`, which writes into the folder given or `CONTRACT_FOLDER` and prints `contract: 5 schemas written`.
+    - The `uv run python` sentence is at line 34.
+    - The See also on line 170 names the real heading.
+    - The sentence that pointed nowhere is gone.
+    - `_state_of` is explained at line 125.
+    - `PROJECT_AGENTS_DIRECTORY` and `project_agent_file` are described as paths relative to the project's root (`paths.py:20,48`).
+    - The `parse_work_item_file_name` rule is back at line 156.
+    - The history wording is gone from line 184.
+    - The glossary terms and modules are now linked.
+
+    The other signatures I spot-checked match the code: `main` of check_story, `lifecycle_folder_of_location`, the sections functions, `work_item_path`, `cost_records_path`, `acceptance_id`, `next_acceptance_id` and `initial_state`. The `docs/checked-documents.txt` line and the index entry in `docs/project-guide/README.md` are still correct.
+
+    I left one point out. Line 366 names `python -m factory.entry.check_story` inline. I read it as naming the module's entry point, not as a command shown to run, and line 373 points to the operator guide's example of its output.
+
+    Findings:
+    1. `docs/project-guide/work.md:508`: "A journal record's `at`, `stage` and `run` are left out of the file when unset. Every other key stays (`claim: null`)." The code contradicts this for a record. The writer dumps each record with `model_dump(exclude_none=True)` (`src/factory/work/adapters/work_item_markdown.py:175`), so an unset `blocked` and `reason` are left out too. Line 92 of the same page already says so ("leaves an unset field out"). Fix: say that every unset field of a journal record (`at`, `stage`, `run`, `blocked`, `reason`) is left out of the file, and that every key of the state itself stays (`claim: null`).
+    2. `docs/project-guide/work.md:13`: the signature says `work_item_order(id) -> tuple`. The code returns `tuple[str, int, str]` (`src/factory/shared/domain/identifiers.py:81`). This is the same kind of loose type as round 0's finding 3. Fix: write `-> tuple[str, int, str]`.
