@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:39:22.327916Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T02:39:22.327916Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:42:05.978202Z'
+  stage: docs-only
+  run: fa6c5c461d394cdeadb84e28fa69255d
 ---
 
 # The operator guide's index reads for the operator
@@ -234,3 +236,14 @@ Expect: `1`
     Findings:
     1. `docs/operator-guide/README.md:39`, the sentence that starts "The stage environment is the containers; an instance without `FACTORY_WORKSPACE`…" and ends "…(with `FACTORY_SNAPSHOTS=copy` it runs without a dataset).": the round-2 addition makes it about 42 words with three conditions. That breaks style rule 2 (split a sentence of more than about 25 words), and rule 4 (common case first) suffers too. Fix: split it into short sentences with the same facts. For example: "The stage environment is the containers. An instance without `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE` is refused. With `zfs` snapshots it also needs `FACTORY_DATASET`. With `FACTORY_SNAPSHOTS=copy` it needs `FACTORY_SNAPSHOT_BASE` instead and runs without a dataset."
 16. factory: started docs-only as vm.
+17. documenter: Round 3: fixed the reviewer's one finding from entry 15, in `docs/operator-guide/README.md`, section *Reference*, *What the stage environment is*, bullet 1. The long sentence is now four short ones with the same facts. An instance without `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE` is refused. With `zfs` snapshots it also needs `FACTORY_DATASET`. With `FACTORY_SNAPSHOTS=copy` it needs `FACTORY_SNAPSHOT_BASE` instead and runs without a dataset. Those conditions were checked against the code in round 2.
+
+    `make documents` ends with `documents ok (13.5 s)`. I changed only documents, so I did not run `make check`.
+
+    Cross-read and found current: the rest of the guide's README and the earlier fixes, as in entries 5, 9 and 13.
+
+    Stale text seen, not touched: only the items entry 5 lists. They belong to other stories.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (13.6 s)

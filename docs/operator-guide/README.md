@@ -36,7 +36,7 @@ How the stage environment works and what the instance refuses.
 
 ### What the stage environment is
 
-- Every stage runs in containers. The [stage environment](../project-guide/glossary.md) is the containers; an instance without `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` is refused, and so is one without `FACTORY_DATASET` when the snapshots are `zfs`, or without `FACTORY_SNAPSHOT_BASE` when they are `copy` (with `FACTORY_SNAPSHOTS=copy` it runs without a dataset). A setting file that holds a variable the factory does not read, such as `FACTORY_STAGE_ENVIRONMENT`, is harmless: nothing reads it.
+- Every stage runs in containers. The [stage environment](../project-guide/glossary.md) is the containers. An instance without `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE` is refused. With `zfs` snapshots it also needs `FACTORY_DATASET`. With `FACTORY_SNAPSHOTS=copy` it needs `FACTORY_SNAPSHOT_BASE` instead and runs without a dataset. A setting file that holds a variable the factory does not read, such as `FACTORY_STAGE_ENVIRONMENT`, is harmless: nothing reads it.
 - The container is the boundary. On the VM the agent's container runs as the user `factory` with `--userns=keep-id`; a Cloud Run job runs without the user namespace (see [cloud-run.md](cloud-run.md)). The [dataset](../project-guide/glossary.md) is the only writable mount; the login files are mounted read-only at their own paths. The token is on the host, which alone pushes.
 - The agent's home is `home/` on the dataset. The rollback to the [base](../project-guide/glossary.md) clears it before every stage, and it clears whatever else a run left on the dataset.
 - The factory ends everything an agent's call started by ending the call's container.
