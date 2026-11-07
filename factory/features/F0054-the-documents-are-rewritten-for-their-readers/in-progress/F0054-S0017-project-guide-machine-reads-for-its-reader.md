@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:29:42.490415Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T05:29:42.490415Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:30:17.665610Z'
+  stage: docs-review
+  run: ffa707268b0b45489d39ffcab73e805e
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -299,3 +301,18 @@ Expect: `1`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok (16.1 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I compared this round's changes (237fe10a1..f8e43a1c6) with last round's five findings and with the code on the branch.
+
+    Last round's findings:
+    - 1 is fixed. The `FEATURE_MODULES` sentence now reads clearly and matches Makefile:117.
+    - 2 is fixed. The long sentences are split, and the `KnownResults.run` step 1 sub-bullets match the code.
+    - 3 is fixed. "Tests:" now comes before "See also" in *The fakes* and *Known results*.
+    - 4 is fixed. *The copy snapshots* and *The container environment* now end with "See also".
+    - 5 is fixed. No file under `../../` is linked twice any more. The operator template's `Makefile` is a different file from this repository's.
+
+    The three one-line changes from entry 5 are unchanged and still right. No heading was renamed this round.
+
+    Findings:
+    1. docs/project-guide/machine.md, *The project's stage image*, the bullet "It returns `None` when the file breaks the rule or does not build. The caller then raises the machine stop `stage_image_failed`." This round's split made the sentence wrong. `project_image_settings` raises the stop itself and does not leave it to its caller: `chosen_image` calls `_stage_image_failed`, which calls `stops.raise_stop(RepositoryStop(scope="machine", reason="stage_image_failed", ...))`, and only then returns `None` (src/factory/entry/wiring.py:489-497, 523-530; its docstring is at :462-465). Fix: "It raises the machine stop `stage_image_failed` and returns `None` when the file breaks the rule or does not build."
+
+    Earlier tests: none (the diff changes no test file).
