@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 3
 attempts: 0
@@ -113,6 +113,11 @@ journal:
   at: '2026-11-07T03:43:26.180893Z'
   stage: docs-review
   run: f086de0f79bf41b6b10a1ab69d7b4ed3
+- number: 20
+  speaker: factory
+  kind: done
+  at: '2026-11-07T03:47:19.701389Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -368,3 +373,4 @@ Expect: `1`
     - Line 181 says the restore covers work items "that has a remote branch or is in progress". It names the tick's restore, not the acceptance, and the round-2 review already checked it against `_work_items_with_branches`.
 
     Open: nothing.
+20. factory: done (pull request merged); cost: 9 runs, 10.5 min, 105 turns, 350070 tokens in (3580061 more from cache), 58157 out, $3.55
