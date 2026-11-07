@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T05:19:07.253900Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T05:19:02.388616Z'
   stage: docs-review
   run: b9deaf16374548129eaf12db9f08d2d6
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:19:07.253900Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -157,3 +166,4 @@ Expect: `1`
        - These names are not linked: `factory.entry.run` (:661), `factory.shared.domain.printed_lines` (:683), `test_claude_runtime.py` (last bullet), and this repository's own `Makefile` and `factory/pipeline.yml` (:381). The links already there point to the operator template's files. Fix: link each one once.
 
    Earlier tests: none (the diff changes no test file).
+8. factory: started docs-only as vm.
