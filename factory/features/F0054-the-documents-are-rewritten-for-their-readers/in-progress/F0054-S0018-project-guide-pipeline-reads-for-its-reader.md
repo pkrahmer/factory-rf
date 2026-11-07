@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:11:33.669473Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -85,6 +81,12 @@ journal:
   kind: started
   at: '2026-11-07T06:11:33.669473Z'
   stage: docs-review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:13:46.990863Z'
+  stage: docs-review
+  run: 14aaa5315b774040a2b84bde5e1c5771
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -248,3 +250,20 @@ Expect: `1`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok (16.3 s)
 13. factory: started docs-review as vm.
+14. reviewer: Round 1 review. I read `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `docs/project-guide/style.md` and the code on the branch. I read the whole new `docs/project-guide/pipeline.md` and checked the round-0 findings 1 to 18 against it.
+
+    Fixed: findings 4 to 7, 8, 9, 10 to 17, and 6's citations in `agents.md` and `watching.md`. These now match the code: the take signatures (`take.py`), the preflight order (`wiring.py:562-590`), the `Boundaries` optional fields and their defaults (`boundaries.py:65-78`) and the `build_boundaries` builders (`wiring.py:300-345`). I checked for removed headings: *The pipeline definition, the stages and the tick*, *`prepare(...)`*, *`ensure_pull_request(...)`*, *The sidecar* and *Stops, the clock and the factory log*. Only the last one is still cited anywhere, at finding 1.
+
+    Findings:
+    1. `docs/project-guide/README.md:35` (criterion 5): it still lists *Stops, the clock and the factory log* among the sections of `pipeline.md`, but that heading is gone. It also calls *Boundaries* a subsection, and it is now a top-level section. Fix: name *The stop records* (with *The clock, the log and the stores*), list *Boundaries* and *The idle shutdown* as sections, and add the new top-level sections.
+    2. `docs/project-guide/pipeline.md:165` and `:262` (criterion 1, round-0 finding 1 still open): the glossary words "round" (first used in the prompt table, line 165) and "stall" (first plain use, line 262) are not linked. Fix: link each to `glossary.md` at that use.
+    3. `docs/project-guide/pipeline.md:262-274` (Interface, criterion 4, round-0 finding 2 still open): the Stalls signature block shows functions from `decisions.py` and `post_texts.py`. `stall_reason_of` is at `work/domain/decisions.py:22`, and `stall_cause` and `stall_note` are at `hosting/domain/post_texts.py:40,48`. Only `stalls.py` is linked above the block. `factory.hosting.domain.post_texts` is first named at line 274 but linked only at line 346, and `decisions.py` is first linked at line 324. Fix: link both files above the block at line 262, and leave lines 324 and 346 plain.
+    4. `docs/project-guide/pipeline.md:254` (Interface "linked once, at its first mention"): `factory.watching.application.machine` is first named here unlinked, and it is linked only at line 698. Fix: put the link at line 254 and make line 698 plain.
+    5. `docs/project-guide/pipeline.md:662`: the sentence "the operator guide on work items says what the operator sees." starts in lower case. The script that replaced the link left it that way. Fix: "The operator guide on work items says what the operator sees."
+    6. `docs/project-guide/pipeline.md:758` (criterion 2): "These eight, `settings` to `containers`, are required" has no full stop. It follows the list of eight optional fields, so "these eight" reads as those. The old file's rule is also dropped: none of the eight has a default or admits `None`, a `Boundaries(...)` without one is a `TypeError`, and `build_boundaries` sets all eight. Fix: restore that rule as one full bullet, placed before the optional fields.
+    7. `docs/project-guide/pipeline.md:765`: "`build_boundaries` resolves the hosting service first ... before any adapter exists" is contradicted by `entry/wiring.py:313-316`. There `_container_adapters(settings)` builds the snapshots and `PodmanRuns`, and raises its `SettingsInvalid`, before the hosting service is resolved. Fix: say that the container adapters and their refusals come first and the hosting service next, before the other adapters.
+    8. `docs/project-guide/pipeline.md:686-692`: the `StopService`/`StopPublisher` signature block comes after the bullets. It is indented four spaces right after a list item, so Markdown renders it as a paragraph of the second bullet, not as a code block. It also puts the names after the rules, against the project-guide style. Fix: move the block above the bullets, after the opening sentences at line 684, outside the list.
+    9. `docs/project-guide/pipeline.md:530-533`: "Steps 3 and 5 of `handle` change when ...:" is followed, after a blank line, by the bullets "Record: ..." and "Rerun is skipped ..." at the same level. They read as sibling rules, not as the two cases of that bullet. Fix: indent them as sub-bullets of line 530.
+    10. `docs/project-guide/pipeline.md` (style rule 2, round-0 finding 18 still open, as the documenter's entry 12 says): many sentences still run far past 25 words, or hold several parentheses. Clear cases are line 17 (the preconditions after `claim`), 22 (four parentheses in one sentence), 233, 283, 434, 440, 476, 534, 709, 710, 727, 777 and 825. Fix: split each into sentences of about 25 words with at most one parenthesis, and go through the rest of the page the same way.
+
+    Open, not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria settle which rules are meant, so I left it for the human. The page still has no *Reference* section, which criterion 2 allows.
