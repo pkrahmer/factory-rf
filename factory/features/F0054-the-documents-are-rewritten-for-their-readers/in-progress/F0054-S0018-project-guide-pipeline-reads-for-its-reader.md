@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230, 6703551254]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T06:49:53.481572Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -243,6 +247,11 @@ journal:
   at: '2026-11-07T06:49:48.512523Z'
   stage: docs-review
   run: 9cf180a8a321401db2ed2c4afde9682c
+- number: 43
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:49:53.481572Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -767,3 +776,4 @@ Expect: `1`
     - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human decides which rules are meant.
     - The page has no *Reference* section, which criterion 2 allows.
     - This is the second time the factory has gone from the human's answer straight to docs-review without a documenter run in between (also entries 24 and 25). That looks like a factory routing issue for the human to look at.
+43. factory: started docs-only as vm.
