@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:24:41.970248Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T00:24:36.894446Z'
   stage: docs-review
   run: 474f380b2ffc4ab292ac49e18ca3c213
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:24:41.970248Z'
+  stage: docs-only
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -164,3 +173,4 @@ Expect: `1`
    - the F0043 and F0044 notes;
    - "This repository's own build stays on the subscription";
    - `limit_wait` (an internal field that is not in the records contract).
+8. factory: started docs-only as vm.
