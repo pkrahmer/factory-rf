@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 4
+blocked: null
+round: 0
 attempts: 1
 crashes: 0
 pull_request: 626
-comments_read: [6703344230]
+comments_read: [6703344230, 6703551254]
 handed_over: null
 claim: null
 journal:
@@ -227,6 +227,11 @@ journal:
   stage: docs-review
   run: b2f2f103d2394be88eb24c82a71c9201
   blocked: round_cap
+- number: 40
+  speaker: human
+  kind: comment
+  at: '2026-11-07T06:49:06.453271Z'
+  stage: docs-review
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -740,3 +745,4 @@ Expect: `1`
     - The page has no *Reference* section, which criterion 2 allows.
     - If the human would rather accept these sentences than run another round, a comment saying so closes both findings. No factual finding is open.
 39. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+40. 2026-11-07 human: One more round, by the human's standing word for tonight, and the last one on style. The facts of this page are settled. The documenter now runs a script over the whole of `docs/project-guide/pipeline.md`, not only the changed lines, that lists every sentence over 25 words or with more than one parenthesis (code spans and tables left out), splits each one, and runs the script again until the list is empty. Its entry quotes the script's last output. The reviewer then checks rule 2 by the same script and judges no further wording.
