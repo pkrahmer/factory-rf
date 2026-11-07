@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:07:22.774460Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T01:07:22.774460Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:10:03.912055Z'
+  stage: docs-review
+  run: 0e21600d445b4e71b21834f4857cdafd
 ---
 
 # The operator guide's the stops reads for the operator
@@ -129,3 +131,16 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (12.1 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` (`docs/operator-guide/stops.md`, `docs/checked-documents.txt`) against the work item, the old file on `main`, `docs/project-guide/style.md` and the code. I checked these against the code and found them right: the `STOP_TABLE` ids and destinations, the nine stall sentences, the texts of the stall note, the error report, the draft pull request description, the round-cap and findings questions, the "cannot handle" reasons, the push retry waits (5/15/45 s) and their log line, `push_reason`'s rules, the handler-error line (cap 3, 300 characters), PyGithub's retry (5, factor 2), the ten-minute machine stop, the pipeline-definition fault texts and the project agent's detail. Every heading that other files link to is kept (criterion 4). The checked-documents line is present (criterion 3). The documenter dropped the outage paragraph and the example ids on purpose and named both, which is right under style rules 1 and 7.
+
+   Findings:
+   1. `docs/operator-guide/stops.md:176`: the attempts-cap example reads `The last time: the agent gave no result`. That is none of the nine causes. `pipeline/application/handlers/questions.py:57` inserts the latest stall entry's text, which `pipeline/application/stalls.py:136` writes as `Stage <stage> stalled (attempt <n> of <cap>): <cause>`. Fix: show `The last time: Stage doing stalled (attempt 2 of 2): the agent gave no valid decision and entry`.
+   2. `docs/operator-guide/stops.md:171`: the crash-cap row says "`factory: ` and the text below", but only the attempts-cap text follows. The crash-cap question (`crash_cap_question`, `src/factory/hosting/domain/post_texts.py:115`) is shown under "The crash cap" in `docs/operator-guide/work-items.md:234`. Fix: point the row to that section, or quote the text below.
+   3. `docs/operator-guide/stops.md:39`: the example detail `origin unreachable` is not a git message, and line 269 says the detail of `fetch_failed` is git's message. Fix: use a real git message, such as the `fatal: unable to access ...: Could not resolve host: github.com` that line 342 uses.
+   4. `docs/operator-guide/stops.md:312` (criterion 2): the old file's list of registered handlers is in neither the new text nor *Reference* (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`, `crash`, `expired`, `acceptance_due`). So is its link to "An expired lease" in `work-items.md` (old line 241). The old stall note sentence "the take does not bring it from the dataset" (old line 97) is also gone. Journal entry 5 does not name any of these as dropped on purpose. Fix: move them into *Reference*, or name them in the entry as dropped on purpose.
+   5. `docs/operator-guide/stops.md:32` and `:361`: style.md's operator guide rule says "Name no module or class". Line 32 names `STOP_TABLE` in `factory.pipeline.domain.stop_table`. Line 361 says "the factory raises `CannotHandle`". Fix: drop line 32's sentence about the source, or keep only the rule about underscores. At line 361, describe what the operator sees (the report's `cannot handle ...` error).
+   6. `docs/operator-guide/stops.md` (criterion 1, glossary links at first use): "stall" is first used at line 5 but linked only at 119, "pipeline definition" at line 19 but linked at 123, and "round" at line 30/143 but linked at 186. The glossary words "stage" (line 5), "story" and "backlog" (line 9), "attempts cap" (line 124) and "round cap" (line 164) are never linked. Fix: link each at its first use.
+   7. `docs/operator-guide/stops.md:79,87,124,150,160,173,312,361` (style rule 3, no private words): "the dispatcher", "the evaluation" and "the `ask` handler" are internal names that are not in the glossary, and the operator does not read the code. Fix: say what the factory does ("the factory counts the error", "the factory asks"), or explain each once.
+   8. `docs/operator-guide/stops.md:53,97,119,160,245,287,361` (style rule 2): these sentences run well past 25 words, and lines 53 and 245 hold two parentheses each. Fix: split them, one idea and at most one parenthesis per sentence.
+   9. `docs/operator-guide/stops.md:300` ("The preflight in the tick") and `:359` ("Stops that cannot be done"): these describe stops without the three parts that style.md asks of every stop (what you see, what it means, what you do). Fix: give each the **You see** / **It means** / **You do** form, as the other stop sections have.
+   10. Work item journal entry 5: the documenter says "I read nothing else in the code. The other claims were carried over from the old file unchanged." The Description says the facts come from the code, not from the old text. Findings 1 to 3 are carried-over claims that the code contradicts. Fix: check the remaining carried-over claims against the code and name the ones checked.
