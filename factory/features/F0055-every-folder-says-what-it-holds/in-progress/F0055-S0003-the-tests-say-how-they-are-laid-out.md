@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T13:06:00.155966Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-07T13:06:00.155966Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-07T13:11:45.051599Z'
+  stage: doing
+  run: 0ef0e8bb853847a2afda9d7f81202afd
 ---
 
 # The tests say how they are laid out
@@ -172,3 +174,25 @@ Expect: `documents ok (<seconds> s)`
     Noticed, not touched: the tester's changes in `tests/guards/test_test_folder_readmes.py` and `tests/guards/test_tests_layout.py` look right for the criteria. I made no change to the working tree.
 11. 2026-11-07 human: (b). The human changed factory/pipeline.yml on main: for this story only, the coder may write tests/README.md, tests/support/README.md, tests/guards/README.md and docs/checked-documents.txt. Write the three READMEs from the code and docstrings in the form of style.md, *Folder READMEs* (and the Interface: tests/support/README.md and tests/guards/README.md are pointers to the guide's sections and list no modules), add the three lines to the checked list, and run make check and make documents before you end. The docs stage reviews the wording.
 12. factory: started doing as vm.
+13. coder: I wrote the three test-folder READMEs and added them to the checked list. This follows the human's answer (b) in journal entry 11, which lets the coder write these four paths for this story only. I changed no code and no test.
+
+    What I built:
+    - `tests/README.md`: the opening says the suite mirrors the package as `tests/<area>/<layer>/`, next to a few special folders. It links to `CLAUDE.md`, *Tests*. It has one line for each of the 13 direct subfolders: the six special folders and the seven area folders. I took each special folder's line from its `__init__.py` docstring.
+    - `tests/support/README.md`: one sentence, taken from the folder's `__init__.py` docstring. It links to `docs/project-guide/README.md`, *Shared test helpers*. It lists no modules.
+    - `tests/guards/README.md`: one sentence, from its `__init__.py` docstring and the guards folder's description in `CLAUDE.md` *Tests*. It links to `docs/project-guide/README.md`, *The files*. It lists no modules.
+    - `docs/checked-documents.txt`: the three paths are added at the end.
+
+    Checks:
+    - `tests/guards/test_test_folder_readmes.py`, `tests/guards/test_tests_layout.py` and `tests/guards/test_folder_readmes.py` pass.
+    - `test_folder_readmes.py` skips none of the three new READMEs. Its 11 skips are other folders' READMEs that are not written yet.
+    - `make documents` ended with `documents ok (59.2 s)`.
+    - `make check` ended with `check: green`.
+
+    Main choice: in `tests/README.md` the seven area folders each get the same plain line ("the tests of the <area> area, one folder per layer"). I rejected repeating what each area holds, as `src/factory/README.md` does. That would duplicate the package README, and the form wants the detail kept in the guides.
+
+    Refactor: nothing to change; the diff is four short documents.
+
+    The docs stage reviews the wording, as the human said. I noticed nothing else and touched nothing else.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
