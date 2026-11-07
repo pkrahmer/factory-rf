@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T09:39:41.026135Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -80,13 +76,19 @@ journal:
   kind: started
   at: '2026-11-07T09:39:41.026135Z'
   stage: docs-review
+- number: 13
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:41:05.115798Z'
+  stage: docs-review
+  run: b4dbd49596eb48a0aeb7fbb3b209493a
 ---
 
 # The operator folder's README reads for its reader
 
 ## Description
 
-`operator/README.md` is rewritten for its reader, a developer who opens the `operator/` folder (the skill staged there and the folder's scripts), in the style of `docs/project-guide/style.md` (numbered steps for tasks; each stop as what you see, what it means, what you do; settings as tables of name, what it does, default and example). The facts come from the code it describes, not from the old text: every name, command, setting and rule of the old file is still in the new one, or moved on purpose to a section *Reference* at the end of the file, and a claim the code does not bear out is corrected or removed (style rules 8 to 10). Every command the file shows is a runnable example or is marked for the VM, GitHub or a model. When the file passes the checks, its path is added to `docs/checked-documents.txt`, so the checks block it from now on. The story takes the docs route.
+`operator/README.md` is rewritten for its reader, a developer who opens the `operator/` folder (the skill staged there and the folder's scripts), in the style of `docs/project-guide/style.md` (numbered steps for tasks; each stop as what you see, what it means, what you do; settings as tables of name, what it does, default and example). The facts come from the code it describes, not from the old text: every name, command, setting and rule of the old file is still in the new one, or moved on purpose to a section *Reference* at the end of the file, and a claim the code does not bear out is corrected or removed (style rules 8 to 10). Every command the file shows is a runnable example or is marked for the VM, GitHub or a model. `docs/checked-documents.txt` stays unchanged: the check does not read `operator/README.md` yet, so its runnable examples are run by hand, and adding its path to the list is left to F0055 (the human, journal 6). The story takes the docs route.
 
 ## Interface
 
@@ -200,3 +202,30 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (59.0 s)
 12. factory: started docs-review as vm.
+13. reviewer: Reviewed `operator/README.md` on the branch against the operator files it describes and against `docs/project-guide/style.md`. The human's answer (journal 6) dropped the checked-list line, so `docs/checked-documents.txt` was not under review.
+
+    These facts match the code:
+    - the signature strings in `comment.sh:21`, `start-story.sh:20`, `merge.sh:55`;
+    - `site: wrote ...; edit it, then run: site check` and `site: ready` in `operator/bin/site:29,96`;
+    - the `settings.sh init` rules, the switch defaults (`merge` off, `answer` and `start_next` on) and `KUMPEL_SETTINGS`;
+    - the rows for the `operator/vm/` files and `operator/template/`;
+    - the links to `docs/operator-guide/site.md` (*Setting up an operator's machine*) and to the glossary.
+
+    Criterion 2: everything else from the old file is kept or moved to *Reference*. These were dropped on purpose under style rules 1 and 7: the "Second version, 2026-11-01" paragraph, the `planning/operator-skill/TRIAL-1.md` reference with the todo demo trial, the table's Story column, "(for the trial)" and "(the human, 2026-10-31)". I accept all of them.
+
+    Criterion 4: no link breaks. *Installing* is kept, and `docs/operator-guide/site.md` refers to it.
+
+    Findings:
+    1. `operator/README.md:5` (and the table): the page's first use of story, feature, approval ("six approval checks", line 72) and stage are not linked to the glossary, nor is pipeline definition (the `operator/template/` row). Criterion 1 and style rule 3 want that. Fix: link each at its first use, as instance, work item and stop already are.
+    2. `operator/README.md:3` and `:5`: two sentences are over the 25 words of style rule 2. Line 3 ("This folder holds ... set up a VM.") has about 33; line 5 ("It watches ... on request.") has about 37 and a parenthesis. Fix: split each sentence.
+    3. `operator/README.md:3`: the list of what the folder holds leaves out `template/`, the start of a new project that the *Files* table lists. Nobody runs it next to an instance, and no listed group covers it. Fix: name the template in that sentence, or say the list is only the main parts.
+    4. `operator/README.md:5`: `planning/operator-skill/DESIGN.md` exists but is a plain path. Style rule 8 asks for a relative link to a file of the repository, and a link writes nothing in `planning/`. Fix: `[DESIGN.md](../planning/operator-skill/DESIGN.md)`.
+    5. `operator/README.md` *Reference › Files*, the sentence under the heading and the first 19 rows: those rows use paths below the root (`lib/site.sh`), while the last six start with `operator/`. Style rule 8 wants paths from the repository root, and the mixed table needs a sentence to explain it. Fix: write every row from the root (`operator/site.env.example`, `operator/lib/site.sh`, ...) and drop the sentence.
+    6. `operator/README.md` step 5: one `sh` block holds two commands that are alternatives. A reader who runs the block as shown runs `init` twice. Fix: two blocks, each with its own lead line, as step 4 does for the two tools.
+    7. `operator/README.md` *Reference › Settings file*:
+       - The Example cells `merge on`, `answer off` and `start_next off` are not commands, and the page never says how to change a switch. The code has `settings.sh set <switch> on|off` and the command `/kumpel <switch> on|off` (`operator/claude/commands/kumpel.md`). Fix: write the examples as `/kumpel merge on`, or as `sh operator/skill/kumpel/scripts/settings.sh set merge on`, and say so once above the table.
+       - `KUMPEL_SETTINGS` is an environment variable that names the file, not a key in it. Fix: give it its own row under a heading for the environment variable, or retitle the table *Settings*.
+
+    Description corrected: "When the file passes the checks, its path is added to `docs/checked-documents.txt`, so the checks block it from now on." -> "`docs/checked-documents.txt` stays unchanged: the check does not read `operator/README.md` yet, so its runnable examples are run by hand, and adding its path to the list is left to F0055 (the human, journal 6)."
+
+    Open: the Interface line for `docs/checked-documents.txt` and the list part of criterion 3 still name the list line. Journal 6 dropped both, and the review rules let me rewrite only the Description, so I left them as they are.
