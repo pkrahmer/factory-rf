@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T13:34:16.540566Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-07T13:34:11.461903Z'
   stage: tests
   run: 196f4835ebe74815bfcf2852c16850e5
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:34:16.540566Z'
+  stage: doing
 ---
 
 # The operator's folders say what they hold
@@ -105,3 +114,4 @@ Expect: `documents ok (<seconds> s)`
    Open: no earlier test checks the list's length or the template path, so I found none that the human's leave would need to change.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
