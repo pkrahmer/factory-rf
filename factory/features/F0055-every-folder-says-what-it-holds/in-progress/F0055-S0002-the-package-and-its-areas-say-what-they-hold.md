@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 635
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T12:21:29.580752Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-07T12:21:29.580752Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-07T12:21:51.979758Z'
+  stage: intake
+  run: e7c07b6c0abf486b80bf7d19d917283b
+  blocked: question
 ---
 
 # The package and its areas say what they hold
@@ -66,3 +69,12 @@ Expect: `documents ok (<seconds> s)`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface behaviours with no criterion. Criterion 1 only checks what the guard checks: the opening sentence, one relative link and the subfolder lines. Four Interface statements are tested by nothing, and a coder could miss them and still pass:
+      a. `src/factory/README.md` links to `docs/project-guide/README.md`, *The code's layout*.
+      b. Each area's README links to the guide page its `__init__.py` docstring names (agents.md, hosting.md, machine.md, pipeline.md, shared.md, watching.md, work.md).
+      c. `src/factory/README.md` says `contract/` is generated and never edited by hand.
+      d. Each area's three layer lines say what that layer holds in this area.
+      I would add one criterion for a to c, in words a reviewer can check, and keep d to the reviewer's judgment. Do you agree, or should I leave all four to the reviewer?
+   2. `src/factory/entry/README.md` is in the Interface. The Interface says "each area's README names its three layers", but `entry` is not an area and has no subfolders (it has no `domain/`, `application/` or `adapters/`). I would take it as one sentence plus a link to `docs/project-guide/README.md` (the guide its `__init__.py` names), with no subfolder lines. Please confirm, and say so in the Interface.
+   3. Docs criterion (5) is fine as to sentences: it names the files and dictates no text.
+   The format check passed. The smoke test is runnable, and its `Expect:` line is checkable. The scope fits the feature, which puts S0002 in group 1 with no code change. The architecture is unaffected, since it only adds READMEs.
