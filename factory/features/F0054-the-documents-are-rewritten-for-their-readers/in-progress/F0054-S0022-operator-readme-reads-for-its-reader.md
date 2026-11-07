@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:46:44.168153Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -113,6 +109,12 @@ journal:
   kind: started
   at: '2026-11-07T09:46:44.168153Z'
   stage: docs-only
+- number: 19
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:50:58.772832Z'
+  stage: docs-only
+  run: b2db598c0e0640a388f6522f2f0a5ffb
 ---
 
 # The operator folder's README reads for its reader
@@ -303,3 +305,19 @@ Expect: `1`
     1. `operator/README.md:74`: "The checks are those of the [approval] stage." The code does not bear this out. The glossary says the approval stage is where the human reads the pull request, and the factory has no six checks there. The six checks are Kumpel's own: it judges them on a story at `stage:approval` (`operator/skill/kumpel/references/approving.md:3-5`, `scripts/approval.sh:2`). Fix: say that these are the six checks Kumpel judges on a story at the approval stage, and link `operator/skill/kumpel/references/approving.md` where they are listed.
     2. `operator/README.md` steps 2, 4 and 5 (lines 23, 36-42, 48-54): the text above these `sh` blocks does not say where they run. Style.md, *Examples that are not run*, requires it: "The text above the block says where it runs." These commands use paths relative to the repository root (`operator/bin/site`, `operator/opencode/...`, `operator/skill/kumpel/scripts/settings.sh`), and they write to `~`. Only steps 1 and 3 say "from the root of this repository" or "on the operator's machine". Fix: in each of steps 2, 4 and 5, say that it runs on the operator's machine from the root of this repository, as step 3 does. Or say it once above step 1 for every step and drop the repeats.
 18. factory: started docs-only as vm.
+19. documenter: Round 2 fixes the two findings of journal 17. The only file changed is `operator/README.md`. `docs/checked-documents.txt` stays unchanged, as the human decided in journal 6.
+
+    1. Approval line (the page's section *How Kumpel's acts are told from yours*): the sentence "The checks are those of the approval stage" is replaced. It now says these are the six checks Kumpel judges on a story at the approval stage (glossary link kept) and links `skill/kumpel/references/approving.md`, which lists them. I confirmed the file exists.
+    2. Where the commands run: steps 2, 4 and 5 (both `init` variants) now say, in the text above the block, that they run on the operator's machine from the root of this repository, as steps 1 and 3 already did.
+
+    Checks: `make documents` ended `documents ok (58.3 s)` after my last edit. I did not run `make check`, because only a document changed. The one runnable `console` example, `sh operator/bin/site init` in step 1, is untouched. It was run by hand in round 0 and printed `site: wrote <tmp>/kumpel/site.env; edit it, then run: site check`, exit 0. The `sh` blocks touch the machine or `~` and are not run.
+
+    Cross-read and found current: `docs/operator-guide/site.md` (links this file and the kept heading *Installing*), `docs/project-guide/operator.md` and `agents.md` (link only the file), `docs/operator-guide/pipeline.md` (names the file).
+
+    Stale text I saw and did not touch:
+    - `operator/skill/kumpel/SKILL.md` repeats "Second version, 2026-11-01" and "kumpel-factory v1.2 or later". That is the skill's own file, not a document I may write.
+    - The story's Interface line for `docs/checked-documents.txt` and the list part of criterion 3 still name the list line. Journal 6 dropped both, and I may not edit them.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (59.2 s)

@@ -20,7 +20,7 @@ Where to read next:
    site: wrote <path>; edit it, then run: site check
    ```
 
-2. Check the machine. The command is read-only and ends with `site: ready` when every check passes:
+2. Check the machine. Run this on the operator's machine, from the root of this repository. The command is read-only and ends with `site: ready` when every check passes:
 
    ```sh
    sh operator/bin/site check
@@ -33,7 +33,7 @@ Where to read next:
    ln -s "$(pwd)/operator/skill/kumpel" ~/.claude/skills/kumpel
    ```
 
-4. Copy the command `/kumpel [<switch> on|off]` for your tool, and start the tool again so that it reads the skill list. For opencode:
+4. Copy the command `/kumpel [<switch> on|off]` for your tool, and start the tool again so that it reads the skill list. Run these on the operator's machine, from the root of this repository. For opencode:
 
    ```sh
    cp operator/opencode/command/kumpel.md ~/.config/opencode/command/
@@ -45,13 +45,13 @@ Where to read next:
    cp operator/claude/commands/kumpel.md ~/.claude/commands/
    ```
 
-5. Write the settings file. The skill takes the repository and the checkout from the site file. When the site file gives both, the settings file holds only the switches, and `init` takes no argument:
+5. Write the settings file. The skill takes the repository and the checkout from the site file. When the site file gives both, the settings file holds only the switches, and `init` takes no argument. Run this on the operator's machine, from the root of this repository:
 
    ```sh
    sh operator/skill/kumpel/scripts/settings.sh init
    ```
 
-   Otherwise:
+   Otherwise, run this on the operator's machine, from the root of this repository:
 
    ```sh
    sh operator/skill/kumpel/scripts/settings.sh init <owner/name> <checkout>
@@ -71,7 +71,7 @@ Kumpel works with your token, so it signs everything it does. A reader of the pu
 
 - A comment ends with the line `— Kumpel, for the human who owns this project` and the marker `<!-- kumpel -->`.
 - A start commit has the author `Kumpel <kumpel@noreply.invalid>`.
-- A merge commit says `Merged by Kumpel after the six approval checks.` The checks are those of the [approval](../docs/project-guide/glossary.md) stage.
+- A merge commit says `Merged by Kumpel after the six approval checks.` These are the six checks Kumpel judges on a story at the [approval](../docs/project-guide/glossary.md) stage; [approving.md](skill/kumpel/references/approving.md) lists them.
 
 ## Reference
 
