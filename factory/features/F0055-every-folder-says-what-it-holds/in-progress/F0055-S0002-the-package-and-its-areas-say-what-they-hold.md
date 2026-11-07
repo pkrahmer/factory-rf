@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T12:26:06.429980Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-07T12:26:01.486847Z'
   stage: intake
   run: 18301998e4064d46ab73c1c038e3fc69
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:26:06.429980Z'
+  stage: docs-only
 ---
 
 # The package and its areas say what they hold
@@ -106,3 +115,4 @@ Expect: `documents ok (<seconds> s)`
    - Docs criterion: it names the files and what the reader must know, and dictates no sentences.
    - Architecture: only READMEs are added, so no code or layer is touched.
    - Scope: within feature F0055, group 1 (S0002), no code change. It is not in the feature's "Out of scope".
+7. factory: started docs-only as vm.
