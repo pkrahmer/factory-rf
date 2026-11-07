@@ -13,7 +13,7 @@ Every agent call runs in a throwaway container of the [stage](../project-guide/g
 - The factory itself holds no key or token. A small shell inside the container reads the login files (see *The login*).
 - The [take](../project-guide/glossary.md) copies out of the dataset only the changed paths the agent's [role](../project-guide/glossary.md) may write. A write elsewhere is lost, not refused, so an agent keeps temporary files in `mktemp` or `tempfile`. No kernel rule stands behind this.
 
-The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The preflight compares it with `FACTORY_CLAUDE_VERSION`, the pinned version the flags were written for. The preflight's `agent-run-probe` makes one call with the real flags once for each image build. A flag the pinned program rejects stops the machine before any claim. If a call fails at once, see "The probe of the agent run" in [health.md](health.md). The preflight's `agent-runtime-version` runs `claude --version` or `opencode --version` in the stage image and compares the first word of its output with the pinned version (see "The preflight's items" in [health.md](health.md)).
+The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The preflight's `agent-run-probe` makes one call with the real flags once for each image build. A flag the pinned program rejects stops the machine before any [claim](../project-guide/glossary.md). If a call fails at once, see "The probe of the agent run" in [health.md](health.md). The preflight's `agent-runtime-version` runs `claude --version` or `opencode --version` in the stage image and compares the first word of its output with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`, the pinned version the flags were written for (see "The preflight's items" in [health.md](health.md)).
 
 ### The container's fence
 
@@ -47,7 +47,7 @@ The call logs in with the first of these that holds something:
 A variable that is unset, or a file that is missing or blank, counts as holding nothing. Both files are read the same way:
 
 - The shell reads the file at the start of every call, as the factory's user, and hands its content to the program. A new token or key applies from the next call, without a restart.
-- The secret reaches only the agent calls. It is not in the factory's own environment, the project commands' or `--version`'s. The same variable in a request's environment is dropped: the file is the only source.
+- The secret reaches only the agent calls. It is not in the factory's own environment, the [project commands](../project-guide/glossary.md)' or `--version`'s. The same variable in a request's environment is dropped: the file is the only source.
 - The secret stands in no process's arguments, so `ps` inside the container does not show it. A host user's `ps` shows a container's processes with their arguments unless `/proc` is mounted with `hidepid=2`, and the secret is not among them.
 - A file that cannot be read, or is not plain ASCII text, stops the run before any call (see *The faults*).
 - The file must exist, even empty: podman refuses to mount a missing one. The container mounts it read-only.
@@ -69,15 +69,15 @@ The token is made once for all instances and the Podman machine.
    ```
 
    "The machine" in [machine.md](machine.md) shows the same steps.
+
+   On Windows, write the file as plain text without a byte-order mark, in PowerShell, in place of step 2:
+
+   ```powershell
+   Set-Content -NoNewline -Encoding ascii claude-token <token>
+   ```
+
+   PowerShell 5's `>` writes UTF-16, which is not read as the token.
 4. Set `FACTORY_CLAUDE_LOGIN_FILE` to its path in the environment file.
-
-On Windows, write the file as plain text without a byte-order mark, in PowerShell:
-
-```sh
-Set-Content -NoNewline -Encoding ascii claude-token <token>
-```
-
-PowerShell 5's `>` writes UTF-16, which is not read as the token.
 
 ### The agent's API key
 
@@ -93,7 +93,7 @@ Each instance has its own file. The VM holds one instance, and the file is in it
 - The key stands in no argument, run file, result, [journal](../project-guide/glossary.md) entry, cost record or log, and not in the factory's own environment.
 - To go back to the subscription, empty the file. The next call reads it as it is.
 
-To see which login is in force, read the [cost record](../project-guide/glossary.md) of a run: its field `login` is `subscription`, `none` or the value for the API key (a record written before the field existed lacks it). The preflight also writes one factory-log line for the probe, once for each image build:
+To see which login is in force, read the [cost record](../project-guide/glossary.md) of a run: its field `login` is `subscription`, `api_key` or `none` (a record written before the field existed lacks it). The preflight also writes one factory-log line for the probe, once for each image build:
 
 ```text
 preflight: agent-run-probe: the agent runs log in with the API key from <file>
@@ -191,7 +191,7 @@ The factory log shows each wait and the end. The first line is written before ea
 
 ### While the factory waits
 
-- **The claim stays held.** The factory renews no [lease](../project-guide/glossary.md), so a stage that waits may hold its [claim](../project-guide/glossary.md) past its `lease_duration`. The coder's time limit, the ceiling and the checks come to about 180 minutes, against a lease of 60. Only another instance on the same repository would act on the age, so run one instance per repository.
+- **The claim stays held.** The factory renews no [lease](../project-guide/glossary.md), so a stage that waits may hold its claim past its `lease_duration`. The coder's time limit, the ceiling and the checks come to about 180 minutes, against a lease of 60. Only another instance on the same repository would act on the age, so run one instance per repository.
 - **A stop or a restart during a wait** is a [crash](../project-guide/glossary.md) of the factory's own claim. The stage runs again at once and counts toward the crash cap, not toward the attempts (see "A restart during a stage" in [work-items.md](work-items.md)). The wait starts over.
 
 ## Running on opencode
@@ -285,7 +285,7 @@ The command `python -m factory.entry.refresh_token` does that, as a process of i
 python -m factory.entry.refresh_token
 ```
 
- Starting it with the instance is the start script's business (see "The machine" in [machine.md](machine.md)). It reads five variables. A missing or blank one prints `refresh_token: <variable> is not set` to standard error and exits 2.
+Starting it with the instance is the start script's business (see "The machine" in [machine.md](machine.md)). It reads five variables. A missing or blank one prints `refresh_token: <variable> is not set` to standard error and exits 2.
 
 | Name | What it does | Default | Example |
 | --- | --- | --- | --- |
@@ -332,7 +332,7 @@ For each role the factory reads `<project>/factory/agents/<name>.md` from `origi
 
 A project's agent replaces the installed one whole and never extends it. Nothing is merged, so a key or a line of instructions you leave out is not taken from the shipped file. To change a shipped agent, copy it from `agents/agents/` in the image's source to `<project>/factory/agents/<name>.md` and change the copy.
 
-The file follows the same rules and has the same faults as any agent file. A fault of a project file is named with its place, for example `factory/agents/coder.md at origin/main: key not applied by the agent runtime: colour`. The load of every tick and the preflight's probe check it. A faulty project file is never replaced by the installed one: the stop `agent_definition_invalid` stands until a commit on `main` fixes it.
+The file follows the same rules and has the same faults as any agent file. A fault of a project file is named with its place, for example `factory/agents/coder.md at origin/main: key not applied by the agent runtime: colour`. The load of every tick and the preflight's probe check it. A faulty project file is never replaced by the installed one: the [stop](../project-guide/glossary.md) `agent_definition_invalid` stands until a commit on `main` fixes it.
 
 - **A new role.** Add the role to `<project>/factory/pipeline.yml` and its file under `<project>/factory/agents/`, in one commit on `main`. A role whose only agent is the project's own needs no installed file.
 - **Back to the shipped agent.** Remove `<project>/factory/agents/<name>.md` from `main`.

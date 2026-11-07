@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:30:12.480424Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T00:30:12.480424Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:33:00.482279Z'
+  stage: docs-only
+  run: 676455c596584e7c93d8b9e0ad9820ca
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -249,3 +251,26 @@ Expect: `1`
 
     Dropped on purpose, still accepted from round 0: the `planning/cloud-sandbox/` pointer, the F0043 and F0044 notes, "This repository's own build stays on the subscription", and `limit_wait`.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: fixed the reviewer's six numbered findings from round 1 in `docs/operator-guide/agent-runtime.md`. `make documents` ends with `documents ok (10.3 s)`. I did not run `make check`, because I changed only a document.
+
+    Files changed:
+    - `docs/operator-guide/agent-runtime.md`: the changes below.
+    - `docs/checked-documents.txt`: unchanged this round.
+
+    Findings:
+    1. "claim" is now linked to the glossary at its first use (*How a call is made*). The link at "The claim stays held" is plain.
+    2. "project commands" (in the list of what the secret does not reach) and "stop" (before `agent_definition_invalid` in *Project agents*) are linked to the glossary.
+    3. The `login` field now reads "`subscription`, `api_key` or `none`".
+    4. The Windows `Set-Content` command is now part of step 3 of *The agent's login token*, as its Windows variant. It is indented under that step in a `powershell` block, and the final step (set `FACTORY_CLAUDE_LOGIN_FILE`) follows as step 4. I did not run it, since it needs Windows.
+    5. The version check is told once: `agent-runtime-version` runs `claude --version` or `opencode --version` in the stage image and compares the first word with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`. The rule that the factory takes the first word of the output stays, with the `2.1.289` example.
+    6. The stray leading space before "Starting it with the instance" is removed.
+
+    I did not re-read the code behind these edits. The reviewer's findings named the code lines, and I took the facts from them. I changed no heading, so no link from another file is affected.
+
+    Cross-read and found current: the headings in `install.md`, `health.md`, `stops.md` and `machine.md` that this file links to.
+
+    Stale text noticed and not touched: the "does not exist" report lines for paths in `docs/project-guide/` (`machine.md`, `work.md`, and others). They are not on the checked list.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (10.3 s)
