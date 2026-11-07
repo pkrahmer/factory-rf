@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T11:25:15.787107Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T11:25:13.178242Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:25:15.787107Z'
   stage: intake
 ---
 
@@ -92,3 +101,4 @@ Expect: `documents ok (<seconds> s)`
    4. Add a row: a reference to the document's own file gives no reference (references within one page stay as they are).
    5. Yes: criterion 3's test also has a row with a valid reference (no finding) and a row with a reference to a page that is no document of the check (no finding).
    6. Yes: criterion 6 names install.md, work-items.md, machine.md (the project guide's) and agent-runtime.md as pages the documenter fixes; afterwards the reader finds each referenced section under the name the target page writes, or as a named paragraph under the heading it stands in.
+5. factory: started intake as vm.
