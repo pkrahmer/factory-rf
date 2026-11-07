@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:34:07.579445Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T00:34:07.579445Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:36:50.281809Z'
+  stage: docs-only
+  run: 930fa95fc1154935ae2123e62c4712cc
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -320,3 +322,21 @@ Expect: `1`
 
     Dropped on purpose, still accepted from round 0: the `planning/cloud-sandbox/` pointer, the F0043 and F0044 notes, "This repository's own build stays on the subscription", and `limit_wait`.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: fixed the reviewer's two round-2 findings in `docs/operator-guide/agent-runtime.md`. `make documents` ends with `documents ok (10.5 s)`. I did not run `make check`, because I changed only a document.
+
+    Files changed:
+    - `docs/operator-guide/agent-runtime.md`: the two changes below. `docs/checked-documents.txt` is unchanged.
+
+    Findings:
+    1. *The agent's login token*: step 2 now saves the token as `claude-token` in your own folder. The Windows `Set-Content` variant and its UTF-16 note sit under step 2. Step 3 installs that file to `/home/factory/.secrets/claude-token` with `sudo install` and removes the copy with `shred -u`, as step 8 of "On GCP, step by step" in `machine.md` does. Step 4 is unchanged. None of these commands is run, because they need the VM or Windows.
+    2. *How a call is made*: the version check is told once. The paragraph now opens with `agent-runtime-version`, which runs `claude --version` or `opencode --version` in the stage image and compares the first word of its output (example `2.1.289`) with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`. The probe and claim sentences follow. I removed the earlier sentence about `claude --version` alone.
+
+    I took the facts from the reviewer's findings and the `machine.md` step I compared against. I did not re-read the code. No heading changed, so no link from another file is affected.
+
+    Cross-read and found current: `machine.md` (step 8 of "On GCP, step by step"), `health.md` (the headings quoted).
+
+    Stale text noticed and not touched: the "does not exist" report lines for paths in `docs/project-guide/`. The files are not on the checked list.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (10.2 s)

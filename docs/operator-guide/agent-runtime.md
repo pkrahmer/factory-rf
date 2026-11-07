@@ -13,7 +13,7 @@ Every agent call runs in a throwaway container of the [stage](../project-guide/g
 - The factory itself holds no key or token. A small shell inside the container reads the login files (see *The login*).
 - The [take](../project-guide/glossary.md) copies out of the dataset only the changed paths the agent's [role](../project-guide/glossary.md) may write. A write elsewhere is lost, not refused, so an agent keeps temporary files in `mktemp` or `tempfile`. No kernel rule stands behind this.
 
-The factory asks `claude --version` and takes the first word of its output (for example `2.1.289`). The preflight's `agent-run-probe` makes one call with the real flags once for each image build. A flag the pinned program rejects stops the machine before any [claim](../project-guide/glossary.md). If a call fails at once, see "The probe of the agent run" in [health.md](health.md). The preflight's `agent-runtime-version` runs `claude --version` or `opencode --version` in the stage image and compares the first word of its output with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`, the pinned version the flags were written for (see "The preflight's items" in [health.md](health.md)).
+The preflight's `agent-runtime-version` runs `claude --version` or `opencode --version` in the stage image and compares the first word of its output (for example `2.1.289`) with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`, the pinned version the flags were written for (see "The preflight's items" in [health.md](health.md)). The preflight's `agent-run-probe` makes one call with the real flags once for each image build. A flag the pinned program rejects stops the machine before any [claim](../project-guide/glossary.md). If a call fails at once, see "The probe of the agent run" in [health.md](health.md).
 
 ### The container's fence
 
@@ -61,22 +61,21 @@ The token is made once for all instances and the Podman machine.
    ```sh
    claude setup-token
    ```
-2. Save the token it prints, with nothing else in the file, as `/home/factory/.secrets/claude-token`. See "The machine" in [machine.md](machine.md), and step 8 of "On GCP, step by step" there.
-3. Install it so that only the factory's user can read it. On the VM, as root, with the token saved as `claude-token` in the current folder:
-
-   ```sh
-   install -m 0600 -o factory -g factory claude-token /home/factory/.secrets/claude-token
-   ```
-
-   "The machine" in [machine.md](machine.md) shows the same steps.
-
-   On Windows, write the file as plain text without a byte-order mark, in PowerShell, in place of step 2:
+2. Save the token it prints, with nothing else in the file, as `claude-token` in your own folder. On Windows, write it as plain text without a byte-order mark, in PowerShell:
 
    ```powershell
    Set-Content -NoNewline -Encoding ascii claude-token <token>
    ```
 
    PowerShell 5's `>` writes UTF-16, which is not read as the token.
+3. Install it so that only the factory's user can read it, and remove the copy. On the VM, from your own account:
+
+   ```sh
+   sudo install -m 0600 -o factory -g factory claude-token /home/factory/.secrets/claude-token
+   shred -u claude-token
+   ```
+
+   "The machine" in [machine.md](machine.md) shows the same steps, as step 8 of "On GCP, step by step".
 4. Set `FACTORY_CLAUDE_LOGIN_FILE` to its path in the environment file.
 
 ### The agent's API key
