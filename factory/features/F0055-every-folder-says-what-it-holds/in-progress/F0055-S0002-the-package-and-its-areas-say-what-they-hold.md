@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T12:36:20.614121Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T12:36:18.120009Z'
+  stage: tests
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:36:20.614121Z'
   stage: tests
 ---
 
@@ -213,3 +222,4 @@ Expect: `documents ok (<seconds> s)`
 14. 2026-11-07 human: 1. (a), with the human's leave: add "README.md" to the expected set, rename the test as you propose, and say the same in the module docstring; rewrite the story's 'no test changes' line to name this change. The leave also covers any other earlier guard whose only failure is a README.md of this story standing in its folder, changed the same way (the README added to the expected entries, the test keeping its name's purpose); the entry names each one.
     2. (a): the criterion's wording follows the guard and the style page, the form with no colon.
     No new test for criterion 3: the reviewer checks it.
+15. factory: started tests as vm.
