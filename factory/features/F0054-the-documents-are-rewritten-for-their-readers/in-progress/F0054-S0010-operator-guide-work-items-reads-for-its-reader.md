@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:11:56.999472Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T02:11:56.999472Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:13:46.417046Z'
+  stage: docs-review
+  run: 0ed158b1e4ca47c48b288ca3addd8f38
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -122,3 +124,13 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (13.6 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `docs/project-guide/style.md`, the glossary and the code. I compared the old `docs/operator-guide/work-items.md` line by line with the new one. I checked these claims in the code: the commit subjects (`closed.py`, `merged.py`, `hand_over.py`, `reject.py`, `work/application/acceptance.py`), the defaults of the settings table (`pipeline_definition.py`: `lease_duration` 60, `round_cap` none, `crash_cap` 2, `acceptance_stage` none; `factory/pipeline.yml` names `acceptance`), the headings in `records.md` and the *Kill points* and *Fault-injection paths* sections of `docs/project-guide/README.md`. All of these hold, and so do the headings that other files link to and the one new line in `docs/checked-documents.txt`.
+
+   Findings:
+   1. `docs/operator-guide/work-items.md:113` and `:362` (Reference, `CannotHandle` row): both say an acceptance's close or merge with no report gives `no report on the branch or the main branch`. Only the close handler raises that text (`src/factory/work/application/acceptance.py:351`). The merge handler raises `no report on the main branch` when the report is in neither `in-progress/` nor `done/` (`acceptance.py:297`). Fix: give the merge case its own text and condition in both places.
+   2. `docs/operator-guide/work-items.md:343`: says the commit of a close changes only the story file and its cost records file. The discard commit of a close before the approval moves only the story file (`src/factory/pipeline/application/handlers/closed.py:67`), and the cost records are deleted with the branch (line 166 of the same document says so). Fix: limit the cost records file to the merge archive and the acceptance's booking.
+   3. `docs/operator-guide/work-items.md`, glossary links (criterion 1, style rule 3): stage (first use line 56), tick (69), journal (64), role (64), backlog (13), cost record (66) and project command (301) are never linked. Claim (first use 50, linked at 323), round (188, linked at 197) and stall ("stalls" at 270, linked at 291) are linked after their first use. Fix: link each at its first use in the file.
+   4. `docs/operator-guide/work-items.md:386` and the old line 230 (criterion 2): the old command `uv run pytest tests/hosting/domain/test_kill_points.py tests/shared/domain/test_fault_paths.py tests/shared/domain/test_fault_paths_7_to_13.py` was dropped, and the documenter's entry does not name the drop. Without the command, the *Reference* names three test paths that the operator neither runs nor edits, which the operator-guide rule "Name a source path only if the operator edits or runs that file" forbids. Fix: either restore the command as a block the operator runs, or drop the paths too, point only to the project guide's sections, and name the drop in the entry.
+   5. `docs/operator-guide/work-items.md:5`: "Your acts are all on the pull request: comment, close or merge" is contradicted by the same file. Line 221 has you turn off a hosting setting, line 270 has you revert an edit on `main`, and lines 138 and 176 have you lift a remote's refusal of deletions. The task at lines 217–221 is also written as prose, not as the numbered steps that the operator-guide rule for tasks asks for. Fix: narrow the sentence to the acts on a work item, and write "Branch deletion on merge must be off" as numbered steps marked for GitHub.
+
+   Named as dropped, and acceptable under style rule 1: the example file names `F0001-S0001-name.md`, `done/old/F0001-S0001-name.md` and `F0002-a`/`F0002-b`, the example id `F0001-A0002`, and "v1's" before "thirteen fault-injection paths". Line 15 now says "Only story files count" without saying what a story file is named. The documenter may give the pattern with placeholders, such as `<feature id>-S<n>-<slug>.md`.
