@@ -22,3 +22,4 @@ docs/project-guide/machine.md
 docs/project-guide/pipeline.md
 docs/project-guide/operator.md
 docs/project-guide/README.md
+README.md

@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T08:53:18.729510Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T08:53:18.729510Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T08:58:56.854623Z'
+  stage: docs-only
+  run: 55358520de1a4333b727145fb649f6a3
 ---
 
 # The README reads for a newcomer
@@ -77,3 +79,30 @@ Expect: `1`
    - Architecture: it is a documents-only change, with no layer or module touched.
    - Scope: the story is S0021 in `feature.md`'s list and within its scope. It touches none of the out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`).
 4. factory: started docs-only as vm.
+5. documenter: Files changed:
+   - `README.md`: rewritten for a newcomer, following `docs/project-guide/style.md`. It now has what the factory is, "Try it" (`uv sync`, `make check`), "Where to read next" (one line per document, with relative links), and a closing *Reference*.
+   - `docs/checked-documents.txt`: added the line `README.md`.
+
+   Old text moved into the *Reference*, not cut. It holds the five console commands and their table, the `contract`, `check_documents` and `check_demos` modules, and the document check with its blocking rules, `Report (not checked yet):` and `documents ok`. It also holds the machine and the cloud-run script, the stage file, and how the repository is built with the history tag.
+
+   Dropped or changed on purpose:
+   - "v1.1" and "second implementation" are gone (style rule 1). The first implementation and the handover date stay as one line in *How it is built*.
+   - The "Replaced from v1" section, with its `--follow` sentence, is gone. The document check rejects that sentence as a replaced behaviour (rule 7), and the code has no `--follow`.
+   - The stage-file path is now written `<project>/factory/stage.Containerfile`, because the name check found the bare path does not exist in this repository.
+   - The `agents/` and `CLAUDE.md` lines are kept.
+   - I added links to `operator/README.md` and `demo/README.md`. Both files exist.
+
+   Checks:
+   - `make documents` ends with `documents ok (58.6 s)`.
+   - I did not run `make check`, because only documents changed.
+   - No document links to a README heading (I grepped `README.md#`), so no link needed changing.
+   - The README's examples are indented plain blocks, not `console` blocks. `make check` is skipped by the suite rule anyway, and the other commands need a machine or a long run. The reviewer may judge whether a `console` example would serve better.
+   - The glossary has no per-word headings, so the first use of "stories" links to `glossary.md`. Other factory words are used in the README only inside the *Reference*, in the quoted names of checks and stages, and I linked none of them.
+
+   Cross-read: `docs/project-guide/style.md` (README section), `docs/project-guide/glossary.md`, `pyproject.toml` scripts, and `src/factory/entry/` (the modules exist). Nothing in them was stale.
+
+   Stale text noticed and not touched: none.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (58.8 s)
