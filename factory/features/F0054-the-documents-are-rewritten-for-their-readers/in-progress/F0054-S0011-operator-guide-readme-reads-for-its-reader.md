@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:31:21.359561Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T02:31:21.359561Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:32:15.278255Z'
+  stage: docs-review
+  run: 962bb58675354edea471f44e5c8eafd2
 ---
 
 # The operator guide's index reads for the operator
@@ -115,3 +117,11 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (13.7 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the code on the branch and `docs/project-guide/style.md`. These parts hold: the four-column file table, the "Where to start" steps, the glossary links at first use, the `README.md:28` link fix, the `docs/checked-documents.txt` line, the journal line (`src/factory/work/domain/decisions.py:19`), the credential helper path (`operator/vm/setup.sh:402`, `src/factory/entry/wiring.py:169`), the refusal of `tool_paths` (`extra="forbid"` in `src/factory/pipeline/domain/pipeline_definition.py`) and the planning-history tag. I accept the list of things dropped on purpose in entry 5 under criterion 2: they are removed behaviour, which style rule 7 keeps out of the guide.
+
+   Findings:
+   1. `docs/operator-guide/README.md`, *What the stage environment is*, bullet 1: "an instance without `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` is refused" is false for `FACTORY_DATASET`. `src/factory/shared/domain/settings.py:165` requires it only "with zfs", and `FACTORY_SNAPSHOTS=copy` runs without it. Fix: name `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` as required, and `FACTORY_DATASET` as required when the snapshots are `zfs`.
+   2. `docs/operator-guide/README.md`, *What the stage environment is*, bullet 2: "runs as the user `factory` with `--userns=keep-id`" holds only for the VM. On the Cloud Run job profile `src/factory/machine/adapters/podman_runs.py:47-52` gives `--http-proxy=false --network=host` and no `--userns=keep-id`, and `cloud-run.md` documents that job. Fix: say this is the VM's container, and that a Cloud Run job runs without the user namespace.
+   3. `docs/operator-guide/README.md`, *What the stage environment is*, bullet 2: "mounts the dataset only" is false. `src/factory/agents/adapters/agent_launch.py:206` also mounts the login files read-only at their own paths. The sync container also mounts the checkout's `.git` and the agent home read-only (`src/factory/machine/application/stage_environment.py:188-191`). Fix: say the dataset is the only writable mount, and the login files are mounted read-only.
+   4. `docs/operator-guide/README.md`, *Options that do not exist*: "an option for it is unknown" is vague and reads as a note about a removed option (style rules 1 and 7). `src/factory/entry/watch.py:72-73` builds an argument parser with no arguments, so `factory-watch` takes no option but `--help`. Fix: state the current truth, "`factory-watch` takes no options; it refuses any option but `--help`", and drop the heading's "do not exist" framing.
+   5. `docs/operator-guide/README.md`, *Reference*, opening line: "for the operator who knows an older setup or an older option" frames the section as history, against style rules 1 and 7. Fix: say what the section holds, for example "How the stage environment works and what the instance refuses".
