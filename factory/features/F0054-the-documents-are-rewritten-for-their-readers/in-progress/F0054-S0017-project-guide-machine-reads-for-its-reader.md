@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:33:14.635493Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,19 @@ journal:
   kind: started
   at: '2026-11-07T05:33:14.635493Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:34:10.561928Z'
+  stage: docs-review
+  run: 49936bfc3fa1443a85179325e8661c7d
+- number: 20
+  speaker: factory
+  kind: question
+  at: '2026-11-07T05:34:10.561928Z'
+  stage: docs-review
+  run: 49936bfc3fa1443a85179325e8661c7d
+  blocked: round_cap
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -352,3 +361,13 @@ Expect: `1`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok (16.1 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked this round's change against the code. I also re-read *The project's stage image* and the Reference section *How the stage file is followed* against `src/factory/entry/wiring.py`, `src/factory/entry/run.py` and `src/factory/machine/application/images.py`.
+
+    Last round's finding is fixed. machine.md:364 now says that `project_image_settings` raises `stage_image_failed` and then returns `None`. That matches wiring.py:489-497 and :523-530. The three one-line changes from entry 5 are unchanged and still right.
+
+    Findings. Both are claims carried over from the old text that the code does not bear out (style rules 8 to 10, criterion 2):
+    1. docs/project-guide/machine.md:361, :369, :721 and :724 say that `run_instance` / `_ProjectImageStart` call `project_image_settings`, and that it is "the one place where the image in use is chosen". The code says otherwise. `_ProjectImageStart._choose` calls `chosen_image` (run.py:267). `project_image_settings` is only a wrapper around `chosen_image` that returns `.settings` (wiring.py:468-469). `chosen_image` makes the choice and returns a `ChosenImage` (`settings`, plus `sizes` measured once) (wiring.py:472-512). Also, after the start, a follow with no stage file passes no `StageImageReport` (run.py:266), so it is not true that every "different text" gets one. `chosen_image` is named nowhere on the page. Fix: add `chosen_image(...) -> ChosenImage | None` to the code block. Name it as the place where the image is chosen and as what `_ProjectImageStart._choose` calls. Describe `project_image_settings` as the wrapper that returns only the settings. Say that the report is passed only when a stage file exists or at the start.
+    2. docs/project-guide/machine.md:357 says `build` returns an `ImageBuild` (`passed`, `duration`, `output_tail`: the last 20 lines). This field list leaves out `warnings` (images.py:24, `NonNegativeInt = 0`, the output lines that warn). `chosen_image` writes that field into the `stage image: built ...` log line (wiring.py:505). Fix: add `warnings` to the list.
+
+    Earlier tests: none (the diff changes no test file).
+20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
