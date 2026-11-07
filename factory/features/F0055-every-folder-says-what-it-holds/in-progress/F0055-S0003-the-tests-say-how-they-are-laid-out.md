@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987, 6707415610]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T13:16:44.322393Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-07T13:16:44.322393Z'
   stage: review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T13:17:24.077030Z'
+  stage: review
+  run: bd77f179cfd64f12aa49aa0ff9296eba
 ---
 
 # The tests say how they are laid out
@@ -244,3 +246,22 @@ Expect: `documents ok (<seconds> s)`
 16. 2026-11-07 human: (1) (a): tests/guards/README.md links *Shared test helpers* in docs/project-guide/README.md, where the guards are described; the coder fixes the README in doing.
     (2) Yes: criterion 5 is extended. The documenter updates the two sentences of *Shared test helpers* (docs/project-guide/README.md, the root of tests/ and the layout guard) to name the root's README.md, and leaves the list of modules and fixtures unchanged. The human changed CLAUDE.md, *Tests*, on main: the root of tests/ holds only conftest.py, its README.md and folders.
 17. factory: started review as vm.
+18. reviewer: Review, round 0, run again after the human's answer (entry 16). I went through groups 1 to 6 and the documents item against the branch. Groups 1 to 4 are clean apart from the README link below. The other findings are about work item hygiene and come from answer 16 not being carried into the work item yet.
+
+    Findings:
+    1. `tests/guards/README.md:3`: the README links `docs/project-guide/README.md`, *The files*, and says that section "says what the guards keep". That is false: *The files* (`docs/project-guide/README.md:31-57`) describes the guide's own pages. The guards are described under *Shared test helpers*, in the `tests/guards/` bullet at line 66 and the layout-guard paragraph at line 72. The human's answer 16 (1)(a) settles it. Fix: link *Shared test helpers* in `docs/project-guide/README.md`, and keep the sentence true of that section.
+    2. The work item's `## Interface`, the `tests/guards/README.md` sentence: it still says the README "links to `docs/project-guide/README.md`, *The files*", which answer 16 (1) overturned. Fix: the coder rewrites it to *Shared test helpers*, so that the Interface matches what is built.
+    3. The work item's criterion 5 (the docs criterion): it was not extended as answer 16 (2) says. It still says only that the guide "keeps its list of shared test helpers unchanged". As written, the documenter will leave two sentences stale: `docs/project-guide/README.md:63` ("The root of `tests/` holds `conftest.py` and folders") and `:72` (`test_tests_layout.py` "fails when the root holds anything but `conftest.py` and packages"). Both are false now that `tests/README.md` is in the root and `tests/guards/test_tests_layout.py:264` expects `["README.md", "conftest.py"]`. Fix: the coder extends criterion 5 so that the documenter updates those two sentences of *Shared test helpers* to name the root's `README.md`, and leaves the list of modules and fixtures unchanged.
+
+    Checked and clean:
+    - Every criterion has its test, and the tests check what they are named after.
+      - Criterion 1: `tests/guards/test_test_folder_readmes.py` (the file exists, so the guard cannot skip it), plus the existing `tests/guards/test_folder_readmes.py`, whose `FOLDER_READMES` already holds the three rows (`src/factory/shared/domain/folder_readmes.py:33-35`).
+      - Criterion 2: the checked-list test.
+      - Criteria 3 and 4: covered by `make documents` and `make check`. The coder's entry 13 records `check: green` and `documents ok`.
+    - The Interface states no limit or rejected input that would need a test of its failing side.
+    - `tests/README.md` names all 13 direct subfolders of `tests/` in the form the guard expects. The special-folder lines match their `__init__.py` docstrings, and the `CLAUDE.md`, *Tests* link exists.
+    - `tests/support/README.md` makes one true sentence (taken from `tests/support/__init__.py`), links *Shared test helpers*, which exists, and lists no modules.
+    - No code under `src/`, no markers, no secrets. Nothing for the architecture or security groups.
+
+    Earlier tests:
+    - `tests/guards/test_tests_layout.py` was changed under the human's leave (the Interface; journal entry 4). `README.md` was added to the expected root files of `test_the_root_holds_only_conftest_and_packages`, and the module docstring was adjusted to match. The test keeps its name and purpose.
