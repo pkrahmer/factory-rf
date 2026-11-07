@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-07T12:47:09.617127Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -141,6 +137,12 @@ journal:
   kind: started
   at: '2026-11-07T12:47:09.617127Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T12:48:35.568897Z'
+  stage: smoke-test
+  run: b9d44bdf565e48398075486a051e8bff
 ---
 
 # The package and its areas say what they hold
@@ -347,3 +349,19 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (59.0 s)
 23. factory: started smoke-test as vm.
+24. smoke-tester: I ran the smoke test as written from the repository root. It met its `Expect:` line, and I have no findings.
+
+    Command 1: `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 50ms
+    documents ok (59.1 s)
+    ```
+    It met its `Expect:` line (`documents ok (<seconds> s)`). The "Bytecode compiled" line is uv's own message on stderr, so it does not come through `tail`. The command's own last line is the expected one.
+
+    I read the acceptance criteria against the run, and nothing contradicts any of them. A document check that finds nothing is what criteria 2 and 4 ask for. Beyond the smoke test, I looked at these, without fixing or changing anything:
+    - `src/factory/README.md` opens with one sentence and links to `docs/project-guide/README.md`, *The code's layout*.
+    - `src/factory/entry/README.md` is one sentence plus that link, with no subfolder lines.
+    - `docs/checked-documents.txt` holds nine `src/factory/**/README.md` paths.
+    - `uv run pytest -q tests/guards/test_folder_readmes.py tests/guards/test_old_layer_packages_removed.py` passes. The skips there are other stories' folders, as the tester reported in journal 16.
+
+    Findings: none.
