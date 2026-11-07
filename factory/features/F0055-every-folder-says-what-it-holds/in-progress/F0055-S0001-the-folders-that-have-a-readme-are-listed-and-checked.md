@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T10:14:26.254552Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -68,6 +64,12 @@ journal:
   kind: started
   at: '2026-11-07T10:14:26.254552Z'
   stage: tests
+- number: 11
+  speaker: tester
+  kind: result
+  at: '2026-11-07T10:15:03.152206Z'
+  stage: tests
+  run: 3f4256f068f34b6e979f73365a105d0c
 ---
 
 # The folders that have a README are listed and checked
@@ -166,3 +168,25 @@ Expect: `23 ['x: no README.md']`
    I changed no earlier test. Which earlier documenter tests the new sentence breaks depends on how the coder words it, so I can't name them yet. Under the leave in feature decision 5, I make that change after the coder's run names them.
 9. 2026-11-07 human: (a) to both: the 25 words count only the sentence after the backticked name, and <n> is the 1-based line number in the whole README, blank lines counted. What you settled yourself is confirmed: a subfolder line is a dash, the backticked name ending in /, a space and a sentence ending with a period; sentences are counted by their closing periods; each row of criterion 2 checks only its own line. Keep the tests as they are.
 10. factory: started tests as vm.
+11. tester: In journal entry 9 the human answered (a) to both questions. The 25 words count only the sentence after the backticked name. `<n>` is the 1-based line number in the whole README, with blank lines counted. The human confirmed the rest and said to keep the tests as they are, so I left the tests committed in the last tests run unchanged. I checked again that the two boundary rows match that answer. The free prose sits on line 10, counting blank lines. The line limit is 12: the title, the opening, eight link lines and two subfolder lines, with two subfolders.
+
+    Mapping:
+    - criterion 1: tests/shared/domain/test_folder_readmes.py::test_a_readme_and_its_subfolders_give_what_they_disagree_on
+    - criterion 2: tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule
+    - criterion 3: tests/guards/test_folder_readmes.py::test_every_listed_readme_is_a_readme_of_a_folder_that_exists and tests/guards/test_folder_readmes.py::test_every_package_under_the_factory_package_has_its_readme_listed
+    - criterion 4: tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder
+    - criterion 5: tests/entry/test_check_documents_folder_readmes.py::test_a_missing_name_in_a_readme_blocks_when_listed_and_is_reported_otherwise
+    - criterion 6: tests/agent_files/test_claude_agent_texts_folder_readmes.py::test_the_documenter_may_write_the_folder_readmes_which_point_to_the_guides
+    - criterion 7: tests/entry/test_check_documents_folder_readmes.py::test_a_listed_folder_readme_that_does_not_exist_is_no_document_of_the_check
+    - criterion 8: tests/guards/test_folder_readmes.py::test_the_subfolders_leave_out_hidden_folders_and_pycache (tests the guard's helper `_subfolders`)
+    - criteria 9 and 10 (`make check`, docs): no tests.
+
+    Files, all created in the previous tests run and unchanged in this one: tests/shared/domain/test_folder_readmes.py, tests/guards/test_folder_readmes.py, tests/entry/test_check_documents_folder_readmes.py, tests/agent_files/test_claude_agent_texts_folder_readmes.py.
+
+    Test run (`uv run pytest -q` on the four files): 3 collection errors, in the first three files. Their common import is the missing module `factory.shared.domain.folder_readmes`; the tail I read shows only the three ERROR lines, not the error text. The documenter test is expected to fail because documenter.md does not yet have the sentence; the tail did not show its result.
+
+    `make lint`: green.
+
+    Open: I changed no earlier test. Which earlier documenter-text tests the new sentence breaks depends on how the coder words it. Under the leave of feature decision 5, I make that change once the coder's run names those tests.
+
+    `lint`: lint: green (0.2 s)
