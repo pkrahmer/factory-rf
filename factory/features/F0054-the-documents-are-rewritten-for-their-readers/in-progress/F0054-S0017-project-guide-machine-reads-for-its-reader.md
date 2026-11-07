@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T05:07:12.864192Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T05:07:12.864192Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T05:07:28.449664Z'
+  stage: intake
+  run: 29d84c9e47de4a3da742810a8bc5a650
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: it names one concrete file to rewrite (`docs/project-guide/machine.md`), the link rule, the one-line `docs/checked-documents.txt` change, and says no code, test or agent file changes. Every path is one the documenter may write.
+   - Criteria: criteria 1 and 2 are judged by the reviewer against the style page and the code. Criteria 3 to 5 are checked by `make documents` and by link checks. Criterion 6 is `make check`. Criterion 7 is the docs criterion. The story states no code rules, so there is no failing side to cover. Each criterion is testable in one pass without further decisions.
+   - Smoke test: `grep -cx "docs/project-guide/machine.md" docs/checked-documents.txt` is runnable and its `Expect: 1` can be checked against the output. It runs no pytest, so the `-q` rule does not apply.
+   - Docs criterion: it names what the reader must know. The page is rewritten for its reader, every fact is kept or moved to *Reference*, and the examples are runnable. It dictates no sentences.
+   - Architecture: the page covers the machine area, which `CLAUDE.md` lists with containers, images, snapshots, disks and the preflight. The story changes only a document in `docs/project-guide/`, so no layer is touched.
+   - Scope: this is S0017 in the feature's list, and the feature's scope is each file rewritten with its own story. `decisions.md`, `runs/` and the playbook are not touched. Route: docs-only.
