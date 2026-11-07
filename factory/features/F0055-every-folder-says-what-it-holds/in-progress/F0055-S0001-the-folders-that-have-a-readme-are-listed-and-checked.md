@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 632
 comments_read: [6705414222]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T10:07:09.965913Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,13 @@ journal:
   kind: started
   at: '2026-11-07T10:07:09.965913Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: question
+  at: '2026-11-07T10:10:33.081377Z'
+  stage: tests
+  run: 3e230f03b651466d959e847c3351ced4
+  blocked: question
 ---
 
 # The folders that have a README are listed and checked
@@ -121,3 +124,29 @@ Expect: `23 ['x: no README.md']`
    - Architecture: a domain constant in `shared` and the wiring in `entry` fit the layering. `check_documents` already sits in `entry`.
    - Scope: within feature.md's S0001 scope. The write_paths change stays with the human, and the leave for the documenter's tests is stated in the Interface (feature decision 5). Route: `tests`, because the Interface changes code and tests.
 7. factory: started tests as vm.
+8. tester: I wrote the tests for every criterion. I stop at step 4: to write the boundary rows of criterion 2, I had to decide two counts the Interface leaves open. Two coders could count them differently, and a row at 25 words passes or fails depending on which count is used.
+
+   1. "A subfolder line of more than 25 words": which words count? (a) only the sentence after the backticked name; (b) the whole line without the leading `- `, so the name counts as one word; (c) every token of the line, `-` included. With (b) a line I count as 25 words is 26, and the at-limit row fails. I would choose (a), and the tests use it now: the line is ``- `lib/` `` and then a sentence of 25 words (no finding) or 26 words (one finding).
+   2. The `<n>` in "line <n> is no part of the form": (a) the 1-based line number in the whole README, blank lines counted, like an editor's line number; (b) the number among the non-blank lines only. I would choose (a). The test expects `line 10` for a line of prose after the list in a 10-line README that has blank lines.
+
+   What I settled myself without asking, from the Interface's literal text, for you to confirm along with the answer: a subfolder line is ``- `name/` `` plus a space and a sentence that ends with a period (``- `bin/` holds files of the operator.``). Sentences are counted by their closing periods. The rows of criterion 2 check only how often their own line appears, so an extra finding of another rule on the same text does not fail them.
+
+   If you answer (a) to both, the tests stay as they are and the next run ends with `doing`.
+
+   Mapping, as written:
+   - criterion 1: tests/shared/domain/test_folder_readmes.py::test_a_readme_and_its_subfolders_give_what_they_disagree_on (rows: no-readme, every-subfolder-named, subfolder-not-named, named-subfolder-missing, both-sorted, line-without-a-sentence)
+   - criterion 2: tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule (rows: section, code-block, opening of two and of three sentences, no-relative-link, subfolder line of 25 and of 26 words and of two sentences, free-prose-after-the-list, at the line limit of 12 and one line past it)
+   - criterion 3: tests/guards/test_folder_readmes.py::test_every_listed_readme_is_a_readme_of_a_folder_that_exists and ::test_every_package_under_the_factory_package_has_its_readme_listed
+   - criterion 4: tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder (one row per path of `FOLDER_READMES`; a README that is not written yet is skipped with its path in the reason)
+   - criterion 5: tests/entry/test_check_documents_folder_readmes.py::test_a_missing_name_in_a_readme_blocks_when_listed_and_is_reported_otherwise (rows: folder README and `operator/README.md`, each listed and not listed; the `operator/README.md` text has a section and prose after it, and no shape finding may appear)
+   - criterion 6: tests/agent_files/test_claude_agent_texts_folder_readmes.py::test_the_documenter_may_write_the_folder_readmes_which_point_to_the_guides (exactly one line of documenter.md names "write", "folder readme", `factory.shared.domain.folder_readmes`, "points to the guides" and "guide page")
+   - criterion 7: tests/entry/test_check_documents_folder_readmes.py::test_a_listed_folder_readme_that_does_not_exist_is_no_document_of_the_check
+   - criterion 8: tests/guards/test_folder_readmes.py::test_the_subfolders_leave_out_hidden_folders_and_pycache (it tests the guard's helper `_subfolders`)
+
+   Files created: tests/shared/domain/test_folder_readmes.py, tests/guards/test_folder_readmes.py, tests/entry/test_check_documents_folder_readmes.py, tests/agent_files/test_claude_agent_texts_folder_readmes.py.
+
+   Test run (`uv run pytest -q` on the four files): 3 collection errors, in the first three files; their common import is the missing module `factory.shared.domain.folder_readmes`. The tail I read did not show the error text or the documenter test's result. I expect that test to fail because documenter.md does not yet have the sentence.
+
+   `make lint`: green, after `ruff format` on the new files.
+
+   I changed no earlier test. Which earlier documenter tests the new sentence breaks depends on how the coder words it, so I can't name them yet. Under the leave in feature decision 5, I make that change after the coder's run names them.
