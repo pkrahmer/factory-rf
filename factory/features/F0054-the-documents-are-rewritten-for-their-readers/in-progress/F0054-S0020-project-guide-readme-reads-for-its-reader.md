@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 628
 comments_read: [6704529250]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T08:33:12.767331Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-07T08:33:07.511917Z'
   stage: docs-review
   run: c3a755079e194bb6b42fb44b10a0d1f9
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-07T08:33:12.767331Z'
+  stage: docs-only
 ---
 
 # The project guide's index reads for the developer
@@ -482,3 +491,4 @@ Expect: `1`
     Criterion 2 still holds. The only names dropped on purpose are the per-area package names, now one `factory.<area>.<layer>` block, and `factory.adapters.landlock`, which does not exist.
 
     Not checked: I did not run `make documents`; the factory runs it as the gate.
+24. factory: started docs-only as vm.
