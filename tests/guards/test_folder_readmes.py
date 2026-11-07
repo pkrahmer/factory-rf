@@ -1,4 +1,4 @@
-"""Every listed folder README that exists agrees with its folder and keeps the README's form."""
+"""Every listed folder README exists, agrees with its folder and keeps the README's form."""
 
 from pathlib import Path
 
@@ -20,6 +20,13 @@ def _subfolders(folder: Path) -> list[str]:
     )
 
 
+def _listed_readme_problems(root: Path, path: str) -> list[str]:
+    readme = root / path
+    folder = path.removesuffix(SUFFIX)
+    text = readme.read_text(encoding="utf-8") if readme.is_file() else None
+    return readme_problems(folder, text, _subfolders(root / folder))
+
+
 @pytest.mark.parametrize(
     ("folders", "expected"),
     [
@@ -39,18 +46,34 @@ def test_the_subfolders_leave_out_hidden_folders_and_pycache(
     assert _subfolders(tmp_path) == expected
 
 
+TITLE = "# A folder"
+OPENING = "What the folder holds."
+LINK = "The guide says more: [the guide](../docs/README.md)."
+NAMING_README = f"{TITLE}\n\n{OPENING}\n\n{LINK}\n\n- `y/` holds the files of the folder.\n"
+SILENT_README = f"{TITLE}\n\n{OPENING}\n\n{LINK}\n"
+
+
+@pytest.mark.parametrize(
+    ("readme", "expected"),
+    [
+        pytest.param(NAMING_README, [], id="names-its-subfolder"),
+        pytest.param(None, ["x: no README.md"], id="no-readme"),
+        pytest.param(SILENT_README, ["x: y/ is not named"], id="subfolder-not-named"),
+    ],
+)
+def test_a_listed_readme_gives_its_problems_and_a_missing_one_fails(
+    tmp_path: Path, readme: str | None, expected: list[str]
+) -> None:
+    (tmp_path / "x" / "y").mkdir(parents=True)
+    if readme is not None:
+        (tmp_path / "x" / README_NAME).write_text(readme, encoding="utf-8")
+
+    assert _listed_readme_problems(tmp_path, f"x{SUFFIX}") == expected
+
+
 @pytest.mark.parametrize("path", FOLDER_READMES)
 def test_a_folder_readme_agrees_with_its_folder(path: str) -> None:
-    readme = ROOT / path
-    if not readme.is_file():
-        pytest.skip(f"{path} is not written yet")
-    folder = path.removesuffix(SUFFIX)
-
-    problems = readme_problems(
-        folder, readme.read_text(encoding="utf-8"), _subfolders(readme.parent)
-    )
-
-    assert problems == []
+    assert _listed_readme_problems(ROOT, path) == []
 
 
 def test_every_listed_readme_is_a_readme_of_a_folder_that_exists() -> None:
