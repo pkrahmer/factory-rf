@@ -72,7 +72,7 @@ Every [project command](../project-guide/glossary.md) (`make check`, `lint`, `te
 - With stops it prints one line per stop and exits 1.
 - When the file is missing it prints `no health status: <path> is missing` and exits 1. `factory-run` writes an empty status when it starts, so a missing file means the instance has not started, or the check reads another state directory.
 
-A line for a stop looks like this (it shows the format, which `src/factory/entry/health.py` builds; no example here produced it):
+A line for a stop has this format; `factory-health` prints it:
 
 ```text
 preflight_failed (machine): tool:uv: uv is not on the PATH; add it to the image (since 2026-10-12T08:00:00Z)
@@ -90,7 +90,7 @@ The preflight installs nothing. A missing tool is reported and you fix the image
 
 The items run only when the image build has changed (see "The stamp and the probe of the main branch").
 
-The five basic items are `tool:git`, `tool:uv`, `hosting-service`, `agents` and `agent-runtime-version`. The extras are `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `metadata-block` (under the profile `job` only), `opencode` (under opencode only) and `agent-run-probe`. Under `FACTORY_SNAPSHOTS=copy` the one item `snapshots` stands in place of `zfs` and `dataset`.
+The five basic items are `tool:git`, `tool:uv`, `hosting-service`, `agents` and `agent-runtime-version`. The extras are `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `metadata-block`, `opencode` and `agent-run-probe`. `metadata-block` runs only under the profile `job`, and `opencode` only under opencode. Under `FACTORY_SNAPSHOTS=copy` the one item `snapshots` stands in place of `zfs` and `dataset`.
 
 Each row of the table names what an item needs and what to do when it fails. They run in the order of the table.
 
@@ -104,7 +104,7 @@ Each row of the table names what an item needs and what to do when it fails. The
 | `podman` | `podman --version` answers; the detail is its first line (`podman version 4.9.3`), which the factory log names once per image build | The detail is `podman does not answer --version: <the error>`. Install `podman` where the factory runs, or correct `FACTORY_PODMAN`. |
 | `zfs` | `zfs --version` answers; the detail is its first line | The detail is `zfs does not answer --version: <the error>`. Install ZFS, or correct `FACTORY_ZFS`. |
 | `dataset` | `zfs list -H -o name <dataset>` names `FACTORY_DATASET` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`: do that, once. An instance made by `operator/vm/setup.sh` has both already (step 5); the message concerns a dataset made by hand. When `zfs list` itself fails, the detail is `cannot list the dataset <dataset>: <the error>` (for example a permission the factory's user lacks). |
-| `snapshots` | with `FACTORY_SNAPSHOTS=copy` only, in place of `zfs` and `dataset`: the workspace and the base are directories; the detail is `workspace <w>, base <b>` | `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or `the base <b> is not a directory`. |
+| `snapshots` | with `FACTORY_SNAPSHOTS=copy` only, in place of `zfs` and `dataset`: the workspace and the [base](../project-guide/glossary.md) are directories; the detail is `workspace <w>, base <b>` | `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or `the base <b> is not a directory`. |
 | `stage-image` | `podman image exists <FACTORY_STAGE_IMAGE>` answers yes | `the stage image <image> is not built; build it with podman build`. When podman cannot answer, the detail is `cannot look for the stage image <image>: <the error>`. |
 | `metadata-block` | with `FACTORY_CONTAINER_PROFILE=job` only: a container's request to the metadata server is refused (curl prints `000`); the detail is `refused` | See "The metadata server in a job" in [machine.md](machine.md): the sentences are there, and so is the rule to load. |
 | `opencode` | under opencode only: `FACTORY_OPENCODE_MODELS` maps every alias the installed agents use. No executable is looked for, since it is the stage image's and `agent-runtime-version` runs it there | `no model is set for <alias> in FACTORY_OPENCODE_MODELS`: add `<alias>=<provider>/<model>`. The item asks for no API key: see "Running on opencode" in [agent-runtime.md](agent-runtime.md). |

@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:55:38.030197Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T00:55:38.030197Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:58:34.792654Z'
+  stage: docs-only
+  run: c6ac785d4ecd462ab1f18c77b40da835
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -223,3 +225,22 @@ Expect: `1`
     2. `docs/operator-guide/health.md:93`: the sentence "The extras are `token-file`, … `metadata-block` (under the profile `job` only), `opencode` (under opencode only) and `agent-run-probe`." holds two parentheses (style rule 2). Fix: list the extras without the parentheses and add a sentence of its own: "`metadata-block` runs only under the profile `job`, and `opencode` only under opencode."
     3. `docs/operator-guide/health.md:75`: the round-0 fix names the source path `src/factory/entry/health.py`. The operator-guide rule says "Name no module or class. Name a source path only if the operator edits or runs that file". Fix: "A line for a stop has this format; `factory-health` prints it:", without the source path and without "no example here produced it".
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the three round-1 review findings in `docs/operator-guide/health.md`. `make documents` ends with `documents ok (12.1 s)`. I ran no `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/operator-guide/health.md`: the fixes below. No heading changed, so no link in another file needed a change. `docs/checked-documents.txt` is unchanged.
+
+    Findings, by number:
+    1. I linked "base" to the glossary at its first prose use, in the `snapshots` row of the items table ("the workspace and the base are directories"). This is the link round 0 left out.
+    2. I took the two parentheses out of the sentence on the extras. It now lists the extras plainly and adds one sentence: "`metadata-block` runs only under the profile `job`, and `opencode` only under opencode."
+    3. The sample stop line is now introduced by "A line for a stop has this format; `factory-health` prints it:". The source path and "no example here produced it" are gone. The sample line itself is still the one copied from the old file, and I did not see it produced.
+
+    Cross-read: I changed no heading, so the sentences in other documents that cite `health.md` still resolve.
+
+    Stale text I noticed and did not touch: `make documents` still lists "does not exist" report lines for files that are not on `docs/checked-documents.txt` yet. They are not part of this story.
+
+    Findings for the coder: none.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (12.1 s)
