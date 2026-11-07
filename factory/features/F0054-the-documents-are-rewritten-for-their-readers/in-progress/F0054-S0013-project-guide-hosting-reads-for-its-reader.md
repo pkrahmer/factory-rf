@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:23:43.483206Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T03:23:43.483206Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:28:36.065310Z'
+  stage: docs-only
+  run: 27a3b569fba84cff8f595a60a194dd4a
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -79,3 +81,45 @@ Expect: `1`
    Architecture: the story touches only documents, so the code's layering is not involved. It stays on the project guide's hosting page, which matches CLAUDE.md's docs layout.
    Scope: it is S0013 of F0054, one file rewritten and added to the checked list. It touches nothing in the feature's Out of scope (`decisions.md` is explicitly "none").
 4. factory: started docs-only as vm.
+5. documenter: Rewrote the hosting page of the project guide for its reader and put it on the checked list. `make documents` ends with `documents ok (8.9 s)`, and no finding names `hosting.md`. I did not run `make check`: both files I changed are documents.
+
+   Files changed:
+   - `docs/project-guide/hosting.md`: rewritten in the style of `docs/project-guide/style.md`.
+     - Each section now opens with the idea, then a block of names and signatures, then one rule per bullet, then See also.
+     - Each file the page names is linked once, at its first mention (`hosting.py`, `pygithub_hosting.py`, `fake_hosting.py`, `paths.py`, `wiring.py`, `git.py` in the application and domain layers, `git_cli.py`, and the tests and support modules). Names inside code blocks stay plain.
+     - The glossary words `stage`, `journal`, `tick`, `work item` and `take` are linked at first use.
+     - The detail the sections above only summarise is in a new `## Reference` at the end. It holds the options of `GitCli`, the credential helper's comparison, the 22 git operations, the result models, what `push_reason` leaves out, what `check_branch_name` refuses, and where `check_git_argument` applies.
+     - The headings `The hosting service`, `The git wrapper`, `The PyGithub client`, `The fake`, `Data`, `The marker and the post key`, `Deleting and merging branches`, `Restoring the checkout` and `Which part uses which operation` are kept. The text before the old `Deleting and merging branches` heading is split into `Pushing`, plus new `The argument and branch rules`, `Identity and isolation` and `Testing with real git` sections. Other documents name only the page and its `The git wrapper` section, so no link or reference needed changing.
+   - `docs/checked-documents.txt`: added the line `docs/project-guide/hosting.md`.
+
+   Corrections against the code:
+   - The old text said "twenty-one operations" of `Git`. The interface has 22 (`last_push_output` was described outside the table), and `tests/hosting/application/test_git_interface.py` says twenty-two. The page now says 22 and lists `last_push_output` in the table.
+   - The old text said `factory.entry.wiring` builds the service with `pygithub_service`. That function is defined in `pygithub_hosting.py`, and `wiring.py` only calls it. The page now says so.
+   - The old `GitOptions` table put the `FACTORY_CHECKOUT` and `FACTORY_STATE` settings inside the `identity` row. They now stand in the Reference as their own paragraph, with their `SettingsInvalid` behaviour.
+   - `git_environment()` in `wiring.py` also sets `core.hooksPath` to the null device and `core.fsmonitor` to `false`. The old text named only the credential helper. Both are now stated.
+   - Removed the sentence "A real call is first seen by the baseline run". I could find nothing in the code or the tests that bears it out.
+   - The old example `docs/a.txt` is now an indented-free fenced `text` block with `a/b.txt`, because a backticked `docs/a.txt` would make the name check look for a file that does not exist.
+
+   Nothing else was dropped. Every other name, command, setting and rule of the old file is in the new one or in its Reference. Facts I could not spot-check in the code are carried over unchanged:
+   - The detailed claims about `work_tree_id`, `status` and `log`.
+   - The `last_push_output` behaviour.
+   - The test layout of `tests/conftest.py` and the `human` fixture's `merge` methods.
+
+   The claims I did check against the code and found current:
+   - The ten hosting operations and their signatures.
+   - The `PyGithubHostingService` behaviour.
+   - The retry settings.
+   - The `PullRequestView`, `PullRequestComment` and `PostKey` models, with `render_post` and `parse_post_key`.
+   - The fake's operations.
+   - The environment keys and `IGNORE_GROUP`, the `switch --force-create` and `clean` commands, and the `check-ignore` call in `git_cli.py`.
+
+   I cross-read `docs/project-guide/README.md` (its index line for `hosting.md`) and `docs/project-guide/machine.md` (its reference to `hosting.md`). Both are still true.
+
+   Not touched, not mine to fix:
+   - The area `hosting` also holds `application/opening.py` and `application/pushes.py`, `domain/hand_over.py` and `domain/post_texts.py`, and the adapters `checkout_fixture.py` and `instance_fixture.py`. The old page did not describe them and the story's scope was to rewrite the old page's facts, so I did not add them. A later story could cover them.
+   - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder although it looks like a machine-area test.
+   - I added no "Rejected" line to the two `docs/decisions.md` pointers; the story names none, and the decision log is out of scope (`none`).
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (8.9 s)
