@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-11-07T02:04:52.022766Z'
   stage: docs-review
   run: ac4065621b1b47af98ec2f097e1e4679
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-11-07T02:06:42.988552Z'
+  stage: docs-approval
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -415,3 +420,4 @@ Expect: `1`
     no findings
 
     Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files. That is history.
+28. factory: done (pull request merged); cost: 12 runs, 10.8 min, 100 turns, 330651 tokens in (2685479 more from cache), 48154 out, $3.36
