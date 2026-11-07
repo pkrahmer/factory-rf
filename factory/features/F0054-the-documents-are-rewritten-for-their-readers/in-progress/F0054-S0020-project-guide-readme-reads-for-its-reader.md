@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T08:27:58.132242Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,19 @@ journal:
   kind: started
   at: '2026-11-07T08:27:58.132242Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T08:30:29.224524Z'
+  stage: docs-review
+  run: 07099eab8a9d467b97507c1651e439d0
+- number: 20
+  speaker: factory
+  kind: question
+  at: '2026-11-07T08:30:29.224524Z'
+  stage: docs-review
+  run: 07099eab8a9d467b97507c1651e439d0
+  blocked: round_cap
 ---
 
 # The project guide's index reads for the developer
@@ -403,3 +412,34 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (57.3 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 review of `git diff main...HEAD -- README.md docs operator/README.md`. Two files changed: `docs/project-guide/README.md` (rewritten) and `docs/checked-documents.txt` (one line added). I re-read the round-3 changes word by word against round 2 (`da36e2fba..bdb45b083`). I also checked the `tests/support/` and conftest entries against their source, which no earlier round had done.
+
+    The four round-2 findings are fixed:
+    - No sentence I read has more than one prose parenthesis.
+    - The long sentences that round 2 named are split.
+    - `tests/support/stage_run_support.py` is written from the root, and the page names are links.
+    - *The kill-point cases* and *Fault-injection paths* have signature blocks. They match the source: `tests/support/proof_support.py:65,217,245,345,351,372,480,490,535,546,635,801` and `src/factory/pipeline/domain/fault_paths.py:6-19`.
+
+    Facts checked and found true:
+    - The names in the `claude_resume_support`, `stage_image_support`, `recording_stand_in_support`, `search_support`, `stall_support`, `operator_job_support`, `operator_skill_support`, `site_check_support`, `wiring_support`, `contract_login_support`, `function_support` and `check_documents_support` entries.
+    - The constants `INSTANCE`, `INSIDE`, `NOTES`, `IMAGE`, `DATASET`, `BASE_IDENTITY`, `AGENT_TEXT`, `RESET_PREFIX`, `FIVE_MINUTES` and `ROOMY_LIMIT`.
+    - The seven shipped agents, the `ValueError("boom")` default, the conftest clock, the `definition` and `minimal` fixtures, and `run_end`'s return.
+    - `CRASH_CONDITIONS` and `STALL_CONDITIONS`.
+    - That the two modules shown importing `RESET_PREFIX` do import it.
+
+    Findings:
+    1. `docs/project-guide/README.md:109`: "`assert_taken_and_pushed` makes the five assertions" is false. `tests/support/container_support.py:337-343` holds seven `assert`s. Fix: write "seven", or say what it checks: the pushed commit, `INSIDE` taken, `NOTES` not taken but named in the journal, one timing line, a clean checkout.
+    2. `docs/project-guide/README.md:149`: "`in_order` and `lines_with` are shared by the three text modules of `operator/vm/setup.sh`" is false.
+       - `in_order` is imported by four setup modules: `tests/vm/test_vm_setup_caches.py`, `test_vm_setup_first_base.py`, `test_vm_setup_idle_shutdown.py` and `test_vm_setup_text.py`. `tests/operator_scripts/test_operator_merge_reset.py` imports it too.
+       - `lines_with` is imported by `test_vm_setup_idle_shutdown.py`, `test_vm_setup_text.py` and `tests/vm/test_vm_job_start_image.py`.
+       - Fix: say which tests share them, without the count.
+    3. `docs/project-guide/README.md:100`: "Every module of `tests/support/` …, and the two conftests" is false. Eleven modules of `tests/support/` are named nowhere on the page: `claude_stand_in.py`, `container_runtime_support.py`, `guide_files_support.py`, `machine_readings_support.py`, `opencode_stand_in.py`, `push_retry_support.py`, `pygithub_stand_ins.py`, `remote_outage_support.py`, `sized_images.py`, `tool_use_support.py` and `transcript_support.py`. Fix: add an entry for each, read from its source. For `claude_stand_in.py` and `opencode_stand_in.py`, which `agents.md` names, and `pygithub_stand_ins.py`, which `hosting.md` names, the entry may point to that page.
+    4. `docs/project-guide/README.md:102`: the `tests/conftest.py` entry names 28 fixtures. The file defines about 25 more: `without_agent_login`, `code`, `token`, `workspace`, `fake`, `operator`, `probe_settings`, `image_file`, `environment`, `run_environment`, `sudo_stand_in`, `installed`, `failed_after_claim`, `podman_recorder`, `podman`, `runs`, `dataset`, `holder_file`, `restored_signals`, `secret_file`, `login_file`, `environ`, `instance_settings`, `on_the_manual_clock` and `result_case`. Line 76 says a fixture is named in that line. Fix: name each one, read from `tests/conftest.py`, or say which fixtures the line lists and where the others are described.
+    5. `docs/project-guide/README.md:102`: the same entry is one bullet of about 350 words with about 30 rules, against `docs/project-guide/style.md:113` ("the rules, one per bullet"). Fix: make the conftest entry a nested list, one fixture per item, grouped under its existing headings (every test, doubles and time, git, paths and settings, the factory, the recovery proof, runtime tests).
+
+    Criterion 2 still holds. The only names dropped on purpose are the per-area package names, now one `factory.<area>.<layer>` block, and `factory.adapters.landlock`, which does not exist. Findings 1 to 4 are claims carried over from the old page that the code does not bear out (Description, style rules 8 to 10). They are not new omissions.
+
+    Not checked:
+    - The one-line descriptions of the `tests/support/` entries not named above, beyond their top-level names.
+    - I did not run `make documents`. The documenter's run printed `documents ok`, and the factory runs it as the gate.
+20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
