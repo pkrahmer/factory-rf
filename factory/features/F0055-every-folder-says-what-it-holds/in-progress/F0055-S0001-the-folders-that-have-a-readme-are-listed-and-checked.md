@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T10:06:46.495587Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T10:06:44.203580Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:06:46.495587Z'
   stage: intake
 ---
 
@@ -90,3 +99,4 @@ Expect: `23 ['x: no README.md']`
    2. Add a criterion: a listed path of FOLDER_READMES with no file gives the same finding of checked_list_findings as today.
    3. Add a criterion: the guard's subfolders leave out hidden folders and __pycache__, through a helper in the guard module with a parametrized test.
    4. Definitions for readme_problems, to write into the Interface: the title is the first line, '# ' and a text. A subfolder line starts with '- ' and a backticked name ending in '/'. A link line is a line that contains a relative Markdown link and is not a subfolder line; it may start with '- '. The opening is the non-blank lines between the title and the first link line or subfolder line. Any other non-blank line after the first link line or subfolder line is 'no part of the form'.
+5. factory: started intake as vm.
