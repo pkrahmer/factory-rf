@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070, 6708142009]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T14:30:24.034875Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -173,6 +169,12 @@ journal:
   kind: started
   at: '2026-11-07T14:30:24.034875Z'
   stage: docs-review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:30:50.839569Z'
+  stage: docs-review
+  run: ed759dc1567a4582869c570ad06704b7
 ---
 
 # The top folders say what they hold
@@ -405,3 +407,23 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (60.5 s)
 29. factory: started docs-review as vm.
+30. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, which is new on the branch and which criteria 1, 2 and 5 name. The human's entry 24 limits the glossary-link check to the two findings it confirmed and asks for nothing else of this kind.
+
+    no findings
+
+    Checked and found true:
+    - Round 5's two findings are fixed. In `README.md:37` the `agents/` line links "role" to `docs/project-guide/glossary.md`. In `README.md:42` the `planning/` line links "stage" before its later link at the old line 82.
+    - Glossary check: the documenter's script was removed, so I could not rerun it, and my role lets me write no code. Instead I used `grep` to compare every term in `docs/project-guide/glossary.md` (acceptance … write paths) with the new lines of the three files.
+      - No new line has an unlinked first prose use of a glossary word.
+      - The three hits the documenter's script reported in entry 28 are outside this story's lines. "stories" at line 3 is linked. "takes" at line 21 is the verb. "stage image" at line 33 is older than this story and sits in `## Where to read next`, which criterion 6 keeps unchanged.
+    - Criterion 4: `docs/README.md` names the operator guide, the project guide, `decisions.md` and `operator-playbook.md`, and says `runs/` is the human's. Its three subfolder lines match `docs/`: `operator-guide/`, `project-guide/` and `runs/`, which holds only run logs and reports.
+    - Criterion 5: `security/README.md` names the semgrep rules (`make sast`) and `duplicates-baseline.txt` (`make duplicates`) and links `CLAUDE.md`, *Checks*. Its one subfolder line, `semgrep/`, matches `security/`.
+    - Criterion 6:
+      - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`.
+      - It has ten lines in the subfolder-line form, with no colons, and links the eight READMEs that exist.
+      - It names `factory/`, `planning/` and `session-logs/` as the human's.
+    - Criterion 2: `docs/checked-documents.txt` now lists both new paths. The documenter's last run (entry 28) ended `documents ok (60.5 s)`, and the factory's gate was `check: green`.
+
+    Open, not a finding:
+    - The `agents/` line in `## Where to read next` covers the same folder as its line in `## The folders`. Criterion 6 keeps the old section unchanged.
+    - `session-logs/` is ignored by git (`.gitignore`), so its line has no link.
