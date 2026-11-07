@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T11:25:40.502563Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-07T11:25:35.500075Z'
   stage: intake
   run: bf31b02245b24720845868917064be44
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:25:40.502563Z'
+  stage: tests
 ---
 
 # A reference to another page's heading names a heading it has
@@ -117,3 +126,4 @@ Expect: `documents ok (<seconds> s)`
    - Docs criterion: it names what the reader must know about `shared.md` and `style.md`. I added the four pages the documenter fixes (`install.md`, `work-items.md`, `machine.md`, `agent-runtime.md`), with the reader finding each section under the name the target page writes. It dictates no sentences.
    - Architecture: the new module is in `shared/domain` and is pure. The entry wiring stays in `factory.entry.check_documents`.
    - Scope: it fits the feature's scope ("The document check resolves references to another page's heading (S0006)"). No earlier test changes, and the story states that no earlier row changes its result.
+7. factory: started tests as vm.
