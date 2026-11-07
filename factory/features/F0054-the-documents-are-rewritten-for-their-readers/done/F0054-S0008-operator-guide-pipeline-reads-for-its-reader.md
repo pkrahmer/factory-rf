@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -91,6 +91,11 @@ journal:
   at: '2026-11-07T01:35:11.697712Z'
   stage: docs-review
   run: 484393ad34f84265979d9f3efd9ce841
+- number: 16
+  speaker: factory
+  kind: done
+  at: '2026-11-07T01:39:05.323412Z'
+  stage: docs-approval
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -266,3 +271,4 @@ Expect: `1`
     - The headings that other files link to are kept.
 
     no findings
+16. factory: done (pull request merged); cost: 7 runs, 7.1 min, 63 turns, 203479 tokens in (1808351 more from cache), 30152 out, $1.99
