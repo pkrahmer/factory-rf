@@ -6,6 +6,17 @@ The skill lets an agent (Claude Code, or opencode at work) run an instance toget
 
 The skill is a trial. Nothing here is used until a trial at work with opencode against the Cloud Run job has shown that it holds. After that it moves to a repository of its own, `kumpel-skill`, and this folder goes.
 
+What the folders hold:
+
+- [`bin/`](bin/README.md) The commands for the site file and for cleaning text.
+- [`claude/`](claude/README.md) The skill's command for Claude Code.
+- [`job/`](job/README.md) The script of the Cloud Run job.
+- [`lib/`](lib/README.md) The shell code the scripts share.
+- [`opencode/`](opencode/README.md) The skill's command for opencode.
+- [`skill/`](skill/README.md) The skill `kumpel`.
+- `template/` The start of a new project, copied into it; it carries no README of its own.
+- [`vm/`](vm/README.md) The files that set up a VM.
+
 Where to read next:
 
 - [Setting up an operator's machine](../docs/operator-guide/site.md): the whole setup, from a machine with nothing on it to a running job and a skill that drives it.

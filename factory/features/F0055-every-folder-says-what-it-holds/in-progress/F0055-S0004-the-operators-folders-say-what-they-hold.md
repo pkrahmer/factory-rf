@@ -2,16 +2,12 @@
 stage: docs
 blocked: null
 round: 1
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T13:44:17.078397Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,19 @@ journal:
   kind: started
   at: '2026-11-07T13:44:17.078397Z'
   stage: docs
+- number: 18
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T13:48:08.695544Z'
+  stage: docs
+  run: 4204eca921364b3ab075e87beed6fc47
+- number: 19
+  speaker: factory
+  kind: stall
+  at: '2026-11-07T13:48:09.194785Z'
+  stage: docs
+  run: 4204eca921364b3ab075e87beed6fc47
+  reason: check_red
 ---
 
 # The operator's folders say what they hold
@@ -251,3 +260,34 @@ Expect: `documents ok (<seconds> s)`
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
 17. factory: started docs as vm.
+18. documenter: Wrote the eight folder READMEs, listed them and `operator/README.md` for the document check, and fixed the one stale count in the project guide. `make documents` ends with `documents ok (59.6 s)`. I ran `uv run pytest -q tests/guards/test_folder_readmes.py`, and it passes. It skips only `docs/README.md` and `security/README.md`, which are other stories' READMEs. None of this story's eight is skipped. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `agents/README.md`: new. Says what the shipped agent files and settings are, links `docs/project-guide/agents.md`, and has the line for `agents/`.
+    - `operator/bin/README.md`, `operator/job/README.md`, `operator/lib/README.md`, `operator/vm/README.md`: new. Each has one opening sentence and a link to the operator guide page that explains the folder: `site.md` for `bin/` and `lib/`, `cloud-run.md` for `job/`, `machine.md` for `vm/`. None of the four has subfolders.
+    - `operator/claude/README.md`, `operator/opencode/README.md`, `operator/skill/README.md`: new. Each links `site.md` and names its one subfolder (`commands/`, `command/`, `kumpel/`). The skill README also links `operator/README.md`.
+    - `operator/README.md`: added a short section, "What the folders hold", before "Where to read next". It has one line per subfolder, each linking its README. The `template/` line says it is the start of a new project, copied into it, and carries no README of its own.
+    - `docs/checked-documents.txt`: added the eight new paths and `operator/README.md`. The document check finds nothing in `operator/README.md`, so no further fix was needed there.
+    - `docs/project-guide/shared.md` (the sentence at line 207): "23 in all" is now "22 in all", and it says `operator/template/` carries none because an operator copies that folder into a new project. This follows the human's answer in journal entry 12.
+
+    Cross-read and found current: `docs/project-guide/style.md` (*Folder READMEs*, which is the form I followed) and `docs/project-guide/agents.md`. `docs/operator-guide/site.md` is linked from several READMEs; its page exists and the link check passes. I read `src/factory/shared/domain/folder_readmes.py` and the folder contents for the names. I checked `operator/lib/site.sh` and `operator/job/job.sh` for their header comments.
+
+    Stale text noticed and not touched: `docs/decisions.md:1653` still says "the 23 paths". The human said it stays as it is, because the decision log records what was decided at the time.
+
+    I set aside no project skill. I did not rewrite the Description, which is not mine; the added part of criterion 6 stands in journal entry 12.
+19. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/watching/application/transcripts.py         61      2     10      0    97%   92-93
+    src/factory/watching/domain/board.py                    55      0      4      1    98%   78->76
+    src/factory/watching/domain/machine.py                  52      3     18      5    89%   45->43, 48, 60, 78->76, 80
+    src/factory/watching/domain/transcripts.py              10      2      0      0    80%   21-22
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   240
+    src/factory/work/application/work_items.py              90      2     24      2    96%   134, 170
+    src/factory/work/domain/acceptance.py                  195      1     52      1    99%   368
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                11354     55   2296     53    99%
+
+    158 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.21%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/] - AssertionError: assert ['operator/README.md'] == []
+    make: *** [Makefile:89: test] Error 1

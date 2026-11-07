@@ -35,3 +35,12 @@ src/factory/work/README.md
 tests/README.md
 tests/support/README.md
 tests/guards/README.md
+operator/README.md
+agents/README.md
+operator/bin/README.md
+operator/claude/README.md
+operator/job/README.md
+operator/lib/README.md
+operator/opencode/README.md
+operator/skill/README.md
+operator/vm/README.md
