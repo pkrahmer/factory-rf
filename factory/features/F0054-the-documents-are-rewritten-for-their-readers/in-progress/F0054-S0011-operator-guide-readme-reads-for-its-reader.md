@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T02:46:54.533364Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -124,6 +128,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T02:46:51.754632Z'
+  stage: docs-review
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:46:54.533364Z'
   stage: docs-review
 ---
 
@@ -289,3 +298,4 @@ Expect: `1`
        Fix: link each one to `../project-guide/glossary.md` at its first use in the file. Later uses stay plain.
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes findings 1 and 2 of the last review: each glossary word is linked at its first use in the file, also in the file table and the two sections named, and only there. Before it ends, it lists the glossary words the page uses and checks each first use by script.
+22. factory: started docs-review as vm.
