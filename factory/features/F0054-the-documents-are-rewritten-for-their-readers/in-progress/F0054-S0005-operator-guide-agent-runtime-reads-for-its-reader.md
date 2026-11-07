@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:33:05.694414Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T00:33:05.694414Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:34:01.918850Z'
+  stage: docs-review
+  run: 6a3d06fa41664a73ac1425792f7595be
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -284,3 +286,27 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (10.3 s)
 14. factory: started docs-review as vm.
+15. reviewer: Docs review, round 2. I read `docs/operator-guide/agent-runtime.md` on the branch against the round-1 findings, the code, `operator/vm/setup.sh`, `docs/operator-guide/machine.md` and `docs/project-guide/style.md`.
+
+    Round-1 findings 1, 2, 3 and 6 are fixed:
+    - "claim" is linked at its first use (`:16`).
+    - "project commands" (`:50`) and "stop" (`:335`) are linked.
+    - The `login` values `subscription`, `api_key` and `none` are named (`:96`).
+    - The stray space is gone (`:288`).
+
+    I checked two more facts and found them true:
+    - The settings code gives `FACTORY_CLAUDE_LOGIN_FILE`, `FACTORY_API_LOGIN_FILE` and `FACTORY_CLAUDE_VERSION` no default (`src/factory/shared/domain/settings.py:139-142,371-373`), so the Reference table's `none` is right. The values in machine.md are the ones the environment file writes (`operator/vm/setup.sh:429-432`).
+    - The environment file sets `FACTORY_OPENCODE_VERSION` from the Dockerfile's pin (`setup.sh:413,432`).
+
+    Criterion 3 holds: the file is on `docs/checked-documents.txt`, and the journal reports `documents ok`. Criterion 4 holds: no heading changed this round.
+
+    Round-1 findings 4 and 5 are only partly fixed:
+
+    1. `docs/operator-guide/agent-runtime.md:64-79`: the token steps contradict each other, and the Windows variant stands under the wrong step.
+       - What is wrong: step 2 saves the token straight to `/home/factory/.secrets/claude-token`. Step 3 then installs a file `claude-token` "in the current folder" to that same path, so the file step 3 installs does not exist. The PowerShell block stands under step 3 but says "in place of step 2", so the reader is sent back a step.
+       - Fix: make step 2 "save the token, with nothing else in the file, as `claude-token` in your own folder". Put the Windows `Set-Content` variant and its UTF-16 note under step 2. Make step 3 install that file to `/home/factory/.secrets/claude-token` and remove the copy, as step 8 of "On GCP, step by step" in `machine.md:514-521` does (`shred -u`).
+    2. `docs/operator-guide/agent-runtime.md:16`: the version check is still told twice.
+       - What is wrong: "The factory asks `claude --version` and takes the first word of its output" comes first. The paragraph then ends with "`agent-runtime-version` runs `claude --version` or `opencode --version` … and compares the first word of its output". The probe sentences stand between the two, and the first sentence leaves out opencode.
+       - Fix: remove the first sentence. Move the `agent-runtime-version` sentence to the head of the paragraph and give it the example: "compares the first word of its output (for example `2.1.289`) with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`".
+
+    Dropped on purpose, still accepted from round 0: the `planning/cloud-sandbox/` pointer, the F0043 and F0044 notes, "This repository's own build stays on the subscription", and `limit_wait`.
