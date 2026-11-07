@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T08:13:40.425292Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T08:13:35.526857Z'
   stage: docs-review
   run: 7a689d2edd4843fba898717e5d4791f2
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T08:13:40.425292Z'
+  stage: docs-only
 ---
 
 # The project guide's index reads for the developer
@@ -268,3 +277,4 @@ Expect: `1`
     Criterion 2: the names dropped on purpose (the per-area package names, now one `factory.<area>.<layer>` block, and `factory.adapters.landlock`, which does not exist) are still justified. Nothing else from the old file is missing.
 
     Not checked: every one-line description of a `tests/support/` module against its source; neither stage has checked these. I did not run `make documents`. The documenter's run printed `documents ok`, and the factory runs it again as the gate.
+12. factory: started docs-only as vm.
