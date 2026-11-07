@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: [6703344230, 6703551254]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:49:08.991078Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -241,6 +237,12 @@ journal:
   kind: started
   at: '2026-11-07T06:49:08.991078Z'
   stage: docs-review
+- number: 42
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:49:48.512523Z'
+  stage: docs-review
+  run: 9cf180a8a321401db2ed2c4afde9682c
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -756,3 +758,12 @@ Expect: `1`
 39. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 40. 2026-11-07 human: One more round, by the human's standing word for tonight, and the last one on style. The facts of this page are settled. The documenter now runs a script over the whole of `docs/project-guide/pipeline.md`, not only the changed lines, that lists every sentence over 25 words or with more than one parenthesis (code spans and tables left out), splits each one, and runs the script again until the list is empty. Its entry quotes the script's last output. The reviewer then checks rule 2 by the same script and judges no further wording.
 41. factory: started docs-review as vm.
+42. reviewer: Review after the human's answer (entry 40). I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The documenter has not run since that answer: the factory went from entry 40 straight to docs-review (entry 41). Since the last review (commit a034188c6), the only branch commit touching `docs` or `src` is the merge of `origin/main` (cd1ac00d6). That merge changed only `docs/runs/2026-11-05-f0052/log.md`, which is the human's file and outside this story. So `docs/project-guide/pipeline.md` is the same text that entry 38 reviewed. I spot-checked lines 226, 614 and 741, and they are unchanged. No script output exists yet, so I cannot check rule 2 "by the same script", as entry 40 asks. I judged no new wording, and no factual finding is open (entry 40: the facts are settled).
+
+    Findings:
+    1. `docs/project-guide/pipeline.md`, style rule 2, the whole page: the sentence-length script that entry 40 asks for has not been run. The sentences entry 38 listed are still there, at lines 23, 91, 137, 171, 196, 226, 268, 283, 285, 413, 431, 442, 482, 536, 552, 594, 609, 611, 614, 677, 680, 707, 733, 741, 772, 792, 810, 812, 846, 847 and 848. Each has more than one parenthesis or runs past 25 words. Fix: do what entry 40 says. Run a script over the whole page that lists every sentence over 25 words or with more than one parenthesis, leaving code spans and tables out. Split each sentence it lists and keep every claim. Run the script again until the list is empty, and quote its last output in the entry.
+
+    Open, not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human decides which rules are meant.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - This is the second time the factory has gone from the human's answer straight to docs-review without a documenter run in between (also entries 24 and 25). That looks like a factory routing issue for the human to look at.
