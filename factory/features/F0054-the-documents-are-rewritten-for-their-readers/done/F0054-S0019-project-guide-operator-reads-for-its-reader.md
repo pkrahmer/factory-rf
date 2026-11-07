@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -158,6 +158,11 @@ journal:
   at: '2026-11-07T07:44:14.681312Z'
   stage: docs-review
   run: 9a956d30fd274824a5ac918c2a2dbeac
+- number: 28
+  speaker: factory
+  kind: done
+  at: '2026-11-07T07:48:07.822569Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -422,3 +427,4 @@ Expect: `1`
     Accepted as in rounds 1 and 2, and not raised again: the files named in the layout block (lines 9-19) and the support block (lines 143-146) are linked in the bullets just below each block, not above it as style rule 8 and the Interface put it. The human may want this changed in a later story.
 
     no findings
+28. factory: done (pull request merged); cost: 12 runs, 10.5 min, 84 turns, 333277 tokens in (2075075 more from cache), 47637 out, $3.21
