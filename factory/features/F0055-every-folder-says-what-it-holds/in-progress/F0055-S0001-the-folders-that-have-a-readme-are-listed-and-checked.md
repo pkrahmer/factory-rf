@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T10:28:08.859752Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -92,6 +96,11 @@ journal:
   at: '2026-11-07T10:28:03.801780Z'
   stage: review
   run: 21ae9eb163824f228f437efcce7fe4c7
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:28:08.859752Z'
+  stage: doing
 ---
 
 # The folders that have a README are listed and checked
@@ -251,3 +260,4 @@ Expect: `23 ['x: no README.md']`
     - The diff changes no document under `README.md`, `docs/` or `operator/README.md`.
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
+16. factory: started doing as vm.
