@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T11:25:40.502563Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-07T11:25:40.502563Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-07T11:27:03.874740Z'
+  stage: tests
+  run: 2e0d117107b343a992fb901ceee80787
 ---
 
 # A reference to another page's heading names a heading it has
@@ -127,3 +129,23 @@ Expect: `documents ok (<seconds> s)`
    - Architecture: the new module is in `shared/domain` and is pure. The entry wiring stays in `factory.entry.check_documents`.
    - Scope: it fits the feature's scope ("The document check resolves references to another page's heading (S0006)"). No earlier test changes, and the story states that no earlier row changes its result.
 7. factory: started tests as vm.
+8. tester: Tests written from the Interface and the criteria. They are red on purpose.
+   - criterion 1: tests/shared/domain/test_heading_references.py::test_a_reference_to_another_pages_heading_is_found_with_its_line_heading_and_target. It has 11 rows: italics-in, quotes-of, closing-parenthesis-before-in, comma-before-in, asterisks-inside, own-file (no reference), backticks, other-folder (`../`), anchor (none), not-a-markdown-file (none), neither-in-nor-of (none).
+   - criterion 2, `unresolved_headings`: tests/shared/domain/test_heading_references.py::test_a_reference_to_a_heading_the_linked_page_does_not_have_is_one_finding. Rows: missing-heading, which must give the exact text `<document>:<line>: <heading> is no heading of <target>`; existing-heading; no-document-of-the-check (`headings` returns `None`).
+   - criterion 2, `page_headings`: tests/shared/domain/test_heading_references.py::test_a_pages_headings_lose_their_code_marks_and_nothing_else. Rows: backticks, asterisks, and only-code-marks-are-stripped (`StageFinisher.finish` does not match `StageFinisher.finish(aftermath)`).
+   - criterion 3: tests/entry/test_check_documents_checked_files.py::test_a_reference_to_another_pages_heading_it_lacks_blocks_in_a_listed_file_only. It runs on minimal documents. Rows:
+     - broken-not-listed: the finding comes under the report heading, exit 0.
+     - broken-listed: the finding blocks, exit 1, no report.
+     - valid: no finding.
+     - no-document-of-the-check: a link to `docs/runs/a-run.md`, no finding.
+   - criteria 4 to 6 (`make documents`, `make check`, docs): no test. The documenter and the factory's checks cover them.
+
+   Files:
+   - Created: tests/shared/domain/test_heading_references.py.
+   - Changed: tests/entry/test_check_documents_checked_files.py. I added constants and one test at the end of it, as the story allows. No earlier row changed.
+
+   Run of the two files: tests/shared/domain/test_heading_references.py fails at collection with `ModuleNotFoundError: No module named 'factory.shared.domain.heading_references'`, the module the runner could not import. In the entry test, the broken-not-listed and broken-listed rows fail on the assert, because no heading finding is printed yet. The valid and no-document rows pass already, as their side requires. I ran the entry module twice: once with the first try, which `make lint` refused (an f-string without placeholders, too many arguments), and once after the fix.
+
+   `make lint` is green.
+
+   `lint`: lint: green (0.2 s)
