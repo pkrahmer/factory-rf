@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T12:53:07.773191Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T12:53:07.765734Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:53:07.773191Z'
+  stage: intake
+---
+
 # The tests say how they are laid out
 
 ## Description
@@ -30,3 +57,6 @@ uv run python -m factory.entry.check_documents | tail -1
 Expect: `documents ok (<seconds> s)`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
