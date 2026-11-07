@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:54:22.403169Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-07T02:54:22.403169Z'
   stage: docs-review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:54:49.091171Z'
+  stage: docs-review
+  run: b88628f68d8b47c7ac465ed5b1f6890b
 ---
 
 # The operator guide's index reads for the operator
@@ -390,3 +392,18 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (13.6 s)
 30. factory: started docs-review as vm.
+31. reviewer: Round 2 after the human's answer (entry 21). I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the code on the branch, `docs/project-guide/style.md` and `docs/project-guide/glossary.md`.
+
+    The finding from entry 27 is fixed. `docs/operator-guide/README.md:5` now gives the usual case first: a VM with ZFS and rootless Podman, where every stage runs in throwaway containers on one ZFS dataset. It then says an instance can also run without ZFS, in a Cloud Run job, and links `cloud-run.md`. This matches `docs/operator-guide/machine.md:111-113` (*Without ZFS*: `FACTORY_SNAPSHOTS=copy`, with `FACTORY_DATASET` and `FACTORY_ZFS` not read) and `docs/operator-guide/cloud-run.md:73` (`FACTORY_SNAPSHOTS` is `copy`). It also agrees with bullet 1 of *What the stage environment is* (line 39). The links to dataset and stage are still at their first use, and the sentence stays under about 25 words.
+
+    These still hold:
+    - Every glossary word is linked at its first use and only there, as checked in entry 27.
+    - The settings in bullet 1 match `src/factory/shared/domain/settings.py:165-169`.
+    - The container boundary, the take's journal line, `tool_paths`, the relative links and `factory-watch` all still hold.
+    - The headings that "Where to start" names exist: "The machine" (`machine.md:7`), "Configuration" (`install.md:39`) and "The stops" (`stops.md:7`).
+    - The `README.md:28` link fix and the `docs/checked-documents.txt` line are in place.
+    - Entry 5's list of things dropped on purpose stays accepted under criterion 2.
+
+    Criteria 1 to 4 and the docs criterion are met.
+
+    no findings
