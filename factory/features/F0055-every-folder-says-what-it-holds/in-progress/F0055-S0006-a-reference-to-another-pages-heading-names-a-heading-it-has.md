@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T11:34:22.322716Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-07T11:34:22.322716Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T11:35:43.458237Z'
+  stage: review
+  run: 4436660754b94cdca7a2af14be4c379d
 ---
 
 # A reference to another page's heading names a heading it has
@@ -104,7 +106,7 @@ The documents point the reader to a section of another page in one form: a headi
 
 ## Acceptance criteria
 
-1. `heading_references` finds a reference in each form, with its line, heading and resolved target. Rows: italics with `in`, quotes with `of`, a closing `)` before `in`, a `,` before `in`, a heading with asterisks inside, a reference to the document's own file (no reference), a heading with backticks, a link in a subfolder (`../`), and no reference for a link with a `#` anchor, a link to a file that is not `.md`, and a heading text without `in` or `of` after it.
+1. `heading_references` finds a reference in each form, with its line, heading and resolved target. Rows: italics with `in`, quotes with `of`, a closing `)` before `in`, a `,` before `in`, a heading with asterisks inside, a reference to the document's own file (no reference), a heading with backticks, a link in a subfolder (`../`), and no reference for a link with a `#` anchor, a link to a file that is not `.md`, a heading text without `in` or `of` after it, plain text that is neither in italics nor in quotes before `in` and the link (`See the guide in [machine.md](machine.md).`), and another mark than `)` or `,` between the heading and `in` (`*The two passes*; in [machine.md](machine.md)`); and for two italic spans on one line (`*one* and *The two passes* in [machine.md](machine.md)`) only the span right before `in` is the reference.
 2. `unresolved_headings` gives one finding for a heading the linked page does not have, none for one it has, and none for a link to a page that is no document of the check; the finding reads exactly `<document>:<line>: <heading> is no heading of <target>`. Rows of one parametrized test.
    `page_headings` strips backticks and asterisks only: a heading with backticks matches the reference without them, one with asterisks matches too, and `StageFinisher.finish` does not match `StageFinisher.finish(aftermath)`. Rows of one parametrized test.
 3. On minimal documents, `main(["--root", ...])` reports a broken reference in an unlisted page and blocks on it in a listed one, gives no finding for a valid reference and none for a reference to a page that is no document of the check (rows of one test).
@@ -195,3 +197,20 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 11. factory: started review as vm.
+12. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (5 files) and the work item. I read the new module, the entry wiring, the two helpers made public in `documents.py`, and both test files, checking them against criteria 1 to 3 and the Interface. I also ran `make duplicates` (a report). Its 6 new findings are all outside this diff (`claude_runtime`/`opencode_runtime`, `hand_over`/`acceptance`, `folder_readmes.readme_problems`, `cost_records`), so they are not counted against this story.
+
+    Findings:
+    1. criterion 1 extended: it needs its test. Location: `## Acceptance criteria` 1, and `tests/shared/domain/test_heading_references.py::test_a_reference_to_another_pages_heading_is_found_with_its_line_heading_and_target`. The Interface's rule "a heading text in italics or in double quotes, then optional `)` or `,`" had no row for its failing side, so no test pins that it is enforced. Missing were plain text before `in [x.md]`, and a mark other than `)` or `,`. Plain text is the most common prose in the documents (`described in [machine.md](machine.md)`). The coder's own rule that a heading may not start or end with a space (journal entry 10) had no row either: on a line with two italic spans, only the span right before `in` counts. The code handles all three as stated (`_REFERENCE` in `src/factory/shared/domain/heading_references.py:11`), so no change under `src/` is needed. I wrote three rows into criterion 1's row list: plain text gives no reference, `;` gives no reference, and two italic spans give only the second. This is a gap in the story, not the tester's. Fix: the tester adds these three rows to that parametrized test, with no new test function.
+
+    Checked and in order:
+    - Criteria 1 to 3: every listed row is present, and each test checks what its criterion names. Criterion 1 has all 11 rows. Criterion 2 pins the exact finding text and the three `page_headings` rows. Criterion 3 runs on minimal documents with the four rows. The factory's `make check` after the coder was green (entry 10).
+    - Architecture: the new module is pure, in `shared/domain`. It reuses `link_name` and `checked_lines` rather than copying them. The file reading stays in `factory.entry.check_documents`.
+    - Security: no strings passed to a shell, no markers that silence a check, no secrets.
+    - Quality: names and docstrings fit what they describe. `_FRAGMENT = "#"` repeats a private constant from `documents.py`, which is trivial and not worth a round.
+    - Hygiene: the journal states the main choice (reuse the name check's link resolution) and what was rejected. The Description matches what was built.
+      - The fourth reference (`agent-runtime.md:407`) is not caught by the form the check reads. The coder says so in entry 10, and criterion 6 gives the hand fix to the documenter.
+      - The docs criterion still says what the reader must learn.
+    - Documents: the diff changes none.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents_checked_files.py`: none needed. It only adds constants and one test at the end, and every earlier test is unchanged. The story's Interface also allows rows in this module.
