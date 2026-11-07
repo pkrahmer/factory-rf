@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T01:39:43.332643Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T01:39:43.325229Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:39:43.332643Z'
+  stage: intake
+---
+
 # The operator guide's the records, the bill and the watch reads for the operator
 
 ## Description
@@ -28,3 +55,6 @@ grep -cx "docs/operator-guide/records.md" docs/checked-documents.txt
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
