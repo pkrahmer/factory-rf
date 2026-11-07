@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:07:40.253048Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T02:07:35.545760Z'
   stage: intake
   run: da90882f7e2948c7b810fb77bc7154f8
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:07:40.253048Z'
+  stage: docs-only
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    Docs criterion: criterion 6 asks for criteria 1 to 4 and names no sentences to write. `docs/decisions.md`: none.
    Architecture: the change touches documents only. It fits CLAUDE.md's split between the operator guide, the project guide and the README.
    Scope: it is S0010 in the feature's list. It touches no file the feature lists as out of scope. I made no change to the story.
+4. factory: started docs-only as vm.
