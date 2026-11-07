@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-07T13:44:17.078397Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-07T13:44:12.149654Z'
   stage: review
   run: 7f45b9c1d7ba42f18cedf61adb6ef8f8
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:44:17.078397Z'
+  stage: docs
 ---
 
 # The operator's folders say what they hold
@@ -241,3 +250,4 @@ Expect: `documents ok (<seconds> s)`
     no findings
 
     Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
+17. factory: started docs as vm.
