@@ -24,7 +24,7 @@ The watcher is `Watcher` in [watcher.py](../../src/factory/watching/application/
 - Nothing else in `evaluate` depends on `observer`.
 - `evaluate` checks every snapshot against the definition after the integrity tier and before any lookup. A work item with no state raises `ValueError("work item <id> has no state")`. One in a [stage](glossary.md) that the [pipeline definition](glossary.md) lacks raises `ValueError("work item <id>: stage <stage> is not in the pipeline definition")`.
 
-See also: *The tick* in [pipeline.md](pipeline.md), and the claim in [work.md](work.md).
+See also: *The tick* in `pipeline.md`, and the claim in [work.md](work.md).
 
 ### The event
 
@@ -41,7 +41,7 @@ An event says what the factory should do about one work item, or that it should 
 - `evaluate` makes every kind: `run`, `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `crash`, `expired`, `duplicate`, `pull_request_lookup`, `acceptance_due` and `idle`. `build_handlers` registers a handler for each of them.
 - `reject` is an illegal stage change (see *The move rule*); `RejectHandler` handles it.
 
-See also: *The handlers of the events* and *An illegal stage change is put back* in [pipeline.md](pipeline.md).
+See also: *The handlers of the events* and *An illegal stage change is put back* in `pipeline.md`.
 
 ### The four tiers
 
@@ -86,7 +86,7 @@ A stage changes only through the pipeline. The move rule finds a stage change th
 
 When `last_stage_change` gives `None`, and what `reject` carries, is in the *Reference*, *The move rule*.
 
-See also: *An illegal stage change is put back* in [pipeline.md](pipeline.md).
+See also: *An illegal stage change is put back* in `pipeline.md`.
 
 ### The watcher's command line
 
@@ -98,7 +98,7 @@ See also: *An illegal stage change is put back* in [pipeline.md](pipeline.md).
 
 - `run_watch` resolves `origin/main` (`GitError` when it does not), loads the definition at that commit with `PipelineLoader(boundaries).load(commit)`, evaluates once with `Watcher(boundaries, instance, observer=True)`, and writes `render_event(event)`, a blank line and the board.
 - It loads at the commit and not at the ref, so that it raises or clears no [stop](glossary.md).
-- It fetches and writes nothing. It returns 0.
+- It fetches nothing and writes no file. On success it returns 0.
 - A `PipelineDefinitionInvalid` or an `AgentDefinitionInvalid` gives 1 and a line `factory-watch: <fault>` on `err`.
 - `main` parses `argv` with an `ArgumentParser(prog="factory-watch")` that has no options, so any option is `SystemExit(2)`.
 - With no boundaries or no instance, `main` takes both from `boundaries_from_environment(os.environ)` and runs as the settings' [instance](glossary.md). A `SettingsInvalid` is written as `factory-watch: settings invalid: <variable>: <fault>` on `err`, nothing goes to `out`, and `main` returns 2.
@@ -120,13 +120,13 @@ The board is the table `factory-watch` prints: one row for each feature with its
 - `BoardReader` reads the remote-tracking refs a second time and does not share the watcher's snapshots, so `Watcher.evaluate` still returns one event.
 - The rows of the board are pure data: `work_item_row` and `feature_rows` do no I/O.
 
-See also: *The remote's work items* and *The feature acceptance* in [work.md](work.md).
+See also: *The remote's work items* and *The feature acceptance* in `work.md`.
 
 ## Cost records
 
 Every agent run is written down in a [cost record](glossary.md): what ran, how long it took and what it cost. The records of a work item are the lines of a sidecar file beside it, and every [bill](#bills) is a sum of them.
 
-The sidecar path is `cost_records_path(path)` (`<work item>.costs.jsonl`, see *Identity, order and places of work items* in [work.md](work.md)). The format is `CostRecord` in [cost_records.py](../../src/factory/watching/domain/cost_records.py). The file is read and written through the interfaces `CostRecordReader` and `CostRecordWriter` in [files.py](../../src/factory/shared/application/files.py), implemented by the JSON Lines classes in [cost_records_jsonl.py](../../src/factory/watching/adapters/cost_records_jsonl.py).
+The sidecar path is `cost_records_path(path)` (`<work item>.costs.jsonl`, see *Identity, order and places of work items* in `work.md`). The format is `CostRecord` in [cost_records.py](../../src/factory/watching/domain/cost_records.py). The file is read and written through the interfaces `CostRecordReader` and `CostRecordWriter` in [files.py](../../src/factory/shared/application/files.py), implemented by the JSON Lines classes in [cost_records_jsonl.py](../../src/factory/watching/adapters/cost_records_jsonl.py).
 
     CostRecord(run, work_item, stage, role, attempt, status, started_at, ...)
     CostRecord.ok -> bool
@@ -173,7 +173,7 @@ The records of one run live in memory as a `CostRun` while the stage runs, and t
 - The sidecar is outside every [write path](glossary.md), so the [take](glossary.md) never brings the dataset's copy. The factory writes it back from memory right after the take, in `AfterAgent.process` and in `StallService.stall` when its `StallContext.cost` is set. An agent that overwrites or deletes the sidecar changes nothing in the commit.
 - The factory's own rewrite is not named in the journal entry's paragraph about left-out changes.
 
-See also: *Starting a stage*, *After the agent run* and *Stalls* in [pipeline.md](pipeline.md), and *The take* in [machine.md](machine.md).
+See also: *Starting a stage*, *After the agent run* and *Stalls* in `pipeline.md`, and *The take* in [machine.md](machine.md).
 
 ### Transcripts and the machine's readings
 
@@ -225,7 +225,7 @@ A bill is the sum of cost records and nothing else. The cost line in a `done` jo
 - `for_work_item` reads only remote-tracking refs: `origin/<branch>` when it exists, else `origin/main`.
 - It finds the first `.md` file under the features directory whose name parses to the id; none gives `None`.
 - It reads that file's sidecar with `show_file`; no sidecar means no records.
-- A local commit that was not pushed, and the contents of the `work` volume, have no influence, so a fresh clone shows the same bill.
+- A local commit that was not pushed, and the contents of the dataset, have no influence, so a fresh clone shows the same bill.
 - `BillService` never fetches; the caller does.
 - `in_flight` returns the ids of the remote branches named like work item branches, sorted with `work_item_order`.
 
@@ -248,7 +248,7 @@ $ uv run python -c "import json; from factory.watching.adapters.cost_records_jso
     run(argv, service, out) -> int
     main(argv=None) -> int
 
-- `run` returns the exit status; `main` builds the service with `build_bill_service` from [wiring.py](../../src/factory/entry/wiring.py), the only adapter import of the entry layer.
+- `run` returns the exit status; `main` builds the service with `build_bill_service` from [wiring.py](../../src/factory/entry/wiring.py). `bill.py` imports no adapter itself; it reaches them through `build_bill_service`.
 - With one id, `run` writes the table, a blank line and `Cost: <line>`, and returns 0. An argument that is no work item id gives `not a work item id: <argument>` and 2. A work item with no bill gives `no work item <id>` and 1.
 - With more than one argument, `run` writes `usage: factory-bill [<work item id>]` and returns 2.
 - With no argument, `run` writes one block for each work item in flight that has a bill, headed by its id, and returns 0.
@@ -270,11 +270,11 @@ The factory also records how long it waited for the human. [human_waits.py](../.
 - `cost_table_post(table, human=None)` in [post_texts.py](../../src/factory/hosting/domain/post_texts.py) appends an empty line and `Human: <human>` when `human` is set. `HandOverHandler` and `AcceptanceHandOver` pass `human_line(human_waits(journal))` of the document they read, and the post's key is unchanged.
 - `AcceptanceService.facts` passes the line of the waits of every story in the feature's `done/` on `origin/main`, read with `AcceptanceReader.document`. It leaves out an acceptance report and a [backlog](glossary.md) story. A done story file that `parse` refuses adds no wait.
 
-See also: *The handlers of the events* in [pipeline.md](pipeline.md).
+See also: *The handlers of the events* in `pipeline.md`.
 
 ## The factory log and the health file
 
-Three small adapters in this area keep what the operator reads. The tick uses them; see *Stops, the clock and the factory log* in [pipeline.md](pipeline.md).
+Three small adapters in this area keep what the operator reads. The tick uses them; see *Stops, the clock and the factory log* in `pipeline.md`.
 
 [factory_log.py](../../src/factory/watching/adapters/factory_log.py), [health_file.py](../../src/factory/watching/adapters/health_file.py) and [record_log_jsonl.py](../../src/factory/watching/adapters/record_log_jsonl.py) hold them. The interfaces `Clock`, `Waiter`, `FactoryLog`, `HealthStatusStore`, `DiskSpace`, `MachineReadings` and `PowerOff` are in the application layer's `machine.py`, linked above.
 

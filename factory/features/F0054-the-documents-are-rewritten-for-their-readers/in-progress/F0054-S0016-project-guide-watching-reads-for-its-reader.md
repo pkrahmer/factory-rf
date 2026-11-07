@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:59:14.557224Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-07T04:59:14.557224Z'
   stage: docs-only
+- number: 16
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:02:07.463569Z'
+  stage: docs-only
+  run: 72169d36266941c3a51586c7b47fb871
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -285,3 +287,24 @@ Expect: `1`
 
     The smoke test holds by reading `docs/checked-documents.txt`: the line is there once. I did not run it.
 15. factory: started docs-only as vm.
+16. documenter: Round 2: fixed the reviewer's four findings in entry 14. `make documents` ends with `documents ok (16.2 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/watching.md`:
+      - 1: `pipeline.md` is now linked once, at its first mention in line 3, and `work.md` once, in the first See also (line 27). Every later mention is plain `pipeline.md` or `work.md`.
+      - 2: the *bill command* bullet no longer says "the only adapter import of the entry layer". It says that `bill.py` imports no adapter itself and reaches them through `build_bill_service`.
+      - 3: "the contents of the `work` volume" is now "the contents of the dataset".
+      - 4: the `run_watch` bullet now reads "It fetches nothing and writes no file. On success it returns 0.", which agrees with the bullets above and below it.
+
+    Cross-read and found current: `docs/project-guide/README.md` (its `watching.md` entry is unchanged since round 1) and the headings that `work.md` and `pipeline.md` link to.
+
+    Stale text I saw and did not touch, because it is unrelated to this story:
+    - `docs/project-guide/README.md` has `support/...` paths that do not exist (from line 121) and `project/factory/...` at line 283.
+    - `docs/project-guide/machine.md` has `src/new.py`, `.venv/...` and `factory/stage.Containerfile`.
+    - The index still has "Replaced in v1.2" and "Replaced from v1" notes in the agents entry.
+
+    I wrote no `Rejected` lines. `docs/decisions.md` is unchanged.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (16.8 s)
