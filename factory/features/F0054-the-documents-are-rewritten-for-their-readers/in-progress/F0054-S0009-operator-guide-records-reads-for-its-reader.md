@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:53:54.631694Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T01:53:54.631694Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:55:13.055844Z'
+  stage: docs-review
+  run: 11d19d0c3dfb45c889ee8508c0541359
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -241,3 +243,27 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (13.4 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/records.md` and `docs/checked-documents.txt`. I read the new file against `docs/project-guide/style.md` and against `src/factory/entry/bill.py`, `src/factory/entry/watch.py` and `src/factory/shared/domain/errors.py`. I also compared it with the old text on `main`.
+
+    What is fixed from round 1:
+    - Findings 2 to 8 are fixed.
+    - Finding 1 is fixed in its form. The block is a `console vm` block, indented under step 2. The false sentence is gone, and the output format matches `_block` in `bill.py`: the table, an empty line, then `Cost: <line>`.
+
+    What is met:
+    - Criterion 3: the file is on the checked list, and the journal shows `documents ok`.
+    - Criterion 4: no link points to a renamed heading.
+    - The `factory-bill` exit table matches `bill.py`: 0, 1 for `no work item <id>`, and 2 for `not a work item id` and for the usage line.
+
+    Findings:
+    1. `docs/operator-guide/records.md:162` (criterion 2: a claim the code contradicts): the row for exit 2 puts "an unknown option" together with the settings faults. It says standard error then gets `factory-watch: settings invalid: <variable>: <fault>`. For an unknown option the code does something else. `argparse` in `watch.py` (`parser.parse_args`) exits 2 with its own `usage: factory-watch [-h]` and `factory-watch: error: unrecognized arguments: <option>`. The old text on `main` (line 166) kept the two cases apart, and the table merged them. Fix: give the unknown option its own sentence or row, "2: an unknown option; standard error gets the usage line and `factory-watch: error: unrecognized arguments: <option>`". Keep the `settings invalid` sentence for the environment and the token file only.
+    2. `docs/operator-guide/records.md:51` (style: "the text above it says where it ran"): "in the checkout of this work item" means nothing to the operator. "This work item" is the story that wrote the page, and the reader cannot tell which work item or repository it is. Fix: name the run itself, for example "This run took place on the factory's VM, in a checkout of the factory's own repository, after `git fetch`, for one of its work items. Its numbers change with every run."
+    3. `docs/operator-guide/records.md:5,155,174,217` (style rule 2: about 25 words per sentence): four sentences are still too long.
+       - Line 5, sentence 2, about 37 words: "This page tells you which records … with `factory-watch`." Fix: list the three topics as their own short sentence, or rely on the list of sections below it.
+       - Line 155, sentence 2, about 39 words, "A stage that waits for the model provider's usage limit … tells the two apart." Fix: put the clause after the semicolon in its own sentence.
+       - Line 174, sentence 1, about 44 words, which lists `denials` and `denied_paths` in one sentence. Fix: one sentence for each key. Also drop the last sentence, "`factory-bill` does not print these keys.", which repeats line 170.
+       - Line 217, the `seconds` cell, whose first sentence is about 50 words. Fix: split the Claude Code rule, the lines that are not read and the duplicate-id rule into three sentences.
+       I should have named these sentences in round 0, since they stood there unchanged.
+
+    Dropped on purpose (criterion 2), unchanged since round 0: the version-by-version list of the records contract (style rule 1).
+
+    Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files, as the documenter noted. The round cap of `docs-review` is 3, so one more round remains.
