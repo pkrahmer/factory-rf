@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:32:20.299507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T02:32:20.299507Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:35:07.179110Z'
+  stage: docs-only
+  run: 240a1a8b2ad04f7da00fb96d6580e230
 ---
 
 # The operator guide's index reads for the operator
@@ -135,3 +137,17 @@ Expect: `1`
    4. `docs/operator-guide/README.md`, *Options that do not exist*: "an option for it is unknown" is vague and reads as a note about a removed option (style rules 1 and 7). `src/factory/entry/watch.py:72-73` builds an argument parser with no arguments, so `factory-watch` takes no option but `--help`. Fix: state the current truth, "`factory-watch` takes no options; it refuses any option but `--help`", and drop the heading's "do not exist" framing.
    5. `docs/operator-guide/README.md`, *Reference*, opening line: "for the operator who knows an older setup or an older option" frames the section as history, against style rules 1 and 7. Fix: say what the section holds, for example "How the stage environment works and what the instance refuses".
 8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's five findings, all in `docs/operator-guide/README.md`, section *Reference*. I read the cited code only as the reviewer's findings quote it. I did not open it myself.
+   1. Opening line: now "How the stage environment works and what the instance refuses." (no framing as history).
+   2. Bullet 1 of *What the stage environment is*: `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` are required. `FACTORY_DATASET` is required when the snapshots are `zfs`, and with `FACTORY_SNAPSHOTS=copy` the instance runs without a dataset.
+   3. Bullet 2 of the same section: `--userns=keep-id` and the user `factory` are now stated for the VM. A Cloud Run job runs without the user namespace, with a pointer to `cloud-run.md`.
+   4. Same bullet: the dataset is the only writable mount, and the login files are mounted read-only at their own paths. I left out the sync container's read-only mounts of the checkout's `.git` and the agent home, which the reviewer also named.
+   5. The heading *Options that do not exist* is now *Command-line options*: "`factory-watch` takes no options but `--help`; it has no follow mode."
+
+   `make documents` ends with `documents ok (13.7 s)`. I changed only documents, so I did not run `make check`.
+
+   Cross-read and found current: the rest of the operator guide README and the link fix in the root `README.md`, as in entry 5. I noticed no new stale text beyond the items entry 5 already lists.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (13.6 s)
