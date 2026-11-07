@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:19:07.253900Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T05:19:07.253900Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:24:34.251335Z'
+  stage: docs-only
+  run: 787592f5048e46de93bdab7d45dc7259
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -167,3 +169,45 @@ Expect: `1`
 
    Earlier tests: none (the diff changes no test file).
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's eleven findings in `docs/project-guide/machine.md`. `make documents` ends `documents ok (16.1 s)`. I did not run `make check`, because the only file I changed is a document.
+
+   Files changed:
+   - `docs/project-guide/machine.md` only. The other files from entry 5 (`docs/checked-documents.txt`, `docs/project-guide/README.md`, `docs/project-guide/pipeline.md`) are unchanged this round.
+
+   How each finding went:
+   1. `MakeProjectCommands` signature: removed `user=None`, which the code lacks.
+   2. `PodmanRuns` signature: added the required keyword `instance`. The built-boundary row in the settings table now reads `PodmanRuns(podman_executable, stage_image, workspace, instance=settings.instance, profile=settings.container_profile)`.
+   3. Podman label:
+      - Added `--label factory.instance=<instance>` to the command-line block and to the `job` example.
+      - Added a bullet with its reason: the service's unit stops containers by this label, because rootless podman places them outside the service's cgroup.
+      - Restored `HOME`, `XDG_RUNTIME_DIR` and `PATH` as what the `podman` program needs from the factory's environment.
+   4. `agent_working_directory`: now states the one return value, `boundaries.snapshots.mount_point / "checkout"`. The "whenever … else" wording is gone.
+   5. `Boundaries.snapshots` and `Boundaries.containers`: now described as required fields. `stage_environment_of` always builds the container environment.
+   6. Signatures:
+      - `workspace_overlap_fault` now returns `tuple[str, str] | None`.
+      - `stage_environment_of` now returns `StageEnvironment`.
+      - The bullet says it also refuses a relative workspace.
+   7. Base snapshot: now `<dataset>@<BASE_SNAPSHOT>`, with `BASE_SNAPSHOT` being `base`.
+   8. Mutants:
+      - The `FEATURE` text keeps `work item <id>-S<nnnn>:`.
+      - The `ticket` form of older subjects cannot be named. `make documents` refuses the word as a v1 word, so the text says the `FEATURE_MODULES` pattern in the Makefile also matches the one-word opening of older subjects.
+   9. Glossary links added at first use: stage, claim, role, take, cost record, stall, journal, instance, tick, feature and story.
+   10. Sentences and anecdotes:
+       - Split the long sentences and the long test lists into bullets.
+       - Rewrote the two past anecdotes in the Reference as current rules: the second refspec, and the mutants process that survives a kill.
+   11. See also and links:
+       - Added See also to *The fakes*, *The agent's container*, *The project's stage image*, *Project commands* and *Known results*.
+       - Added an opening sentence to *The tests' umask and login variables*, and a closing See also.
+       - Linked `run.py`, `printed_lines.py`, `test_claude_runtime.py`, `process.py`, and this repository's `Makefile` and `factory/pipeline.yml`.
+
+   Cross-read and found current: the glossary terms I linked; the headings that `agents.md`, `hosting.md`, `watching.md` and `pipeline.md` cite in machine.md.
+
+   Stale text I saw and did not touch, because it is unrelated to this story:
+   - `docs/project-guide/pipeline.md`, in the tick step: the preflight item list omits `metadata-block` and the `copy` variant. machine.md states both.
+   - `docs/project-guide/README.md` and the root `README.md`: `make documents` lists them among the unchecked files, with unresolved names such as `support/*.py` and `factory/stage.Containerfile`. Other stories' files.
+
+   No `docs/decisions.md` entry was written, because the criterion says none.
+
+   `check`: check: green
+   `secrets`: secrets: green (1.1 s)
+   `documents`: documents ok (16.2 s)
