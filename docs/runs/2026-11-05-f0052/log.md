@@ -134,3 +134,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 23:58Z: F0054-S0004 (F0054-S0004-operator-guide-cloud-run-reads-for-its-reader) started.
 - 00:16Z: F0054-S0004 PR #612 merged at docs-approval: cloud-run.md rewritten and listed; checked its job command (job-start.sh, debian:trixie-slim, exec factory-run) against operator/vm/job-start.sh and job.sh. $2.44, 7 runs, no question, the cheapest page so far.
 - 00:16Z: F0054-S0005 (F0054-S0005-operator-guide-agent-runtime-reads-for-its-reader) started.
+- 00:41Z: F0054-S0005 PR #613 merged at docs-approval: agent-runtime.md rewritten and listed; its token steps agree with the secrets folder checked in install.md. $3.44, 9 runs, no question.
+- 00:41Z: F0054-S0006 (F0054-S0006-operator-guide-health-reads-for-its-reader) started.
