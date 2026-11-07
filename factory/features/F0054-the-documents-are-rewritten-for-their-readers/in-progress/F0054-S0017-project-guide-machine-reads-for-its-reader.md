@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:07:33.466602Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T05:07:33.466602Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:14:48.419698Z'
+  stage: docs-only
+  run: 6f370c8ec4d64957b2a13d52ba5b9cb7
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -79,3 +81,45 @@ Expect: `1`
    - Architecture: the page covers the machine area, which `CLAUDE.md` lists with containers, images, snapshots, disks and the preflight. The story changes only a document in `docs/project-guide/`, so no layer is touched.
    - Scope: this is S0017 in the feature's list, and the feature's scope is each file rewritten with its own story. `decisions.md`, `runs/` and the playbook are not touched. Route: docs-only.
 4. factory: started docs-only as vm.
+5. documenter: Rewrote the project guide's page on the machine area for its reader. `make documents` ends `documents ok (16.2 s)`. I did not run `make check`, because every changed file is a document.
+
+   Files changed:
+   - `docs/project-guide/machine.md`: rewritten in the style of `docs/project-guide/style.md`.
+     - Each section starts with the idea, then the names in a code block, then one rule per bullet, then See also.
+     - Exact detail moved into a closing *Reference* section: ZFS commands, `zfs diff` reading and faults, the podman command line and job profile, reading a run's end, the sync script, the seven steps of the take, the settings table and refusals, the stage-file following, the preflight item table, the order of `KnownResults.run`, and the mutants temporary folder.
+     - Source modules, pages and test files are linked once by relative links.
+     - Glossary words are linked at first use.
+     - Removed: feature and story IDs, the "Replaced in v1.2" section (the `MakeProjectCommands` rule it held is now a bullet under *Project commands*), "v1.1/v1.2" names, "no longer" and "since" notes, and the `planning/v1.2-plan.md` references.
+     - New heading *Known results*: it used to be an unnumbered `####` under *Project commands*, and `pipeline.md` already cites it as `machine.md`, *Known results*.
+     - Kept the headings that other files cite: *The take*, *The preflight*, *The stage environment*, *The container environment*, *The settings and the wiring*, *The agent's container*, *The checks*.
+   - `docs/checked-documents.txt`: added `docs/project-guide/machine.md`.
+   - `docs/project-guide/README.md`: the machine.md index entry's section list now reads *Known results* and the *Reference*, and no longer *Replaced in v1.2*.
+   - `docs/project-guide/pipeline.md`: one link to the heading *Container project commands*, which never existed in machine.md, now points to *The checks*.
+
+   Corrections to claims the code or the check did not bear out:
+   - The test for the agent-run probe's environment is `tests/hosting/application/test_agent_run_probe_environment.py`. The old text gave a `tests/machine/application/` path that does not exist.
+   - The old text said the sync script's detail is `factory.pipeline.domain.checks.last_line`. I checked that module name against the code and kept it.
+   - Example project paths now use the `<project>/` placeholder, and `src/new.py` and `.venv/...` became prose, because the name check failed on them.
+
+   Facts I did not change or re-derive:
+   - I spot-checked constants against the code: podman's limits, grace and time limit, the kill statuses, `SNAPSHOT_TIME_LIMIT`, `DROP_CACHES_COMMAND`, `_CHUNK_BYTES`, `IMAGE_BUILD_TIME_LIMIT`, and the preflight function names. All matched.
+   - I carried the rest of the old text over unchanged, so the reviewer should compare it against the code.
+   - The measurements on the local VM are kept as stated, with the date. They are copied from earlier real runs, not rerun.
+
+   Examples:
+   - The page has no `console` blocks.
+   - The `make mutants` and `uv run mutmut show` commands are bare commands in `sh` blocks, with the text saying they run in a checkout and that they act on the suite.
+   - The Python snippet for `MakeProjectCommands` and the timing line are not commands.
+
+   Cross-read and found current: the glossary terms I linked (dataset, base, take, stage environment, project command, write paths, pipeline definition, stop, work item); the headings that `agents.md`, `hosting.md`, `watching.md` and `pipeline.md` cite in machine.md.
+
+   Stale text I saw and did not touch:
+   - `docs/project-guide/pipeline.md` (the preflight list in the tick step) says the preflight items are `token-file`, `podman`, `zfs`, `dataset`, `stage-image`, `opencode`, `agent-run-probe`. It leaves out `metadata-block` and the `copy` variant, which machine.md now states.
+   - `docs/project-guide/README.md` still lists the machine.md modules at length and mentions `shared.md`'s hand-over to machine.md settings. Both are unrelated to this story.
+   - The `Report (not checked yet)` list from `make documents` covers files outside this story (README, the project-guide index and so on). They are other stories' files.
+
+   No `docs/decisions.md` entry was written, because the criterion says none.
+
+   `check`: check: green
+   `secrets`: secrets: green (1.1 s)
+   `documents`: documents ok (16.1 s)
