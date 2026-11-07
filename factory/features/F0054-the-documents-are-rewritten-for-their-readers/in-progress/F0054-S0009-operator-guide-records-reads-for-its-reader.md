@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:40:05.386752Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T01:40:05.386752Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:44:13.135549Z'
+  stage: docs-only
+  run: 3ecbbb4af6f542db914fd938f7fce1d9
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -77,3 +79,27 @@ Expect: `1`
    - Architecture: every path the Interface changes is one the documenter may write (`docs/*`), so the docs route applies. No `factory/` change.
    - Scope: within F0054's scope (one file, one story, S0009) and outside its out-of-scope list (`decisions.md` is untouched).
 4. factory: started docs-only as vm.
+5. documenter: Changed files:
+   - `docs/operator-guide/records.md`: restructured, not rewritten from scratch.
+     - Added an introduction that says what the page is for, with a list of its sections.
+     - Linked the factory's own words to the glossary at their first use: work item, cost record, stop, pipeline definition, tick, instance, claim, lease.
+     - Made the contract command a `console` example that shows its output (`contract: 5 schemas written`). The usage and exit-2 case stays in prose. I added a `console` example for `factory-bill not-an-id` (exit 2).
+     - Marked the two `uv run factory-bill` lines as an `sh` block, since they need a project checkout.
+     - Moved three sections of exact detail into a new *Reference* at the end: the refused tool calls (`denials`, `denied_paths`, `login`), the machine measures and the tool calls on the cost record. Their text is unchanged. Headings are now "Cost record: refused tool calls in the sidecar", "Cost record: the machine" and "Cost record: the tool calls". No other file links to the old headings (grepped).
+     - Dropped the version-by-version history of the records contract (1.1 to 4.4) on purpose, per style rule 1. The current version `4.4` and the rule for major and minor bumps stay. The text points to `docs/decisions.md` for what each version changed.
+   - `docs/checked-documents.txt`: added `docs/operator-guide/records.md`.
+
+   Checked: `make documents` printed `documents ok (13.3 s)` with the file on the checked list, so its names, its settings and the `console` examples pass. `make check` was not run, because every changed file is a document.
+
+   Not done:
+   - I could not run the other commands by hand. Bash denied my compound command, and `factory-watch` and `factory-bill` need a remote.
+   - The `factory-bill` and `factory-watch` prose is unchanged. I did not re-read it line by line against the code this round, so the reviewer should compare it against `src/factory/entry/` and the project-guide `watching.md`.
+   - The `factory-bill` usage-error sentence is still a sentence. Only the not-an-id case is a runnable example.
+
+   Cross-read and found current: `docs/operator-guide/README.md` line 15, the two links in `work-items.md` ("The cost table" heading is unchanged), and the references in `docs/project-guide/watching.md`.
+
+   Stale text not touched: `docs/decisions.md:1560` still lists `records.md` among ten topic files. That is history and not mine to fix. `make documents` prints "does not exist" notes for `docs/project-guide/README.md` and others, which this story does not touch.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (13.6 s)
