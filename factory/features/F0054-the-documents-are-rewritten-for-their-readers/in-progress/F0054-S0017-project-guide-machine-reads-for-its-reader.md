@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:30:22.787292Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T05:30:22.787292Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:33:09.136610Z'
+  stage: docs-only
+  run: 17d50ea0bc0c481eb89c00d920a90743
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -326,3 +328,17 @@ Expect: `1`
 
     Earlier tests: none (the diff changes no test file).
 16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the reviewer's one finding. `make documents` ends `documents ok (16.5 s)`. I did not run `make check`, because the only changed file is a document.
+
+    Files changed:
+    - `docs/project-guide/machine.md`, in *The project's stage image*. The bullet now reads: "It raises the machine stop `stage_image_failed` and returns `None` when the file breaks the rule or does not build." I read `project_image_settings` in `src/factory/entry/wiring.py` (about lines 485-530): it calls `_stage_image_failed`, which calls `stops.raise_stop(...)`, and then returns `None`. The old wording left the raising to the caller, which was wrong.
+
+    Cross-read and found current: no heading was renamed this round, and the other files from the earlier rounds are unchanged (`docs/checked-documents.txt`, `docs/project-guide/README.md`, `docs/project-guide/pipeline.md`).
+
+    Stale text I saw and did not touch, because it is unrelated to this story: `docs/project-guide/pipeline.md`, in the tick step, lists the preflight items without `metadata-block` and the `copy` variant, which machine.md states.
+
+    No `docs/decisions.md` entry was written, because the criterion says none.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok (16.1 s)

@@ -361,7 +361,7 @@ A project adds a layer to the stage image with the file `<project>/factory/stage
 - The one place where the image in use is chosen is `project_image_settings` in `factory.entry.wiring`.
 - It returns the settings unchanged without a stage file.
 - When the file builds, it returns the settings with `stage_image` = the project tag and `image` = the layer's identity.
-- It returns `None` when the file breaks the rule or does not build. The caller then raises the machine [stop](glossary.md) `stage_image_failed`.
+- It raises the machine [stop](glossary.md) `stage_image_failed` and returns `None` when the file breaks the rule or does not build.
 - No [tick](glossary.md) is built until a `main` with another file.
 - A check that finds a valid file, or none, clears the stop.
 - The boundaries are built a second time from the chosen settings, so every container run and the preflight's stamp take the project image.
