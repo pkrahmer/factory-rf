@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:35:56.481265Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T02:35:51.400402Z'
   stage: docs-review
   run: d9879a24280b4a7db8888f03988eea15
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:35:56.481265Z'
+  stage: docs-only
 ---
 
 # The operator guide's index reads for the operator
@@ -177,3 +186,4 @@ Expect: `1`
     Findings:
     1. `docs/operator-guide/README.md`, *What the stage environment is*, bullet 1: the bullet lists the settings without which the instance is refused, and it says "with `FACTORY_SNAPSHOTS=copy` it runs without a dataset". It leaves out that copy snapshots require `FACTORY_SNAPSHOT_BASE` (`src/factory/shared/domain/settings.py:168`, `required="with copy"`). An operator who switches to `copy` would expect to need nothing else. Fix: add "and one without `FACTORY_SNAPSHOT_BASE` when the snapshots are `copy`".
     2. `docs/operator-guide/README.md`, *What the stage environment is*, bullets 2 and 7: style rule 8 says a file of the repository is linked by a relative link. "(see `cloud-run.md`)" names the file in backticks with no link. So do `operator/vm/Dockerfile`, `operator/vm/git-credential-factory` and `operator/vm/setup.sh`. `docs/operator-guide/machine.md:129` already links `[Dockerfile](../../operator/vm/Dockerfile)` this way. Fix: write `[cloud-run.md](cloud-run.md)`, `[Dockerfile](../../operator/vm/Dockerfile)`, `[setup.sh](../../operator/vm/setup.sh)` and `[git-credential-factory](../../operator/vm/git-credential-factory)`. Leave the installed path `/usr/local/bin/git-credential-factory` in backticks.
+12. factory: started docs-only as vm.
