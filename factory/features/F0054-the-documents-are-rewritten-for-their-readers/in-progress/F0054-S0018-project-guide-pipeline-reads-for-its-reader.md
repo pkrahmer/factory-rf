@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230, 6703551254]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:56:36.435386Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -274,6 +270,12 @@ journal:
   kind: started
   at: '2026-11-07T06:56:36.435386Z'
   stage: docs-only
+- number: 48
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T07:11:32.189657Z'
+  stage: docs-only
+  run: 7efbb9e84ddd4ebd8fa4cb30a9d7b907
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -850,3 +852,24 @@ Expect: `1`
     - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has only rules 1 to 8. The human decides which rules are meant.
     - The page has no *Reference* section, which criterion 2 allows.
 47. factory: started docs-only as vm.
+48. documenter: Round 2 after the reviewer's entry 46: its five findings, fixed one by one.
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`:
+      1. Line 24: the `status(state)` sentence has one parenthesis less. The dotted module name is gone, and "no claim" is now "when there is no claim".
+      2. The `Tick._publish_stop_records` step (step 4 of the tick) is rewritten without parentheses. The subsection `### Stop records` is renamed `### Recording and publishing the stops`, and both references to it (the tick's step 4 and the `stop_records` field of `Boundaries`) point to the new name. No other file cites the old subsection name; the new name differs from `## The stop records`, which is the section above it.
+      3. The `PipelineLoader` paragraph: the module name is dropped from the parenthesis, and "`PIPELINE_REF` is `origin/main`." is its own sentence.
+      4. Sentences split: the `unread` bullet of the comment copier and the `last_stage_change` sentence in the move-back steps. Line 405, the third sentence named in finding 4, was already split in the previous round.
+      5. `ensure_pull_request` now reads "returns the first of these that exists, in this order", followed by a numbered list of the three cases. The claims are unchanged.
+
+    No heading that another file cites changed. `make documents` ends with `documents ok (16.0 s)`. I ran no `make check`, because the only file changed is a document.
+
+    I did not re-run the script of entry 44: its temp directory was gone, and the findings named the lines. I checked the edited lines by eye only.
+
+    One of my shell commands (the first edit attempt) was moved to the background and later stopped at its time limit. Its edits had already reached the file; I verified that with `git diff` and applied the rest in later commands.
+
+    Open, not mine to fix: the Description cites "style rules 8 to 10", but `style.md` has rules 1 to 8. The page has no *Reference* section, which criterion 2 allows.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok (17.5 s)
