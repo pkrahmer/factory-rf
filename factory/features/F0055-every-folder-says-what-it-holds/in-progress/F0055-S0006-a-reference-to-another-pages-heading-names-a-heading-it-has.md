@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-07T11:48:29.500227Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -139,6 +135,12 @@ journal:
   kind: started
   at: '2026-11-07T11:48:29.500227Z'
   stage: smoke-test
+- number: 24
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T11:49:58.476533Z'
+  stage: smoke-test
+  run: c80f6fb2e7ae4af2a22bf665220cb2f2
 ---
 
 # A reference to another page's heading names a heading it has
@@ -385,3 +387,24 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok (57.6 s)
 23. factory: started smoke-test as vm.
+24. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, as written.
+
+    Command 1: `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 59ms
+    documents ok (61.2 s)
+    ```
+    (The first line is uv's own message on stderr, so `tail` does not trim it. The check exited with status 0.)
+    Expect: `documents ok (<seconds> s)`. **Met.**
+
+    Acceptance criteria, read against this result:
+    - Criterion 4 (`make documents` ends with `documents ok (<seconds> s)`): the smoke test agrees with it. I ran the module directly, as the smoke test says, not the make target.
+    - Criterion 6 (docs): I looked at the four references the story names. Each now uses a heading the target page has, or names a paragraph and the heading it stands under:
+      - `docs/operator-guide/install.md:121`: the paragraph *In a job* under *The idle shutdown* in machine.md.
+      - `docs/operator-guide/work-items.md:66`: *What a work item cost: `factory-bill`* in records.md.
+      - `docs/project-guide/machine.md:487`: *`StageFinisher.finish(aftermath)`* in pipeline.md.
+      - `docs/operator-guide/agent-runtime.md:407`: the paragraph "The stage environment" under *Reference* in install.md.
+      The document check passes with the new heading check, so none of these is left dangling.
+    - Criteria 1 to 3 and 5 are about unit tests, entry tests and `make check`. The smoke test does not target them, and nothing it showed contradicts them. I did not run `make check`; the factory runs that gate.
+
+    Findings: none.
