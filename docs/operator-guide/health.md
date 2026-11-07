@@ -1,6 +1,8 @@
 # Health, logs and transcripts
 
-A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md): it shows how to see whether the instance is healthy, what the preflight checks before it works, what the factory writes into its state directory, and where the transcripts of the agents' runs go. Every stop it names has its own entry in [stops.md](stops.md), with what to do about it.
+A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md).
+
+It shows how to see whether the instance is healthy and what the preflight checks before it works. It also covers what the factory writes into its state directory and where the transcripts of the agents' runs go. Every [stop](../project-guide/glossary.md) it names has its own entry in [stops.md](stops.md), with what to do about it.
 
 ## Check that the instance is healthy
 
@@ -24,7 +26,7 @@ A topic of the [operator guide](README.md). It is for the operator of an [instan
 
 ## The preflight and the health check
 
-The preflight is what the factory checks about its machine and its repository before it does any work. A failed check raises a [stop](../project-guide/glossary.md) of the machine, and the stop shows in the health check.
+The preflight is what the factory checks about its machine and its repository before it does any work. A failed item of the machine raises the stop `preflight_failed`, a stop of the machine. A red `lint` on `main` raises `main_branch_failing`, a stop of the repository. Both show in the health check.
 
 ### The hosting-service token
 
@@ -70,13 +72,13 @@ Every [project command](../project-guide/glossary.md) (`make check`, `lint`, `te
 - With stops it prints one line per stop and exits 1.
 - When the file is missing it prints `no health status: <path> is missing` and exits 1. `factory-run` writes an empty status when it starts, so a missing file means the instance has not started, or the check reads another state directory.
 
-A line for a stop looks like this (this one is copied from a real status, not produced by an example):
+A line for a stop looks like this (it shows the format, which `src/factory/entry/health.py` builds; no example here produced it):
 
 ```text
 preflight_failed (machine): tool:uv: uv is not on the PATH; add it to the image (since 2026-10-12T08:00:00Z)
 ```
 
-The status reads healthy again by itself when the factory clears the stop. A stop of one work item is not in the health status. The stops the health status can show are in "The stops" in [stops.md](stops.md).
+The status reads healthy again by itself when the factory clears the stop. A stop of one [work item](../project-guide/glossary.md) is not in the health status. The stops the health status can show are in "The stops" in [stops.md](stops.md).
 
 Nothing runs the check by itself, and the factory builds no watchdog. systemd restarts a process that has died (`Restart=always`, see "The service" in [machine.md](machine.md)).
 
@@ -99,14 +101,14 @@ Each row of the table names what an item needs and what to do when it fails. The
 | `agents` | at least one agent file is in `FACTORY_CLAUDE_HOME` (`<it>/agents/<role>.md`) | The detail names the directory, whether it is empty, missing or unreadable. Install the agents into `FACTORY_CLAUDE_HOME`. |
 | `agent-runtime-version` | the first word of the runtime's `--version` equals the pin of the runtime in force (`FACTORY_CLAUDE_VERSION`; under opencode `FACTORY_OPENCODE_VERSION`) | The detail names both versions (`the agent runtime reports 2.1.290, the image pins 2.1.289`): rebuild the image or change the pinned version. Without the pin it says `the image does not pin a version: FACTORY_CLAUDE_VERSION is not set` (`FACTORY_OPENCODE_VERSION` under opencode). When `claude --version` cannot run, it holds the runtime's error. |
 | `token-file` | `FACTORY_TOKEN_FILE` names a file that exists, in a folder that belongs to the factory's user and has no permission bit for group or others (the file's own mode does not count) | The detail is `<path>: <fault>`; see "The hosting-service token" for the four faults and the fix. |
-| `opencode` | under opencode only: `FACTORY_OPENCODE_MODELS` maps every alias the installed agents use. No executable is looked for, since it is the stage image's and `agent-runtime-version` runs it there | `no model is set for <alias> in FACTORY_OPENCODE_MODELS`: add `<alias>=<provider>/<model>`. The item asks for no API key: see "Running on opencode" in [agent-runtime.md](agent-runtime.md). |
 | `podman` | `podman --version` answers; the detail is its first line (`podman version 4.9.3`), which the factory log names once per image build | The detail is `podman does not answer --version: <the error>`. Install `podman` where the factory runs, or correct `FACTORY_PODMAN`. |
 | `zfs` | `zfs --version` answers; the detail is its first line | The detail is `zfs does not answer --version: <the error>`. Install ZFS, or correct `FACTORY_ZFS`. |
 | `dataset` | `zfs list -H -o name <dataset>` names `FACTORY_DATASET` | `the dataset <dataset> does not exist; make it with zfs create, and its base with zfs snapshot <dataset>@base`: do that, once. An instance made by `operator/vm/setup.sh` has both already (step 5); the message concerns a dataset made by hand. When `zfs list` itself fails, the detail is `cannot list the dataset <dataset>: <the error>` (for example a permission the factory's user lacks). |
 | `snapshots` | with `FACTORY_SNAPSHOTS=copy` only, in place of `zfs` and `dataset`: the workspace and the base are directories; the detail is `workspace <w>, base <b>` | `the workspace <w> is not a directory`, `the base <b> does not exist; make it empty with mkdir, the first advance fills it` or `the base <b> is not a directory`. |
 | `stage-image` | `podman image exists <FACTORY_STAGE_IMAGE>` answers yes | `the stage image <image> is not built; build it with podman build`. When podman cannot answer, the detail is `cannot look for the stage image <image>: <the error>`. |
 | `metadata-block` | with `FACTORY_CONTAINER_PROFILE=job` only: a container's request to the metadata server is refused (curl prints `000`); the detail is `refused` | See "The metadata server in a job" in [machine.md](machine.md): the sentences are there, and so is the rule to load. |
-| `agent-run-probe` | one `claude -p` call, or one `opencode run` call under opencode, made as a stage makes it, ends `completed` | See "The probe of the agent run" below. |
+| `opencode` | under opencode only: `FACTORY_OPENCODE_MODELS` maps every alias the installed agents use. No executable is looked for, since it is the stage image's and `agent-runtime-version` runs it there | `no model is set for <alias> in FACTORY_OPENCODE_MODELS`: add `<alias>=<provider>/<model>`. The item asks for no API key: see "Running on opencode" in [agent-runtime.md](agent-runtime.md). |
+| `agent-run-probe` | one `claude -p` call, or one `opencode run` call under opencode, made as a [stage](../project-guide/glossary.md) makes it, ends `completed` | See "The probe of the agent run" below. |
 
 The items read the instance's settings. Check three variables first: `FACTORY_CLAUDE_HOME`, `FACTORY_CLAUDE` and `FACTORY_CLAUDE_VERSION`. Under opencode check `FACTORY_OPENCODE`, `FACTORY_OPENCODE_VERSION` and `FACTORY_OPENCODE_MODELS`. The commit identity is not an item.
 
@@ -132,6 +134,8 @@ If the probe fails, its detail starts with one of these. Read it, then use the c
 | `snapshot command reset failed: no base at <path>` | With `FACTORY_SNAPSHOTS=copy`: the base directory is missing. | Make it empty with `mkdir`. |
 | `container command sync failed: <last output line>` | `make sync` failed in the sync container. | Read the output line; fix the image or the repository's `sync` target. |
 | `the probe run ended <reason>; run claude -p by hand as the factory user to see why` | The run did not end `completed`. Under opencode the text is `run <executable> run by hand as the factory user to see why`, with no token hint. | See the causes below. |
+| The runtime's own message, for a state directory that cannot be written | The run could not start. | Make the state directory writable by the factory's user. |
+| The reader's message, which names the agent `coder` | The agent file is missing. | Install the agent (see `agents` above). |
 | `cannot read the agent's login file <file>: ...`, or `cannot read the agent's API login file <file>: ...` for the API key | A login file cannot be read or is not ASCII text. | Make the file readable ASCII text. |
 
 The usual causes of a run that does not end `completed` are:
@@ -139,10 +143,8 @@ The usual causes of a run that does not end `completed` are:
 - A flag the pinned `claude` rejects. Every real run would end `died`, each with its line `run <run id> of <work item> (<stage>) died: <text>` in the factory log.
 - A login missing for the factory user. When `FACTORY_CLAUDE_LOGIN_FILE` is set, the detail ends with `; the agent's login token is read from <file>: make it with claude setup-token if it is missing, empty or expired`. When the probe ran with the API key, the detail ends with `; the agent's API key is read from <file>: check that it is valid and that its account has credit`. Otherwise log in as that user and keep the login in its `HOME`.
 - A run that ran out of its budget or time.
-- A state directory that cannot be written: the runtime's own message is the detail.
-- A missing agent `coder`: the reader's message names the agent.
 
-All of these stop the machine before any work item is claimed.
+All of these stop the machine before any work item is [claimed](../project-guide/glossary.md).
 
 Under opencode a failed probe whose login was `none` ends with `; the agent runs get no API key: put a key in the file FACTORY_API_LOGIN_FILE names`. No login kept in the agent's home is advised, because the rollback clears it (see "Running on opencode" in [agent-runtime.md](agent-runtime.md)).
 
@@ -150,7 +152,7 @@ When the probe completes, the item passes and the factory log gets one line with
 
 - `the agent runs log in with the API key from <file>`;
 - `the agent runs log in with the subscription token from <file>`;
-- when a login file is named but holds no login (missing or blank): `the agent runs get no login from a file; the runtime uses the login kept in its home` under Claude Code, and `the agent runs get no login from a file` under opencode (a provider whose key comes through `FACTORY_CONTAINER_ENV` passes this way).
+- when a login file is named but holds no login (missing or blank): `the agent runs get no login from a file; the runtime uses the login kept in its home` under Claude Code, and `the agent runs get no login from a file` under opencode. A provider whose key comes through `FACTORY_CONTAINER_ENV` passes this way.
 
 With no login file set at all, the detail is empty.
 
@@ -161,7 +163,7 @@ The preflight remembers what it has passed in `preflight-stamp.json` in the stat
 Deleting `preflight-stamp.json` is safe. A missing or damaged stamp reads as no stamp, and the only cost is one more run of the machine's items and of the probe. The agent can read the file and cannot write it.
 
 - **The machine's items** run when the stamp's image differs from the instance's image identity, when there is no stamp, and on every call when the instance has no image identity. While the image build is unchanged they are skipped, however much time passes. A failed report writes no stamp, so the items run again at the next call.
-- **The probe** runs the project's `lint` command with a `time_limit` of 10 minutes, on the main branch only. It puts the checkout on `main` at `origin/main` first, and prepares the dataset for that commit before `lint` runs in a check container. A red `lint` on a work item's branch never fails the preflight. The probe runs only when `origin/main` is a commit the stamp has not seen, and after a new image build (a new build forgets what was probed). The preflight does not fetch; the tick that calls it does.
+- **The probe** runs the project's `lint` command with a `time_limit` of 10 minutes, on the main branch only. It puts the checkout on `main` at `origin/main` first, and prepares the dataset for that commit before `lint` runs in a check container. A red `lint` on a work item's branch never fails the preflight. The probe runs only when `origin/main` is a commit the stamp has not seen, and after a new image build (a new build forgets what was probed). The preflight does not fetch; the [tick](../project-guide/glossary.md) that calls it does.
 - **A red `lint` is a stop.** The probe raises `main_branch_failing` with the detail `lint is red on main at <12 characters of the commit>: <last line of the output>`. When `lint` printed nothing, the last line is replaced by how it ended: `lint ended with exit status <n> and printed nothing on main at <commit>`, or `ended by signal <n>`. When `lint` ran out of its time the detail is `lint reached its time_limit on main at <commit>`.
 - **A red `main` is probed once.** The failing commit is remembered, so an idle tick runs no project command while the stop stands. If `health.json` loses the stop meanwhile, the next call raises it again with the detail `lint is red on main at <commit> (probed earlier)`, without running `lint`.
 - **A probe cut off by the factory's own stop is not judged.** When `factory-run` is asked to stop (SIGTERM from `systemctl stop` or `restart`) while the probe's `lint` runs, the probe raises no stop, writes no stamp and records nothing as failed. Its tick ends without claiming or dispatching any work, and the next start probes `main` again. A `lint` ended by signal 15 while the factory is not stopping (an out-of-memory kill, for example) is judged: it raises `main_branch_failing` with the detail above. Only the probe of `main` follows this rule. A stage's checks cut off by a stop end in a [crash](../project-guide/glossary.md) and a rerun.
@@ -178,12 +180,12 @@ When it does not, the instance fetches once and looks again. If the fault stays,
 
 The detail says which fault it is:
 
-| What you see | What you do |
-|---|---|
-| `cannot prepare the checkout: <git's message>` | The clone failed. Check `FACTORY_REPOSITORY_URL` and the credentials. |
-| `cannot fetch: <git's message>` | The fetch failed. Read git's message. |
-| `the repository has no main branch yet` | The repository has no commit on `main`. Push one. |
-| `origin/main has no factory/pipeline.yml yet` | Push `factory/pipeline.yml` to `main`. |
+| What you see | What it means | What you do |
+|---|---|---|
+| `cannot prepare the checkout: <git's message>` | The clone failed. | Check `FACTORY_REPOSITORY_URL` and the credentials. |
+| `cannot fetch: <git's message>` | The fetch failed. | Read git's message. |
+| `the repository has no main branch yet` | The repository has no commit on `main`. | Push one. |
+| `origin/main has no factory/pipeline.yml yet` | `main` has no pipeline definition. | Push `factory/pipeline.yml` to `main`. |
 
 ## The factory log and the health status file
 
@@ -201,7 +203,7 @@ A line is `<stamp> <text>`. The stamp is `YYYY-MM-DDTHH:MM:SSZ`: UTC, whole seco
 2026-10-12T12:00:12Z third
 ```
 
-**The stage environment's timing line.** After the [take](../project-guide/glossary.md), the factory writes one line per [stage](../project-guide/glossary.md): `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`. Each value is in seconds with one decimal, for example `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s`. Read the cost of a stage's setup from these lines.
+**The [stage environment](../project-guide/glossary.md)'s timing line.** After the [take](../project-guide/glossary.md), the factory writes one line per stage: `stage environment: reset <s> s, sync <s> s, advance <s> s, take <s> s`. Each value is in seconds with one decimal, for example `stage environment: reset 0.4 s, sync 12.3 s, advance 0.1 s, take 0.2 s`. Read the cost of a stage's setup from these lines.
 
 - `reset` is the dataset's roll-back, and `advance` the move of its base.
 - `sync` is the sync container (`make sync` included).
@@ -230,7 +232,7 @@ The state directory's `records/` folder holds four JSON Lines files. None is com
 
 A line of any of them that a kill cut, or that is not UTF-8, is skipped when the factory reads the file, so a damaged record file needs no repair. A record appended right after a line a kill cut shares that line and is skipped with it. A whole line that is not UTF-8 costs only itself.
 
-`<state>/records/project-commands.jsonl`, in the state directory (`/srv/factory/<instance>/state/records/project-commands.jsonl` on the VM) holds one JSON line for every project command the factory runs (`check`, `lint`, `test` and the rest), whoever asked for it: the stage checks after an agent, the preflight's probe and the check of `main`. The folder is created on the first run. A line has these fields:
+`project-commands.jsonl` in the state directory's `records/` folder holds one JSON line for every project command the factory runs, whoever asked for it. That covers the stage checks after an agent, the preflight's probe and the check of `main`. On the VM the file is `/srv/factory/<instance>/state/records/project-commands.jsonl`. The folder is created on the first run. A line has these fields:
 
 | Field | Meaning |
 |---|---|
@@ -252,14 +254,14 @@ python3 -c "import json,collections as c; print(c.Counter(r['commit'] for r in m
 
 #### The known results
 
-`<state>/records/known-results.jsonl`, in the state directory (`/srv/factory/<instance>/state` on the VM) holds one JSON line for each run of a stage's check or report, and for each time the factory took an earlier result instead of running it.
+`known-results.jsonl` in the state directory's `records/` folder holds one JSON line for each run of a stage's check or report, and for each time the factory took an earlier result instead of running it. On the VM the folder is `/srv/factory/<instance>/state/records`.
 
 After an agent the factory runs every check and report of the stage. When the last run under the same key passed, it does not run the command again. The preflight's probe and `project-commands.jsonl` are not part of this: the probe still runs, and `project-commands.jsonl` still holds every real run and no reuse.
 
 The key has four parts:
 
 - `command`: the make target.
-- `tree`: the tree the command reads, as `Git.work_tree_id` names it for the command's `not_read` (see "The pipeline definition" in [pipeline.md](pipeline.md)).
+- `tree`: a hash of the files the command reads, without those its `not_read` leaves out (see "The pipeline definition" in [pipeline.md](pipeline.md)).
 - `definition`: the SHA-256, in hex, of the whole [pipeline definition](../project-guide/glossary.md).
 - `image`: the stage image (see "The image on the cost records" in [machine.md](machine.md)), `null` without one.
 
@@ -281,7 +283,7 @@ A line has these fields:
 | `duration_seconds` | How long the command ran; 0 for a reuse. |
 | `reused` | `null` for a real run; for a reuse, the `at` of the run it took. |
 
-When something goes wrong the command runs as it did before, and the factory log says why in one line:
+When something goes wrong the command still runs, and the factory log says why in one line:
 
 | Line | Meaning |
 |---|---|
@@ -297,7 +299,7 @@ python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r
 
 #### The stop records
 
-`<state>/records/stops.jsonl`, in the state directory holds one JSON line for each event of a stop of the repository or the machine. It never holds the stop's detail. A line has these fields, in this order:
+`stops.jsonl` in the state directory's `records/` folder holds one JSON line for each event of a stop of the repository or the machine. It never holds the stop's detail. A line has these fields, in this order:
 
 - `event`: `raised` or `cleared`.
 - `scope`: `machine` for `preflight_failed`, `disk_low` and `stage_image_failed`, and `repository` for the rest.
@@ -317,17 +319,17 @@ python3 -c "import json,collections as c; print(c.Counter(r['key']['tree'] for r
 
 #### The disk record
 
-`<state>/records/disk.jsonl`, in the state directory (`/srv/factory/<instance>/state` on the VM) holds one JSON line each time the factory measures its folders. A line has these fields:
+`disk.jsonl` in the state directory's `records/` folder holds one JSON line each time the factory measures its folders. On the VM the folder is `/srv/factory/<instance>/state/records`. A line has these fields:
 
 - `at`: UTC with an offset.
 - `occasion`: `start` or `acceptance`.
-- `folders`: a list of `{"path", "free_bytes", "used_bytes"}` for the work directory (the checkout's parent), the state directory and the process's temporary directory (`/tmp`), in that order.
+- `folders`: a list of `{"path", "free_bytes", "used_bytes"}` for the work directory, the state directory and the process's temporary directory (`/tmp`), in that order. The work directory is the checkout's parent.
 
 `free_bytes` is the free space of the file system the folder is on. `used_bytes` is the size of what is under it. A value the factory could not read is `null`.
 
 The same record is one line in the factory log, each value in GB or `unknown`, for example `disk start: /srv/factory/vm 812.3 GB free, 0.7 GB used; /srv/factory/vm/state 812.3 GB free, 0.0 GB used; /tmp 812.3 GB free, 4.3 GB used`.
 
-It is written at each start of the instance, before the first tick, and at each feature [acceptance](../project-guide/glossary.md). No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. The file is not committed. The factory uses only its last record that reads whole, to name the previous measure beside the new one at a feature acceptance.
+It is written at each start of the instance, before the first tick, and at each [feature](../project-guide/glossary.md) [acceptance](../project-guide/glossary.md). No record is written at the end of a run. Compare the new line with the last one to see whether disk use grows. When the line cannot be written, the factory log gets `cannot write the disk record: <error>` and the run goes on. The file is not committed. The factory uses only its last record that reads whole, to name the previous measure beside the new one at a feature acceptance.
 
 The size of a folder counts only what the factory user can read. A folder under `/tmp` that another user made with mode `0700` is left out, while the free space of the file system still shows it.
 
@@ -343,7 +345,7 @@ A transcript is the whole conversation of one agent run: every file the agent re
 
 The folder must be an absolute path outside `FACTORY_WORKSPACE`, `FACTORY_CHECKOUT`, `FACTORY_STATE` and the agent home (`FACTORY_CLAUDE_HOME`). The settings check refuses any other with the variable's name. No container mounts the folder and no prompt names it.
 
-Unset or empty keeps no transcript. That is no fault: the factory starts and runs as before, writes no `transcript:` line, and the preflight has no item for the folder.
+Unset or empty keeps no transcript. That is no fault: the factory starts and runs normally, writes no `transcript:` line, and the preflight has no item for the folder.
 
 ### What is kept
 
@@ -353,14 +355,14 @@ After each agent run that has a session, and before the dataset is rolled back, 
 <FACTORY_TRANSCRIPT_DIR>/<work item>/<run id>.jsonl.gz
 ```
 
-The file is gzip-compressed, mode `0600` (the folders it creates get `0700`). `<work item>` is the id such as `F0050-S0005`, and `<run id>` is the run's id on its cost record. Read one with `zcat <file>`.
+The file is gzip-compressed, mode `0600`; the folders it creates get `0700`. `<work item>` is the id such as `F0050-S0005`, and `<run id>` is the run's id on its [cost record](../project-guide/glossary.md). Read one with `zcat <file>`.
 
 - Claude Code's transcript is the session file under `.claude/projects/` in the agent's home on the dataset.
 - opencode's is the JSON event stream its wrapper read as the run printed it, one event per line.
 - A run that is resumed within itself (after a spent budget) keeps one file. The copy after the resume replaces the earlier one.
 - A later run that continues an earlier run's session (after a provider limit) writes a file under its own run id.
 
-The [cost record](../project-guide/glossary.md) refers to the file with `transcript`: `path` (relative to the folder, as above) and `sha256` (of the file as written, so that a reader can tell it is the file the record names). It is `null` when none was kept.
+The cost record refers to the file with `transcript`: `path`, relative to the folder as above, and `sha256` of the file as written, so that a reader can tell it is the file the record names. It is `null` when none was kept.
 
 ### When one is not kept
 

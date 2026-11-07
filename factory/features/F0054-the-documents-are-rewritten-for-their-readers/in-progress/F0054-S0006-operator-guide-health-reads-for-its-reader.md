@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:50:46.711489Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T00:50:46.711489Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:53:58.595059Z'
+  stage: docs-only
+  run: 08a8abf2fe7d4a7294ec70fc2b1dc3d8
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -155,3 +157,30 @@ Expect: `1`
 
    Also checked: criterion 3 (the file is on `docs/checked-documents.txt` and `make documents` printed `documents ok` per the journal) and criterion 4 (no changed heading, so the links from other files still resolve). The `sh` blocks of VM and gcloud commands each say where they run.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed all 14 review findings in `docs/operator-guide/health.md`. `make documents` ends with `documents ok (12.0 s)`. I ran no `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/health.md`: the fixes below. No heading changed, so no link in another file needed a change. `docs/checked-documents.txt` is unchanged.
+
+   Findings, by number:
+   1. I moved the `opencode` row of the items table to just before `agent-run-probe`, which is the order `entry/wiring.py` runs them in.
+   2. The preflight intro now says the machine's items raise `preflight_failed`, a machine stop. A red `lint` on `main` raises `main_branch_failing`, a repository stop.
+   3. I took "a state directory that cannot be written" and "a missing agent `coder`" out of the causes list. They are now two rows of the probe's table (what you see, what it means, what you do). Their "what you see" text is a description, not a quoted message: I did not read the exact message in the code.
+   4. The sample stop line is no longer called "copied from a real status". The text now says it shows the format built in `src/factory/entry/health.py`, and that no example here produced it.
+   5. `Git.work_tree_id` became "a hash of the files the command reads, without those its `not_read` leaves out".
+   6. The `repository_unavailable` faults are now a table of what you see, what it means and what you do.
+   7. to 10. I moved or added glossary links at the first use of stop, stage, cost record, work item, claimed, tick, stage environment and feature. I did not link "base". The only first uses of it are inside `dataset` item text and code literals, and it is not a prose use.
+   11. I rewrote the four record-file openings as "`<file>` in the state directory's `records/` folder holds ...", with the VM path in its own sentence.
+   12. I removed the second parenthesis from the sentences at the opencode login line, the disk record's `folders` line, the transcript file-mode line and the cost-record sentence. A few other sentences still hold two parentheses, for example the preflight's `lint` probe bullets; I did not touch them.
+   13. I split the opening sentence into three shorter ones.
+   14. "Runs as it did before" and "runs as before" became "the command still runs" and "starts and runs normally".
+
+   Cross-read: the sentences in other operator-guide files that cite `health.md` headings are unchanged and still resolve.
+
+   Stale text I noticed and did not touch: `make documents` still lists many "does not exist" report lines for files that are not on `docs/checked-documents.txt` yet. They are not part of this story.
+
+   Findings for the coder: none.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (12.2 s)
