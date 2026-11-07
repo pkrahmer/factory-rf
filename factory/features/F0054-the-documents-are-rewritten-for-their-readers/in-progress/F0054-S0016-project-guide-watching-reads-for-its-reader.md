@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:59:14.557224Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-11-07T04:59:09.402745Z'
   stage: docs-review
   run: a2e88bf7b2d9439486867429096a4ea7
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:59:14.557224Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -275,3 +284,4 @@ Expect: `1`
     4. `watching.md:101`: "It fetches and writes nothing. It returns 0." contradicts l.99 (it writes the event and the board) and l.102 (it returns 1). Fix: "It fetches nothing and writes no file. On success it returns 0."
 
     The smoke test holds by reading `docs/checked-documents.txt`: the line is there once. I did not run it.
+15. factory: started docs-only as vm.
