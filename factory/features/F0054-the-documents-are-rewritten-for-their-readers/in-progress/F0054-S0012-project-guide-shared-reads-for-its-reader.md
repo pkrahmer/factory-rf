@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T03:15:06.898561Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-07T03:15:01.820787Z'
   stage: docs-only
   run: ec7038d003b246adb72ead22b1fddd20
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:15:06.898561Z'
+  stage: docs-review
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -323,3 +332,4 @@ Expect: `1`
     `check`: check: green
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (9.0 s)
+14. factory: started docs-review as vm.
