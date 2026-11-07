@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T12:55:28.225516Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T12:55:25.780069Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:55:28.225516Z'
   stage: intake
 ---
 
@@ -76,3 +85,4 @@ Expect: `documents ok (<seconds> s)`
 4. 2026-11-07 human: 1. (a): the story goes to tests. The tester adds README.md to the expected entries of test_the_root_holds_only_conftest_and_packages, and of any other check of tests/guards/test_tests_layout.py or another earlier guard whose only failure is one of this story's three READMEs, under the leave in the Interface; the entry names each. Drop 'docs route' from the Interface and criteria. The tester runs the guards with the three READMEs in place to find every such check.
    2. Link *The files* in docs/project-guide/README.md. No new section.
    3. Yes: CLAUDE.md, *Tests*, alone is enough for tests/README.md.
+5. factory: started intake as vm.
