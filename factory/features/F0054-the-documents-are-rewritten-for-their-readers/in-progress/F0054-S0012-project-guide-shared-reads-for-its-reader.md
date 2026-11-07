@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:09:45.073120Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T03:09:45.073120Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:11:50.632874Z'
+  stage: docs-review
+  run: e18bdc3531bb4964a46cace6042fd379
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -228,3 +230,54 @@ Expect: `1`
    `secrets`: secrets: green (0.6 s)
    `documents`: documents ok (9.0 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes `docs/project-guide/shared.md`, `docs/project-guide/machine.md` (lines 443 and 446) and `docs/checked-documents.txt`.
+
+    I read the new page in full against the code:
+    - `src/factory/shared/adapters/process.py`: `_READ_SIZE = 65536`, `_END_POLL_SECONDS = 0.05`, `PIPE_DRAIN`, `ROOT`, `WNOWAIT` in `_has_ended`, `_start`, `_kill_session`, and the read after a kill in `run_process`.
+    - `src/factory/machine/adapters/power_off.py`: the `sudo -n /usr/bin/systemctl poweroff` command and the `cannot start` prefix.
+    - `src/factory/shared/domain/documents.py`: the signatures of `guide_tables`, `settings_findings`, `refusal_findings`, `named_references`, `unresolved`, `read_checked_documents`, `split_findings`, `examples` and `first_difference`.
+    - `src/factory/shared/domain/duplicates.py`: its five functions.
+    - `src/factory/shared/application/document_examples.py`: `Fixture.prepare` and `ExampleRunner.run_document`.
+    - `factory/pipeline.yml`: `documents` is a check of `docs` and `docs-only`, and `duplicates` is a report of `doing`.
+    - The test support modules: `minimal_documents` and `add_and_commit` in `minimal_documents_support.py`, the three helpers in `check_documents_support.py`, `clean_texts`, and the `minimal` fixture in `tests/conftest.py`.
+
+    All 13 round-0 fixes hold in substance:
+    - The claims about the operator guide, the decision log and power-off now match the code.
+    - The `grep` command is gone.
+    - The modules are linked.
+    - The `machine.md` references point to *Reading output and killing a group*, which exists.
+    - The dropped facts are back.
+    - The new signature blocks match the code.
+
+    The link from `style.md` to *How the check is tested* still resolves. The page holds no `console` block. I compared the old page's backticked names with the new page's. Every one that is missing as written is now a link, sits in a signature block or is a shorter form of the same name. The one exception is the `grep` command, which the round-0 entry names as dropped on purpose.
+
+    Findings:
+
+    1. `docs/project-guide/shared.md:127,141`: two glossary words are used but not linked at their first use (style rule 3, criterion 1).
+       - "docs stage" (line 127) is not linked to **stage**. The round-1 entry says the glossary has no entry for "docs stage", but `glossary.md` has an entry **stage**.
+       - "pipeline definition" (line 141) is not linked to **pipeline definition**.
+       - Fix: link both to [glossary](glossary.md).
+    2. `docs/project-guide/shared.md:141`: the file `factory/pipeline.yml` is named but not linked, which the Interface asks for every file the page names. Fix: link it once, `[pipeline.yml](../../factory/pipeline.yml)`.
+    3. `docs/project-guide/shared.md:186-189,196`: the block names `Fixture.prepare(folder)` and `ExampleRunner.run_document(...)`. Their file, `src/factory/shared/application/document_examples.py`, is linked only at line 196, below the block. The Interface says to link it above. Fix: move that link into the sentences above the block.
+    4. Style rule 2 says at most one parenthesis per sentence. These sentences have more:
+       - Line 14 has five, from the links added in round 1.
+       - Line 17 has two.
+       - Line 49 has two: `("stdout")` and `("stderr")`.
+       - Line 93 has two: `(only its duplicate-code messages, …)` and `(text)`.
+       - Line 180 has two: `(<instance>)` and `(*)`.
+       - Fix: split each sentence, or turn line 14 into one nested bullet per module, with each link as the bullet's subject.
+    5. Style rule 2 also says to split a sentence of more than about 25 words. These sentences are still longer:
+       - line 54: about 30 words;
+       - line 103: about 40;
+       - line 104: about 38;
+       - line 114: about 35;
+       - line 133: about 31, and round 0 already named it as line 124;
+       - line 140, its first sentence: about 33;
+       - line 177, its first sentence: about 30;
+       - line 192, its first sentence: about 37;
+       - line 223, its second sentence: about 37;
+       - line 226, its second sentence: about 30;
+       - line 243: about 41.
+       - Fix: split each into sentences of one idea.
+
+    Not a finding: `docs/project-guide/machine.md:443` still says "(since F0044-S0010)". That text was already on `main`, and `machine.md` is outside this story's rewrite.
