@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T07:34:43.712856Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,19 @@ journal:
   kind: started
   at: '2026-11-07T07:34:43.712856Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T07:35:25.349426Z'
+  stage: docs-review
+  run: 21fcd07255d64ba29bc86ec26c6858c4
+- number: 20
+  speaker: factory
+  kind: question
+  at: '2026-11-07T07:35:25.349426Z'
+  stage: docs-review
+  run: 21fcd07255d64ba29bc86ec26c6858c4
+  blocked: round_cap
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -285,3 +294,19 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (17.0 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. It changes `docs/project-guide/operator.md`, `docs/project-guide/README.md` and `docs/checked-documents.txt`. I read the whole page against `docs/project-guide/style.md` (rules 3 and 8, and the project-guide section) and checked the hosting client's claims against `operator/lib/hosting.sh`.
+
+    What holds:
+    - Both findings of entry 15 are fixed. `site.env.example` is linked at its first mention (line 3), and line 21 is plain. `site.md`, `site.sh`, `site`, `hosting.sh`, `job.sh` and `sanitise` are linked once, on lines 3 and 7.
+    - Line 57 matches the code: `hosting.sh` loads the site only when no `SITE_` variable is set (hosting.sh:134-135). So do line 69, `hosting_repo_api` returning 2 (hosting.sh:53-55), line 70, the API base (hosting.sh:73), and line 65, `SITE_TOKEN_CMD` run through `sh -c` (hosting.sh:78-79).
+    - Criterion 2 still holds, and the index and the checked list are unchanged since round 2.
+    - Each glossary link is the first use of a different word, as style rule 3 asks.
+
+    Findings: entry 15's finding 2 did not list every double link, and these are left. The Interface says each file is linked once.
+    1. docs/project-guide/operator.md:92: `job-start.sh` is linked a second time; its first link is on line 22. Fix: write line 92's mention as plain `job-start.sh`.
+    2. docs/project-guide/operator.md:174: `test_operator_skill_signature.py` and `test_operator_texts.py` are linked again in the table; line 132 already links them. Fix: write the two names plain in the table's cell, or drop the links on line 132 and keep the table's.
+    3. docs/project-guide/operator.md:176: `test_operator_python_isolation.py` is linked again in the table; line 128 already links it. Fix: write it plain in the table, or plain on line 128.
+    4. docs/project-guide/operator.md:24: `comment.sh`, `merge.sh` and `reset-to-tag.sh` are first named here, without links. Their links come only later, on lines 122 and 131. The Interface says first mention or See also, and the round-2 finding 1 on `site.env.example` applied the same rule. Fix: link the three on line 24 and make the mentions on lines 122 and 131 plain. Line 122's sentence can then drop "such as …".
+
+    This is round 3, the stage's `round_cap`. All four findings are link placements; no fact on the page is wrong.
+20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
