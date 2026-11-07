@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T13:39:20.386346Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-07T13:39:15.614954Z'
   stage: review
   run: 98bfd562db5d4183b6db2bb1f1c06ebc
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:39:20.386346Z'
+  stage: doing
 ---
 
 # The operator's folders say what they hold
@@ -154,3 +163,4 @@ Expect: `documents ok (<seconds> s)`
       - Related: `docs/decisions.md:1653` also says "the 23 paths". The criterion's "`docs/decisions.md`: none" came from the human, so it stays as is unless the human says otherwise.
 
    Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
+10. factory: started doing as vm.
