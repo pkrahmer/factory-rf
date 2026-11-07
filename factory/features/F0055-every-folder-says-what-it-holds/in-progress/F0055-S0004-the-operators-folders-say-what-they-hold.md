@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T13:41:29.525121Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -74,6 +78,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T13:41:27.140871Z'
+  stage: doing
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:41:29.525121Z'
   stage: doing
 ---
 
@@ -185,3 +194,4 @@ Expect: `documents ok (<seconds> s)`
 
     Noticed but not touched: `make duplicates` reported 6 new findings in the last run. They cannot come from this story's one deleted line.
 12. 2026-11-07 human: Option 1, and decisions.md stays as it is. Criterion 6 also names docs/project-guide/shared.md: FOLDER_READMES lists 22 paths, and operator/template/ carries none, because an operator copies that folder into a new project. The documenter fixes that sentence at the docs stage. The coder sends the item on to review with no code change; the reviewer reads this answer as part of criterion 6.
+13. factory: started doing as vm.
