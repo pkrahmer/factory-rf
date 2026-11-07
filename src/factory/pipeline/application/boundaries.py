@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The interfaces that wiring hands to the services, held together in one place."""
 
 from collections.abc import Callable, Mapping

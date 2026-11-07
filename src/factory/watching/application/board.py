@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Reading the board from the remote-tracking refs: the features' counts and the work items."""
 
 from pydantic import BaseModel, ConfigDict

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The hosting-service client on PyGithub: the one route to the hosting service's API."""
 
 from collections.abc import Iterator, Sequence

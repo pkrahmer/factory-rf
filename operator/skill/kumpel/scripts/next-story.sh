@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # The next story to start, from the checkout's main branch. Prints one line:
 #   next: <story id>       the first story of a feature's *Stories* list that is still in its backlog/
 #   busy: <work item id>   a work item is in progress; start nothing

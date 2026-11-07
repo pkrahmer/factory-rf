@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The machine's readings from the user slice's cgroup files and from `/proc/meminfo`."""
 
 from collections.abc import Callable

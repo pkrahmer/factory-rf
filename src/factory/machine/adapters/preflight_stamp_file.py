@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The preflight stamp file: JSON, replaced atomically, no stamp when missing or damaged."""
 
 from pathlib import Path

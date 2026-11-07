@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """What a command-line tool printed, read into the details of the adapters' faults."""
 
 import math

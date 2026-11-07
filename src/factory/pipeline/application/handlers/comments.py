@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The human's comments on a pull request, copied into the journal by id, and what they answer."""
 
 from collections.abc import Callable, Sequence

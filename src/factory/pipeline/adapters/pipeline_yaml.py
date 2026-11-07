@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The pipeline definition read from its YAML file with ruamel.yaml."""
 
 from typing import override

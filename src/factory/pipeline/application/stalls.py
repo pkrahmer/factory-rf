@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The stall: a stage ended without a result, its kept writes committed and the stall said."""
 
 from pydantic import BaseModel, ConfigDict, PositiveInt

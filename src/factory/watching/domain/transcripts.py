@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The transcript of one agent session, in the form its runtime keeps it."""
 
 from pydantic import BaseModel, ConfigDict

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The hand-over handler: at an approval the pull request shows the human what to decide."""
 
 from factory.hosting.domain.hand_over import cost_table_key, hand_over_description

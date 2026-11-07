@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Loading the pipeline definition at a git ref, its agents checked, a refusal reported."""
 
 from factory.pipeline.application.boundaries import Boundaries

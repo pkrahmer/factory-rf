@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The journal of a work item: its visible entries in the body and their records in the state."""
 
 # Postponed annotations let this module name the document while work_item imports JournalRecord.

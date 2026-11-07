@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The dispatcher: hands one event to its handler, counts its errors and reports at the cap."""
 
 from abc import ABC, abstractmethod

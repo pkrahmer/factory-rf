@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The fault-injection paths as data: each path, the case it arms and the test that walks it."""
 
 from pydantic import BaseModel, ConfigDict

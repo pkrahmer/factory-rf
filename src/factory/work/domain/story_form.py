@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The check of a story's form: one finding for each rule the story breaks."""
 
 import re

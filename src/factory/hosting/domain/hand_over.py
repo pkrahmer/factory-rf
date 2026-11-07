@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The pull request description the human reads at the approval."""
 
 from collections.abc import Sequence

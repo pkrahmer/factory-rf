@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # The facts the six approval checks need, for pull request <n> of work item <id>:
 # the changed files, the tests changed (M = a test another story wrote), what the journal says
 # about the smoke test, the findings and the leaves, its last entry, the Expect: lines, new

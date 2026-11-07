@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Raising and clearing the stops of the repository and the machine; posting a work item's."""
 
 from collections.abc import Callable

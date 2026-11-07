@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The rule of a project's stage file and the layer it adds to the stage image."""
 
 import hashlib

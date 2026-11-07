@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The cost records of agent runs: recorded around each run, and billed from the remote."""
 
 from __future__ import annotations

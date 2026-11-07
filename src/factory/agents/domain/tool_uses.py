@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """A run's tool calls summed up per tool from its runtime's transcript, without their content."""
 
 import json

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The system clock and the sleeping waiter, and the manual clock and waiter tests advance."""
 
 import time

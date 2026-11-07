@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The token source behind an OAuth2 client-credentials grant, over the standard library."""
 
 import http.client

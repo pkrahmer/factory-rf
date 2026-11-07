@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T12:05:04.397035Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-07T12:05:04.397035Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-07T12:09:35.764233Z'
+  stage: doing
+  run: fd49649adaed431b9e5a016a81f48903
 ---
 
 # Every file of code and every script names its license
@@ -136,3 +138,12 @@ Expect: `0`
 
    `lint`: lint: green (0.1 s)
 9. factory: started doing as vm.
+10. coder: Added the line `# SPDX-License-Identifier: Apache-2.0` to every tracked Python module under `src/factory/` and to the 18 operator scripts the Interface names. A throwaway script (made with `mktemp`, not kept) did it in one run. It puts the line first in each module and in `operator/vm/Dockerfile`, and on the line right after the shebang in the scripts that have one. Nothing else in those files changed: 206 files, 206 insertions. File modes are kept. The contract schemas are untouched. `make check` is green.
+
+    - Paths: `src/factory/**/*.py` (188 modules), `operator/bin/sanitise`, `operator/bin/site`, `operator/job/job.sh`, `operator/lib/hosting.sh`, `operator/lib/site.sh`, the nine scripts under `operator/skill/kumpel/scripts/`, `operator/vm/Dockerfile`, `operator/vm/git-credential-factory`, `operator/vm/job-start.sh` and `operator/vm/setup.sh`.
+    - Main choice: I listed the operator scripts by name, after checking that the guard's scope rule finds exactly those 18 files. I rejected letting the one-off script work out the scope by itself: a copy of the guard's rule would be a second source of truth, and the Interface already names the files.
+    - Refactor: none needed. The diff is only the added header lines.
+    - Noticed, not touched: there are 188 modules under `src/factory/`, not the 186 the Interface says. The guard reads its scope from `git ls-files`, so the difference does not matter. The Interface's count could be updated.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone

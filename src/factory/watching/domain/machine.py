@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The machine's readings in text: build warnings, sizes in GB, cgroup totals and the memory."""
 
 import math

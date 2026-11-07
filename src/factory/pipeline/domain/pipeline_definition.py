@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The pipeline definition: the project's stages, roles, caps and project commands."""
 
 import re

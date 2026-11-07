@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The snapshots of a plain directory: its base is a copy of it in a directory of its own."""
 
 import os

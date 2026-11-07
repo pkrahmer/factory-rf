@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The labels of a pull request, a projection of its work item's stage that is never read back."""
 
 from factory.shared.domain.paths import LABEL_PREFIX

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The cost record of one agent run, attributed to a work item, a stage and a role."""
 
 from decimal import Decimal

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The fixture `checkout`: a copy of the repository's tracked files at the checked commit."""
 
 from pathlib import Path

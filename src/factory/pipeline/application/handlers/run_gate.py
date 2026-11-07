@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The run gate: the pull request is read before a stage runs, and the human's act comes first."""
 
 from factory.pipeline.application.boundaries import Boundaries

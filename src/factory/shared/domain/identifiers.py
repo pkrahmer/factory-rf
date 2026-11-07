@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The identifiers of the factory's work items, their file names, order and branch names."""
 
 import re

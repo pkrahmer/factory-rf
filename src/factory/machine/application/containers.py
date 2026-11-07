@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The interface through which the factory runs one command in a fresh container on the dataset."""
 
 from abc import ABC, abstractmethod

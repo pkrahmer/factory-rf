@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The one conversion of a model's aware time to UTC."""
 
 from datetime import UTC, datetime

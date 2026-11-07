@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The preflight's report on the machine, the machine stop it becomes, and the stamp it leaves."""
 
 from collections.abc import Sequence

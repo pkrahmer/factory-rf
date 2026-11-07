@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # Reset the site's trial repository to tag <tag>, so that a run can be repeated: close its open
 # work-item pull requests, delete its work-item branches and move main to the tag's commit by
 # force. The move cannot be undone, so without --yes it only prints the plan. It works through the

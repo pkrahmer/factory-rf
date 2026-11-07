@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The fake agent runtime the tests use: scripted runs applied to the working directory."""
 
 from collections import deque

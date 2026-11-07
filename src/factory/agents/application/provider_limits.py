@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Patient runs: a run the provider's spend limit stopped waits it out and resumes, to a ceiling."""
 
 from datetime import timedelta

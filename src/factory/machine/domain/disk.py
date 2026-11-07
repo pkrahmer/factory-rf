@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The low-disk fault, the disk record of the instance's folders, and their lines in gigabytes."""
 
 from collections.abc import Mapping

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The event: what the watcher saw on the remote, as one kind with its work item or feature."""
 
 from typing import Literal, Self

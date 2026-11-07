@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The bill command: the cost table and cost line of one work item, or of every one in flight."""
 
 import re

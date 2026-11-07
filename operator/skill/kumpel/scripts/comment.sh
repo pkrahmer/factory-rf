@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # Post the text of <file> as a comment on pull request <pr>, signed: a blank line, the signature
 # line and the marker follow the text, so that a reader of the pull request or of the journal can
 # tell Kumpel's comment from the human's, whose token posts it. A text already signed is posted

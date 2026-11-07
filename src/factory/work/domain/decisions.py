@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The stall reasons, the agent's entry, and the rules that turn a decision into a stage move."""
 
 from collections.abc import Sequence

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Fetching a bearer token and keeping it in the login file."""
 
 from abc import ABC, abstractmethod

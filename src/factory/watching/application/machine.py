@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The interfaces to the machine: its clock, the log, health status, disks, readings and power."""
 
 from abc import ABC, abstractmethod

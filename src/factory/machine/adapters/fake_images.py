@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The fake images the tests use: no build runs, and each image's `PATH` and size are given."""
 
 from dataclasses import dataclass

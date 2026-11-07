@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Reading each feature's acceptance status from the remote-tracking refs alone."""
 
 from collections.abc import Sequence

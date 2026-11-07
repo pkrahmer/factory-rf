@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The run handler: one `run` event becomes one stage run."""
 
 from collections.abc import Mapping

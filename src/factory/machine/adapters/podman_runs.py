@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Throwaway containers of one image on the dataset, started by the `podman` executable."""
 
 import functools

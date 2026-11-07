@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The duplicates command: pylint's and vulture's output compared with a baseline of keys."""
 
 import argparse

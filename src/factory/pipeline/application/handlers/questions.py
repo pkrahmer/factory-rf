@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The ask handler: a question is recorded in the work item first, then posted once."""
 
 from factory.hosting.domain.hosting import PostKey

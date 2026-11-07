@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # Merge pull request <pr> of work item <id> once it is open, ready and at stage:approval, with a
 # merge commit (the factory reads a story's state from its branch), and wait for the factory's
 # archive commit on main, so that the next story starts only after the merged one is archived.

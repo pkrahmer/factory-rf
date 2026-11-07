@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Opening a due feature acceptance and reading the facts its reviewer is given."""
 
 from datetime import UTC, date

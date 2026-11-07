@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The references of a document to a heading of another page, and those the page lacks."""
 
 import re

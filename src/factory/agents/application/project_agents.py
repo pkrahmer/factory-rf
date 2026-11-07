@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """A project's own agents, read at `origin/main` before the installed ones."""
 
 from typing import override

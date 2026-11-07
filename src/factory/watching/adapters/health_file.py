@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The health status file: JSON, replaced atomically, healthy when missing or damaged."""
 
 from pathlib import Path

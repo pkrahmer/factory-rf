@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # The command of a Cloud Run job: turns a bare debian:trixie-slim into a running instance and
 # ends in factory-run. Nothing persists between the job's starts, so every start installs,
 # clones and builds again. The job's environment is the instance's configuration; the script

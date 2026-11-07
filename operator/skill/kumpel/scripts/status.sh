@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # The factory's state from the code host alone, one line per open work-item pull request:
 #   #<n> <work item> stage:<stage> <waits: <kind>|verdict posted|working>
 # and a last line with the newest archive commit on main. Works for an instance on a VM or in a job.

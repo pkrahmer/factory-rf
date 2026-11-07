@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The data of a container run: its mounts, the words that start it, its result and its call."""
 
 from collections.abc import Mapping, Sequence

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The cases of the recovery proof: what dies, where, and which pass list applies."""
 
 from typing import Literal, Self

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The folders that must have a README, and the form such a README keeps."""
 
 import re

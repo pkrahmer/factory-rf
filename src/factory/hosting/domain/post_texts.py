@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The texts the factory writes on the hosting service."""
 
 # Postponed annotations let this module name StallReason while decisions imports these texts.

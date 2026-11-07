@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The interface through which the factory builds a project's stage image and reads an image."""
 
 from abc import ABC, abstractmethod

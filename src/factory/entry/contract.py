@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The contract command: it writes the records' JSON Schemas into a folder."""
 
 import sys

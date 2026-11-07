@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The idle shutdown: the machine is powered off after a long enough stretch of idle ticks."""
 
 from datetime import timedelta

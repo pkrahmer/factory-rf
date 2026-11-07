@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The git wrapper: the one class that runs the git command-line tool."""
 
 import os

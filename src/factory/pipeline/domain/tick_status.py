@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The tick status: the errors of each event on each remote state, kept between ticks."""
 
 from pydantic import BaseModel, ConfigDict, PositiveInt

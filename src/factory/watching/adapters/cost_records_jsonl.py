@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The cost record sidecar file: one JSON object per line, one line per agent run."""
 
 import json

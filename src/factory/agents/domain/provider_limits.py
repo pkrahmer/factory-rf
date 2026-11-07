@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """A provider's spend limit: the pattern that shows it, the wait a text names, how long to wait."""
 
 import re

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The stage environment: where a stage's agent works and how its result comes back."""
 
 import math

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The faults a file reader reports for a pydantic validation error, in the readers' order."""
 
 from pydantic import ValidationError
