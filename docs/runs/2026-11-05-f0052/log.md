@@ -148,3 +148,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 02:26Z: F0054-S0010 PR #618 merged at docs-approval: work-items.md rewritten and listed; the merged-before-approval entry is quoted exactly as acceptance.py writes it. $2.45, 7 runs, no question.
 - 02:26Z: F0054-S0011 (F0054-S0011-operator-guide-readme-reads-for-its-reader) started, the last page of the operator guide.
 - 02:44Z: F0054-S0011 PR #619 hit the round cap (3) at docs-review ($1.97, 9 runs); the last two findings are real (glossary words not linked at their first use). One more round answered, with the hint to check each first use by script.
+- 02:57Z: F0054-S0011 PR #619 merged at docs-approval: the operator guide's index rewritten and listed; its Replaced sections removed (the style page asks for it), and the README's pointer to them dropped. $2.86, 14 runs, one round cap. The operator guide is done: eleven pages rewritten and listed.
+- 02:57Z: F0054-S0012 (F0054-S0012-project-guide-shared-reads-for-its-reader) started, the first page of the project guide.
