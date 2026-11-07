@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T12:43:17.562965Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -110,6 +114,11 @@ journal:
   at: '2026-11-07T12:43:12.480560Z'
   stage: doing
   run: 7a62c1c1d89a45279281d2438c1e6df2
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:43:17.562965Z'
+  stage: review
 ---
 
 # The package and its areas say what they hold
@@ -275,3 +284,4 @@ Expect: `documents ok (<seconds> s)`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+19. factory: started review as vm.
