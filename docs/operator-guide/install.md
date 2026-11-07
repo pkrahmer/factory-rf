@@ -118,7 +118,7 @@ See *The idle shutdown* under "The machine" in [machine.md](machine.md).
 | Name | What it does | Default | Example |
 |---|---|---|---|
 | `FACTORY_IDLE_SHUTDOWN_MINUTES` | The idle stretch, in whole minutes, after which the factory powers the machine off. `0` is off. | `0` | `30` |
-| `FACTORY_IDLE_SHUTDOWN_ACTION` | What the shutdown does at the limit: `poweroff` powers the machine off, `exit` ends `factory-run` with status 0 (for a job). It has no effect while the shutdown is off, but it is read, and an invalid value refused, also then. See *In a job* in [machine.md](machine.md). | `poweroff` | `exit` |
+| `FACTORY_IDLE_SHUTDOWN_ACTION` | What the shutdown does at the limit: `poweroff` powers the machine off, `exit` ends `factory-run` with status 0 (for a job). It has no effect while the shutdown is off, but it is read, and an invalid value refused, also then. See the paragraph *In a job* under *The idle shutdown* in [machine.md](machine.md). | `poweroff` | `exit` |
 
 ### The refusals
 

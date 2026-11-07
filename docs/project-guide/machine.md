@@ -484,7 +484,7 @@ See also: *The fakes* and [agents.md](agents.md).
 
 ## Known results
 
-A check that passed on the same tree need not run again. `KnownResults` in [known_results.py](../../src/factory/pipeline/application/known_results.py) (`factory.pipeline.application.known_results`) is what `StageFinisher` runs a stage's checks and reports through (see *`StageFinisher.finish`* in [pipeline.md](pipeline.md)).
+A check that passed on the same tree need not run again. `KnownResults` in [known_results.py](../../src/factory/pipeline/application/known_results.py) (`factory.pipeline.application.known_results`) is what `StageFinisher` runs a stage's checks and reports through (see *`StageFinisher.finish(aftermath)`* in [pipeline.md](pipeline.md)).
 
     KnownResults(boundaries, definition).run(command) -> CheckResult
 

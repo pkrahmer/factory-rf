@@ -404,7 +404,7 @@ The shell is started as `/bin/sh -c <script> factory-login --api-login <api file
 podman run --rm --userns=keep-id --timeout <seconds> --cap-drop=all --security-opt=no-new-privileges --pids-limit=4096 --memory=4g --env NAME=value ... --volume <dataset>:/work --volume <login file>:<login file>:ro --volume <instructions file>:<instructions file>:ro --workdir /work/checkout <image> /bin/sh -c <login shell> ... claude -p ...
 ```
 
-Under opencode the last words are `opencode run ...`. The login files and the call's instructions (or configuration) file are mounted read-only at their own paths, so the login shell reads the token or key as on a host and the container cannot change them. The container environment the runs use is described in "The stage environment" under *Configuration* in [install.md](install.md).
+Under opencode the last words are `opencode run ...`. The login files and the call's instructions (or configuration) file are mounted read-only at their own paths, so the login shell reads the token or key as on a host and the container cannot change them. The container environment the runs use is described in the paragraph "The stage environment" under *Reference* in [install.md](install.md).
 
 ### The faults of a login file
 

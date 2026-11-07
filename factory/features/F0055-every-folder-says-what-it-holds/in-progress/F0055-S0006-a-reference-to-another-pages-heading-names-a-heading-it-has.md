@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T11:41:41.905081Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -128,6 +124,12 @@ journal:
   kind: started
   at: '2026-11-07T11:41:41.905081Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T11:48:24.493162Z'
+  stage: docs
+  run: f7b6277a12e54c7a996921263a2a3d54
 ---
 
 # A reference to another page's heading names a heading it has
@@ -354,3 +356,22 @@ Expect: `documents ok (<seconds> s)`
     Earlier tests:
     - `tests/entry/test_check_documents_checked_files.py`: none needed. The diff only adds constants and one test at the end of the file and leaves every earlier test as it was. The story's Interface also allows rows in this module.
 21. factory: started docs as vm.
+22. documenter: Docs for the heading-reference check. I read the story, the diff (`heading_references.py`, `documents.py`, `check_documents.py`) and the module's regular expression before writing. `make documents` ends with `documents ok (58.1 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/shared.md`: in the name check, a new paragraph on references to another page's heading. It covers the checked form, the three functions, the finding text, `page_headings` stripping only backticks and asterisks (so `StageFinisher.finish` is not `StageFinisher.finish(aftermath)`), and what is not checked. Its examples use a real heading, `*The idle shutdown*` in the operator guide's `machine.md`.
+    - `docs/project-guide/style.md`: rule 8 now tells the writer to point to a section of another page in this form, and to name a heading-less paragraph in the sentence, with the heading it stands under in italics.
+    - `docs/operator-guide/install.md` (line 121): now "the paragraph *In a job* under *The idle shutdown* in machine.md".
+    - `docs/operator-guide/work-items.md` (line 66): now names *What a work item cost: `factory-bill`* in `records.md`.
+    - `docs/project-guide/machine.md` (line 487): now names *`StageFinisher.finish(aftermath)`* in `pipeline.md`.
+    - `docs/operator-guide/agent-runtime.md` (line 407): "The stage environment" is now named as a paragraph under *Reference* in `install.md`. The check cannot see this one, as the coder said, so I fixed it by hand. I confirmed the paragraph stands under `## Reference` at `install.md:233`.
+
+    My first draft's examples in `shared.md` pointed to headings or files that did not exist. `make documents` caught them and I fixed them.
+
+    Cross-read and found current: `README.md`, `docs/operator-guide/` (the other pages) and the rest of `docs/project-guide/` against the diff. The renamed helpers `link_name` and `checked_lines` are not named in the docs. `docs/decisions.md` has no change, as the criterion says, so I wrote no "Why" or "Rejected" there.
+
+    No stale text noticed outside this story. No findings.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.2 s)
+    `documents`: documents ok (57.6 s)
