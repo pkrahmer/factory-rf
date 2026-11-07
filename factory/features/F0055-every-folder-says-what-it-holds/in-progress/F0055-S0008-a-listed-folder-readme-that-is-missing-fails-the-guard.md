@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 640
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T14:53:57.115729Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T14:53:57.115729Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T14:54:17.059914Z'
+  stage: intake
+  run: ce19b8efcc704376b197045219973e65
 ---
 
 # A listed folder README that is missing fails the guard
@@ -70,3 +72,12 @@ Expect: `missing-fails`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names the private helper `_listed_readme_problems(root: Path, path: str) -> list[str]` in `tests/guards/test_folder_readmes.py`. It gives the missing-file result, the existing-README result through `readme_problems` and `_subfolders`, and the changed test. The human's leave (2026-11-07) for the test change is in the Interface.
+   - Criteria: criterion 1 is one parametrized test with three rows (a README that names `y/` gives `[]`, a missing README gives `["x: no README.md"]`, a README that does not name `y/` gives `["x: y/ is not named"]`). Both messages match `src/factory/shared/domain/folder_readmes.py` (lines 108 and 133). Criterion 2 covers the no-skip rule: its failing side is the missing-README row of criterion 1, and its passing side is the run on the repository. Criteria 3 and 4 are the two closing ones.
+   - Smoke test: both commands are runnable. `addopts` is `-q`, and the first command adds no `-q`, so the last line is the summary and `grep -c skipped` can give 0. The second command uses `-o addopts=` and a clone with `security/README.md` removed. Each `Expect:` can be checked against the output.
+   - Docs criterion: names what the reader must know (the guard fails on a listed README with no file instead of skipping it) and dictates no sentences. The page and section exist: `docs/project-guide/shared.md`, *The folder READMEs*.
+   - Architecture: the change is test-only under `tests/guards/`, with no change to `src/`, and the guard stays in the layout CLAUDE.md describes.
+   - Scope: the story is inside F0055's folder-README guard (S0001). It leaves `tests/guards/test_test_folder_readmes.py` alone, and the Description says so. It changes nothing in `FOLDER_READMES`.
+
+   Route: `tests`. The Interface changes only a test file, which the documenter may not write.
