@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T08:13:40.425292Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T08:13:40.425292Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T08:18:48.237968Z'
+  stage: docs-only
+  run: c089801b71e74cdb91a038fc29469892
 ---
 
 # The project guide's index reads for the developer
@@ -278,3 +280,33 @@ Expect: `1`
 
     Not checked: every one-line description of a `tests/support/` module against its source; neither stage has checked these. I did not run `make documents`. The documenter's run printed `documents ok`, and the factory runs it again as the gate.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's five findings in `docs/project-guide/README.md`. `make documents` ends with `documents ok (60.6 s)`. Only documents changed, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the fixes below. `docs/checked-documents.txt` is unchanged.
+
+    Findings, by number:
+    1. The `walk` fixture no longer carries the feature id. It reads "an `AcceptanceWalk` over a due todo feature with two archived stories".
+    2. The `work.md` entry now lists the sections in the page's order: *Identity, order and places of work items*, *The data of a work item*, *Journal*, *Reading and writing a work item file*, *Sections of a Markdown body*, *The form check of a story*, *Reference*. I compared them with `grep '^## '` on `work.md`.
+    3. I split the sentences with more than one parenthesis, from line 102 to line 370. A sentence now holds one idea, with at most one parenthesis. They are the `tests/conftest.py` entry, the handlers' conftest, `container_support`, `dockerfile_support`, `preflight_support`, `settings_support` and `stage_run_support` entries, the `proof_support` paragraph (now `CRASH_CONDITIONS` and `STALL_CONDITIONS` in a paragraph each), the `world` fixture paragraph, and the `check_demos` finding bullet. The parenthesis on the `agent_runtime`/`clock` line is gone. I kept the meaning of every item.
+    4. Paths now start at the repository root:
+       - `tests/guards/test_layers.py`, `test_areas.py`, `test_test_names.py`, `test_model_configuration.py`, `test_tests_layout.py` and the `test_*_search.py` family.
+       - `tests/guards/test_shared_bodies.py`.
+       - `tests/support/human_clone.py`, `recording_log.py`, `contract_support.py`, `stage_run_support.py` and `take_support.py`.
+       - `container_support.py` now links `tests/guards/test_suite_fixtures.py` and `tests/pipeline/application/test_stage_on_container_fakes.py`.
+       The reviewer's other examples were already linked or full.
+    5. *The demos* has a code block with `check_demos(root: Path) -> list[str]` and `main(argv: Sequence[str] | None = None) -> int`. The block sits above the findings list. The file `factory.entry.check_demos` is linked in the sentence after it. I took both signatures from the reviewer's note. My context had no read of `src/factory/entry/check_demos.py` this round, only the earlier rounds' check of `check_demos(root: Path) -> list[str]`.
+
+    Cross-read and found current: the glossary links I added in earlier rounds, and the section headings of `work.md`.
+
+    Not done: the one-line descriptions of the `tests/support/` modules are not compared with their source. No stage has done that comparison.
+
+    Stale text noticed and not touched, because it is unrelated to this story:
+    - `demo/README.md` and `CLAUDE.md` still say "v1.1".
+    - The report line `README.md:28: factory/stage.Containerfile does not exist` comes from the top-level README, which is not on the checked list.
+
+    The `/tmp/xxwork` folder from round 0 is still there. I did not touch it. This round left nothing in `/tmp`.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (57.0 s)
