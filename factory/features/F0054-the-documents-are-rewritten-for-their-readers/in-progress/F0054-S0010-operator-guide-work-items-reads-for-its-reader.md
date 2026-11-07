@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:07:40.253048Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T02:07:40.253048Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:11:52.156587Z'
+  stage: docs-only
+  run: 9231e6e5a1804fa3b6ce428c3d802039
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -77,3 +79,36 @@ Expect: `1`
    Architecture: the change touches documents only. It fits CLAUDE.md's split between the operator guide, the project guide and the README.
    Scope: it is S0010 in the feature's list. It touches no file the feature lists as out of scope. I made no change to the story.
 4. factory: started docs-only as vm.
+5. documenter: I rewrote `docs/operator-guide/work-items.md` for the operator and added it to `docs/checked-documents.txt`. `make documents` ends with `documents ok (13.3 s)`. I ran no `make check` because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/work-items.md`: rewritten.
+     - The opening says what the topic covers and links the glossary at each term's first use.
+     - Every old section is kept with its old heading, because other files link to those headings. The headings are: *When a feature acceptance is due*, *The hand-over at the approval*, *When the hand-over fails or is killed*, *A merge archives the story*, *A close before the approval discards the story*, *A close at the approval sends the story back*, *A stale branch is deleted by the tick*, *A restart during a stage*, *The crash cap*, *An expired lease*, *Claims, leases and the clock*.
+     - The text is in plain sentences, with lists for the steps and cases. Feature and story IDs in examples became placeholders (`<feature>`, `<acceptance id>`).
+     - The old line about v1's thirteen fault paths is reworded without the version name.
+     - The old title was *Acceptances, approvals, merges and leases*; the new one is *Work items: acceptances, approvals, merges, closes and leases*. No link used the title.
+     - A new *Reference* section at the end holds: the commit subjects (with the commit subjects dropped from the body prose), the journal entries the factory writes, the error names (`CannotHandle`, `PushFailed`, `HostingServiceError`, moved out of the body), the log lines, a settings table (`acceptance_stage`, `crash_cap`, `lease_duration`, `round_cap`) and the recovery tests.
+   - `docs/checked-documents.txt`: one line added, `docs/operator-guide/work-items.md`.
+
+   Read in the code:
+   - `crash_cap` defaults to 2 and `lease_duration` to 60. Both are in `src/factory/pipeline/domain/pipeline_definition.py`; `round_cap` there has no default.
+   - The log lines `description not written before the push`, `deleted stale branch` and `could not delete stale branch` are in `stage.py` and `recovery.py`.
+   - The text `no report on the branch or the main branch` is in the acceptance code.
+   - The three recovery test files exist.
+
+   I did not re-check every other rule of the old text against the code, such as the exact description sections, close handling and the move-back conditions. They are carried over as written, so the reviewer should read them against the code.
+
+   Cross-read and found current:
+   - Other documents that link to this file: `docs/operator-guide/stops.md`, `records.md`, `site.md`, `cloud-run.md`, `agent-runtime.md` and `machine.md`. All the headings they quote still exist.
+   - `docs/project-guide/pipeline.md`, `work.md` and `docs/decisions.md`, which quote the headings *A merge archives the story*, *A close before the approval discards the story*, *A close at the approval sends the story back* and *When a feature acceptance is due*. They are still true.
+
+   Stale text I noticed and left alone, because it is not this story's:
+   - `docs/operator-guide/README.md` mentions v1.2 and v1.1 history in its first paragraph.
+   - Its index line for this file still lists the topics under the old title. It is still accurate, so I left it.
+
+   I wrote no console examples in the file. The log and question texts are `text` blocks, copied from the old file. `docs/decisions.md` is untouched; the story says none.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (13.6 s)
