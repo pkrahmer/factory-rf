@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:59:31.239565Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-11-07T03:59:31.239565Z'
   stage: docs-only
+- number: 12
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:03:38.241897Z'
+  stage: docs-only
+  run: a7f5f72b412f41e0b26440104687e8f7
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -200,3 +202,33 @@ Expect: `1`
     12. `docs/project-guide/work.md`: many words that the glossary defines are not linked at their first use (criterion 1, style rule 3). They are: acceptance (l.20), feature (l.27), claim (l.45), stage (l.91), approval, round cap, attempts cap and crash (l.92), stall (l.93), role (l.95), cost record (l.141), backlog (l.224), pipeline definition (l.205) and write paths (l.462, or wherever they first appear). Only work item, instance, journal and story are linked. Fix: link each to `glossary.md` at its first use in the file.
     13. `docs/project-guide/work.md:89,98,166,222,446`: modules the page names are not linked, as the Interface requires ("Each module, file or page ... is linked once"). They are `factory.work.domain.decisions` (`src/factory/work/domain/decisions.py`), `factory.watching.domain.cost_records`, `factory.entry.wiring` (`src/factory/entry/wiring.py`), `factory.hosting.domain.hand_over` (`src/factory/hosting/domain/hand_over.py`) and `factory.watching.application.costs` (`src/factory/watching/application/costs.py`). Fix: link each once at its first mention, or once in a See also.
 11. factory: started docs-only as vm.
+12. documenter: I fixed the reviewer's twelve findings in `docs/project-guide/work.md`. `make documents` ends with `documents ok (9.7 s)`. I changed only a document, so I did not run `make check`.
+
+    File changed: `docs/project-guide/work.md`. Per finding:
+    1. `check_story_place` now returns `list[FormFinding]`.
+    2. `write_contract` now returns `list[Path]`.
+    3. `folder_of` now returns `LifecycleFolder | None`. `acceptance_status` now returns `AcceptanceStatus`. I checked both against `paths.py:53` and `acceptance.py:165`.
+    4. The contract command is now a `console` example: `python -m factory.entry.contract schemas`, which prints `contract: 5 schemas written`. It writes into a new folder in the example's temporary directory.
+    5. One sentence above the first example says the commands run in the project's environment and become `uv run python` from a plain shell. I kept the bare `python` in the examples because the runner uses it. I did not try `uv run` under the runner.
+    6. The See also now names *The remote's work items*.
+    7. I removed the sentence that pointed to the Reference for `Claim`'s fields. The bullets below it already list them.
+    8. The sentence on the journal module now says it keeps its own private `_state_of`, the one other function that checks a document's state. I checked that function at `journal.py:143`.
+    9. `PROJECT_AGENTS_DIRECTORY` and `project_agent_file` are now described as paths relative to the project's root, with the folder written `<project>/factory/agents/`. This form also passes the name check; the bare `factory/agents/<name>.md` I tried first did not.
+    10. The acceptance file name bullet again says `parse_work_item_file_name` reads the name back to the id and the slug.
+    11. "The folders of the old layout" is now "any path that `folder_of` refuses".
+    12. Glossary links added at the first prose use of: acceptance, feature, claim, stage, attempts cap, round cap, crash, approval, stall, role, cost records, backlog, pipeline definition and write paths.
+    13. Module links added once each at first mention: `decisions.py`, `cost_records.py`, `wiring.py`, `hand_over.py` and `costs.py`.
+
+    For the glossary links I used the first place where the word appears in prose. A word that appears earlier only as code, such as `stage` or `Claim`, is not linked there.
+
+    Cross-read: `docs/project-guide/README.md`, `docs/checked-documents.txt` and the operator-guide links were found current in the earlier rounds. I changed no heading, so no link from another file moved.
+
+    Stale text I saw but did not touch, because it is unrelated to this story: `make documents` still lists "not checked yet" or "does not exist" names in `docs/project-guide/agents.md` and `machine.md`. The earlier entries also report `README.md`.
+
+    Also unchanged: the documenter's earlier claim that "the old headings stay" was wrong, as the reviewer said. Seven old headings now sit in the Reference or were merged, and nothing links to them.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (10.0 s)

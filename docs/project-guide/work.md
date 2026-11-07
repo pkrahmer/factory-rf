@@ -15,11 +15,11 @@ A work item has an id, a place in the order and a place in the repository. Two p
     work_item_of_branch(branch) -> WorkItemId | None
     work_item_path(feature_directory, folder, file_name) -> str
     cost_records_path(path) -> str
-    folder_of(path) -> str | None
+    folder_of(path) -> LifecycleFolder | None
 
-- `WorkItemId` is `F0001-S0001` for a story or `F0001-A0001` for an acceptance. `FeatureId` is `F0001`. `Name` is lower-case letters, digits and hyphens, starting with a letter.
+- `WorkItemId` is `F0001-S0001` for a story or `F0001-A0001` for an [acceptance](glossary.md). `FeatureId` is `F0001`. `Name` is lower-case letters, digits and hyphens, starting with a letter.
 - `is_name(text)` is `True` exactly when `Name` accepts `text`. The agent readers use it to check an agent's name.
-- A work item file is `<id>.md` or `<id>-<slug>.md`. A feature directory is `<id>` or `<id>-<slug>`.
+- A work item file is `<id>.md` or `<id>-<slug>.md`. A [feature](glossary.md) directory is `<id>` or `<id>-<slug>`.
 - A slug is lower-case segments of letters and digits joined by single hyphens. `2fa` and `a-b` are slugs. `Bad`, `a-`, `-a` and `a--b` are not.
 - `parse_work_item_file_name` and `parse_feature_directory_name` return `None` for any other string. They never raise.
 - `is_acceptance`, `feature_of`, `work_item_order` and `branch_name` raise `ValueError` for a string that is not a `WorkItemId`.
@@ -30,6 +30,8 @@ A work item has an id, a place in the order and a place in the repository. Two p
 - `cost_records_path(path)` replaces the final `.md` with `.costs.jsonl`, so the sidecar sits beside the work item. A path that does not end in `.md` is a `ValueError`.
 - `folder_of(path)` returns the lifecycle folder of a work item path and `None` for anything else. A work item path is exactly `factory/features/<feature directory>/<folder>/<file>`. The directory parses as a feature directory name, the folder is a lifecycle folder and the file parses as a work item file name (an acceptance file too).
 - So a sidecar, a `.gitkeep`, a `README.md`, a folder such as `drafts` or `ongoing` and a path one level too deep or too shallow all give `None`.
+
+The commands in this file run in the project's environment. From a plain shell, write `uv run python` for `python`.
 
 ```console
 $ python -c "from factory.shared.domain.identifiers import parse_work_item_file_name, work_item_order; ids = [parse_work_item_file_name(n).id for n in ['F0002-A0001.md', 'F0002-S0002-2fa.md', 'F0002-S0001.md', 'F0001-S0010-x.md']]; print(sorted(ids, key=work_item_order))"
@@ -53,7 +55,7 @@ A work item file is a front matter and a body. Three pure domain modules hold th
 - `WorkItemState` has ten fields, in the order they are written: `stage`, `blocked`, `round`, `attempts`, `crashes`, `pull_request`, `comments_read`, `handed_over`, `claim` and `journal`. The Reference lists their types and initial values.
 - `initial_state(first_stage)` is `WorkItemState(stage=first_stage)`. A `first_stage` that is not a `Name` raises `pydantic.ValidationError`.
 - `comments_read` ascends with no repeats.
-- A `claim` is for the state's own `stage`.
+- A [claim](glossary.md) is for the state's own `stage`.
 - The `journal`'s numbers are 1, 2, 3 up to n in order.
 - The first two rules are validations of their own field, so their error is located at that field (`("comments_read",)`, `("journal",)`). The claim rule spans two fields, so its error has an empty location (`()`). The work item reader names a fault by that location.
 - `WorkItemDocument` pairs a state with the body text. `state` is required but may be `None`, for a file read as a specification. `ignored_keys` lists front matter keys the reader did not use.
@@ -69,7 +71,7 @@ $ python -c "from factory.work.domain.work_item import initial_state; print(init
 
 ### The claim
 
-A `Claim` is an [instance](glossary.md)'s hold on a work item. See *The data of a work item* in the Reference for its fields.
+A `Claim` is an [instance](glossary.md)'s hold on a work item.
 
 - `Claim` has `instance` and `stage` (both `Name`), `started_at` and `lease_duration` in minutes (at least 1).
 - `started_at` must carry a time zone and is stored in UTC.
@@ -86,13 +88,13 @@ Every [journal](glossary.md) entry has a record in the front matter, beside its 
 - `at`, `stage`, `run`, `blocked` and `reason` are optional with the default `None`. A reader accepts each alone. Nothing ties `at`, `stage` and `run` to one another.
 - `at` is an aware time stored in UTC; a naive time is refused.
 - A record carries `blocked` only if its kind is `question`, and `reason` only if its kind is `stall`. Either on another kind, or a value outside its type, is refused with a `ValueError`.
-- `Blocked` and `StallReason` are defined in `factory.work.domain.journal`. `factory.work.domain.work_item.Blocked` and `factory.work.domain.decisions.StallReason` are the same types by assignment.
+- `Blocked` and `StallReason` are defined in `factory.work.domain.journal`. `factory.work.domain.work_item.Blocked` and `factory.work.domain.decisions.StallReason` ([decisions.py](../../src/factory/work/domain/decisions.py)) are the same types by assignment.
 - The work item writer leaves an unset field out of the front matter.
-- Every entry the factory appends carries `at` and `stage`, and `run` when it came from a run. The time comes from the factory's `Clock` (`boundaries.clock`; the claim's `started_at` for `started`), because the domain has no clock of its own. The stage comes from the state the entry is appended to.
-- These places write `blocked`: the agent's own question and the factory's question of a move (`question`, or `round_cap` past the round cap), the ask handler at the attempts cap (`attempts_cap`), the recovery at the crash cap after a `crash` or an `expiry` (`crash_cap`), and a close at the approval that sends the story back with a question (`send_back`).
-- `StallService` writes `reason` on every `stall` record. The `crash` and `expiry` records carry no reason: they are not stalls, and what follows from them is the crash cap's question, which carries `blocked`.
+- Every entry the factory appends carries `at` and `stage`, and `run` when it came from a run. The time comes from the factory's `Clock` (`boundaries.clock`; the claim's `started_at` for `started`), because the domain has no clock of its own. The [stage](glossary.md) comes from the state the entry is appended to.
+- These places write `blocked`: the agent's own question and the factory's question of a move (`question`, or `round_cap` past the [round cap](glossary.md)), the ask handler at the [attempts cap](glossary.md) (`attempts_cap`), the recovery at the crash cap after a [`crash`](glossary.md) or an `expiry` (`crash_cap`), and a close at the [approval](glossary.md) that sends the story back with a question (`send_back`).
+- `StallService` writes `reason` on every [`stall`](glossary.md) record. The `crash` and `expiry` records carry no reason: they are not stalls, and what follows from them is the crash cap's question, which carries `blocked`.
 - The status map reads these fields from the front matter and never parses the entry text.
-- A run is carried by the role's entry at a stage's end, the factory's `question` of that move, and a `stall` that has a cost record (a red check, a new form finding). All other entries have `run` `None`.
+- A run is carried by the [role](glossary.md)'s entry at a stage's end, the factory's `question` of that move, and a `stall` that has a cost record (a red check, a new form finding). All other entries have `run` `None`.
 - Two entries carry a stage that is not the one the work item ends in. A `move_back` entry carries the stage the human set, because it is appended before the move back. A story's `done` entry carries the stage it was merged in, because `_archived` appends before it sets `done`. The acceptance's `done` entry carries `done`, since its booking sets the stage first.
 
 ### The journal's entries
@@ -120,7 +122,7 @@ The journal is two halves that always match. The visible half is Markdown in the
 - `restore_state_and_journal(current, baseline)` undoes an agent's tampering with state and journal. It returns the current document with the baseline's whole state and the baseline's `Journal` section (from its heading to its last non-blank line) put in place of the current one.
 - Edits elsewhere in the body, the blank lines before the next section and the current `ignored_keys` stay. If the current body has no `Journal` section, the baseline's is added at the end after one blank line.
 - Faults are `WorkItemFormatError`: `the document has no state` (for `append_entry`, `last_record` and a baseline without state), `missing section: ## Journal` and, for `entry_text`, `no journal entry <number>`.
-- `factory.work.domain.work_item` imports `JournalRecord` from `factory.work.domain.journal`. So the journal module imports `work_item` only under `TYPE_CHECKING` and builds documents with `model_copy`. For the same reason it cannot use `require_state`. Either module can be imported first.
+- `factory.work.domain.work_item` imports `JournalRecord` from `factory.work.domain.journal`. So the journal module imports `work_item` only under `TYPE_CHECKING` and builds documents with `model_copy`. For the same reason it cannot use `require_state`, so it keeps its own private `_state_of`, the one other function that checks a document's state. Either module can be imported first.
 
 ```console
 $ python -c "from datetime import date; from factory.work.domain.journal import NewEntry, append_entry, entry_text, last_record; from factory.work.domain.work_item import WorkItemDocument, initial_state; doc = WorkItemDocument(state=initial_state('intake'), body='# T\n\n## Journal\n'); doc = append_entry(doc, NewEntry(speaker='human', kind='created', text='created.', on=date(2026, 10, 12))); doc = append_entry(doc, NewEntry(speaker='intake', kind='result', text='accepted\nEvery criterion is testable.')); print(doc.body, end=''); print(last_record(doc, speaker='intake')); print(entry_text(doc, 2))"
@@ -138,12 +140,12 @@ Every criterion is testable.
 
 ### The feature acceptance
 
-A feature acceptance is a work item beside the stories, with its own report file and its own cost records. A later acceptance never overwrites an earlier report. The data is in `factory.work.domain.acceptance`, which does no I/O. The reading and the opening are in [acceptance_reading.py](../../src/factory/work/application/acceptance_reading.py) and [acceptance.py](../../src/factory/work/application/acceptance.py), the modules `factory.work.application.acceptance_reading` and `factory.work.application.acceptance`.
+A feature acceptance is a work item beside the stories, with its own report file and its own [cost records](glossary.md). A later acceptance never overwrites an earlier report. The data is in `factory.work.domain.acceptance`, which does no I/O. The reading and the opening are in [acceptance_reading.py](../../src/factory/work/application/acceptance_reading.py) and [acceptance.py](../../src/factory/work/application/acceptance.py), the modules `factory.work.application.acceptance_reading` and `factory.work.application.acceptance`.
 
     acceptance_id(feature, number) -> WorkItemId
     next_acceptance_id(feature, existing) -> WorkItemId
     acceptance_file_name(id) -> str
-    acceptance_status(files, reports) -> str
+    acceptance_status(files, reports) -> AcceptanceStatus
     AcceptanceReader(boundaries, definition).read() / .snapshots() / .due_features() / .fill_board(rows)
     AcceptanceService(boundaries, definition).open(feature) / .facts(feature)
     AcceptanceHandOver(boundaries, definition).handle(event)
@@ -151,7 +153,7 @@ A feature acceptance is a work item beside the stories, with its own report file
 
 - The id is `F0001-A0001`: the feature id, `-A` and a four-digit number, numbered per feature. `acceptance_id` takes 1 to 9999 and raises `ValueError` for any other number.
 - `next_acceptance_id(feature, existing)` looks only at the feature's own acceptances in `existing`. It adds one to the highest number, does not fill a gap, and raises `ValueError` at 9999.
-- `acceptance_file_name("F0001-A0004")` is `F0001-A0004-acceptance.md`. The slug is `ACCEPTANCE_SLUG`, `acceptance`. A story id raises `ValueError`.
+- `acceptance_file_name("F0001-A0004")` is `F0001-A0004-acceptance.md`. The slug is `ACCEPTANCE_SLUG`, `acceptance`. A story id raises `ValueError`. `parse_work_item_file_name` reads the name back to the id and that slug.
 - An acceptance sorts after every story of its feature, also when the feature directory's slug starts with a digit (`F0002-2fa`) or is missing (`F0002`).
 - `AcceptanceState` subclasses `WorkItemState` and adds `stories` (the archived story ids the report covers, strictly ascending, default `[]`) and `outcome` (`accepted`, `refused` or `None`). `outcome` is set exactly when the stage is `done`.
 - The reader returns an `AcceptanceState` when the front matter has a `stories` or an `outcome` key, and a plain `WorkItemState` otherwise. A story that carries either key is therefore read as an acceptance. Any other unknown key is still a `WorkItemFormatError`.
@@ -165,7 +167,7 @@ A feature acceptance is a work item beside the stories, with its own report file
 - The reviewer writes only what the role of `acceptance_stage` may write: its own report and new stories in the feature's `backlog/`. It cannot write `done/`, `feature.md`, another feature or code.
 - Each report has its own sidecar, `cost_records_path` of the report. So `BillService(...).for_work_item(<acceptance id>).line` counts only that acceptance's records.
 
-See also: *The reading of a remote's work items* below; the Reference for the full rules of the reader, the opening, the hand-over and the facts.
+See also: *The remote's work items* below; the Reference for the full rules of the reader, the opening, the hand-over and the facts.
 
 ### The remote's work items
 
@@ -179,7 +181,7 @@ See also: *The reading of a remote's work items* below; the Reference for the fu
 - A `StoryFile` is one story file on `origin/main`. A `WorkItemSnapshot` is one work item: `branch` is `branch_name(id)`, `branch_commit` the head of `origin/<branch>` or `None` when the branch does not exist, and `document` the state and body.
 - `RemoteWorkItems` reads only remote-tracking refs through `Git.list_files`, `resolve` and `show_file`. It never reads a local branch or the work tree. It does not fetch: the caller does, first.
 - `list_stories(folder)` lists the story files of one lifecycle folder on `origin/main`, in `work_item_order`, then path.
-- A story file is a path for which `folder_of` is not `None`, whose file name's feature id equals its directory's, and whose id is not an acceptance. Anything else is ignored: `.gitkeep`, `feature.md`, deeper files and the folders of the old layout.
+- A story file is a path for which `folder_of` is not `None`, whose file name's feature id equals its directory's, and whose id is not an acceptance. Anything else is ignored: `.gitkeep`, `feature.md`, deeper files and any path that `folder_of` refuses.
 - `read(definition)` returns one snapshot per story file in `in-progress/`, in the same order. Two files with one id give two snapshots. `backlog/` and `done/` are never read.
 - With a branch, the document is `reader.parse` of the story file at `origin/work-item/<id>`, even when that branch is an ancestor of `origin/main` (see [decisions.md](../decisions.md)). A stale local branch of the same name has no influence.
 - Without a branch, the story has just been started by the human's move into `in-progress/`. Its document is `initial_state(definition.first_stage())` with the body and `ignored_keys` of `parse_specification` on `origin/main`. State fields in that file are not applied; they are listed in `ignored_keys`.
@@ -192,9 +194,7 @@ The records contract names the records that readers outside the factory may rely
     CONTRACT: tuple[ContractEntry, ...]
     schema_file_name(entry) -> str
     contract_schema(entry) -> str
-    write_contract(folder) -> None
-
-    uv run python -m factory.entry.contract [<folder>]
+    write_contract(folder) -> list[Path]
 
 - `CONTRACT` is a tuple of five `ContractEntry(name, model, mode)`: `work-item-state` (`WorkItemState`), `acceptance-state` (`AcceptanceState`), `cost-record` (`CostRecord`) and `stop-record` (`StopRecord`) in `serialization` mode, and `pipeline-definition` (`PipelineDefinition`) in `validation` mode, since the human writes it.
 - `ContractEntry` is a frozen dataclass, not a model, because it holds a class. [test_model_configuration.py](../../tests/guards/test_model_configuration.py) does not see it.
@@ -202,7 +202,14 @@ The records contract names the records that readers outside the factory may rely
 - A change to one of the five models, its docstrings and field descriptions included, regenerates the schemas in the same story, through the command and never by hand.
 - [test_contract.py](../../tests/entry/test_contract.py) (`test_the_committed_schemas_are_the_generated_ones`) writes the schemas into a temporary folder and compares them with the committed files byte for byte. It also checks that the folder holds nothing else.
 - The reviewer checks the version rule: a change that can break a reader raises the major version, an added optional field or value the minor (see [decisions.md](../decisions.md)).
-- The version is `RECORDS_CONTRACT`, separate from the pipeline definition's `contract` (`CONTRACT_MAJOR`).
+- The version is `RECORDS_CONTRACT`, separate from the [pipeline definition](glossary.md)'s `contract` (`CONTRACT_MAJOR`).
+
+The command writes the schemas into a folder, the committed one when none is given:
+
+```console
+$ python -m factory.entry.contract schemas
+contract: 5 schemas written
+```
 
 See also: *Cost records* in [watching.md](watching.md); the Reference for the schema text and the command's exit status.
 
@@ -219,9 +226,9 @@ For the work item file the interfaces are `WorkItemReader` and `WorkItemWriter` 
     writer.write(path, document) -> None
 
 - `work_item_markdown.py` is the only module that imports `frontmatter` (python-frontmatter) or `ruamel.yaml`.
-- Wiring builds both. `factory.entry.wiring.build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command, and `build_boundaries` builds `FrontmatterWorkItemWriter` as `work_item_writer`.
+- Wiring builds both. [wiring.py](../../src/factory/entry/wiring.py) (`factory.entry.wiring`) `build_work_item_reader` returns `FrontmatterWorkItemReader` for the check command, and `build_boundaries` builds `FrontmatterWorkItemWriter` as `work_item_writer`.
 - `parse` returns the state and the normalised body. The state is required.
-- `parse_specification` returns `state=None`, the body and `ignored_keys`. Use it for a file whose front matter the factory does not own, such as a story in the backlog, so its own `stage` can never skip a stage.
+- `parse_specification` returns `state=None`, the body and `ignored_keys`. Use it for a file whose front matter the factory does not own, such as a story in the [backlog](glossary.md), so its own `stage` can never skip a stage.
 - `read` is `parse` of the file read as UTF-8. `write` writes `render` as UTF-8 with `\n` line ends, replacing an existing file.
 - A file is a boundary line, the front matter, a boundary line and the body. The reader first turns `\r\n` into `\n` and strips the whitespace around the whole text.
 - A boundary line is three or more `-` and nothing else but whitespace: `---`, `----` and `--- ` are boundaries. `--- x`, `- - -` and an indented ` ---` are not.
@@ -301,7 +308,7 @@ The `## start the server` line is inside the fence, so it is no heading.
 The form check says what is wrong with the shape of a [story](glossary.md) file. It is [story_form.py](../../src/factory/work/domain/story_form.py) (`factory.work.domain.story_form`), pure, and run by the command `factory-check-story` ([check_story.py](../../src/factory/entry/check_story.py), `factory.entry.check_story`).
 
     check_story_form(document, form, *, folder) -> list[FormFinding]
-    check_story_place(path, *, feature_file_exists) -> list[str]
+    check_story_place(path, *, feature_file_exists) -> list[FormFinding]
     lifecycle_folder_of_location(path) -> LifecycleFolder | None
     main(argv=None, *, root=None) -> int
 
@@ -387,7 +394,7 @@ All spellings are constants in `factory.shared.domain.paths`:
 | `REMOTE`, `MAIN_BRANCH` | `origin`, `main` |
 
 - `FEATURE_ID`, `STORY_ID` and `ACCEPTANCE_ID` in `identifiers` are the unanchored regular expressions of the ids.
-- `PROJECT_AGENTS_DIRECTORY` (`<project>/factory/agents`) in `paths` is where a project keeps its own agents. `project_agent_file(name)` gives `<project>/factory/agents/<name>.md` and `AGENT_SUFFIX` is the `.md`.
+- `PROJECT_AGENTS_DIRECTORY` in `paths` is where a project keeps its own agents: the folder `<project>/factory/agents/`. The constant and `project_agent_file(name)` hold paths relative to the project's root, and the function gives the file `<name>.md` in that folder. `AGENT_SUFFIX` is the `.md`.
 - `parse_work_item_file_name` returns a `WorkItemFileName` and `parse_feature_directory_name` a `FeatureDirectoryName`. Both are frozen, with `id` and `slug`, the slug `None` when absent.
 - `BRANCH_PREFIX` is defined in `identifiers`, to avoid an import cycle, and re-exported by `paths`.
 - `is_acceptance`, `feature_of`, `work_item_order` and `branch_name` all live in `identifiers`.
@@ -415,7 +422,7 @@ The fields of `JournalRecord` after `number`, `speaker` and `kind`:
 |---|---|---|
 | `at` | `UtcDatetime \| None` (`factory.shared.domain.times`) | when the entry was written; an aware time, stored in UTC; a naive time is refused |
 | `stage` | `Name \| None` | the stage of the work item's state when the entry was written |
-| `run` | `RunId \| None` (`factory.watching.domain.cost_records`) | the id of the agent run the entry came from: 32 lowercase hexadecimal characters, the `run` of that run's cost record |
+| `run` | `RunId \| None` ([cost_records.py](../../src/factory/watching/domain/cost_records.py), `factory.watching.domain.cost_records`) | the id of the agent run the entry came from: 32 lowercase hexadecimal characters, the `run` of that run's cost record |
 | `blocked` | `Blocked \| None` | on a `question` record only: the block the question opened, one of `question`, `attempts_cap`, `round_cap`, `crash_cap`, `send_back` |
 | `reason` | `StallReason \| None` | on a `stall` record only: the stall reason the factory decided (the values of `StallReason`) |
 
@@ -443,7 +450,7 @@ The fields of `JournalRecord` after `number`, `speaker` and `kind`:
   - The title is the first `# ` line of `feature.md` on `origin/main`. A missing file or a file without a title raises `WorkItemFormatError` with that path, before anything is written.
   - A push that is not `pushed` raises `PushFailed`, so a branch the checkout has not fetched is `rejected` and left as it is.
   - `AcceptanceDueHandler` runs `open` for the feature of an `acceptance_due` event. It raises `CannotHandle` for another kind, no feature, or no `acceptance_stage`. It is registered for `acceptance_due` in `build_handlers`.
-- **The hand-over.** `AcceptanceHandOver(boundaries, definition)` uses the same helpers as `HandOverHandler` (`target_of`, `require_pull_request`, `WorkItemRecorder`, `commit_subject`, `cost_table_post`) and the same post key, `cost_table_key(work_item, document)` in `factory.hosting.domain.hand_over`.
+- **The hand-over.** `AcceptanceHandOver(boundaries, definition)` uses the same helpers as `HandOverHandler` (`target_of`, `require_pull_request`, `WorkItemRecorder`, `commit_subject`, `cost_table_post`) and the same post key, `cost_table_key(work_item, document)` in [hand_over.py](../../src/factory/hosting/domain/hand_over.py) (`factory.hosting.domain.hand_over`).
   - Its refusals, in order, are `CannotHandle` with `not a hand_over event`, `not an acceptance`, `no acceptance stage`, `stage <stage> is not an approval` and, from `require_pull_request`, `work item <id> has no pull request`.
   - The reviewer's role is the role of `definition.acceptance_stage`, looked up in `handle`.
   - It checks out the branch and returns at once when `handed_over` equals the stage. Otherwise it sets the description to `acceptance_description(document, role)` (`factory.work.domain.acceptance`), marks the pull request ready, posts the cost table and records `handed_over`. A push that is not `pushed` raises `PushFailed`.
@@ -459,8 +466,8 @@ The fields of `JournalRecord` after `number`, `speaker` and `kind`:
   - `lines()` gives `Archived stories: ...`, `Next free story number: ...` and `Cost of the stories: ...`. When `human_line` is set it adds `Human interventions of the stories: ...`. When `disk_now` is set it adds `Disk now: ...` and `Disk at the previous record: ...`, with `none` when `disk_before` is `None`.
   - `acceptance_prompt(base, facts)` is `base`, an empty line and those lines. `acceptance_facts(files, cost_line, *, human_line=None, disk_now=None, disk_before=None)` builds the facts.
   - The shipped acceptance reviewer is told to compare the two disk lines and name growth the feature's changes do not explain.
-- **What the reviewer may write.** Its write paths are those of the role of `acceptance_stage`, expanded by `WritePathService` as for any work item.
-- **Its cost.** `read_cost_records` in `factory.watching.application.costs` is the one read of a sidecar at a ref. `feature_file_path` and `read_feature_file` read a feature's file and are shared with the board.
+- **What the reviewer may write.** Its [write paths](glossary.md) are those of the role of `acceptance_stage`, expanded by `WritePathService` as for any work item.
+- **Its cost.** `read_cost_records` in [costs.py](../../src/factory/watching/application/costs.py) (`factory.watching.application.costs`) is the one read of a sidecar at a ref. `feature_file_path` and `read_feature_file` read a feature's file and are shared with the board.
 
 ### The records contract
 
