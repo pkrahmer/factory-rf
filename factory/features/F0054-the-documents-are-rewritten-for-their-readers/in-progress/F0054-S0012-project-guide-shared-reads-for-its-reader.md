@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:04:41.247907Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T03:04:41.247907Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:09:40.137624Z'
+  stage: docs-only
+  run: 03c4fdbea42749e48bfd5f704ed6d282
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -168,3 +170,51 @@ Expect: `1`
 
    Open: the stale docstring in `tests/guards/test_wrapper_search.py` ("the three wrappers") that the documenter noted is outside this story's write paths, and I have not named it as a finding.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's 13 findings. `make documents` ended with `documents ok (8.8 s)` and prints no finding for `shared.md`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/project-guide/shared.md`: the fixes below.
+   - `docs/project-guide/machine.md`: the two references at lines 443 and 446 now point to [shared.md](shared.md), *Reading output and killing a group*. The old section name *Killing a process group* is gone.
+
+   Findings:
+   1. Fixed. The page now says the operator guide's `install.md` tables have a `Default` column and a refusal table, and that the check compares both.
+   2. Fixed. The check reads the README, the two guides and the decision log. A new bullet gives the decision log rule: `missing`, `empty` or `no decision recorded`.
+   3. Fixed. The page names the `sudo -n /usr/bin/systemctl poweroff` of the power-off among the commands started on the host.
+   4. Fixed. I linked [project command](glossary.md), [journal](glossary.md), [work item](glossary.md), [story](glossary.md), [stop](glossary.md) and [instance](glossary.md) to `glossary.md` at their first use. The glossary has no heading anchors, so the links go to the file. I left "docs stage" unlinked, because the glossary has no entry for it.
+   5. Fixed. "v1 words" is now "retired words". The exact `## Replaced from v1` and `## Replaced in v1.2` headings stay in code font, because they are names the check looks for.
+   6. Fixed. I split the long sentences and the multi-parenthesis sentences: the suppression markers bullet, the timing bullet, the `ProcessExampleRunner` bullet, the `STOP_TABLE` sentence, the name-check sentences and the Reference bullets. The Reference's list of test files is now a nested list.
+   7. Fixed. I dropped the `grep -c "does not exist"` sentence. It was an old claim with no runnable example, and the line format is stated in the page.
+   8. Fixed. Every module, operator-guide page and `tests/conftest.py` the page names is linked once as a relative link. These are `git_cli`, `make_commands`, `claude_runtime`, `fake_containers`, `opencode_runtime`, `podman_runs`, `zfs_snapshots`, `power_off`, `clock`, `fake_agent_runtime`, `fake_hosting`, the three operator-guide pages and `conftest.py`.
+   9. Fixed. The links to `check_duplicates.py`, `duplicates-baseline.txt` and `check_documents.py` now stand in the sentences above their code blocks.
+   10. Fixed, see `machine.md` above.
+   11. Restored in the bullets of *Starting a process*:
+       - the 64 KiB reads;
+       - a stop on a chunk that is already read;
+       - the last line's bytes staying in `stdout`;
+       - no reader threads;
+       - the grandchild still ending after the kill;
+       - the pipes closed after a timed-out read;
+       - `run_streaming` having passed every complete line in the drain case;
+       - what `run_streaming` is for;
+       - `run_process` handing over its output only at the end.
+   12. Restored:
+       - `gone` keys are to be removed from the baseline;
+       - pylint and vulture are development dependencies;
+       - `factory/pipeline.yml` runs `make documents`;
+       - `--root` names another checkout;
+       - the `named_references` example for the module check;
+       - the examples of a table that does not count.
+   13. Added signature blocks to *The checked documents and the report*, *The name check*, *The examples* and *How the check is tested*, and to the duplicates section. I took the signatures from `documents.py`.
+
+   Dropped on purpose: nothing new. The `Today's operator guide…` history sentence from round 0 stays dropped.
+
+   Cross-read and found current: `docs/project-guide/README.md`, `docs/project-guide/style.md` (its link to *How the check is tested* resolves), `docs/checked-documents.txt` (the line is there once).
+
+   Stale text I noticed and did not touch:
+   - The docstring of `tests/guards/test_wrapper_search.py` says "the three wrappers", while the set lists nine modules. It is the tester's or coder's to fix.
+   - `docs/project-guide/README.md` describes `shared.md` as covering only the process module. The page also holds the duplicates report and the document check. The index is outside this story.
+   - The skills `Skill` listed in the harness were not used.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.6 s)
+   `documents`: documents ok (9.0 s)
