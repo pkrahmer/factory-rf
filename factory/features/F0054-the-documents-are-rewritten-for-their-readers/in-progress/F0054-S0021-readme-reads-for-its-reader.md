@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T08:52:56.852774Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T08:52:56.845747Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T08:52:56.852774Z'
+  stage: intake
+---
+
 # The README reads for a newcomer
 
 ## Description
@@ -28,3 +55,6 @@ grep -cx "README.md" docs/checked-documents.txt
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
