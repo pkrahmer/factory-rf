@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:46:25.967724Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -43,6 +47,11 @@ journal:
   stage: docs-only
   run: c48ee18bcf9f48688601bc7d6d0c4db5
   reason: check_red
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:46:25.967724Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -134,3 +143,4 @@ Expect: `1`
    If a secret has already been committed, visit
    https://help.github.com/articles/removing-sensitive-data-from-a-repository
    make: *** [Makefile:65: secrets] Error 1
+7. factory: started docs-only as vm.
