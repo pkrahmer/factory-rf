@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -80,6 +80,11 @@ journal:
   at: '2026-11-07T15:05:00.611144Z'
   stage: smoke-test
   run: 0ded7499e5d244d4b6d3750b15936aa3
+- number: 14
+  speaker: factory
+  kind: done
+  at: '2026-11-07T15:05:50.484367Z'
+  stage: approval
 ---
 
 # A listed folder README that is missing fails the guard
@@ -234,3 +239,4 @@ Expect: `missing-fails`
     Findings: none.
 
     Still open, as earlier entries say: `tests/guards/test_test_folder_readmes.py` now does the same job as this guard, and whether to remove it is the human's call. I left nothing behind in `/tmp`.
+14. factory: done (pull request merged); cost: 6 runs, 5.4 min, 37 turns, 162235 tokens in (597903 more from cache), 10452 out, $1.40
