@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 638
-comments_read: []
+comments_read: [6707873070]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: c9cccc5f2a584650a680f57c2223c858
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-07T13:59:40.479661Z'
+  stage: intake
 ---
 
 # The top folders say what they hold
@@ -71,3 +76,6 @@ Expect: `documents ok (<seconds> s)`
    3. The root `README.md` is a docs-route path the documenter may write, but the Interface does not say where the folder list goes or how it relates to any existing folder list in it. Is it a new section, or does it replace an existing one?
 
    The rest checks out. The smoke test runs the document check, which exists. The Interface changes only paths on the documenter's write paths (`docs/*`, `README.md`, `security/README.md`). `docs/README.md` and `security/README.md` are already on the folder list in `folder_readmes.py`. `docs/` has three subfolders (`operator-guide/`, `project-guide/`, `runs/`) and `security/` has one (`semgrep/`). The scope fits the feature, and the story is not in "Out of scope" because `docs/runs/` is only named in the README, not written.
+4. 2026-11-07 human: 1. Yes, one criterion each for (a), (b) and (c). For (c) the top folders are agents/, demo/, docs/, factory/, operator/, planning/, security/, session-logs/, src/ and tests/: ten folders, one line each, with a link to each README that exists. Say in their lines that factory/, planning/ and session-logs/ (and docs/runs/ in docs/README.md) are the human's.
+   2. Confirmed as you wrote it.
+   3. A new section, ## The folders, placed after ## Where to read next and before ## Reference. The root README has no folder list today; Where to read next stays as it is and the new section does not repeat it. The root README is not on FOLDER_READMES and keeps its own form; its new section follows the subfolder-line form of style.md, *Folder READMEs*.
