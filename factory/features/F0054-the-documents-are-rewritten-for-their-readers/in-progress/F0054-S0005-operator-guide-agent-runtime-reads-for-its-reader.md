@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:34:07.579445Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T00:34:01.918850Z'
   stage: docs-review
   run: 6a3d06fa41664a73ac1425792f7595be
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:34:07.579445Z'
+  stage: docs-only
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -310,3 +319,4 @@ Expect: `1`
        - Fix: remove the first sentence. Move the `agent-runtime-version` sentence to the head of the paragraph and give it the example: "compares the first word of its output (for example `2.1.289`) with `FACTORY_CLAUDE_VERSION` or `FACTORY_OPENCODE_VERSION`".
 
     Dropped on purpose, still accepted from round 0: the `planning/cloud-sandbox/` pointer, the F0043 and F0044 notes, "This repository's own build stays on the subscription", and `limit_wait`.
+16. factory: started docs-only as vm.
