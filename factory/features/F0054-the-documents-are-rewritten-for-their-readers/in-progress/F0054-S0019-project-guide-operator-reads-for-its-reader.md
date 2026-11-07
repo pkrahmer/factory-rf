@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T07:30:55.672450Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T07:30:55.672450Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T07:31:45.939057Z'
+  stage: docs-review
+  run: 468576cd35824a5eb7be89fc2e657800
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -231,3 +233,19 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (16.4 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. It changes `docs/project-guide/operator.md`, `docs/project-guide/README.md` and `docs/checked-documents.txt`. I read the page against `docs/project-guide/style.md` and the file list of `operator/skill/kumpel/scripts/`. I also compared the `SITE_` keys used in `operator/**/*.sh` and `operator/bin/` with those in `operator/site.env.example`.
+
+    What holds:
+    - All four findings of entry 11 are fixed.
+    - The six skill scripts are linked on line 24, and every link target exists.
+    - Line 3 now names what the *Reference* holds, and that matches lines 156-176.
+    - "Every key of the site file is in `site.env.example`" is true: every `SITE_` key the scripts use appears in the example.
+    - Line 7 has no parenthesis, and its "update it when a story changes a file under `operator/`" uses no private word.
+    - The index lists *Reference*, and `docs/checked-documents.txt` holds the page.
+    - Criterion 2 still holds.
+
+    In round 1 I accepted the support modules being linked in the bullets below their block (lines 143-151), and the same for the layout block's VM and template files (lines 21-25). I do not raise those again.
+
+    Findings:
+    1. docs/project-guide/operator.md:3: the round-2 rewrite of the intro names `site.env.example` for the first time here, unlinked; its link comes only on line 21. The Interface says each file is linked once, at its first mention or in See also. Fix: move the link `[site.env.example](../../operator/site.env.example)` to line 3 and leave line 21's mention plain.
+    2. docs/project-guide/operator.md:27, 31, 57, 79 and 104: these files are linked twice, but the Interface says once, and the documenter's own entry 13 reads it as exactly once. The doubles are `site.md` (lines 3 and 27), `site.sh` and `site` (lines 7 and 31), `hosting.sh` (lines 7 and 57), `job.sh` (lines 7 and 79) and `sanitise` (lines 7 and 104). Fix: keep the first link of each and write the later mentions as plain names, as entry 9 already did for `sanitise` in *`job.sh`*. For `site.md`, keep line 3's link and write line 27's See also as *Setting up an operator's machine* in site.md, plain.
