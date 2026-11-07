@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T00:22:20.214089Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-07T00:22:14.908320Z'
   stage: docs-only
   run: 23d1eed4e4cd4d98b8906cd9f1fd5e07
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:22:20.214089Z'
+  stage: docs-review
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -119,3 +128,4 @@ Expect: `1`
    `check`: check: green
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (7.7 s)
+6. factory: started docs-review as vm.
