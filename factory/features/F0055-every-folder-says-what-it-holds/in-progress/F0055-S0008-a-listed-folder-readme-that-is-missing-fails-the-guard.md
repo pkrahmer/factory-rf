@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T14:59:31.657840Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T14:59:31.657840Z'
   stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T15:00:04.673177Z'
+  stage: review
+  run: 783eae4bf42e4150b755db2b0fdc3c14
 ---
 
 # A listed folder README that is missing fails the guard
@@ -146,3 +148,23 @@ Expect: `missing-fails`
    `check`: check: green
    `duplicates`: duplicates: 6 new, 39 known, 4 gone
 8. factory: started review as vm.
+9. reviewer: no findings
+
+   What I read: the work item, and `git diff main...HEAD -- . ':!factory' ':!uv.lock'`. Only `tests/guards/test_folder_readmes.py` changed, and there is no change under `src/`.
+
+   - Group 1, acceptance criteria:
+     - Criterion 1 is `test_a_listed_readme_gives_its_problems_and_a_missing_one_fails`. It has three parametrized rows on `x/y` under `tmp_path`: `names-its-subfolder` gives `[]`, `no-readme` gives `["x: no README.md"]`, and `subfolder-not-named` gives `["x: y/ is not named"]`. The expected messages match `src/factory/shared/domain/folder_readmes.py:108,133`.
+     - Criterion 2 is `test_a_folder_readme_agrees_with_its_folder`. It now only asserts `_listed_readme_problems(ROOT, path) == []`, with no skip.
+     - The Interface's rules are both covered. The missing file is read as `None` (the `no-readme` row). An existing README goes through `readme_problems` with the subfolders from `_subfolders(root / folder)` (the other two rows). The folder is `path` without `/README.md`.
+     - The coder's journal entry 7 shows `make check` green.
+   - Group 2, architecture: the change is test-only, under `tests/guards/`, with no change to `src/` or `FOLDER_READMES`, as the Interface requires.
+   - Group 3, security: no markers, no secrets, no shell built from strings.
+   - Group 4, quality:
+     - `_listed_readme_problems` reuses `readme_problems` and `_subfolders`, so no logic is copied. No such helper exists under `src/`: `readme_problems` is called nowhere else.
+     - The new README constants are not copies of `FOLDER_README_TEXT` in `tests/entry/test_check_documents_folder_readmes.py`, which is different text built for a different check.
+     - The module docstring was updated.
+   - Group 5, work item hygiene: the Description matches what was built, including the note that `tests/guards/test_test_folder_readmes.py` is left alone. The journal explains the choices: the helper sits in a test module, so the tester built it, and the coder handed on an empty diff and said why. The docs criterion still names what the reader must learn.
+   - Documents: the diff changes no document.
+
+   Earlier tests:
+   - `tests/guards/test_folder_readmes.py` (written by F0055-S0001) was changed under the human's leave of 2026-11-07, named in the story's Interface. Within that leave, the skip was dropped from `test_a_folder_readme_agrees_with_its_folder`, which keeps its name and checks the same agreement, and the module docstring was updated. Everything else in the file is added: the private helper, the README constants and the new criterion-1 test.
