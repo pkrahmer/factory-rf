@@ -150,3 +150,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 02:44Z: F0054-S0011 PR #619 hit the round cap (3) at docs-review ($1.97, 9 runs); the last two findings are real (glossary words not linked at their first use). One more round answered, with the hint to check each first use by script.
 - 02:57Z: F0054-S0011 PR #619 merged at docs-approval: the operator guide's index rewritten and listed; its Replaced sections removed (the style page asks for it), and the README's pointer to them dropped. $2.86, 14 runs, one round cap. The operator guide is done: eleven pages rewritten and listed.
 - 02:57Z: F0054-S0012 (F0054-S0012-project-guide-shared-reads-for-its-reader) started, the first page of the project guide.
+- 03:23Z: F0054-S0012 PR #620 merged at docs-approval: the project guide's shared.md rewritten and listed; its stale sentence about the missing Default column is now true; a stale line in project-guide/machine.md fixed with it. $4.16, 9 runs, no question.
+- 03:23Z: F0054-S0013 (F0054-S0013-project-guide-hosting-reads-for-its-reader) started.
