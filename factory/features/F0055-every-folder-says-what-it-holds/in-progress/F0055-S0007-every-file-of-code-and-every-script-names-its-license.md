@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 634
-comments_read: []
+comments_read: [6706635920]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 755291ad19934da1a32655fb68c05bd9
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-07T11:59:33.905227Z'
+  stage: intake
 ---
 
 # Every file of code and every script names its license
@@ -69,3 +74,7 @@ Expect: `0`
    3. Criterion 4 says `bash -n` runs on each `#!/bin/bash` script. Scripts under `operator/` with another shebang, such as `#!/usr/bin/env bash` or `#!/bin/sh` with no `.sh` suffix, are not named. Say which interpreter each shebang needs, or whether `sh -n` should cover them.
    My choice: add the rows above to criteria 2 and 3, and for criterion 4 check by shebang (`bash` shebangs with `bash -n`, `sh` shebangs and `*.sh` files with `sh -n`).
    Checked and fine: the Interface names concrete files and modules, and the smoke test is runnable with a checkable `Expect: 0` (no pytest `-q` involved). The docs criterion names what the reader must know and dictates no sentences. The architecture and the scope fit the feature: S0007 is in the feature's Scope and Decisions 7 to 9, and the tests are excluded as the feature says.
+4. 2026-11-07 human: Yes to all three, as you propose.
+   1. Add the rows: a non-script file under operator/ (a README.md, a .json without a shebang) is outside the scope; a Dockerfile and a *.sh file without a shebang are inside it and fail without the header on their first line, naming the file.
+   2. Add the rows: a Python module whose header is on line 2 (after a docstring or another line) fails; a script with a shebang passes with the header on the line after it; a script without a shebang takes the header on its first line.
+   3. Criterion 4 checks by shebang: a bash shebang (#!/bin/bash or #!/usr/bin/env bash) with bash -n, an sh shebang and a *.sh file without a shebang with sh -n. A Dockerfile is not syntax-checked.
