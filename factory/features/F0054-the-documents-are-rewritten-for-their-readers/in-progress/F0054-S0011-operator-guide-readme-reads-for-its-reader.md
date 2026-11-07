@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:47:36.997322Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-07T02:47:31.743321Z'
   stage: docs-review
   run: a600d88e306e4403aa16b84db75ebf1f
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:47:36.997322Z'
+  stage: docs-only
 ---
 
 # The operator guide's index reads for the operator
@@ -310,3 +319,4 @@ Expect: `1`
     Findings:
     1. `docs/operator-guide/README.md` lines 5, 27 and 35: three glossary words are linked later than their first use (style rule 3, criterion 1). "dataset" is first used at line 5 ("one ZFS dataset") but linked at line 40. "pipeline definition" is first used at line 27 (the `pipeline.md` row) but linked at line 44. "stage environment" is first used at line 35 but linked at line 39. Fix: put each link `../project-guide/glossary.md` at the first use and make the later use plain.
     2. `docs/operator-guide/README.md` lines 26, 27, 28, 29 and 43: these glossary words are never linked. In the table: "stalls" (26), "story" (27), "work item" (28), and "feature", "acceptance", "approval", "lease" and "claims" (29). At line 43: "role", "write paths" and "journal". Fix: link each one to `../project-guide/glossary.md` at its first use in the file, and only there. As entry 21 asks, list the glossary words the page uses and check each first use by script before ending.
+24. factory: started docs-only as vm.
