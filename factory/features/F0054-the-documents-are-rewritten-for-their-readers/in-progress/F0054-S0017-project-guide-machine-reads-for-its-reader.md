@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T05:30:22.787292Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T05:30:17.665610Z'
   stage: docs-review
   run: ffa707268b0b45489d39ffcab73e805e
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:30:22.787292Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -316,3 +325,4 @@ Expect: `1`
     1. docs/project-guide/machine.md, *The project's stage image*, the bullet "It returns `None` when the file breaks the rule or does not build. The caller then raises the machine stop `stage_image_failed`." This round's split made the sentence wrong. `project_image_settings` raises the stop itself and does not leave it to its caller: `chosen_image` calls `_stage_image_failed`, which calls `stops.raise_stop(RepositoryStop(scope="machine", reason="stage_image_failed", ...))`, and only then returns `None` (src/factory/entry/wiring.py:489-497, 523-530; its docstring is at :462-465). Fix: "It raises the machine stop `stage_image_failed` and returns `None` when the file breaks the rule or does not build."
 
     Earlier tests: none (the diff changes no test file).
+16. factory: started docs-only as vm.
