@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:54:04.601793Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T00:54:04.601793Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:55:33.251016Z'
+  stage: docs-review
+  run: ca58f79675884ba9854373d302f221ba
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -194,3 +196,20 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (12.2 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md`: `docs/operator-guide/health.md` and `docs/checked-documents.txt`. I read the whole new `health.md` against `docs/project-guide/style.md` and the code.
+
+    The round-0 fixes I checked against the code, and they hold:
+    - The order of the items table now matches `src/factory/entry/wiring.py:741-752`: `opencode` comes after `metadata-block` and before `agent-run-probe`.
+    - The preflight intro names `preflight_failed` (machine) and `main_branch_failing` (repository).
+    - The probe's table now has its own rows for the state directory that cannot be written and for the missing agent `coder`. This is consistent with `preflight.py:281-298`.
+    - The login-file messages match `agent_launch.py:158,162`. The login hints and details match `preflight.py:307-344`.
+    - The `repository_unavailable` table has three columns.
+    - `Git.work_tree_id` and the history wording are gone.
+    - The glossary links for stop, stage, cost record, work item, claim, tick, stage environment and feature now sit at their first use in prose.
+
+    Criteria 3 and 4 are unchanged since round 0: the file is on `docs/checked-documents.txt`, `make documents` printed `documents ok` per entry 9, and no heading changed.
+
+    Findings:
+    1. `docs/operator-guide/health.md:107, 126, 133, 208`: the glossary word "base" is still not linked anywhere (round-0 finding 10). Entry 9's reason, that its only first uses are inside code, is wrong: line 107 ("the workspace and the base are directories"), line 126 ("the base moves"), line 133 ("the dataset has no base") and line 208 ("the move of its base") are prose. This breaks style rule 3 and criterion 1. Fix: link "base" to `../project-guide/glossary.md` at its first prose use, line 107.
+    2. `docs/operator-guide/health.md:93`: the sentence "The extras are `token-file`, … `metadata-block` (under the profile `job` only), `opencode` (under opencode only) and `agent-run-probe`." holds two parentheses (style rule 2). Fix: list the extras without the parentheses and add a sentence of its own: "`metadata-block` runs only under the profile `job`, and `opencode` only under opencode."
+    3. `docs/operator-guide/health.md:75`: the round-0 fix names the source path `src/factory/entry/health.py`. The operator-guide rule says "Name no module or class. Name a source path only if the operator edits or runs that file". Fix: "A line for a stop has this format; `factory-health` prints it:", without the source path and without "no example here produced it".
