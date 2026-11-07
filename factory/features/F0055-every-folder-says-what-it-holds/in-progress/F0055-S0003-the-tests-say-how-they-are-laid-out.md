@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987, 6707415610]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T13:23:35.722291Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -140,6 +136,12 @@ journal:
   kind: started
   at: '2026-11-07T13:23:35.722291Z'
   stage: docs
+- number: 24
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T13:28:06.486742Z'
+  stage: docs
+  run: cd1372f982c0446db75af49b9fb6cc81
 ---
 
 # The tests say how they are laid out
@@ -343,3 +345,23 @@ Expect: `documents ok (<seconds> s)`
     Earlier tests:
     - `tests/guards/test_tests_layout.py`: changed under the human's leave (the Interface; journal entry 4). `README.md` was added to the expected root files of `test_the_root_holds_only_conftest_and_packages`, and the module docstring was changed to match. The test keeps its name and purpose.
 23. factory: started docs as vm.
+24. documenter: Docs round 1. I changed one file: `docs/project-guide/README.md`, in *Shared test helpers*. Line 63 now says the root of `tests/` holds `conftest.py`, its `README.md` and folders. Line 72 now says `test_tests_layout.py` fails when the root holds anything but `conftest.py`, `README.md` and packages. The section's list of modules and fixtures is unchanged. I changed both because criterion 5, as extended by the human's answer 16, asks for it. The code agrees: `tests/guards/test_tests_layout.py` expects `["README.md", "conftest.py"]`.
+
+    I ran `make documents`, and its last line is `documents ok (62.0 s)`. I did not run `make check`, because I changed only a document.
+
+    Cross-read and found current:
+    - The three READMEs the coder wrote (`tests/README.md`, `tests/support/README.md`, `tests/guards/README.md`) against the tree.
+      - `tests/README.md` has one line for each of the 13 direct subfolders.
+      - The links of the other two READMEs resolve to the existing heading *Shared test helpers*.
+      - Both name the guards and the shared helpers truthfully.
+    - `docs/checked-documents.txt` holds the three paths.
+    - `CLAUDE.md`, *Tests*: the human already changed the root sentence on `main`.
+    - `README.md` and `docs/operator-guide/`: nothing in them mentions the root of `tests/`.
+
+    Stale text I did not touch: none related to this story.
+
+    Decisions: I wrote no entry in `docs/decisions.md`, since the docs criterion says none.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (60.6 s)
