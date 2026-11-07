@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 617
 comments_read: [6700706147]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:00:54.881275Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-07T02:00:54.881275Z'
   stage: docs-review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:01:22.063008Z'
+  stage: docs-review
+  run: 8fd71676ec9946d3be417a2a3bd6d786
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -351,3 +353,13 @@ Expect: `1`
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes the last review's finding as written, so that the Reference's list of a cost record's optional keys is complete against the code or says plainly which keys it lists.
 22. factory: started docs-review as vm.
+23. reviewer: Round 0 after the human's answer (journal 21). I reviewed `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/records.md` and `docs/checked-documents.txt`. I read the Reference again against `src/factory/watching/domain/cost_records.py` and `docs/operator-guide/health.md`.
+
+    The factory went from the human's answer straight to `docs-review` (journal 22), with no `docs-only` run in between. So the branch holds no change since the round-3 review. The finding the human asked the documenter to fix is still open as written.
+
+    Still met: criterion 3 (the file is on the checked list, and the journal shows `documents ok`) and criterion 4 (no link points to a renamed heading). Dropped on purpose (criterion 2), unchanged since round 0: the version-by-version list of the records contract (style rule 1).
+
+    Findings:
+    1. `docs/operator-guide/records.md:170` (criterion 2, and a sentence the code contradicts): "The optional keys of a cost record." presents the Reference's list (`denials`, `denied_paths`, `login`, `machine`, `tools`) as complete. `CostRecord` in `src/factory/watching/domain/cost_records.py:131` also has the optional `transcript` (`TranscriptRef`, docstring at line 107: "names the run's kept transcript; it is `None` when none was kept"). Many other fields of `CostRecord` are optional too (lines 121-128), so the sentence is not true of those either. No line of the page names `transcript` as a key since the version list was dropped. Fix, as the human asked in journal 21: make the introduction say which keys it lists, for example "Some optional keys of a cost record: …". Also add one sentence for `transcript`: "`transcript` names the run's kept transcript; it is explained under *Transcripts* in [health.md](health.md#transcripts)." That heading exists at `health.md:338`.
+
+    Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files.
