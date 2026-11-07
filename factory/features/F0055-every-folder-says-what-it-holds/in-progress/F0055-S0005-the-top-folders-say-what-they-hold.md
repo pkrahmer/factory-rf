@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T14:05:54.330244Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-07T14:05:54.330244Z'
   stage: docs-review
+- number: 10
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:06:45.786591Z'
+  stage: docs-review
+  run: 40189e18bd5e4a6f8dfa2f262d09a538
 ---
 
 # The top folders say what they hold
@@ -141,3 +143,11 @@ Expect: `documents ok (<seconds> s)`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (60.1 s)
 9. factory: started docs-review as vm.
+10. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` and the work item. I also read `security/README.md`, because criteria 1, 2 and 5 name it. I checked the facts against `src/factory/shared/domain/folder_readmes.py`, the `Makefile` targets `sast` and `duplicates`, the contents of `security/`, `docs/`, `docs/runs/` and `.gitignore`, the READMEs the root section links to, and the human's own files `CLAUDE.md` and `planning/README.md`. I checked the writing against `docs/project-guide/style.md`, *Folder READMEs*.
+
+    Findings:
+    1. `security/README.md:3` ("The vendored semgrep rules"): the rules in `security/semgrep/python.yml` are this project's own (ids `factory-no-eval-exec`, `factory-no-subprocess-shell`). They are not copied from an outside source, and line 5 of the same README calls them "The semgrep rules of this project". "Vendored" is a word of the demo project (`demo/todo-service/README.md:9`), not of this one. Fix: drop "vendored", e.g. "The semgrep rules that `make sast` applies".
+    2. `docs/README.md:7` ("The human's records of finished runs and sweeps"): `docs/runs/` holds run logs and reports only (`2026-10-12-overnight`, `2026-10-19-baseline-todo`, `2026-11-04-f0050`, `2026-11-05-f0052`). The mutation sweep reports are in `planning/` (`planning/README.md:3`). Fix: "The human's logs and reports of finished runs".
+    3. `docs/README.md:7` ("no stage reads or writes them"): `CLAUDE.md`, *The human's files*, says only that no stage edits `docs/runs/` and that it is outside every write path. Nothing keeps a stage from reading it; `not_read` in `factory/pipeline.yml` is about what `make check` reads, not what agents read. Fix: "no stage writes them", as `CLAUDE.md` says.
+
+    Checked and found true: the root `## The folders` section sits between `## Where to read next` (unchanged) and `## Reference`. It has ten lines in the subfolder-line form, and links to the six READMEs that exist (`src/` links to `src/factory/README.md`; `src/` itself has no README). It names `factory/`, `planning/` and `session-logs/` as the human's, and `session-logs/` is ignored in `.gitignore:15-16`. `docs/README.md` names all four documents and has a line for each of the three subfolders. `security/README.md` matches the `sast` and `duplicates` targets and links `CLAUDE.md`, *Checks*. `docs/checked-documents.txt` gains both paths. The trailing link sentence of `docs/README.md` passes the guard (`_read_line` takes any line with a link) and serves criterion 8; I left it as it is.
