@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:42:38.175888Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-07T03:42:38.175888Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:43:26.180893Z'
+  stage: docs-review
+  run: f086de0f79bf41b6b10a1ab69d7b4ed3
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -348,3 +350,21 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (9.3 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I read the round-3 change (`git diff 444e0e932 b7bd8a974 -- docs/`) and checked it against the code on the branch and against `docs/project-guide/style.md`.
+
+    What holds:
+    - The round-2 finding is fixed at `docs/project-guide/hosting.md:181`. The sentence no longer ties every deletion to a merge or a discard.
+      - The merge and discard handlers delete the branch from the remote and from the checkout. Both go through `WorkItemRecorder.delete_branch` (`src/factory/pipeline/application/handlers/merged.py:36`, `closed.py:70`), which calls `delete_remote_branch` and then `delete_branch` (`recording.py:90-93`). The acceptance's merge and close do the same (`src/factory/work/application/acceptance.py:298`, `:366`).
+      - At every tick, `Tick._restore_checkout` deletes the local branch of each work item with a branch (`tick.py:188-200`). Its comment says why: a local branch may hold a rejected push.
+      - `delete_stale_branches` deletes the remote branches of stories that are back in the backlog or done (`recovery.py:235-253`). The tick calls it at `tick.py:123`.
+    - Line 156 now agrees with line 181: "The tick and the recovery delete branches at other times too".
+    - `docs/checked-documents.txt` still has the line `docs/project-guide/hosting.md` (criterion 3). No heading that another document links to has changed (criterion 5). The documenter reports `documents ok` (criteria 3 and 4).
+    - The fixes from rounds 0 to 2 are still in place: each file and page is linked once, glossary words are linked at their first use, and the sentence-length splits are kept.
+
+    Findings: no findings.
+
+    Rejected as findings:
+    - Line 156, "Both return a value for the outcomes a caller must decide on": `delete_branch` returns `None`. But it has no outcome a caller must decide on, and the signature block right below shows `-> None`. The sentence holds for `delete_remote_branch` and `merge`. "Raise `GitError` for the rest" holds for all three.
+    - Line 181 says the restore covers work items "that has a remote branch or is in progress". It names the tick's restore, not the acceptance, and the round-2 review already checked it against `_work_items_with_branches`.
+
+    Open: nothing.
