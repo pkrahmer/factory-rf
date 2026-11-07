@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T03:23:23.556207Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T03:23:23.556207Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T03:23:38.463034Z'
+  stage: intake
+  run: a5f213ccc4ed4c88af53b22d7be4159e
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete paths only (`docs/project-guide/hosting.md`, `docs/checked-documents.txt`); it states no code signatures and changes no code, test or agent file. Every path is one the documenter may write, so the route is docs-only.
+   Criteria: 1 to 5 are checkable by the reviewer or by `make documents` (style, old-versus-new facts, the checked list, links, no dangling headings). Criterion 6 is `make check`. The Interface's behaviours (link once at first mention, the one-line checked list, changed headings relinked) are covered by criteria 4, 3 and 5. No rule states a failing side that needs its own criterion; broken links and unresolved names are the failing side of criteria 3 and 4.
+   Smoke test: `grep -cx "docs/project-guide/hosting.md" docs/checked-documents.txt` is runnable, and `Expect: 1` can be checked against its output.
+   Docs criterion: criterion 7 points to criteria 1 to 5 (what the reader must know: the hosting area's names, rules and commands, true to the code). It dictates no sentences.
+   Architecture: the story touches only documents, so the code's layering is not involved. It stays on the project guide's hosting page, which matches CLAUDE.md's docs layout.
+   Scope: it is S0013 of F0054, one file rewritten and added to the checked list. It touches nothing in the feature's Out of scope (`decisions.md` is explicitly "none").
