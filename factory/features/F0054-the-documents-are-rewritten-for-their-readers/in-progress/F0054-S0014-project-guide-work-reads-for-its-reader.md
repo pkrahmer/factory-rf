@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:54:36.564872Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -52,6 +48,12 @@ journal:
   kind: started
   at: '2026-11-07T03:54:36.564872Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:57:16.693782Z'
+  stage: docs-only
+  run: 564bdc1e4cf34a228c52001144ee4695
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -143,3 +145,20 @@ Expect: `1`
    FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/projec...ork-items.md'] == []
    make: *** [Makefile:89: test] Error 1
 7. factory: started docs-only as vm.
+8. documenter: Fixed the red check from the previous attempt. The guard `tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file` failed on `docs/project-guide/work.md:159`. The link text `work-items.md` matches the guard's pattern for the removed guide file of that name. The link target was already correct: `../operator-guide/work-items.md`.
+
+   Files changed:
+   - `docs/project-guide/work.md`, line 159: the link text is now `operator-guide/work-items.md`, which the guard's pattern allows. The target and the sentence are unchanged.
+
+   Checks run:
+   - The guard test now passes.
+   - `make documents` prints `documents ok (9.7 s)`.
+   - I did not run `make check`, because I changed only a document. The factory runs it.
+
+   Everything else stands as in the earlier docs-only entry. The reviewer should still compare the old and new `work.md` against the code, especially the condensed acceptance bullets. The earlier entry says the rewrite was checked against the code only by sample, so that comparison is open.
+
+   Not touched, unrelated to this story: the earlier entry lists unchecked-name report lines in `docs/project-guide/README.md`, `agents.md` and `machine.md`.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.6 s)
+   `documents`: documents ok (9.7 s)
