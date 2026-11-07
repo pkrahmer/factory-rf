@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:09:17.543979Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T00:09:11.435661Z'
   stage: docs-review
   run: 0c707730ab8f4d4aac3065c6a6cddfff
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:09:17.543979Z'
+  stage: docs-only
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -178,3 +187,4 @@ Expect: `1`
     1. `docs/operator-guide/cloud-run.md:228`: "`log` and `status` pass what they print through `operator/bin/sanitise`" is false. `status` prints its execution lines unsanitised (`printf '%s\n' "$executions"`, `operator/job/job.sh:444`) and passes only the stop line through `sanitise` (`job.sh:451`). `log` sanitises every line (`job.sh:382,384`). `main` had this right. Fix: "`log` passes every line it prints through `operator/bin/sanitise`, and `status` passes the stop line it prints".
     2. `docs/operator-guide/cloud-run.md:139-146` and `:221-224`: these `sh` blocks hold usage synopses with `[--dry-run]`, `[N]` and `NAME`, not bare commands. They also stand under no numbered step. style.md *Examples that are not run* allows an `sh` block only for bare commands under their numbered step. The second block repeats two lines of the first, and the usage `console` example at :150-153 already shows the full grammar. Fix: replace the block at :139-146 with a table of `Command` and `What it does` (create, update, execute, delete, log, status, each with its options), and drop the block at :221-224.
     3. `docs/operator-guide/cloud-run.md:129`: *A free model* is now a `####` subsection of *Starts, restarts and the end of an execution*, but it is about model prices, not starts. On `main` it was a section of its own (`###`), and nothing links to it. Fix: make it `###` again, so it is a sibling of the other sections.
+12. factory: started docs-only as vm.
