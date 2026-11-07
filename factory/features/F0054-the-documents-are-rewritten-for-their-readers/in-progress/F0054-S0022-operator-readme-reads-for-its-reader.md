@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:33:12.788776Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -69,6 +65,12 @@ journal:
   kind: started
   at: '2026-11-07T09:33:12.788776Z'
   stage: docs-only
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:39:35.979719Z'
+  stage: docs-only
+  run: 3c28904ff60e4988ba5f5376230097ad
 ---
 
 # The operator folder's README reads for its reader
@@ -164,3 +166,27 @@ Expect: `1`
    FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/] - AssertionError: assert ['operator/README.md'] == []
    make: *** [Makefile:89: test] Error 1
 10. factory: started docs-only as vm.
+11. documenter: This round fixes the red check from the last run. The stall came from `tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path`. The guard found `operator/README.md` naming `vm/setup.sh`, `vm/job-start.sh`, `vm/Dockerfile`, `vm/factory.service`, `vm/git-credential-factory` and `template/` at the root. Those are the old root places of files that now sit under `operator/`.
+
+    Changed `operator/README.md`, the story's whole change:
+    - The six file-table rows for the VM files and the template now read `operator/vm/...` and `operator/template/`. The rows name the real paths and the guard no longer finds the old ones.
+    - The table's other rows are relative to `operator/`, so I added one sentence under the *Files* heading. It says paths are relative to `operator/`, and rows that start with `operator/` are paths from the repository root.
+
+    I did not change `docs/checked-documents.txt`. The human's answer (journal 6) dropped the list line from this story: F0055-S0001 makes the page a document of the check and F0055-S0004 adds the line. Criterion 3's list part and the Interface's list line therefore do not apply here.
+
+    Checks:
+    - `uv run pytest -q tests/guards/test_root_operator_folders_removed.py` passed (22 tests).
+    - `make documents` ended `documents ok (58.9 s)` after my last edit.
+    - I did not run `make check`, because only a document changed. The factory runs it after this stage.
+    - The one runnable `console` example on the page, `site init`, was run by hand in the previous round and printed `site: wrote <tmp>/kumpel/site.env; edit it, then run: site check`, exit 0. This round touched only the file table, so I did not run it again.
+
+    Cross-read and found current:
+    - `docs/operator-guide/site.md` points to this file and to the heading *Installing*, which is kept.
+    - `docs/project-guide/operator.md` and `agents.md` link only the file.
+    - `docs/operator-guide/pipeline.md` names the file.
+
+    Stale text I saw and did not touch: `operator/skill/kumpel/SKILL.md` repeats "Second version, 2026-11-01" and "kumpel-factory v1.2 or later". That is the skill's own file, not a document I may write.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (59.0 s)

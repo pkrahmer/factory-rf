@@ -72,6 +72,8 @@ Kumpel works with your token, so it signs everything it does. A reader of the pu
 
 ### Files
 
+Paths are relative to the `operator/` folder; the rows that start with `operator/` are paths from the repository root.
+
 | Path | Use |
 |---|---|
 | `site.env.example` | every key of the site file, each with a comment and a made-up value |
@@ -93,12 +95,12 @@ Kumpel works with your token, so it signs everything it does. A reader of the pu
 | `skill/kumpel/scripts/reset-to-tag.sh` | resets a trial repository to a tag |
 | `opencode/command/kumpel.md` | the command `/kumpel [<switch> on\|off]` for opencode |
 | `claude/commands/kumpel.md` | the same command for Claude Code |
-| `vm/setup.sh` | prepares a fresh Ubuntu machine and installs the factory's service |
-| `vm/factory.service` | the factory as a system service, one instance per name |
-| `vm/Dockerfile` | the stage image of every stage's containers |
-| `vm/git-credential-factory` | git's credential helper, which hands out the hosting token |
-| `vm/job-start.sh` | the command of a Cloud Run job: it builds an instance and ends in `factory-run` |
-| `template/` | the start of a new project: a pipeline definition, a `CLAUDE.md` and a `Makefile` |
+| `operator/vm/setup.sh` | prepares a fresh Ubuntu machine and installs the factory's service |
+| `operator/vm/factory.service` | the factory as a system service, one instance per name |
+| `operator/vm/Dockerfile` | the stage image of every stage's containers |
+| `operator/vm/git-credential-factory` | git's credential helper, which hands out the hosting token |
+| `operator/vm/job-start.sh` | the command of a Cloud Run job: it builds an instance and ends in `factory-run` |
+| `operator/template/` | the start of a new project: a pipeline definition, a `CLAUDE.md` and a `Makefile` |
 
 ### Settings file
 
