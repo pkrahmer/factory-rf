@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Final
 
+from factory.shared.domain.documents import relative_link_targets
 from factory.shared.domain.sections import code_blocks, lines_outside_blocks, split_lines
 
 FOLDER_READMES: Final[tuple[str, ...]] = (
@@ -41,7 +42,6 @@ BASE_LINES: Final = 10
 _HEADING = re.compile(r"#+ ")
 _TITLE = re.compile(r"# \S")
 _SUBFOLDER_LINE = re.compile(r"- `(?P<name>[^`]+)/`(?P<rest>.*)")
-_RELATIVE_LINK = re.compile(r"\[[^\]]*\]\((?![a-z][a-z0-9+.-]*:|#)[^)\s]+\)")
 _SENTENCE_END = re.compile(r"[.!?](?=\s|$)")
 
 
@@ -81,7 +81,7 @@ def _read_line(reading: _Reading, number: int, line: str) -> None:
         reading.has_section = True
         return
     subfolder = _SUBFOLDER_LINE.fullmatch(line)
-    if _RELATIVE_LINK.search(line):
+    if relative_link_targets(line):
         reading.has_link = True
         if subfolder is None:
             reading.past_opening = True

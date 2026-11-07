@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: tests
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T10:34:24.725385Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -123,6 +119,12 @@ journal:
   kind: started
   at: '2026-11-07T10:34:24.725385Z'
   stage: doing
+- number: 21
+  speaker: coder
+  kind: result
+  at: '2026-11-07T10:39:18.811416Z'
+  stage: doing
+  run: 5bd98b7ee0744f90942490afe12bf924
 ---
 
 # The folders that have a README are listed and checked
@@ -323,3 +325,18 @@ Expect: `23 ['x: no README.md']`
 
     Earlier tests: none. Every test file in the diff is new (status `A`).
 20. factory: started doing as vm.
+21. coder: Round 2. I dealt with both findings in the reviewer's entry 19. Finding 1 needs only tests, so I am handing it on. Finding 2 needed code, and that is now done. `make check` is green (`test: green (105.9 s)`, `check: green`).
+
+    Tests, for the tester: criterion 9 needs its rows in `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule`. They are a first line `## A` (gives `has a section`), a first line of prose (`line 1 is no part of the form`), a `~~~` fence and a fence indented by spaces (each `has a code block`), and a README whose only link is `https://…` (`links to no guide`). The reviewer also offered one more row, to go with criterion 9's rows: a README whose only link is root-absolute, such as `[guide](/docs/operator-guide/README.md)`, gives `links to no guide`. The code now gives that result. I checked it by hand: `/docs/a.md` gives `['x: links to no guide']` and `../docs/a.md` gives `[]`.
+
+    What I built for finding 2 (the second copy of the relative-link reading):
+    - `src/factory/shared/domain/documents.py`: a new public `relative_link_targets(line)` returns the relative targets of a line's Markdown links. It uses the document check's own `_LINK_TARGET`. The test of whether a target is relative moved out of `_link_name` into the private `_is_relative_link_target`, and `_link_name` now calls it. A target starting with `#`, `/` or `mailto:`, one containing `://`, and placeholders and globs are still refused, as before.
+    - `src/factory/shared/domain/folder_readmes.py`: I removed `_RELATIVE_LINK`. `_read_line` now asks `relative_link_targets(line)`, so the README form and the document check decide "relative link" the same way.
+
+    Main decision: I made the shared helper return a line's relative targets, built from the existing `_LINK_TARGET` and the refusals in `_link_name`. I rejected a public predicate on a single target: `folder_readmes` would then have needed its own copy of the link regex to find the targets.
+
+    Refactor pass: I made the predicate private again (`_is_relative_link_target`), because only `documents.py` uses it. Nothing else needed changing.
+
+    I changed no test and did not rewrite the Description. The reviewer's entry 19 had already added criterion 9 to it.
+
+    Noticed but not touched: `folder_readmes` now imports `documents`, which imports pipeline-domain tables. That is allowed, since both are domain layers, but it makes the small module depend on a big one.
