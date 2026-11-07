@@ -12,11 +12,11 @@ This story writes the READMEs of `tests/`, `tests/support/` and `tests/guards/`,
   - `tests/guards/README.md`
 - `tests/README.md` says that the tests mirror the package (`tests/<area>/<layer>/`), names each special folder in one line (`support/`, `guards/`, `agent_files/`, `entry/`, `operator_scripts/`, `vm/`) and each area folder in one line, and links to `CLAUDE.md`, *Tests*. `tests/support/README.md` says in one sentence that the folder holds the shared test helpers and links to `docs/project-guide/README.md`, *Shared test helpers*, which keeps the full list of modules and fixtures (feature decision 4). `tests/guards/README.md` says in one sentence that the folder holds the guards and links to the project guide's section on the guards. Neither lists its modules: a module line is no part of the form, and the detail stays in the guide.
 - `docs/checked-documents.txt` gains each new path.
-- No code and no test changes. The story takes the docs route.
+- No code changes, and no test changes but this one leave of the human's: an earlier guard whose only failure is a `README.md` of this story standing in its folder may add that README to the entries it expects, keeping its name's purpose; the entry names each such test. The story takes the docs route.
 
 ## Acceptance criteria
 
-1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/`: <one sentence>.``. The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
+1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/` <one sentence>.`` (no colon, as the guard and the style page write it). The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
 2. Every name, path and link in these files exists (the document check finds nothing), and each file is on `docs/checked-documents.txt`.
 3. `make documents` ends with `documents ok (<seconds> s)`.
 4. `make check` stays green.
