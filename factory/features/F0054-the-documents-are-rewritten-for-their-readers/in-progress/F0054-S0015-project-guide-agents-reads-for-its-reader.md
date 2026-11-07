@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:31:31.337924Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T04:31:31.337924Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:35:05.720809Z'
+  stage: docs-only
+  run: c695979eff25450eacc755a3f7cf42e2
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -264,3 +266,32 @@ Expect: `1`
 
     Dropped on purpose, and acceptable (checked in round 0): the *Replaced* sections, the rename table, the IDs and version history, and the commit `f8bc9d2`.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the seven findings of the round-1 review. All edits are in `docs/project-guide/agents.md`. `docs/checked-documents.txt` already holds the page's line. `make documents` ends with `documents ok (13.2 s)`. I did not run `make check`, because the only file I changed is a document.
+
+    How I handled each finding:
+    1. Provider-limit stall: the page now says `PatientRuns` waits the limit out and resumes the run until the waits reach the ceiling. Only a run that still ends `provider_limit` at the ceiling is a stall. It points to *PatientRuns* in `pipeline.md`.
+    2. `ProviderLimit`: all four fields (`status`, `message`, `cooldown`, `ceiling`) and all four variables (`FACTORY_PROVIDER_LIMIT_STATUS`, `_MESSAGE`, `_COOLDOWN_MINUTES`, `_CEILING_MINUTES`) are named. I checked them against `src/factory/agents/domain/provider_limits.py:51-52` and `src/factory/shared/domain/settings.py:61-64`.
+    3. Lessons: "every agent has more" replaces the false list of five agents. The list is introduced as "Among the lessons that go beyond those two:", so it reads as a selection. I did not add the lessons it leaves out.
+    4. Glossary: I linked these words to `glossary.md` at their first use: instance, crash, tick, project command, story, feature, round, acceptance, stage environment and take. The `sync` sentence in the template section is now two clauses, so the stage environment link reads cleanly.
+    5. Links:
+       - `git_cli.py`, `make_commands.py` and `process.py` are linked at the sentence that names them.
+       - `agents/settings.json` is linked at its first mention, in the section on skills; the later mention is plain.
+       - `operator/README.md` is linked at its mention in the docs-route section.
+    6. Root paths: the later mentions of `wiring.py`, `agent_runtime.py` and `test_claude_agent_texts.py` now start at the repository root.
+    7. Long sentences: I split five of them into short ones or bullets.
+       - the `make_state_directory` sentence;
+       - the `intake` step 2 sentence;
+       - the smoke test `next` sentence;
+       - the helper-leave sentence;
+       - the `make secrets` sentence.
+
+    Cross-read: headings other pages link to are unchanged (*The agent definition reader*, *Calls in a container*). I checked the new link targets: `git_cli.py`, `make_commands.py` and `process.py` exist at the paths I linked, and `make documents` finds no broken link.
+
+    Stale text I noticed and did not touch, because it is unrelated to this story:
+    - `make documents` still reports "does not exist" findings in `docs/project-guide/README.md` and `docs/project-guide/machine.md`. Those files are not yet on the checked list.
+    - I carried the Reference sections over from the old page and did not re-read `claude_runtime.py` and `opencode_runtime.py` line by line against them in this round.
+    - I wrote nothing in `docs/decisions.md`. The old sentence that the texts come from v1 so the baseline run compares still has no line in the decision log. The reviewer may decide whether it needs one.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (13.0 s)
