@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:13:51.544703Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T02:13:46.417046Z'
   stage: docs-review
   run: 0ed158b1e4ca47c48b288ca3addd8f38
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:13:51.544703Z'
+  stage: docs-only
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -134,3 +143,4 @@ Expect: `1`
    5. `docs/operator-guide/work-items.md:5`: "Your acts are all on the pull request: comment, close or merge" is contradicted by the same file. Line 221 has you turn off a hosting setting, line 270 has you revert an edit on `main`, and lines 138 and 176 have you lift a remote's refusal of deletions. The task at lines 217–221 is also written as prose, not as the numbered steps that the operator-guide rule for tasks asks for. Fix: narrow the sentence to the acts on a work item, and write "Branch deletion on merge must be off" as numbered steps marked for GitHub.
 
    Named as dropped, and acceptable under style rule 1: the example file names `F0001-S0001-name.md`, `done/old/F0001-S0001-name.md` and `F0002-a`/`F0002-b`, the example id `F0001-A0002`, and "v1's" before "thirteen fault-injection paths". Line 15 now says "Only story files count" without saying what a story file is named. The documenter may give the pattern with placeholders, such as `<feature id>-S<n>-<slug>.md`.
+8. factory: started docs-only as vm.
