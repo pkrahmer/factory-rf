@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T11:36:42.039894Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-07T11:36:42.039894Z'
   stage: doing
+- number: 18
+  speaker: coder
+  kind: result
+  at: '2026-11-07T11:40:52.605786Z'
+  stage: doing
+  run: af5c72b8f9974a2c91f1d656a4f6bbdc
 ---
 
 # A reference to another page's heading names a heading it has
@@ -275,3 +277,24 @@ Expect: `documents ok (<seconds> s)`
 
     `lint`: lint: green (0.2 s)
 17. factory: started doing as vm.
+18. coder: No code changed this round. The tester's three new criterion-1 rows (entry 16: plain-text, another-mark-before-in, two-italic-spans) pass against the existing code. I ran `make check` and it is green, coverage 99.21 %.
+
+    What was built is unchanged from entry 10:
+    - `src/factory/shared/domain/heading_references.py` (new) holds `HeadingReference`, `heading_references`, `page_headings` and `unresolved_headings`.
+    - `src/factory/shared/domain/documents.py`: `link_name` and `checked_lines` are now public so the new module can reuse them.
+    - `src/factory/entry/check_documents.py`: `_heading_findings` adds the heading findings to the name check's, so they block in a listed document and are reported in any other.
+
+    Main choice (as in entry 10): reuse the name check's link resolution and line selection. I rejected a separate copy of path joining and fence skipping.
+
+    Refactor pass: nothing to change. This round's diff touches only the tester's file.
+
+    The Description already lists the three rows, so it needs no rewrite.
+
+    Noticed, not touched (as in entry 14):
+    - `make documents` still blocks on `install.md:121`, `work-items.md:66` and the project guide's `machine.md:487` until the docs stage fixes them.
+    - The check does not catch `agent-runtime.md:407`, so the documenter fixes it by hand.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
