@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T08:05:46.646923Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T08:05:41.526479Z'
   stage: docs-review
   run: 44b5a4f25a18475c9a75a499f4051ba5
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T08:05:46.646923Z'
+  stage: docs-only
 ---
 
 # The project guide's index reads for the developer
@@ -185,3 +194,4 @@ Expect: `1`
    15. `docs/project-guide/README.md:287`: the line starts with a stray space before `` `check_demos(root)` ``. Fix: remove it.
 
    Not checked: every one-line description of a `tests/support/` module against its source. I did not run `make documents`; the documenter's run printed `documents ok`, and the factory runs it again as the gate.
+8. factory: started docs-only as vm.
