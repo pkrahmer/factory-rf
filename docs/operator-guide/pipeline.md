@@ -1,10 +1,12 @@
 # The pipeline definition and the story check
 
-A topic of the [operator guide](README.md).
+A topic of the [operator guide](README.md). It covers the file that configures your pipeline, `factory/pipeline.yml`, and the command that checks a story before the factory starts it.
 
 ## The pipeline definition
 
-`factory/pipeline.yml` is the project's configuration: its stages, the roles that work in them and the limits. The factory reads it only as it stands on `origin/main`, so a change takes effect when it is merged. This definition loads:
+The [pipeline definition](../project-guide/glossary.md) is the project's configuration: its [stages](../project-guide/glossary.md), the [roles](../project-guide/glossary.md) that work in them, the [project commands](../project-guide/glossary.md) and the limits. The factory reads it only as it stands on `origin/main`, so a change takes effect when it is merged.
+
+This is the smallest useful definition. It loads:
 
 ```yaml
 contract: '1.0'
@@ -20,42 +22,69 @@ stages:
   done: {}
 ```
 
-The keys, with what a left-out key takes:
+The order of the stages in the file is the pipeline's order. The first `next` of a stage is the forward move. The others are moves back.
 
-| Key | Meaning | Default |
-|---|---|---|
-| `contract` | the contract version, quoted: `'1.0'` | required |
-| `stages` | name to stage; the order in the file is the pipeline's order | required |
-| `roles` | name to role; the name is also the agent file's name | required |
-| `project_commands` | name to `time_limit` in minutes and, optionally, `not_read` (see below) | `check`, `lint` and `test`, each 10 and `not_read: []` (the template's definition also names `sync`, 5 minutes) |
-| `attempts_cap` | attempts before the human is asked | 2 |
-| `crash_cap` | crashes before the human is asked | 2 |
-| `acceptance_stage` | the stage of the feature acceptance | none |
+### Change the definition
 
-A stage has `role` (none: no agent runs), `next` (the first name is the forward move), `approval` (the human decides), `checks` (project commands that must pass after the agent), `reports` (project commands run after green and only recorded) and `round_cap` (none: no cap). A role has `write_paths` (required), `lease_duration` (60 minutes) and `time_limit` (40 minutes, one agent run). A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature's path (`factory/features/F0004-x`). The engine's protected paths (`factory/pipeline.yml`, the forms, `feature.md`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `.claude/`, `factory/agents/`) are outside every write path. Every limit is a positive whole number.
+1. Edit `factory/pipeline.yml` in a clone of the project.
+2. Check it against the rules below, most of all the stage `done` and the [lease](../project-guide/glossary.md).
+3. Merge the change to `main`. The factory reads the new text at its next [tick](../project-guide/glossary.md).
 
-A definition may hold more than one route and more than one approval stage; a close of a pull request at an approval stage sends the story to that stage's second `next`, and the stage whose first `next` is that approval counts the rounds.
+A refused definition stops the factory with `pipeline_definition_invalid` until you fix it on `main` (see "The stop `pipeline_definition_invalid`" in [stops.md](stops.md)).
+
+### The rules you meet most often
+
+- The stage `done` must exist, with no role and no `next`. Write it `done: {}`; `done:` alone is refused.
+- The contract major must be 1. Any minor is read.
+- Every stage other than `done` needs a non-empty `next` and either a role or `approval: true`. Every name in `next` must be a stage.
+- The lease: for each stage with a role, the role's `time_limit` plus the `time_limit` of every command in the stage's `checks` and `reports` must be at most the role's `lease_duration`. With the defaults, 40 + 10 (one check) + 10 (one report) = 60 fits. A stage with two checks and a report adds up to 70 and is refused. Raise the `lease_duration` or lower a limit.
+- Values are taken only in their YAML type. A limit is an integer (not `'30'`, `30.0` or `true`). `approval` is `true` or `false` (not `'yes'` or `1`). Names and write paths are text.
+- A key that is not listed is refused, so a misspelt key is never ignored. That holds for `tool_paths` too. An agent run may write only its write paths, and there is no folder for tool state.
+- A given `project_commands` replaces the default set as a whole. List `check`, `lint` and `test` again if you still want them.
+- Every role needs an agent file, a project's own or the installed one (see "The agent files" in [agent-runtime.md](agent-runtime.md)).
+
+[docs/project-guide/pipeline.md](../project-guide/pipeline.md), "The rules of the definition", lists every fault.
+
+### More than one route
+
+A definition may hold more than one route and more than one approval stage. When you close a pull request at an approval stage, the story goes to that stage's second `next`. The stage whose first `next` is that approval counts the rounds.
+
+The smoke test of the template reads `smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 3}`. A finding that is only a slip in a document goes from the smoke test straight to `docs`. There the documenter fixes it and hands back to the smoke test. This counts as a round against the `round_cap`, as a return to `doing` does.
 
 ### The docs route
 
-A story that changes only documents (`README.md`, files under `docs/`, `operator/README.md`) skips the tests, doing and review stages. The intake chooses the route: `docs-only` when every path the story's Interface changes is one the documenter may write, otherwise `tests`. The documenter writes the whole change and runs `make documents`. `make check` runs after `docs-only`, or is reused only when no document that a test reads changed. The reviewer reads the documents against the story's criteria and the code, and against the style page, `docs/project-guide/style.md`, once it exists. It then sends the story to `docs-approval`, where you decide, or back to the documenter with numbered findings.
+A story that changes only documents skips the tests, doing and review stages. Documents are `README.md`, the files under `docs/` and `operator/README.md`.
 
-If the documenter finds that the story needs more than documents, it hands the story to the tests stage and says what is needed; the story then takes the normal route. The route works only when your pipeline definition holds the stages `docs-only`, `docs-review` and `docs-approval` and the intake's `next` lists `docs-only`; the agents do nothing on it without them.
+1. The intake chooses the route. It picks `docs-only` when every path the story's Interface changes is one the documenter may write, and `tests` otherwise.
+2. The documenter writes the whole change and runs `make documents`.
+3. `make check` runs after `docs-only`. The factory reuses an earlier passed result only when no document that a test reads has changed.
+4. The reviewer reads the documents against the story's criteria, the code and [the style page](../project-guide/style.md).
+5. The story goes to `docs-approval`, where you decide, or back to the documenter with numbered findings.
 
-The template's smoke test reads `smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 3}`. A finding that is only a slip in a document (`README.md` or a file under `docs/`) goes from the smoke test straight to `docs`, where the documenter fixes it and hands back to the smoke test; it counts as a rework round against the `round_cap`, as a return to `doing` does.
+If the documenter finds that the story needs more than documents, it hands the story to the tests stage and says what is needed. The story then takes the normal route.
 
-An unknown key is refused with `pipeline_definition_invalid`. That includes `tool_paths`, which earlier versions read: a definition that still holds it stops the factory until you remove the key. The write paths are all that an agent run may write; there are no further folders for tool state.
+The route works only when your definition holds the stages `docs-only`, `docs-review` and `docs-approval`, and the `next` of the intake lists `docs-only`. Without them the agents do nothing on it.
 
-`not_read` of a project command lists the paths the command does not read, in the form of `write_paths` patterns: relative to the checkout, `*` also crosses `/`, case-sensitive. The default `[]` leaves nothing out. For example:
+### Reuse a result with `not_read`
+
+A passed result of a project command is reused while the files it reads stay the same. `not_read` lists the paths the command does not read, so that a change only there is no reason to run it again. The paths it names are left out of the tree that the key holds (see "The known results" in [health.md](health.md)).
+
+List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run. A path listed by mistake can let a reused `check` pass a fault.
+
+A pattern follows the form of `write_paths` patterns: relative to the checkout, `*` also crosses `/`, case-sensitive. For example:
 
 ```yaml
 project_commands:
   check: {time_limit: 10, not_read: ["notes/*.md", "notes/*.jsonl"]}
 ```
 
-A pattern that cannot name a path inside the checkout (empty, starting with `/` or `~`, holding a `..` segment, or holding `{` or `}`) stops the definition from loading: `project command lint: not_read /etc/* must be a path pattern inside the checkout`. `not_read` is what lets a known result survive a change: the paths it names are left out of the tree that the key holds (see "The known results" in [health.md](health.md)), so a change only there is no reason to run the command again. List only what the command does not read at all. A linter, formatter or type checker that walks the whole tree reads every source file in every folder, so leave out file types it does not read, never a whole folder. A forgotten path costs one run; a path listed by mistake can let a reused `check` pass a fault.
+A pattern that cannot name a path inside the checkout stops the definition from loading. Such a pattern is empty, starts with `/` or `~`, holds a `..` segment, or holds `{` or `}`:
 
-kumpel-factory's own definition, `factory/pipeline.yml`, takes this. It leaves out the Markdown and JSON Lines files that no test reads, and folders that hold no code and that no test reads (`docs/runs/`, `planning/`, `session-logs/`, `factory/archive/`). `make lint` reads every Python file of the tree, wherever it lies, so no folder with code is left out. `README.md` and `docs/` stay in the key. The guide guards under `tests/guards/` and other tests of `make test` read the real documents, so a documents-only change can turn `make check` red. Of `docs/` only `docs/runs/*` is left out, which no test reads.
+```text
+project command lint: not_read /etc/* must be a path pattern inside the checkout
+```
+
+kumpel-factory's own definition, `factory/pipeline.yml`, leaves out the Markdown and JSON Lines files that no test reads, and folders that hold no code and that no test reads. `make lint` reads every Python file of the tree, wherever it lies, so no folder with code is left out. `README.md` and `docs/` stay in the key, because the guide guards under `tests/guards/` and other tests of `make test` read the real documents. A documents-only change can therefore turn `make check` red. Of `docs/` only `docs/runs/*` is left out.
 
 ```yaml
 project_commands:
@@ -65,45 +94,105 @@ project_commands:
 Two warnings:
 
 - A project whose `check` scans changed files for secrets keeps a scan of the left-out files only if something else runs it. kumpel-factory's docs stage runs `secrets` as a check of its own, with nothing left out.
-- A command whose result depends on anything outside the tree and the image, such as dependencies fetched at run time with unpinned versions, is reused safely only when those versions are pinned in the tree (for example by a lockfile). Otherwise leave `not_read` empty and do not rely on reuse for it.
+- A command whose result depends on anything outside the tree and the image is reused safely only when those versions are pinned in the tree, for example by a lockfile. Dependencies fetched at run time with unpinned versions are such a case. Otherwise leave `not_read` empty and do not rely on reuse for it.
 
-The rules you meet most often:
+### Reference
 
-- The stage `done` must exist, with no role and no `next`. Write it `done: {}`; `done:` alone is refused.
-- The contract major must be 1. Any minor is read.
-- Every stage other than `done` needs a non-empty `next` and either a role or `approval: true`; every name in `next` must be a stage.
-- The lease: for each stage with a role, the role's `time_limit` plus the `time_limit` of every command in the stage's `checks` and `reports` must be at most the role's `lease_duration`. With the defaults, 40 + 10 (one check) + 10 (one report) = 60 fits; a stage with two checks and a report adds up to 70 and is refused. Raise the `lease_duration` or lower a limit.
-- Values are taken only in their YAML type: a limit is an integer (not `'30'`, `30.0` or `true`), `approval` is `true` or `false` (not `'yes'` or `1`), names and write paths are text. A write path must hold a character that is not whitespace.
-- A key that is not listed is refused, so a misspelt key is never ignored. A given `project_commands` replaces the default set as a whole: list `check`, `lint` and `test` again if you still want them. `sync` is a project command with a `time_limit` like the others (`sync: {time_limit: 5}` in the template), and the stage environment reads that limit for its sync container; no stage lists it in `checks` or `reports`, so it never enters a lease. A definition without `sync` gives the sync the default limit of 10 minutes.
-- Every role needs an agent file, a project's own or the installed one (see "The agent files" in [agent-runtime.md](agent-runtime.md)).
+The keys of the definition:
 
-A refused definition raises the stop `pipeline_definition_invalid`, described in "The stop `pipeline_definition_invalid`" in [stops.md](stops.md). `docs/project-guide/pipeline.md`, "The rules of the definition", lists every fault.
+| Name | What it does | Default | Example |
+|---|---|---|---|
+| `contract` | the contract version, quoted | required | `'1.0'` |
+| `stages` | name to stage; the order in the file is the pipeline's order | required | `doing: {role: coder, next: [review]}` |
+| `roles` | name to role; the name is also the agent file's name | required | `coder: {write_paths: ['src/*']}` |
+| `project_commands` | name to `time_limit` in minutes and, optionally, `not_read` | `check`, `lint` and `test`, each 10 minutes and `not_read: []` | `check: {time_limit: 8}` |
+| `attempts_cap` | stalls of one stage before the human is asked | 2 | `attempts_cap: 3` |
+| `crash_cap` | crashes before the human is asked | 2 | `crash_cap: 3` |
+| `acceptance_stage` | the stage of the feature acceptance; it needs a role | none | `acceptance_stage: acceptance` |
+
+The keys of a stage:
+
+| Name | What it does | Default | Example |
+|---|---|---|---|
+| `role` | the role that works in the stage; without one no agent runs | none | `role: coder` |
+| `next` | the stages a decision may name; the first is the forward move | empty (only `done` may have none) | `next: [review, tests]` |
+| `approval` | the human decides in this stage; it has no role | `false` | `approval: true` |
+| `checks` | project commands that must pass after the agent | empty | `checks: [check]` |
+| `reports` | project commands run after green and only recorded | empty | `reports: [duplicates]` |
+| `round_cap` | rounds the stage allows before the human is asked | none (no cap) | `round_cap: 3` |
+
+The keys of a role:
+
+| Name | What it does | Default | Example |
+|---|---|---|---|
+| `write_paths` | the paths the role may write; at least one, and each holds a character that is not whitespace | required | `['src/*', '{work_item}']` |
+| `time_limit` | minutes one agent run may take | 40 | `time_limit: 30` |
+| `lease_duration` | minutes a claim holds | 60 | `lease_duration: 90` |
+
+The keys of a project command:
+
+| Name | What it does | Default | Example |
+|---|---|---|---|
+| `time_limit` | minutes the command may run | 10 | `time_limit: 8` |
+| `not_read` | the paths the command does not read (see "Reuse a result with `not_read`") | `[]`, nothing left out | `["docs/runs/*"]` |
+
+Further rules:
+
+- A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature's path, such as `factory/features/<feature>`.
+- The protected paths are outside every write path: `factory/pipeline.yml`, the story and feature forms, every `feature.md`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `.claude/` and the project's `<project>/factory/agents/`.
+- Every limit and cap is a positive whole number.
+- `human`, `factory` and `question` cannot be a stage name or a role name.
+- Every name in `checks` and `reports` must be a project command.
+- `sync` is a project command like the others (`sync: {time_limit: 5}` in the template). The stage environment reads its limit for the container that prepares the tools after a checkout. No stage lists it, so it never enters a lease. A definition without `sync` gives it 10 minutes.
 
 ## Checking a story before it starts
 
-`factory-check-story` checks story files against where they sit and against your project's `factory/story-form.md`. Run it from the root of a checkout, with the paths relative to that root. The checkout must be laid out the v1.1 way: `factory/story-form.md`, a `feature.md` in each feature's directory, and the stories in `backlog`, `in-progress` or `done`.
+`factory-check-story` checks story files against where they sit and against your project's `factory/story-form.md`. Run it from the root of a checkout, with the paths relative to that root. The checkout needs `factory/story-form.md`, a `feature.md` in each feature's directory, and the stories in `backlog`, `in-progress` or `done`.
 
-In a project laid out the v1.1 way (the paths are placeholders):
+1. Go to the root of the checkout.
+2. Run the command with one or more paths:
 
-```bash
-uv run factory-check-story factory/features/F0001-example/backlog/F0001-S0001-example-story.md
+       factory-check-story factory/features/F0001-example/backlog/F0001-S0001-example-story.md
+
+3. Read the lines it prints. A story that fits the form prints `<path>: ok`. Every finding is a line of its own, and the table below says what to do.
+
+`python -m factory.entry.check_story <path>...` does the same; use it with `uv run` in the factory's own checkout. The example below builds a story in a new folder, so you can see both results.
+
+```console
+$ mkdir -p factory/features/F0001-example/backlog
+$ printf '# Feature\n' > factory/features/F0001-example/feature.md
+$ printf '# A story\n\n## Description\n\nText.\n\n## Interface\n\nText.\n\n## Acceptance criteria\n\n1. It works.\n2. `make check` stays green.\n3. docs: none.\n\n## Smoke test\n\n```sh\necho hi\n```\nExpect: `hi`\n\n## Journal\n' > factory/features/F0001-example/backlog/F0001-S0001-example-story.md
+$ factory-check-story factory/features/F0001-example/backlog/F0001-S0001-example-story.md
+factory/features/F0001-example/backlog/F0001-S0001-example-story.md: ok
+$ factory-check-story docs/pipeline.md
+docs/pipeline.md: not a work item location: expected factory/features/<feature>/<backlog|in-progress|done>/<file>.md
+$ factory-check-story
+usage: factory-check-story <path>...
 ```
 
-prints `factory/features/F0001-example/backlog/F0001-S0001-example-story.md: ok` and exits 0 when the story fits the form.
+For each path, in the order given, the command prints `<path>: ok`, or one line per finding. A finding with a line reads `<path>:<line>: <message>`, where the line counts from 1 in the story's text after the front matter. A finding without a line reads `<path>: <message>`. Findings about where the file sits come first, then those about its content.
 
-`uv run python -m factory.entry.check_story <path>...` does the same. For each path, in the order given, it prints `<path>: ok`, or one line per finding: `<path>:<line>: <message>` where the finding has a line (a line of the story's text after the front matter, counted from 1), and `<path>: <message>` where it has none. Findings about where the file sits come first, then those about its content.
+The exit status:
 
 | Status | Meaning |
 |---|---|
 | 0 | every file is ok |
 | 1 | at least one file has a finding |
-| 2 | the command could not do its job: no path (it prints `usage: factory-check-story <path>...`), `factory/story-form.md` unreadable, or a file that does not exist or is not UTF-8 (`cannot read <path>: <reason>`). Nothing more is checked after such a file; what was printed before stays. |
+| 2 | the command could not do its job: no path (it prints the usage line), `factory/story-form.md` unreadable, or a file that does not exist or is not UTF-8 (`cannot read <path>: <reason>`). Nothing more is checked after such a file; what was printed before stays. |
 
-A path must be `factory/features/<feature directory>/<backlog|in-progress|done>/<file>.md`. Otherwise the only line is `not a work item location: ...` and the file is not read (it need not exist). `drafts` and `ongoing` are v1's folders and not work item locations, so they are not accepted.
+### Where a story may sit
 
-How a file is read depends on its folder and on whether it has front matter. A story in `backlog` is read as a specification: front matter there is a finding. A story in `in-progress` or `done` with front matter is read as a work item and its state is checked too. A story there with no front matter is a started story as you moved it on `main`, where the state lives on the work item's branch; it is checked like a backlog story, with no complaint about missing state.
+A path must be `factory/features/<feature directory>/<backlog|in-progress|done>/<file>.md`. Otherwise the only line is `not a work item location: ...` and the file is not read, so it need not exist. `drafts` and `ongoing` are not work item locations.
 
-Findings about the place, and what to do:
+How a file is read depends on its folder and on whether it has front matter:
+
+- A story in `backlog` is read as a specification. Front matter there is a finding.
+- A story in `in-progress` or `done` with front matter is read as a work item, and its state is checked too.
+- A story there without front matter is a started story as you moved it on `main`, where the state lives on the work item's branch. It is checked like a backlog story, with no complaint about missing state.
+
+### The findings
+
+Findings about the place:
 
 | Finding | What to do |
 |---|---|

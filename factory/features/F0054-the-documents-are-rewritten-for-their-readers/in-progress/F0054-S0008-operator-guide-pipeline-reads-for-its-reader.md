@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:21:00.656623Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T01:21:00.656623Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:25:59.653888Z'
+  stage: docs-only
+  run: a0761340663e45caaa25bf1d5f38b880
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -77,3 +79,35 @@ Expect: `1`
    Architecture: documentation only, no code placement. It sits in the operator guide, where CLAUDE.md puts operator material. `docs/decisions.md` is left alone, as the feature requires.
    Scope: this is S0008 of F0054's list. It is one file, and it avoids the feature's Out of scope items (`decisions.md`, `docs/runs/`, the playbook).
 4. factory: started docs-only as vm.
+5. documenter: Rewrote `docs/operator-guide/pipeline.md` for the operator and added it to `docs/checked-documents.txt`. `make documents` ends with `documents ok (12.6 s)`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/pipeline.md`:
+     - Tasks are numbered steps: change the definition, the docs route, and the story check.
+     - The rules and `not_read` are regrouped under task headings.
+     - The settings are four-column tables (Name, What it does, Default, Example) under *Reference*, one table each for the definition, a stage, a role and a project command.
+     - The `factory-check-story` example is now a `console` block that was run. It builds a story in a temporary folder, shows `ok`, the `not a work item location` line and the usage line. The old example used a placeholder path.
+     - The headings "The pipeline definition", "The rules you meet most often" and "Checking a story before it starts" are kept, because `stops.md`, `health.md`, `records.md` and `work.md` link to them by name. I checked each of those links against the new file.
+   - `docs/checked-documents.txt`: added `docs/operator-guide/pipeline.md`.
+
+   Removed or changed against the code:
+   - "earlier versions read `tool_paths`" is gone, as is "v1.1 way" and "once it exists" for the style page. `tool_paths` is now only one example of an unknown key, which is refused.
+   - I moved every name, setting and rule of the old text into the new page. The `not_read` warnings and the kumpel-factory example are kept.
+   - New facts that I read in `src/factory/pipeline/domain/pipeline_definition.py`: the names `human`, `factory` and `question` are reserved for stages and roles; every name in `checks` and `reports` must be a project command; `acceptance_stage` must name a stage with a role.
+   - Dropped on purpose: the old table row saying the template "also names `sync`, 5 minutes" in the `project_commands` default. It is replaced by the `sync` bullet in *Reference*: the template sets 5 minutes and a definition without `sync` gets 10.
+   - The protected-path list now matches `PROTECTED_PATHS` in `src/factory/agents/domain/write_paths.py`.
+   - I rewrote the file's paths so that the name check passes: `factory/features/<feature>` and `<project>/factory/agents/`.
+
+   No rejected options to name; this story adds nothing to `docs/decisions.md`.
+
+   Cross-read and found current:
+   - `docs/operator-guide/stops.md`, `health.md`, `records.md` and `README.md`: their links to this page resolve.
+   - `docs/project-guide/style.md` and `docs/project-guide/work.md`: their references to this page resolve.
+
+   Stale text I noticed and did not touch, because it is unrelated to this story:
+   - `docs/operator-guide/records.md` line 30 holds a long version history of the records contract. It is also a "since" note that style rule 1 forbids, for the story that rewrites that file.
+   - `uv run factory-check-story` prints a "Bytecode compiled" line on stderr in some environments. That is why the example calls `factory-check-story` directly.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (13.0 s)

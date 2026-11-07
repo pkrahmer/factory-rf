@@ -9,3 +9,4 @@ docs/operator-guide/cloud-run.md
 docs/operator-guide/agent-runtime.md
 docs/operator-guide/health.md
 docs/operator-guide/stops.md
+docs/operator-guide/pipeline.md
