@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:42:24.153318Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T00:42:24.153318Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:48:06.070919Z'
+  stage: docs-only
+  run: 95e0d9903af04615b267540381fe9124
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -77,3 +79,34 @@ Expect: `1`
    - Architecture: no code is touched, so nothing conflicts with the layers in `CLAUDE.md`.
    - Scope: the story is S0006 of F0054's list and in its scope. It touches none of the out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`).
 4. factory: started docs-only as vm.
+5. documenter: Rewrote `docs/operator-guide/health.md` for the operator and added it to `docs/checked-documents.txt`. `make documents` ends with `documents ok (12.1 s)`. I ran no `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/health.md`: now opens with a short intro and a numbered task, "Check that the instance is healthy". Its two `factory-health` examples are `console fixture=instance` blocks that run.
+   - Every heading other documents link to is unchanged. I checked that against the links in `stops.md`, `install.md`, `machine.md`, `agent-runtime.md`, `cloud-run.md`, `pipeline.md` and the project guide. No other file needed a link change.
+   - The token-file faults, the probe's start-up faults and the repository-wait faults are now tables of what you see, what it means and what you do. The token-file table has the same four faults as before.
+   - The helper rules and the stage-environment timing line are now lists.
+   - Glossary links sit at the first use of instance, stop, project command, dataset, crash, take, stage, pipeline definition, acceptance and cost record.
+   - Examples and commands that cannot run here are `sh` or `text` blocks: the record-counting `python3` one-liners, `zcat`, the `gcloud` steps and the sample stop line. The sample stop line is copied from the old file; I did not see it produced.
+   - The name check flagged `records/*.jsonl` and `factory/agents/coder.md`. I wrote them as `<state>/records/...` and `<project>/factory/agents/coder.md`.
+   - I wrote `roles/storage.objectUser` as "the Storage Object User role" in the prose, and kept the real role name in the `gcloud` command.
+
+   Compared with the old text:
+   - I kept every name, command, setting, message and rule from the old file, in place. I added no separate *Reference* section, because the linked headings had to keep their content. The old facts sit in the tables and lists under those headings.
+   - Corrected from the code: the stop record's `scope` text said `machine` only for `preflight_failed` and `disk_low`. `src/factory/pipeline/domain/stops.py` makes `stage_image_failed` a machine stop too. That matches the health-status section, which already said so.
+   - Spot-checked against the code and found true: the preflight messages, the token helper's `x-access-token`, the probe's 10-minute (lint) and 2-minute (agent) limits, and the transcript setting rules in `settings.py`.
+   - Not re-verified in code: the 0.10 dollar probe budget, the 30-day lifecycle rule, the state-directory field lists, and the exact text of the `origin/main has no factory/pipeline.yml yet` detail (my grep for it found nothing). These stand as in the old file. The reviewer should confirm them.
+   - Added, not from the old file: the "What you do" cells for `no origin/main ...`, `container command sync failed` and the unreadable login file. These are my reading of the faults, not text from the code.
+   - Dropped on purpose: the old sentence that the helper "behaves as before" with `FACTORY_REPOSITORY_URL` unset. It now says it answers every host.
+
+   Cross-read and found current against the facts above: `stops.md`, `install.md`, `machine.md`, `agent-runtime.md`, `cloud-run.md` and `pipeline.md` of the operator guide. I read only the sentences that cite `health.md`.
+
+   Stale text I saw and did not touch:
+   - `make documents` prints many "does not exist" lines under "Report (not checked yet)" for unchecked files (`docs/project-guide/*`, `README.md`, `docs/operator-guide/pipeline.md`). They are not part of this story.
+   - `docs/project-guide/pipeline.md` and `agents.md` cite `health.md` headings that are unchanged, so they still resolve.
+
+   Findings for the coder: none.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (12.0 s)
