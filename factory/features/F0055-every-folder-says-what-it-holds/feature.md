@@ -2,7 +2,7 @@
 
 ## Goal
 
-A reader who browses the repository on GitHub sees each folder's `README.md` below its file list. Today only a few folders have one, so a newcomer opens files to learn what a folder is for (the human, 2026-11-07). This feature gives every folder a reader would ask about a short README: one sentence on what the folder holds, links to the guide pages that explain it, and one line per subfolder. A guard keeps each README's list of subfolders true, and the document check reads the READMEs like the guides, so their names and links stay true too. The feature also puts the factory's new license, Apache 2.0, and its author into every file of code and every script as the two REUSE lines `SPDX-FileCopyrightText` and `SPDX-License-Identifier` (S0007). Done when every story below is merged, every README on the list exists and is on `docs/checked-documents.txt`, and `make check` is green.
+A reader who browses the repository on GitHub sees each folder's `README.md` below its file list. Today only a few folders have one, so a newcomer opens files to learn what a folder is for (the human, 2026-11-07). This feature gives every folder a reader would ask about a short README: one sentence on what the folder holds, links to the guide pages that explain it, and one line per subfolder. A guard keeps each README's list of subfolders true, and the document check reads the READMEs like the guides, so their names and links stay true too. The feature also puts the factory's new license, Apache 2.0, into every file of code and every script as an `SPDX-License-Identifier` line (S0007). Done when every story below is merged, every README on the list exists and is on `docs/checked-documents.txt`, and `make check` is green.
 
 ## Before it starts
 
@@ -28,6 +28,7 @@ F0054 (the documents are rewritten for their readers) is merged, so the style pa
 ## Out of scope for the license header (S0007)
 
 - The tests under `tests/` (the human, 2026-11-07), `operator/template/` (its files belong to the project made from it), `demo/`, Markdown, YAML, JSON, the generated schemas and the agent files under `agents/`.
+- A copyright line in each file: the copyright and the author stand once, in `NOTICE` (decision 8).
 
 ## Stories
 
@@ -55,5 +56,5 @@ F0054 (the documents are rewritten for their readers) is merged, so the style pa
 5. **A leave for S0001** (the human, 2026-11-07). The tester may change the earlier tests that pin `agents/agents/documenter.md` only so far as the one sentence naming the folder READMEs requires, and any other earlier test whose only failure is that sentence. Every changed test keeps its name and what it checks. The story's Interface holds the same words.
 6. **A README stays a pointer** (the human, 2026-11-07, worried that the documenter would document everything in the READMEs). The guard checks its shape, not only its list: no section but the title, no code block, an opening of at most two sentences, at least one relative link, one sentence of at most 25 words per subfolder, nothing else, and at most 10 lines plus one per subfolder. The style page and the documenter's text say the same in words: what needs explaining goes into the guide page the README links to. Rejected: a length rule in words only, which nothing checks.
 7. **Apache 2.0 instead of MIT** (the human, 2026-11-07), for its explicit patent grant. The dependencies' licenses are unchanged; the Makefile's allow list is about them, not about the factory's own license.
-8. **The header is two lines, in the REUSE form** (the human, 2026-11-07): `SPDX-FileCopyrightText: 2026 Pascal Krahmer` and `SPDX-License-Identifier: Apache-2.0`, as comments in the file's own syntax, the first lines of a Python module and the lines after the shebang of a script. Reason: someone who reuses a single file keeps the author's name with it; Apache 2.0 asks a redistributor to keep a file's copyright notices, and only what stands in the file travels with it. `NOTICE` keeps the copyright for the whole work. Rejected: the license line alone, which leaves the name behind in `NOTICE` when a file is copied out.
+8. **The header is one line, `SPDX-License-Identifier: Apache-2.0`** (the human, 2026-11-07), as a comment in the file's own syntax: the first line of a Python module, and the line after the shebang of a script. The copyright and the author stand once, in `NOTICE`. Rejected: `SPDX-FileCopyrightText` with the author's name in every file, which would carry the name into every project that copies a file, whatever that project is; and the same line with a project name (`The Kumpel Authors`).
 9. **Code and scripts, not the tests** (the human, 2026-11-07).
