@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070, 6708142009]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T14:25:50.772042Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -153,6 +157,11 @@ journal:
   at: '2026-11-07T14:25:45.145089Z'
   stage: docs-review
   run: 2f46ca67f39f4b04b0a608ad668f2357
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:25:50.772042Z'
+  stage: docs-only
 ---
 
 # The top folders say what they hold
@@ -354,3 +363,4 @@ Expect: `documents ok (<seconds> s)`
     - Criteria 4, 5 and 6 are met.
     - `docs/checked-documents.txt` gains both paths.
     - The last documenter run ended `documents ok`.
+27. factory: started docs-only as vm.
