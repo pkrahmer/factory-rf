@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T11:40:57.608858Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -117,6 +113,12 @@ journal:
   kind: started
   at: '2026-11-07T11:40:57.608858Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T11:41:36.551831Z'
+  stage: review
+  run: 2cdd2b9ddefa485bb4ed0127219839c9
 ---
 
 # A reference to another page's heading names a heading it has
@@ -308,3 +310,37 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 19. factory: started review as vm.
+20. reviewer: Round 1 review. I read the work item and `git diff main...HEAD -- . ':!factory'` (5 files): the new `src/factory/shared/domain/heading_references.py`, the wiring in `src/factory/entry/check_documents.py`, the two helpers made public in `src/factory/shared/domain/documents.py`, and both test files. I checked them against criteria 1 to 3 and every rule of the Interface. I did not run `make check`. The factory ran it after the coder and it was green (entry 18).
+
+    no findings
+
+    Checked:
+    - **Criterion 1:** `test_a_reference_to_another_pages_heading_is_found_with_its_line_heading_and_target` now has all 14 rows the criterion lists, including the three that entry 12 added: plain-text, another-mark-before-in and two-italic-spans. Every rule of the reference form is tested on both sides:
+      - italics and quotes, against plain text
+      - optional `)` or `,`, against `;`
+      - `in` and `of`, against neither
+      - `.md`, against `.sh`
+      - no anchor, against `#install`
+      - another page, against the document's own file
+      - the `../` resolution
+    - **Criterion 2:** `unresolved_headings` has rows for a missing heading (exact finding text), an existing heading and `None`. `page_headings` has rows for backticks, asterisks and the `StageFinisher.finish` versus `StageFinisher.finish(aftermath)` case. The sides of each rule are rows of one parametrized test.
+    - **Criterion 3:** the entry test runs on minimal documents with four rows: broken and unlisted (reported, exit 0), broken and listed (blocks, exit 1), valid, and a link to `docs/runs/a-run.md`, which is no document of the check. This tests the `headings.get` → `None` path through `main`.
+    - **Criteria 4 to 6:** these are the docs stage's work. The coder says `make documents` blocks today on three of the four real references, and the docs stage fixes them. The fourth (`agent-runtime.md:407`) is outside the checked form, and criterion 6 gives it to the documenter to fix by hand.
+    - **Architecture:**
+      - The new module is pure and sits in `shared/domain`.
+      - The file reading stays in `factory.entry.check_documents`.
+      - It reuses `link_name`, `checked_lines`, `split_lines` and `lines_outside_blocks` rather than copying them.
+      - No existing parser reads headings at every level (`sections` reads only `## `), so `_HEADING_LINE` copies no helper.
+    - **Security:** no shell or SQL strings, no secrets, no markers that silence a check.
+    - **Quality:**
+      - Every module, public class and public function has a docstring, and the two helpers made public got one each.
+      - The comment in `_target` explains why.
+      - `_FRAGMENT = "#"` repeats a private one-character constant of `documents.py`. It is a constant, not a helper, and I agree with entry 12 that it is not worth a round.
+    - **Hygiene:**
+      - The journal gives the main choice (reuse the name check's link resolution and line selection) and the rejected alternative, a separate copy of path joining and fence skipping.
+      - The Description matches what was built.
+      - The docs criterion still says what the reader must learn, and which four pages the documenter fixes.
+    - **Documents:** the diff changes none.
+
+    Earlier tests:
+    - `tests/entry/test_check_documents_checked_files.py`: none needed. The diff only adds constants and one test at the end of the file and leaves every earlier test as it was. The story's Interface also allows rows in this module.
