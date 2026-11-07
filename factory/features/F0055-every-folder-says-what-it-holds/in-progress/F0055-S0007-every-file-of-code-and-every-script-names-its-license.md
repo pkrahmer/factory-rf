@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-07T12:15:32.582014Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-07T12:15:27.415062Z'
   stage: docs
   run: 50b6b812f4664b3f98e5f64a3f7e6271
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:15:32.582014Z'
+  stage: smoke-test
 ---
 
 # Every file of code and every script names its license
@@ -201,3 +210,4 @@ Expect: `0`
     `check`: check: green
     `secrets`: secrets: green (3.7 s)
     `documents`: documents ok (58.3 s)
+15. factory: started smoke-test as vm.
