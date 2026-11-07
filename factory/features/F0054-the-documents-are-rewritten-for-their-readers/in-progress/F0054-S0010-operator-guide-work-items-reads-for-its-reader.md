@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:21:05.985268Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T02:21:05.985268Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:21:46.503124Z'
+  stage: docs-review
+  run: 6e0862e12a1641d6a22c686dbf0682c3
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -228,3 +230,33 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (13.4 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 review of `git diff main...HEAD -- README.md docs operator/README.md`, checked against the work item, `docs/project-guide/style.md` and the code on the branch.
+
+    Both round-1 findings are fixed:
+    1. `docs/operator-guide/work-items.md:197` now links "round cap" to the glossary at its first use in prose.
+    2. `docs/operator-guide/work-items.md:389` now links the project guide's README by a relative link, `[README.md](../project-guide/README.md)`.
+
+    I read the whole file again and checked more claims against the code. All of them hold:
+    - **Headings:** every heading of the old file is still in the new one, so the links from other files still resolve. The new file adds only the *Reference* section.
+    - **Commit subjects:** they match these sources:
+      - `handed over at <stage>`: `pipeline/application/handlers/hand_over.py:64` and `work/application/acceptance.py:249`
+      - `merged, archived`: `handlers/merged.py:35` and `acceptance.py:328`
+      - `closed before the approval, back in the backlog`, `close recorded` and `sent back`: `handlers/closed.py:68`, `:103` and `:123`
+      - `closed, refused`: `acceptance.py:421`
+      - `stage <to> -> <from>, moved back`: `handlers/reject.py:54`
+    - **Log lines:** they match `pipeline/application/recovery.py:51-52`, `:249` and `:252`, and `pipeline/application/stage.py:480`.
+    - **Acceptance texts:** these match `work/domain/acceptance.py:45-47`, `:222`, `:228` and `:379`:
+      - `Refused by the human on <date>: ...`
+      - `no reason given`
+      - the merged-before-approval and closed-by-the-human `done` texts
+      - the human-interventions and disk lines
+    - **Event and question texts:** these match the code:
+      - the `acceptance_due` event and its detail `acceptance of <feature> is due`: `pipeline/domain/evaluation.py:247-251`
+      - the `send_back` text: `hosting/domain/post_texts.py:162`
+      - the move-back note: `post_texts.py:191`
+      - the reject reason: `evaluation.py:158`
+    - **Rounds 0 and 1:** the claims checked in those rounds still hold, and the file's text has not changed there since: the settings defaults, the close and merge `CannotHandle` texts, what each commit changes, and the crash-cap and expiry texts.
+    - **Criterion 3:** `docs/checked-documents.txt` has the one new line, and the documenter's run of `make documents` printed `documents ok`.
+    - **Criterion 2:** the items dropped on purpose are the ones named in entries 7 and 9: the example IDs, "v1's", and the recovery-test paths with their `uv run pytest` command.
+
+    No findings.
