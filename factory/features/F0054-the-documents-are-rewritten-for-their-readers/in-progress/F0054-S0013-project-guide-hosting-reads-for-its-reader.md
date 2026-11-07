@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:28:41.225101Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T03:28:41.225101Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:30:57.845939Z'
+  stage: docs-review
+  run: c82a7f044efa49f78ae1255cd806a8d3
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -133,3 +135,31 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (8.9 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md`, which covers `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I checked it against the old page on `main`, against the code on the branch and against `docs/project-guide/style.md`.
+
+   What holds:
+   - Every heading of the old page is kept, and no other document links to a heading that changed (criterion 5).
+   - The checked-list line is added (criterion 3).
+   - The corrections the documenter names are borne out by the code: 22 abstract operations in `src/factory/hosting/application/git.py`, `pygithub_service` defined in `pygithub_hosting.py:169`, and `core.hooksPath`/`core.fsmonitor` in `wiring.py:207-223`.
+   - The environment order matches `git_cli.py:472-489`.
+
+   Findings:
+   1. `docs/project-guide/hosting.md:30` and `:129`: `wiring.py` is linked twice, but the Interface says each file the page names is linked once. Fix: keep the link at line 30 and write the name plain at line 129.
+   2. `docs/project-guide/hosting.md`: three pages are linked three times each, against the same Interface rule. `pipeline.md` is linked at lines 26, 111 and 133, `machine.md` at 133, 239 and 274, and `../decisions.md` at 111, 219 and 230. Fix: link each at its first mention or in one See also, and write the later mentions plain.
+   3. `docs/project-guide/hosting.md:131`: the page names the repository files `operator/vm/git-credential-factory` and `operator/vm/setup.sh` without a link. Both files exist. Fix: link each by a relative link (`../../operator/vm/...`) at its first mention.
+   4. `docs/project-guide/hosting.md`: glossary words are used without a link at their first use (criterion 1, style rule 3). They are: instance (line 129), stall and crash (195), project command (236), dataset (239), claim (244), pipeline definition, feature and story (250), backlog (256), stage environment (274) and write paths (304). Fix: link each to `glossary.md` at its first use.
+   5. `docs/project-guide/hosting.md:274`: the old page named the `InstanceSettings` fields `checkout` and `state_directory` that `FACTORY_CHECKOUT` and `FACTORY_STATE` fill (`src/factory/shared/domain/settings.py:192-193`). The new page drops them and does not name this as a deliberate removal (criterion 2). "The model's validator" now follows "The models are frozen" about `GitOptions`, so it reads as the validator of `GitOptions`. Fix: name `InstanceSettings.checkout` and `InstanceSettings.state_directory` as the fields, and their model as the one whose validator refuses a relative path.
+   6. `docs/project-guide/hosting.md:30-38`: the old page said `pygithub_service` builds the PyGithub client with `retry=hosting_retry()`. That fact is dropped, so nothing says where the retry is used (criterion 2). It is true in `pygithub_hosting.py:172`, together with `lazy=True`, which is why building the service sends no request. Fix: add a bullet saying `pygithub_service` builds a lazy `github.Github` with `retry=hosting_retry()`.
+   7. `docs/project-guide/hosting.md:153`: the section *Deleting and merging branches* opens with its code block. The style page's project-guide section asks for two or three plain sentences first, saying what the part does and why it exists. Fix: add those sentences above the block.
+   8. `docs/project-guide/hosting.md`: three sentences break style rule 2 (about 25 words at most, one parenthesis at most). Fix: split them.
+      - Line 7 holds two parentheses, "(pull requests and their comments)" and "(`factory.hosting.application.hosting`)".
+      - The `ignored` row of the Reference table (line 299) holds two, "(1,000)" and "(`-z` needs `--stdin`, which is not fed)".
+      - The `work_tree_id` row (line 304) is one sentence of about 70 words. Its "set through `GIT_INDEX_FILE` and removed afterwards" reads as if it were about the modification time, not the temporary index.
+   9. `docs/project-guide/hosting.md:240`: the table says `status` is used by the tick only. The code also calls it in the claim (`src/factory/pipeline/application/claims.py:96`) and in stall handling (`src/factory/pipeline/application/stalls.py:111`). Fix: add the claim and the stall handling to the row's "Used by".
+
+   Rejected as findings:
+   - The example ids `F0001-S0001` in the key comment and the fake's code sample: they illustrate a format and are the test fixture's story, not a reference to history.
+   - The glossary page linked once per word: style rule 3 asks for that.
+   - `git clean -fd` in the Reference against `--force -d` in the section: they are equivalent.
+
+   Open: nothing beyond the findings above.
