@@ -160,3 +160,4 @@ Times are UTC. The plan: `night-plan.md`.
 - 04:42Z: F0054-S0016 (F0054-S0016-project-guide-watching-reads-for-its-reader) started.
 - 05:06Z: F0054-S0016 PR #624 merged at docs-approval: the project guide's watching.md rewritten and listed. $3.71, 8 runs, no question.
 - 05:06Z: F0054-S0017 (F0054-S0017-project-guide-machine-reads-for-its-reader) started.
+- 05:35Z: F0054-S0017 PR #625 hit the round cap (3) at docs-review ($5.28, 9 runs); the last two findings are real code facts (who calls project_image_settings; ImageBuild's warnings field). One more round answered by the human's word for tonight.
