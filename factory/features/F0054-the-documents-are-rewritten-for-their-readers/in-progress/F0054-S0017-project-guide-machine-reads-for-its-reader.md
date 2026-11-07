@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T05:36:02.049118Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -124,6 +128,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T05:35:59.543649Z'
+  stage: docs-review
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:36:02.049118Z'
   stage: docs-review
 ---
 
@@ -377,3 +386,4 @@ Expect: `1`
     Earlier tests: none (the diff changes no test file).
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes findings 1 and 2 of the last review against the code: who calls `project_image_settings` and where the image in use is chosen, and the full field list of `ImageBuild`, `warnings` included. Read each named function and model before writing its sentence.
+22. factory: started docs-review as vm.
