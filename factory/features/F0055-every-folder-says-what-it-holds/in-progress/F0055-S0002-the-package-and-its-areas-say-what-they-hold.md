@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T12:43:17.562965Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -119,13 +115,19 @@ journal:
   kind: started
   at: '2026-11-07T12:43:17.562965Z'
   stage: review
+- number: 20
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T12:44:43.522047Z'
+  stage: review
+  run: 3e974a85d0fe4da3869c2029e40cdf98
 ---
 
 # The package and its areas say what they hold
 
 ## Description
 
-This story writes the READMEs of the package `src/factory/` and its eight packages (`agents`, `entry`, `hosting`, `machine`, `pipeline`, `shared`, `watching`, `work`), in the form of feature decision 2: one sentence on what the folder holds, links to the guide pages that explain it, and one line per subfolder. Each is added to `docs/checked-documents.txt`, so that its names and links are checked from now on, and the guard of the folder READMEs turns green for these folders. The facts come from the code and from the files' own docstrings and header comments, not from memory. No code and no test changes.
+This story writes the READMEs of the package `src/factory/` and its eight packages (`agents`, `entry`, `hosting`, `machine`, `pipeline`, `shared`, `watching`, `work`), in the form of feature decision 2: one sentence on what the folder holds, links to the guide pages that explain it, and one line per subfolder. Each is added to `docs/checked-documents.txt`, so that its names and links are checked from now on, and the guard of the folder READMEs turns green for these folders. The facts come from the code and from the files' own docstrings and header comments, not from memory. No code changes; the one test change is the human's leave (journal 14): `tests/guards/test_old_layer_packages_removed.py` gains `README.md` in the expected entries of `src/factory/`, its test renamed to say so.
 
 ## Interface
 
@@ -142,11 +144,11 @@ This story writes the READMEs of the package `src/factory/` and its eight packag
 - `src/factory/README.md` names each area and `entry` in one line and links to `docs/project-guide/README.md`, *The code's layout*. Each area's README says what the area holds in one sentence, links to the area's guide page (the one its `__init__.py` docstring names), and names its three layers (`domain/`, `application/`, `adapters/`) with one line each that says what that layer holds in this area. `contract/` is named in `src/factory/README.md` as generated, never edited by hand.
 - `src/factory/entry/README.md` is not an area's: it is one sentence on what `entry` holds (the commands and the wiring) and a link to `docs/project-guide/README.md`, the guide its `__init__.py` names, with no subfolder lines, since `entry` has none.
 - `docs/checked-documents.txt` gains each new path.
-- No code and no test changes. The story takes the docs route.
+- No code changes. One test change, with the human's leave (journal 14): `tests/guards/test_old_layer_packages_removed.py` adds `"README.md"` to the expected entries of `src/factory/`, renames `test_the_package_holds_only_its_init_the_areas_entry_and_contract` to `test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract`, and its module docstring says the same. The story takes the docs route.
 
 ## Acceptance criteria
 
-1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/`: <one sentence>.``. The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
+1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/` <one sentence>.``. The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
 2. Every name, path and link in these files exists (the document check finds nothing), and each file is on `docs/checked-documents.txt`.
 3. `src/factory/README.md` links to `docs/project-guide/README.md`, *The code's layout*, and says that `contract/` is generated and never edited by hand; each area's README (`agents`, `hosting`, `machine`, `pipeline`, `shared`, `watching`, `work`) links to the guide page its `__init__.py` docstring names; `src/factory/entry/README.md` has one sentence on what `entry` holds, a link to `docs/project-guide/README.md` and no subfolder lines.
 4. `make documents` ends with `documents ok (<seconds> s)`.
@@ -285,3 +287,28 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 19. factory: started review as vm.
+20. reviewer: no findings
+
+    What I reviewed: `git diff main...HEAD -- . ':!factory'`, which is the nine new READMEs, `docs/checked-documents.txt` and `tests/guards/test_old_layer_packages_removed.py`. I read it against the work item, the `__init__.py` docstrings, the module listing of every layer, `docs/project-guide/README.md` (*The code's layout*, *The files*) and `docs/project-guide/style.md` (*Folder READMEs*).
+
+    - Group 1, criteria:
+      - Criteria 1 and 2: all nine files exist. Each opens with one sentence and links to a guide page. Every area README names `adapters/`, `application/` and `domain/` in the form with no colon. `src/factory/README.md` names all nine of its subfolders. All nine paths are on `docs/checked-documents.txt`. The guard `tests/guards/test_folder_readmes.py` and the document check cover these criteria. The tester reports the guard passing for all nine with none skipped, and the documenter reports `documents ok (75.1 s)`.
+      - Criterion 3, which the human left to the reviewer:
+        - `src/factory/README.md` links to `docs/project-guide/README.md`, *The code's layout*, and its `contract/` line says the schemas are generated and never edited by hand.
+        - Each area README links to the `Guide:` page its `__init__.py` names. I checked all seven.
+        - `src/factory/entry/README.md` is one sentence plus a link to `docs/project-guide/README.md`, with no subfolder lines.
+      - Criterion 4 is the docs stage's gate. Criterion 5: the factory's `make check` after the coder was green (journal 18). The Interface states no limit beyond the guard's.
+    - Layer lines (judged by the reviewer, per journal 4): I compared each one with the modules in its layer. Each names only modules that exist there. Some leave out a minor module, which is not wrong for a pointer README: for example `oauth_token`, `record_log_jsonl`, `preflight_stamp_file`, `stage_layer`, `machine_stop_exit`, `disk_records`. The hosting adapters' "test fixtures" are `checkout_fixture.py` and `instance_fixture.py`. The pipeline adapter is the one ruamel.yaml reader.
+    - Group 2, architecture: no code changed and no layer was touched.
+    - Group 3, security: no secrets and no markers.
+    - Group 4, quality: nothing to report. The README prose ("The reader of the pipeline definition, YAML.", the `# entry` title next to "# The X area") is for docs-review to judge against the style page.
+    - Group 5, hygiene: the journal explains the main choices. These are the form with no colon (journals 8 and 14) and the test change under the human's leave (journals 14 and 16). The docs criterion still describes what was built: no guide page names a folder README, so no link was needed.
+    - Documents item: I checked every claim in the nine READMEs against the code on the branch and could find each one. They show no commands.
+
+    I corrected the work item, because the factory dropped the tester's rewrite (journal 16) and the human's answer in journal 14 settles both points. I changed nothing else:
+    - description corrected (Description): "No code and no test changes." -> "No code changes; the one test change is the human's leave (journal 14): `tests/guards/test_old_layer_packages_removed.py` gains `README.md` in the expected entries of `src/factory/`, its test renamed to say so."
+    - description corrected (Interface): "- No code and no test changes." -> "- No code changes. One test change, with the human's leave (journal 14)", naming the test file, the added `"README.md"`, the rename and the docstring.
+    - description corrected (criterion 1): ``- `<name>/`: <one sentence>.`` -> ``- `<name>/` <one sentence>.``, the form with no colon (journal 14, item 2a).
+
+    Earlier tests:
+    - `tests/guards/test_old_layer_packages_removed.py`: changed under the human's leave, journal 14, item 1. It adds `"README.md"` to the expected set and renames the test to `test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract`, and the module docstring says the same. Nothing goes beyond that leave.
