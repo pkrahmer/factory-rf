@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:38:41.382490Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T02:38:41.382490Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:39:17.259617Z'
+  stage: docs-review
+  run: 9954e335cd7641ffa358c77127ae6b93
 ---
 
 # The operator guide's index reads for the operator
@@ -212,3 +214,13 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (13.8 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2. I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the code on the branch and `docs/project-guide/style.md`.
+
+    Both findings from entry 11 are fixed:
+    - Bullet 1 now says an instance is refused without `FACTORY_SNAPSHOT_BASE` when the snapshots are `copy`. This matches `src/factory/shared/domain/settings.py:168` (`required="with copy"`). `FACTORY_DATASET` "with zfs" (line 165) and `FACTORY_WORKSPACE`/`FACTORY_STAGE_IMAGE` (`_YES`, lines 166 and 169) also hold.
+    - Bullets 2 and 7 now link `cloud-run.md`, `operator/vm/Dockerfile`, `operator/vm/git-credential-factory` and `operator/vm/setup.sh` with relative links. All four files exist. The installed path stays in backticks.
+
+    These still hold: the `README.md:28` link fix, the `docs/checked-documents.txt` line, the earlier round's facts, and the list of things dropped on purpose in entry 5 (accepted under criterion 2).
+
+    Findings:
+    1. `docs/operator-guide/README.md:39`, the sentence that starts "The stage environment is the containers; an instance without `FACTORY_WORKSPACE`…" and ends "…(with `FACTORY_SNAPSHOTS=copy` it runs without a dataset).": the round-2 addition makes it about 42 words with three conditions. That breaks style rule 2 (split a sentence of more than about 25 words), and rule 4 (common case first) suffers too. Fix: split it into short sentences with the same facts. For example: "The stage environment is the containers. An instance without `FACTORY_WORKSPACE` or `FACTORY_STAGE_IMAGE` is refused. With `zfs` snapshots it also needs `FACTORY_DATASET`. With `FACTORY_SNAPSHOTS=copy` it needs `FACTORY_SNAPSHOT_BASE` instead and runs without a dataset."
