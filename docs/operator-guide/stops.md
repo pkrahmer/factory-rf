@@ -2,19 +2,19 @@
 
 A topic of the [operator guide](README.md). It is for the operator of an [instance](../project-guide/glossary.md).
 
-It tells you what to do when the factory stops, stalls or asks you a question. A [stop](../project-guide/glossary.md) is the factory refusing to go on and saying why. It also describes what a stage run leaves on the pull request, so that you can tell a normal run from a broken one. Exact texts, limits and rules are in *Reference* at the end.
+It tells you what to do when the factory stops, [stalls](../project-guide/glossary.md) or asks you a question. A [stop](../project-guide/glossary.md) is the factory refusing to go on and saying why. It also describes what a [stage](../project-guide/glossary.md) run leaves on the pull request, so that you can tell a normal run from a broken one. Exact texts, limits and rules are in *Reference* at the end.
 
 ## The stops
 
-Every stop has one destination. A stop of the repository or the machine goes to the health status and to a line of the factory log. A stop of one [work item](../project-guide/glossary.md) goes once on that work item's pull request. One case, a backlog story that names a later stage in its own file, has no stop. Every line about a stop in the factory log is time-stamped (see "The factory log" in [health.md](health.md)).
+Every stop has one destination. A stop of the repository or the machine goes to the health status and to a line of the factory log. A stop of one [work item](../project-guide/glossary.md) goes once on that work item's pull request. One case, a [backlog](../project-guide/glossary.md) [story](../project-guide/glossary.md) that names a later stage in its own file, has no stop. Every line about a stop in the factory log is time-stamped (see "The factory log" in [health.md](health.md)).
 
 Find your stop in the table, then read the section it names.
 
 | Stop | Destination | What you do |
 |---|---|---|
-| `fetch-failed` | health status and factory log | `git fetch` failed, an expired or revoked token included; the fetch before the [tick](../project-guide/glossary.md) (the stage file's comparison) raises it too. Fix the network, the address or the credentials; see "The stops of the tick". |
+| `fetch-failed` | health status and factory log | `git fetch` failed, an expired or revoked token included. The fetch before the [tick](../project-guide/glossary.md) raises it too. Fix the network, the address or the credentials; see "The stops of the tick". |
 | `checkout-restore-failed` | health status and factory log | The checkout cannot be put on `origin/main` (the dirty main branch). Fix the cause or delete the checkout and clone again; see "The stops of the tick". |
-| `pipeline-definition-invalid` | health status and factory log | `factory/pipeline.yml` on `origin/main` fails its validation, an agent that is not installed included. See "The stop `pipeline_definition_invalid`". |
+| `pipeline-definition-invalid` | health status and factory log | `factory/pipeline.yml` on `origin/main` (the [pipeline definition](../project-guide/glossary.md)) fails its validation, an agent that is not installed included. See "The stop `pipeline_definition_invalid`". |
 | `agent-definition-invalid` | health status and factory log | An agent file holds a key the runner does not apply. See "The stop `agent_definition_invalid`". |
 | `repository-unavailable` | health status and factory log | The tick waits for a repository that is empty or has no pipeline definition. Push `main` with `factory/pipeline.yml`; see "The wait for a repository that is not ready" in [health.md](health.md). |
 | `main-branch-failing` | health status and factory log | `lint` fails on the main branch. Push a fix to `main`; see "The stamp and the probe of the main branch" in [health.md](health.md). |
@@ -27,16 +27,16 @@ Find your stop in the table, then read the section it names.
 | `handler-error` | pull request | A handler fails on the same event and state three times. See "An event that keeps failing". |
 | `hand-over-error` | pull request | A hand-over fails every time, three ticks in a row. See "When the hand-over fails or is killed" in [work-items.md](work-items.md) and "An event that keeps failing". |
 | `push-rejected` | pull request | A push is rejected, for example by a hook of the remote. No agent is run while it lasts. See "An event that keeps failing"; fix the remote's rule or push to the branch to start the count again. |
-| `later-stage-in-backlog-file` | no stop | A backlog story whose own file names a later stage in its front matter. The start rule removes it: the work item starts at the first stage with `round`, `attempts` and `crashes` at 0, and nothing is reported. |
+| `later-stage-in-backlog-file` | no stop | A backlog story whose own file names a later stage in its front matter. The start rule removes it: the work item starts at the first stage with [`round`](../project-guide/glossary.md), `attempts` and `crashes` at 0, and nothing is reported. |
 
-The ids are those of `STOP_TABLE` in `factory.pipeline.domain.stop_table`. The reasons in the health status are the same words with underscores.
+The reasons in the health status are the same words with underscores.
 
 ### The stops of the repository or the machine
 
 **You see** a line in the factory log and an entry in the health status file (`health.json`). Look there: a stop of this kind never goes to a pull request. The line reads:
 
 ```text
-2026-10-12T12:00:07Z stop repository fetch_failed: origin unreachable
+2026-10-12T12:00:07Z stop repository fetch_failed: fatal: unable to access 'https://github.com/example/project.git/': Could not resolve host: github.com
 ```
 
 That is `stop <scope> <reason>: <detail>`, after the stamp. `scope` is `repository` or `machine`; `reason` is one of the reasons the health status file lists. When the fault is gone the factory writes:
@@ -50,11 +50,11 @@ That is `stop <scope> <reason>: <detail>`, after the stamp. `scope` is `reposito
 **You do** what the table says for the stop, and wait for the next tick. You never clear a stop by hand: deleting `health.json` only hides it until the next cycle raises it again.
 
 - A stop's detail always says why. An empty or blank detail is replaced by `no detail given`, for every reason, in the log, the health status and the records.
-- A machine stop does not end the factory on a VM; it waits for your fix. In a job (idle shutdown on, action `exit`) a machine stop that has stood for ten minutes ends `factory-run` with status 1 (see *In a job* under *The idle shutdown* in [machine.md](machine.md)).
+- A machine stop does not end the factory on a VM; it waits for your fix. In a job, a machine stop that has stood for ten minutes ends `factory-run` with status 1. A job is an instance with the idle shutdown on and the action `exit` (see *In a job* under *The idle shutdown* in [machine.md](machine.md)).
 - The health status holds one stop per reason. A stop raised again for the same reason replaces the earlier one and takes the newest detail and time; it is not added twice. A new reason is added at the end.
 - A fault that lasts is raised every cycle, but the log line is written only when the stop does not stand yet or stands with another detail or scope. A raise after a clear writes the line again.
 - `stop cleared <reason>` is written only when the stop was in the health status. Clearing a reason that is not stopped writes nothing.
-- One failing destination never loses the stop. If the log file cannot be written, the stop still goes to the health status. If the health status cannot be written, the line still reaches standard output and the log file. The factory then reports the write error (an `OSError`); when both fail, it is the log's error.
+- One failing destination never loses the stop. If the log file cannot be written, the stop still goes to the health status. If the health status cannot be written, the line still reaches standard output and the log file. The factory then reports the write error (an `OSError`). When both fail, it reports the log's error.
 - If the health status cannot be written while a stop is cleared, the stop stays in force and no cleared line is written. If the log cannot be written, the stop is already removed.
 
 ### The stop records on main
@@ -76,7 +76,7 @@ Every raise and every clear of a stop of the repository or the machine is also a
 <!-- factory key=<work item>:stall:3 -->
 ```
 
-**It means** the factory stopped one work item and needs you or a fix. The error report of the dispatcher posts in this form (see "An event that keeps failing"). A stall has its own rule, given under "A stall: the stall note".
+**It means** the factory stopped one work item and needs you or a fix. The factory's error report for an event posts in this form (see "An event that keeps failing"). A stall has its own rule, given under "A stall: the stall note".
 
 **You do** what the comment says. The rules of where it is posted:
 
@@ -84,7 +84,7 @@ Every raise and every clear of a stop of the repository or the machine is also a
 - It opens one only when the branch is on the remote with a commit beyond `main`. Otherwise it opens nothing, posts nothing and reports a `create_pull_request` error: `branch <branch> is not on the remote with a commit beyond main`. You see this only if the remote branch was removed or reset, because the factory pushes the branch before it reports a stop.
 - If the work item's branch already has an open pull request, the factory posts on that one. A pull request you closed or merged is not reused for a new one. But when the work item's state records a pull request number, the stop is posted there even if you have since closed it.
 - A restart never repeats a stop. The key identifies the stop: if the factory died after posting and before recording it, the next attempt finds the key on the pull request and posts nothing. The same key with another text is still a repeat; a different kind or number is a new stop and a new comment.
-- The posting writes no state. In particular the dispatcher does not record the number of a pull request it opened for an error report; a later stop finds that pull request by its branch.
+- The posting writes no state. In particular the factory does not record the number of a pull request it opened for an error report; a later stop finds that pull request by its branch.
 - Two files with one id are both read: the second is read from `origin/main` as a started story, because the id's branch holds only the first file. So the duplicate is reported on the first work item's pull request and does not end the tick.
 
 ## What a stage run shows
@@ -94,7 +94,7 @@ A normal stage run leaves these traces on the remote and the pull request, in th
 1. **The draft pull request.** The first stage of a work item opens it, titled `<id>: <title>`, with the work item's text as the description. Only an open pull request is reused; a closed or merged one never is, and a new draft is opened instead.
 2. **The stage-start commit.** It is pushed before any agent runs. It holds the [claim](../project-guide/glossary.md) and one journal entry, speaker `factory`, kind `started`, with the text `factory: started <stage> as <instance>.` (for example `factory: started doing as factory-1.`). If this push fails, no agent runs.
 3. **The agent's entry.** The speaker is the agent's [role](../project-guide/glossary.md) and the kind is `result`, or `question` when the agent asked. Code writes both; the agent writes the words. Its last lines are described below.
-4. **One commit by the factory**, directly above the stage-start commit: the result commit, or the stall commit after a stall. It holds the whole work tree. The agent cannot commit, because the checkout's `.git` is the factory's alone (see "The factory alone writes the checkout's `.git`" in [decisions.md](../decisions.md)). A stage that moves the work item to an [approval](../project-guide/glossary.md) also writes the pull request's description after the result commit and before its push, so the description is complete when the board first shows the approval. If that push fails, the description may already show the reports while the work item stays at its stage.
+4. **One commit by the factory**, directly above the stage-start commit: the result commit, or the stall commit after a stall. It holds the whole work tree. The agent cannot commit, because the checkout's `.git` is the factory's alone (see "The factory alone writes the checkout's `.git`" in [decisions.md](../decisions.md)). A stage that moves the work item to an [approval](../project-guide/glossary.md) also writes the pull request's description. It does so after the result commit and before its push, so the description is complete when the board first shows the approval. If that push fails, the description may already show the reports while the work item stays at its stage.
 5. **The label** `stage:<stage>` (for example `stage:review`) on the pull request. It is written after the result commit is pushed, and after a stall's note is posted. It is a projection of the stage and is never read back.
 
 The agent's entry has these lines at its end:
@@ -116,12 +116,12 @@ If the push of the result commit fails, no label is written. If the hosting serv
 Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the next tick.
 ```
 
-**It means** a [stall](../project-guide/glossary.md): a stage ended without a result the factory can keep. A stall costs one attempt of the work item and is never a [crash](../project-guide/glossary.md). The factory keeps what the agent wrote inside the stage's write paths and leaves out the rest, releases the claim and pushes one commit with a `stall` entry in the journal. Only then does it post the note and write the pull request's `stage:` label for the stalled stage, so a work item whose first stage stalls has its label too. The note's key is `<work item>:stall:<n>`, where `n` is the number of the stall entry.
+**It means** a stall: a stage ended without a result the factory can keep. A stall costs one attempt of the work item and is never a [crash](../project-guide/glossary.md). The factory keeps what the agent wrote inside the stage's write paths. The take does not copy the rest from the dataset. The factory releases the claim and pushes one commit with a `stall` entry in the journal. Only then does it post the note and write the pull request's `stage:` label for the stalled stage, so a work item whose first stage stalls has its label too. The note's key is `<work item>:stall:<n>`, where `n` is the number of the stall entry.
 
 **You do** nothing while the note says "Retrying on the next tick.": the next tick runs the stage again from what the stall kept. The note says so only while `n` is below `m`.
 
-- `attempt n of m`: `n` is the work item's attempts after this stall; `m` is `attempts_cap` of the [pipeline definition](../project-guide/glossary.md).
-- At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. The evaluation then makes the event `ask` with the detail `attempts cap`, and the `ask` handler records the attempts-cap question and posts it (see "The factory's own questions"). Read the cause and the stall entries in the work item's journal. Fix what stops the stage: the agent, the stage's time limit or budget, the pipeline definition, the project's checks, or a conflict with `main`. Then answer on the pull request. The factory does not run the stage again until you have.
+- `attempt n of m`: `n` is the work item's attempts after this stall; `m` is the [attempts cap](../project-guide/glossary.md), `attempts_cap` in the pipeline definition.
+- At the cap the note ends `The attempts cap is reached; the factory asks you next.` and says nothing about retrying. The factory then records the attempts-cap question and posts it (see "The factory's own questions"). Read the cause and the stall entries in the work item's journal. Fix what stops the stage: the agent, the stage's time limit or budget, the pipeline definition, the project's checks, or a conflict with `main`. Then answer on the pull request. The factory does not run the stage again until you have.
 - The cause is one sentence, then a detail after a colon when there is one, such as the name of a red check. A detail of several lines puts its first line in the sentence and the other lines in a code block below it; see "A stall by a red check". The nine causes are in *Reference*.
 - The cause `the provider's spend limit lasted past the waiting ceiling` (`provider_limit`) means the factory waited out the provider's limit for the whole ceiling and the limit was still there. There is nothing to do for one such stall: the next tick tries again. If it repeats, see "A provider's spend limit" in [agent-runtime.md](agent-runtime.md), "What to do at the ceiling".
 - The stall's pull request: an open pull request of the work item is reused. Otherwise the stall opens a new draft titled `<id>: <title>` with the work item's text as description. It does not use the stop description, and it does not post on a closed pull request.
@@ -147,7 +147,7 @@ make: *** [Makefile:6: check] Error 1
 1. Below the attempts cap, nothing: the next tick runs the stage again, and the agent sees the journal.
 2. At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch.
 3. Fix what is wrong: the code, the target, or a tool missing on the machine.
-4. Answer on the pull request. The evaluation made `ask` (`attempts cap`), so the attempts-cap question described under "The factory's own questions" is there, and your comment answers it.
+4. Answer on the pull request. The factory has asked, so the attempts-cap question described under "The factory's own questions" is there, and your comment answers it.
 
 Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move. Every report that ran adds one line `` `<command>`: <last line of its output> `` to the agent's entry, passed or failed; the line has the same form either way, so only its last line shows whether the report passed. A report stopped at its time limit is the exception: its line ends with the stop note (see "What a stage run shows"). A failing report holds nothing and stops nothing.
 
@@ -157,7 +157,7 @@ The result commit of every stage holds the whole work tree. Make sure the projec
 
 **You see** a comment on the pull request that is a question. Besides an agent's `question`, the factory asks you itself.
 
-**It means** the work item waits for you. Every question reaches you in two steps. It is recorded first, as a journal entry of kind `question` in the work item's file (committed and pushed, with `blocked` set). Only then is it posted as one comment on the pull request. If the factory dies or the post fails between the two, the question is already recorded and the next attempt posts it once: the comment's key is made from the recorded entry's number, and a post whose key the pull request already holds is a no-op. The `ask` handler does both steps.
+**It means** the work item waits for you. Every question reaches you in two steps. It is recorded first, as a journal entry of kind `question` in the work item's file, committed and pushed with `blocked` set. Only then is it posted as one comment on the pull request. If the factory dies or the post fails between the two, the question is already recorded and the next attempt posts it once. The comment's key is made from the recorded entry's number, and a post whose key the pull request already holds does nothing. The factory does both steps.
 
 **You do** what the table says for the question you meet:
 
@@ -165,15 +165,15 @@ The result commit of every stage holds the whole work tree. Make sure the projec
 | --- | --- | --- | --- | --- |
 | An agent's | `question` | `<role>: <the agent's words>` | answers it; the stage runs again | discards the story |
 | The form has findings | `question` | `factory: ` and the findings question (`The work item's form has findings, so the stage cannot move forward: ...`) | answers it; the stage runs again | discards the story |
-| The round cap | `round_cap` | `factory: ` and the round-cap question (`This work item has now been sent back <n> times, more than <cap>. ...`) | answers it; the count of rounds starts over at 0 | discards the story |
+| The [round cap](../project-guide/glossary.md) | `round_cap` | `factory: ` and the round-cap question (`This work item has now been sent back <n> times, more than <cap>. ...`) | answers it; the count of rounds starts over at 0 | discards the story |
 | The attempts cap | `attempts_cap` | `factory: ` and the text below | the attempts go back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
 | The send-back | `send_back` | see "A close at the approval sends the story back" in [work-items.md](work-items.md) | answers it | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted (option 2 of the question). The send-back has already moved the story out of the approval, so a close cannot send it back again |
-| The crash cap | `crash_cap` | `factory: ` and the text below | the crash counter goes back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
+| The crash cap | `crash_cap` | `factory: ` and the crash-cap question, quoted under "The crash cap" in [work-items.md](work-items.md) | the crash counter goes back to 0 and the stage runs again | discards the story: it goes back to the backlog as you wrote it, and its branch and bill are deleted |
 
-The attempts-cap question is recorded by the `ask` handler itself, when a work item has used all its attempts: an entry by `factory` of kind `question`, and `blocked` set to `attempts_cap`. It reads:
+The attempts-cap question is recorded by the factory itself, when a work item has used all its attempts: an entry by `factory` of kind `question`, and `blocked` set to `attempts_cap`. It reads:
 
 ```text
-Stage doing stalled 2 times. The last time: the agent gave no result
+Stage doing stalled 2 times. The last time: Stage doing stalled (attempt 2 of 2): the agent gave no valid decision and entry
 
 Comment anything to retry: the attempts go back to 0 and the stage runs again. Close the pull request to discard the story instead: it goes back to the backlog as you wrote it, and its branch and bill are deleted.
 ```
@@ -183,7 +183,7 @@ The last time is the text of the work item's latest `stall` entry. A work item a
 - **The form has findings.** The agent decided to move forward, but the work item's form still has findings after the run. The comment reads: `The work item's form has findings, so the stage cannot move forward: 1. <message> 2. <message>. What should happen? Answer with a comment; the stage then runs again. Close the pull request to discard the work item.` The stage stays where it is and the round is not counted. Answer with a comment (say how to fix the form, or that the finding is wrong). Closing the pull request discards the work item.
 - **The round cap is passed.** A stage with `round_cap` sent the work item back once more than the cap allows. The comment reads: `This work item has now been sent back <n> times, more than <cap>. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.` The stage stays where it is and the round shows the count. Answer with a comment: `round` goes back to 0 and the stage gets its rounds again.
 
-A stage without `round_cap` sends back without limit and never asks. Sending back counts [rounds](../project-guide/glossary.md); a stall counts attempts (see "A stall: the stall note"), and the two caps are separate.
+A stage without `round_cap` sends back without limit and never asks. Sending back counts rounds; a stall counts attempts (see "A stall: the stall note"), and the two caps are separate.
 
 ### Which comment answers a question
 
@@ -242,7 +242,7 @@ The stop clears itself at the next load of `origin/main` that succeeds, with the
 2026-10-16T12:00:07Z stop repository agent_definition_invalid: coder: key not applied by the agent runtime: permissionMode
 ```
 
-**It means** that once the pipeline definition on `origin/main` is valid, the load reads the agent file of every role, in the order of `roles`, and a file the reader refuses (most often a key the agent runtime does not apply, see "The agent files" in [agent-runtime.md](agent-runtime.md)) raises this stop (scope `repository`). The tick ends there and nothing else happens: no stage is started and no event is handled.
+**It means** that the pipeline definition on `origin/main` is valid, and the factory then reads the agent file of every role, in the order of `roles`. A file it refuses raises this stop (scope `repository`). Most often the file holds a key the agent runtime does not apply (see "The agent files" in [agent-runtime.md](agent-runtime.md)). The tick ends there: no stage is started and no event is handled.
 
 **You do** one of two things, by whose file it is:
 
@@ -276,7 +276,7 @@ Four repository stops, and the machine stop `disk_low`, end a tick before it loo
 
 **You see** `checkout_restore_failed` in the health status; its detail is git's message.
 
-**It means** the checkout cannot be put back on `origin/main`, for example because of an untracked file or directory the factory cannot remove. On the VM only the factory's own git and the take write the checkout, and both run as `factory`; no agent runs there. Such a path is therefore one made there by hand, as root or as another user. The stop ends the tick before any stage is dispatched, so it records no crash and does not count toward the crash cap.
+**It means** the checkout cannot be put back on `origin/main`, for example because of an untracked file or directory the factory cannot remove. On the VM only the factory's own git and the take write the checkout, and both run as `factory`. No agent runs there. Such a path is therefore one made by hand, as root or as another user. The stop ends the tick before any stage is dispatched, so it records no crash and does not count toward the crash cap.
 
 **You do** remove the path git's message names, as `factory` (`sudo -iu factory`) or, when `factory` cannot remove it, as root. The next tick runs the restore again and clears the stop once it succeeds.
 
@@ -284,7 +284,7 @@ The restore throws away every uncommitted change and every untracked file that n
 
 ### A work item file that cannot be read
 
-This is not a stop. The tick ends with an error that names the file's path, and it does so on every tick until a human repairs the file or moves the story out of `in-progress/` on `main`. Repair it on its branch, or on `main` for a started story without a branch. Closing the pull request changes nothing: the tick reads every story in `in-progress/` before it looks at any pull request. A work item in a stage that the pipeline definition lacks fails the same way.
+This is not a stop. The tick ends with an error that names the file's path. It does so on every tick until a human repairs the file or moves the story out of `in-progress/` on `main`. Repair it on its branch, or on `main` for a started story without a branch. Closing the pull request changes nothing: the tick reads every story in `in-progress/` before it looks at any pull request. A work item in a stage that the pipeline definition lacks fails the same way.
 
 ### The low disk
 
@@ -299,9 +299,11 @@ This is not a stop. The tick ends with an error that names the file's path, and 
 
 ### The preflight in the tick
 
-The tick runs the preflight (see "The preflight's items" and "The stamp and the probe of the main branch" in [health.md](health.md)) after the fetch, the load and the restore, and before the cleanup of stale branches and before anything is evaluated. So the probe sees the `origin/main` the tick has just fetched: a fix you pushed is probed on the next tick, and a commit that broke `lint` stops that same tick.
+**You see** `main_branch_failing` or `preflight_failed` in the health status and the log. The tick does nothing else: no stale branch is deleted, no work item is read, no agent is started and no pull request is touched.
 
-A tick the preflight stops (`main_branch_failing` or `preflight_failed`) does nothing else: no stale branch is deleted, no work item is read, no agent is started and no pull request is touched. The tick returns the reason as its outcome, and the stop is in the log and in `health.json`. An invalid pipeline definition ends the tick earlier, before the restore and the preflight, so it does not raise `preflight_failed`.
+**It means** the tick ran the preflight (see "The preflight's items" and "The stamp and the probe of the main branch" in [health.md](health.md)) after the fetch, the load and the restore. It runs before the cleanup of stale branches and before any work item is looked at. The probe therefore sees the `origin/main` the tick has just fetched. An invalid pipeline definition ends the tick earlier, so it does not raise `preflight_failed`.
+
+**You do** what the table says for the stop. A fix you push is probed on the next tick, and a commit that broke `lint` stops that same tick.
 
 ## An event that keeps failing
 
@@ -309,7 +311,7 @@ A tick the preflight stops (`main_branch_failing` or `preflight_failed`) does no
 
 > The factory failed 3 times on `<event>` and has stopped retrying it. Last error: <error>. A new commit on the work item's branch (now at <12 characters of the commit>) makes the factory try again.
 
-**It means** the dispatcher hands each event to its handler and counts what goes wrong, per event and per remote state (the commit the work item's branch is at). Any error from the handler counts, an event kind without a handler included. The tick calls the dispatcher once per pass. Every kind of event has a handler. After three errors on one event and one remote state, the factory posts the report once and stops retrying that event. A restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "The stops of one work item".
+**It means** the factory counts what goes wrong with each event, per event and per remote state. The remote state is the commit the work item's branch is at. Any error counts, an unknown kind of event included. After three errors on one event and one remote state, the factory posts the report once and stops retrying that event. A restart does not post it again, because the report carries a key that the pull request already holds. If the work item has no pull request, the factory opens a draft one for the report first, as under "The stops of one work item".
 
 **You do:**
 
@@ -358,7 +360,11 @@ The factory stops nothing and leaves nothing half-written on the remote during a
 
 ## Stops that cannot be done
 
-Three situations have no work the factory can do. Each is a counted error, never a silent success: the factory raises `CannotHandle`, the dispatcher counts it per event and remote state, tries the event three times, and then posts one report on the work item's pull request (a draft is opened for it first when there is none), as under "An event that keeps failing". A restart posts no second report. For all three the handler writes, posts and changes nothing itself; only the report is posted. The report's last error reads as below.
+**You see** a report on the work item's pull request, as under "An event that keeps failing". Its last error starts with `cannot handle`, as in the table below.
+
+**It means** the factory met one of three situations it has no work for. Each is a counted error, never a silent success. The factory tries the event three times and then posts one report. It opens a draft pull request for the report first when there is none. A restart posts no second report. Apart from the report, the factory writes, posts and changes nothing for these events.
+
+**You do** what the last column says.
 
 | Stop | Last error in the report | What to do |
 |---|---|---|
@@ -398,3 +404,7 @@ The reason in a `PushFailed` is built from git's output in these steps:
 ### The wording of a failing probe
 
 A probe of `main` that fails without printing anything names the command and how it ended, for example `lint ended by signal 15 and printed nothing on main at <commit>` or `lint ended with exit status 2 and printed nothing on main at <commit>`.
+
+### The events the factory handles
+
+Every kind of event has a handler, so an event is never refused for lack of one. The kinds are `comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`, `crash`, `expired` and `acceptance_due`, together with the events of a stage run. A `crash` is explained under "A restart during a stage" and an `expired` under "An expired lease", both in [work-items.md](work-items.md).

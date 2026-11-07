@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:10:08.841954Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T01:10:08.841954Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:13:49.462281Z'
+  stage: docs-only
+  run: 62daa489044d4a4eb60665b44af9ad89
 ---
 
 # The operator guide's the stops reads for the operator
@@ -154,3 +156,32 @@ Expect: `1`
    9. `docs/operator-guide/stops.md:300` ("The preflight in the tick") and `:359` ("Stops that cannot be done"): these describe stops without the three parts that style.md asks of every stop (what you see, what it means, what you do). Fix: give each the **You see** / **It means** / **You do** form, as the other stop sections have.
    10. Work item journal entry 5: the documenter says "I read nothing else in the code. The other claims were carried over from the old file unchanged." The Description says the facts come from the code, not from the old text. Findings 1 to 3 are carried-over claims that the code contradicts. Fix: check the remaining carried-over claims against the code and name the ones checked.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's ten findings, each in `docs/operator-guide/stops.md`. That is the only file I changed. `docs/checked-documents.txt` already has its line. `make documents` ends `documents ok (11.7 s)`. I did not run `make check`, because I changed only documents.
+
+   1. Attempts-cap example: now reads `The last time: Stage doing stalled (attempt 2 of 2): the agent gave no valid decision and entry`. I checked it against `stalls.py` and `questions.py`.
+   2. Crash-cap row: it now points to "The crash cap" in `work-items.md`, which quotes the question (`crash_cap_question`).
+   3. Example detail for `fetch_failed`: now a real git message, `fatal: unable to access ...: Could not resolve host: github.com`.
+   4. Criterion 2:
+      - Added a Reference section, "The events the factory handles". It lists every event kind (`comment`, `ask`, `merged`, `closed`, `reject`, `hand_over`, `duplicate`, `pull_request_lookup`, `crash`, `expired`, `acceptance_due`) and links to "A restart during a stage" and "An expired lease" in `work-items.md`.
+      - Restored the old stall sentence as "The take does not copy the rest from the dataset."
+   5. Module and class names: removed `STOP_TABLE` with its module path. The "cannot be done" section no longer says `CannotHandle`; it says the report's last error starts with `cannot handle`.
+   6. Glossary links: now at the first use of stall, stage, backlog, story, pipeline definition, `round`, attempts cap and round cap. I took the duplicate links out of later places.
+   7. Private words: "dispatcher", "evaluation" and "`ask` handler" are replaced by what the factory does. For example, "the factory counts what goes wrong with each event" and "the factory has asked".
+   8. Long sentences: split the ones at the old lines 53, 97, 119, 160, 245, 287 and 361. Each now has one idea and at most one parenthesis.
+   9. "The preflight in the tick" and "Stops that cannot be done" now have **You see** / **It means** / **You do**.
+   10. Carried-over claims: I checked these against the code this round.
+      - The stall note format and its two follow-up texts (`stall_note` in `post_texts.py`), and the attempts-cap and crash-cap questions.
+      - The `stall` entry text (`stalls.py`).
+      - The `no detail given` constant, `stop cleared <reason>` and the `stops recorded` commit subject.
+      - The reviewer had already confirmed the rest.
+      I did not re-check claims such as the exact line counts of a stall's output block. Those stay as the reviewer found them right.
+
+   Cross-read: the headings that other files link to are unchanged, and `make documents` resolves the names.
+
+   Stale text I saw and did not touch: `docs/operator-guide/work-items.md:232` cites "An expired lease" without a link, which is fine. The earlier note about `docs/decisions.md:1560` still stands, unrelated.
+
+   No findings for the coder.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (12.0 s)
