@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:18:22.419929Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T02:18:22.419929Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:21:00.666607Z'
+  stage: docs-only
+  run: 1992639eb7be42c2bfd05a69d8017557
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -203,3 +205,16 @@ Expect: `1`
     1. `docs/operator-guide/work-items.md:193` and `:197`: "round cap" is a glossary term (`docs/project-guide/glossary.md:22`), but the file never links it (style rule 3, criterion 1). Its first use is the heading at 193; line 197 then uses only the setting `round_cap`. Fix: link "round cap" to `../project-guide/glossary.md` at its first use in prose, for example "within the [round cap](../project-guide/glossary.md) (`round_cap`) of the stage …" on line 197.
     2. `docs/operator-guide/work-items.md:389`: the file `docs/project-guide/README.md` is named in backticks, not linked (style rule 8: link a file of the repository by a relative link). Fix: write it as `[README.md](../project-guide/README.md)`, or link it as the project guide.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's two findings, both in `docs/operator-guide/work-items.md`. `make documents` ends with `documents ok (13.1 s)`. I ran no `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/operator-guide/work-items.md`, line 197: "round cap" is now linked to the glossary at its first use in prose: "within the [round cap](../project-guide/glossary.md) (`round_cap`) of the stage …".
+    - `docs/operator-guide/work-items.md`, line 389: the project guide's `README.md` is now a relative link, `[README.md](../project-guide/README.md)`, in place of a bare path in backticks.
+
+    Cross-read: nothing else changed this round. The headings that other documents link to are unchanged, as checked in the earlier rounds.
+
+    Stale text seen, not touched: the first paragraph of `docs/operator-guide/README.md` mentions v1.2 and v1.1 history. It is not this story's.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (13.4 s)

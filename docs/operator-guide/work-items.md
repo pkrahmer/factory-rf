@@ -194,7 +194,7 @@ The factory posts nothing itself in these steps. A question is posted by the `as
 
 A comment of yours counts as the reason when it was written after the latest `result` of the story, whether copied earlier or at the close. The factory reads only the journal's records, never what you wrote, so the text of the comment does not matter.
 
-With a reason, and with the new round within the `round_cap` of the stage that hands over to the approval, the story simply goes back to work with your comments as the findings. That stage is the first one in the pipeline definition that has a cap.
+With a reason, and with the new round within the [round cap](../project-guide/glossary.md) (`round_cap`) of the stage that hands over to the approval, the story simply goes back to work with your comments as the findings. That stage is the first one in the pipeline definition that has a cap.
 
 Otherwise the factory asks, and `blocked` is `send_back`. The question starts with one of these texts and goes on with the options below:
 
@@ -386,4 +386,4 @@ The factory counts these errors and reports them as in "An event that keeps fail
 
 ### The recovery tests
 
-The cases and paths of the recovery tests are listed in the sections *Kill points* and *Fault-injection paths* of `docs/project-guide/README.md`.
+The cases and paths of the recovery tests are listed in the sections *Kill points* and *Fault-injection paths* of [README.md](../project-guide/README.md).
