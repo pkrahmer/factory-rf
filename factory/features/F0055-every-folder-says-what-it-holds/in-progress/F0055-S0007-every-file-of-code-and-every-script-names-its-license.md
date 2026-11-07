@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T12:10:51.841718Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-07T12:10:51.841718Z'
   stage: docs
+- number: 14
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T12:15:27.415062Z'
+  stage: docs
+  run: 50b6b812f4664b3f98e5f64a3f7e6271
 ---
 
 # Every file of code and every script names its license
@@ -181,3 +183,21 @@ Expect: `0`
     Earlier tests:
     - tests/vm/test_stage_image.py: changed under the human's leave in the Interface ("an earlier test whose only failure is the one added header line ... may be changed so far as that line requires"). Only the line index in `test_the_first_line_names_the_build_command_with_the_runtime` changes, from `[0]` to `[1]`, plus a comment explaining why. Its name and what it checks are unchanged, and the tester's entry 8 names it.
 13. factory: started docs as vm.
+14. documenter: Wrote the three documents the docs criterion names. `make documents` ended with `documents ok (58.8 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `README.md`: a new section `## License` before *Try it*. It says the factory is licensed under the Apache License 2.0 and links `LICENSE` and `NOTICE`. It also says each file of code and each operator script names its license in its first line.
+    - `docs/project-guide/README.md`: the bullet on `tests/guards/` now lists `tests/guards/test_license_headers.py` with its scope. It says a new module or script carries the header and what gets none (the tests, `operator/template/`, `demo/`, the documents, the agent files).
+    - `docs/decisions.md`: a new entry, "Every file of code names its license in one line", for feature decisions 7 to 9. Its Rejected line names the copyright line with the author's name and the one with a project name (`The Kumpel Authors`), both from decision 8. The Why is only decision 7 (the patent grant, and the dependencies' licenses unchanged). Decision 9 names no reason, so the entry gives none for the tests.
+
+    I read the code before writing: the header lines on the branch, and `tests/guards/test_license_headers.py` for the scope. I looked at `NOTICE` and `LICENSE` for the README sentence.
+
+    Cross-read and found current: the rest of `README.md`, and the other sections of `docs/project-guide/README.md` and `docs/decisions.md` that touch the diff. The diff changes no names, settings or commands.
+
+    Noticed, not touched: the Interface says 186 modules under `src/factory/` and the branch holds 188. The coder and reviewer noted this too. The guard reads its scope from `git ls-files`, so nothing is wrong. I did not run the smoke-test command.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (3.7 s)
+    `documents`: documents ok (58.3 s)

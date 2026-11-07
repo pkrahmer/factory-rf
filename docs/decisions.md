@@ -1652,3 +1652,11 @@ Date: 2026-11-07 (F0055-S0001).
 
 - Decision: every folder a reader would ask about has a short `README.md` that points to the guides; the 23 paths are `FOLDER_READMES` in `factory.shared.domain.folder_readmes`. A guard checks each README against its folder and a fixed form, and the document check reads them so that `docs/checked-documents.txt` may list them. The documenter may write them. `operator/README.md` keeps its own form and is not on the list.
 - Rejected: a README in every folder, which would cost about 25 more files that all say the same.
+
+## Every file of code names its license in one line
+
+Date: 2026-11-07 (F0055-S0007).
+
+- Decision: the factory is licensed under the Apache License 2.0. Each Python module under `src/factory/` and each script under `operator/` outside `operator/template/` carries the comment line `SPDX-License-Identifier: Apache-2.0`: the first line of a module, the line after the shebang of a script, the first line of a file without one. The copyright and the author stand once, in `NOTICE`. The tests get no header. A guard, `tests/guards/test_license_headers.py`, fails for a file in that scope without the line.
+- Why: Apache 2.0 for its explicit patent grant (the human, 2026-11-07); the dependencies' licenses are unchanged, and the Makefile's allow list is about them.
+- Rejected: `SPDX-FileCopyrightText` with the author's name in every file, which would carry the name into every project that copies a file; and the same line with a project name (`The Kumpel Authors`).
