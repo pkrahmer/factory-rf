@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T12:55:28.225516Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-07T12:55:28.225516Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-07T12:55:45.064772Z'
+  stage: intake
+  run: e4932ebc626d4609bc95cb4b56754b86
 ---
 
 # The tests say how they are laid out
@@ -54,9 +56,9 @@ This story writes the READMEs of `tests/`, `tests/support/` and `tests/guards/`,
   - `tests/README.md`
   - `tests/support/README.md`
   - `tests/guards/README.md`
-- `tests/README.md` says that the tests mirror the package (`tests/<area>/<layer>/`), names each special folder in one line (`support/`, `guards/`, `agent_files/`, `entry/`, `operator_scripts/`, `vm/`) and each area folder in one line, and links to `CLAUDE.md`, *Tests*. `tests/support/README.md` says in one sentence that the folder holds the shared test helpers and links to `docs/project-guide/README.md`, *Shared test helpers*, which keeps the full list of modules and fixtures (feature decision 4). `tests/guards/README.md` says in one sentence that the folder holds the guards and links to the project guide's section on the guards. Neither lists its modules: a module line is no part of the form, and the detail stays in the guide.
+- `tests/README.md` says that the tests mirror the package (`tests/<area>/<layer>/`), names each special folder in one line (`support/`, `guards/`, `agent_files/`, `entry/`, `operator_scripts/`, `vm/`) and each area folder in one line, and links to `CLAUDE.md`, *Tests*. `tests/support/README.md` says in one sentence that the folder holds the shared test helpers and links to `docs/project-guide/README.md`, *Shared test helpers*, which keeps the full list of modules and fixtures (feature decision 4). `tests/guards/README.md` says in one sentence that the folder holds the guards and links to `docs/project-guide/README.md`, *The files*. Neither lists its modules: a module line is no part of the form, and the detail stays in the guide.
 - `docs/checked-documents.txt` gains each new path.
-- No code changes, and no test changes but this one leave of the human's: an earlier guard whose only failure is a `README.md` of this story standing in its folder may add that README to the entries it expects, keeping its name's purpose; the entry names each such test. The story takes the docs route.
+- No code changes, and no test changes but this one leave of the human's: an earlier guard whose only failure is a `README.md` of this story standing in its folder may add that README to the entries it expects, keeping its name's purpose; this includes `tests/guards/test_tests_layout.py::test_the_root_holds_only_conftest_and_packages` and any other check of that file or another earlier guard. The tester runs the guards with the three READMEs in place to find every such check, and its entry names each. The story takes the tests route.
 
 ## Acceptance criteria
 
@@ -86,3 +88,10 @@ Expect: `documents ok (<seconds> s)`
    2. Link *The files* in docs/project-guide/README.md. No new section.
    3. Yes: CLAUDE.md, *Tests*, alone is enough for tests/README.md.
 5. factory: started intake as vm.
+6. intake: accepted, on the tests route, with the human's answers (journal entry 4) carried in.
+   - Interface: concrete. It names the three README paths, the `docs/checked-documents.txt` entries and the link targets (`CLAUDE.md` *Tests*, the guide's *Shared test helpers* and, from answer 2, *The files*). From answers 1 and 2 I changed two things in the story: the last Interface bullet now says the tests route, names `test_the_root_holds_only_conftest_and_packages` and says the tester runs the guards to find every other such check; the guards link now reads `docs/project-guide/README.md`, *The files*. The Description and the criteria never said "docs route", so nothing else changed.
+   - Criteria: each is testable. Criterion 1 is the guard `tests/guards/test_folder_readmes.py`, which covers both sides (the subfolder lines are present and true). Criterion 2 is the document check and the checked list. Criterion 3 is `make documents`. The criteria hold no rule with an untested failing side.
+   - Smoke test: `uv run python -m factory.entry.check_documents | tail -1` is runnable, it calls no pytest, and its Expect line is checkable.
+   - Docs criterion: it names the files and what the guide keeps unchanged, and dictates no sentences.
+   - Architecture: the READMEs stand beside the test folders, with no code or layer change; this fits feature decisions 2, 4 and 6.
+   - Scope: within the feature's S0003, and not in its Out of scope. The only test change is the human's leave for earlier guards.
