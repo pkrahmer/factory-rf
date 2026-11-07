@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:43:32.530169Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -178,6 +174,12 @@ journal:
   kind: started
   at: '2026-11-07T05:43:32.530169Z'
   stage: docs-review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:44:11.533902Z'
+  stage: docs-review
+  run: 12fad60eaa554c3492cda28943b64f08
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -491,3 +493,17 @@ Expect: `1`
     `secrets`: secrets: green (1.1 s)
     `documents`: documents ok (16.2 s)
 30. factory: started docs-review as vm.
+31. reviewer: Docs-review of the round-5 change. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. Since the last review, the only document change is one bullet in `docs/project-guide/machine.md`, in the Reference section *How the stage file is followed* (a83481b1b..a3dc22e19). I checked it against the code on the branch.
+
+    The one finding from entry 27 is fixed:
+    - The 37-word sentence is now four short sentences, one idea each, with one parenthesis. That follows style rule 2.
+    - "A different text calls `chosen_image`": matches `_follow_main` and `_choose` (src/factory/entry/run.py:251-267).
+    - "It passes a `StageImageReport` ... when a stage file exists or at the start. A later follow without a stage file passes none.": matches `told = report if has_stage_file or at_start else None` (run.py:266).
+    - `stage_image_report`'s log, clock and the commit's first 12 hex digits: matches wiring.py:425-433 (`commit[:_SHORT_COMMIT_LENGTH]`).
+    - "Given a report, `chosen_image` writes the `stage image:` lines and puts `at <commit>: ` before the stop's detail": matches `chosen_image` and the two helpers it calls, `_base_image` and `_stage_image_failed` (wiring.py:500-530).
+
+    Nothing else under review has changed since entry 27. That review and the earlier ones checked the rest of the page against the code and the style page. The three one-line changes from entry 5 are unchanged and still right: the line in `docs/checked-documents.txt`, the index entry in `docs/project-guide/README.md`, and the link in `docs/project-guide/pipeline.md`. No heading was renamed. The factory's results in entry 29 show `make documents` as `documents ok`.
+
+    No findings.
+
+    Earlier tests: none needed (the diff changes no test file).
