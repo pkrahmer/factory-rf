@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T14:17:31.235576Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -106,6 +102,12 @@ journal:
   kind: started
   at: '2026-11-07T14:17:31.235576Z'
   stage: docs-review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:18:09.369448Z'
+  stage: docs-review
+  run: 764313dfb53644529ee000eea3159534
 ---
 
 # The top folders say what they hold
@@ -242,3 +244,17 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (58.9 s)
 17. factory: started docs-review as vm.
+18. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, which is new on the branch and named by criteria 1, 2 and 5. I checked the writing against `docs/project-guide/style.md` (*Rules for all documents*, *Folder READMEs*) and the glossary. I compared it with the folder READMEs already on `main` (`operator/README.md` links each glossary word at its first use; `agents/README.md` uses none).
+
+    Findings:
+    1. `docs/README.md:5`, the `operator-guide/` line: "the stops" is the first use of the glossary word "stop" (`docs/project-guide/glossary.md:26`) in this file, and it has no link. That breaks rule 3 of *Rules for all documents* ("linked at their first use in a file"). Fix: write "the [stops](project-guide/glossary.md) and what to do about each". This is the same rule as round 1's finding on the root README.
+    2. `docs/README.md:7`, the `runs/` line: "no stage writes them" is the first use of the glossary word "stage" (`docs/project-guide/glossary.md:23`) in this file, and it has no link. Same rule. Fix: write "no [stage](project-guide/glossary.md) writes them".
+
+    Checked and found true:
+    - Round 1's finding is fixed: `README.md:40` links "pipeline definition" to the glossary.
+    - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form, links the eight READMEs that exist, and names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6). Every other glossary word in the root README is linked earlier in the file.
+    - `docs/README.md` names the four documents and says that `runs/` is the human's (criterion 4).
+    - `security/README.md` names the semgrep rules and the duplicates baseline and links `CLAUDE.md`, *Checks*. It uses no glossary word (criterion 5).
+    - Every sentence I checked is within about 25 words.
+    - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
+    - I cannot give a reason why I did not name these two findings in round 1. The rule and the file were the same then.
