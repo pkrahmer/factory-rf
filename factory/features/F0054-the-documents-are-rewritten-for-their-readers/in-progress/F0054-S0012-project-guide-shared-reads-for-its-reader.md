@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T02:57:18.950448Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T02:57:18.950448Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T02:57:33.384305Z'
+  stage: intake
+  run: 64a688050a464c798e3238f9457573f8
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete files only (`docs/project-guide/shared.md`, `docs/checked-documents.txt` with one exact line); no code, test or agent file changes, so every path is one the documenter may write.
+   - Criteria: 1 to 6 are checkable by reading or running (style judged by the reviewer, old-versus-new comparison, `make documents` printing `documents ok`, no broken link, `make check` green). The link rule and the checked-list line each have a criterion (4, 3). Criterion 5 covers links to changed headings. The failing side is `make documents` finding a broken link or a name that does not resolve.
+   - Smoke test: `grep -cx "docs/project-guide/shared.md" docs/checked-documents.txt` is runnable, and `Expect: 1` is checkable. It runs no pytest.
+   - Docs criterion: criterion 7 points at criteria 1 to 5 (reader's knowledge: the style, the old file's facts kept, working examples, links). It quotes no sentences to write.
+   - Architecture: the change touches only documents, matching CLAUDE.md's Docs section. It keeps `docs/decisions.md` unchanged and writes nothing to `factory/`, `planning/` or `docs/runs/`.
+   - Scope: this is S0012 of F0054's list (the project guide's page on the shared area), within Scope and outside Out of scope.
