@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-07T13:52:44.283307Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -135,6 +131,12 @@ journal:
   kind: started
   at: '2026-11-07T13:52:44.283307Z'
   stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T13:54:06.802733Z'
+  stage: smoke-test
+  run: 9c0f103ee8be4c1ba525d3544f9dbe99
 ---
 
 # The operator's folders say what they hold
@@ -334,3 +336,23 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (59.1 s)
 22. factory: started smoke-test as vm.
+23. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, exactly as written, and fixed nothing.
+
+    Command 1: `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 62ms
+    documents ok (59.4 s)
+    ```
+    (exit 0; the first line is uv's own output.) Met `Expect: documents ok (<seconds> s)`.
+
+    I read the acceptance criteria once more against the tree. Nothing contradicts them:
+    - Criterion 1: all eight READMEs of the Interface exist. Each opens with one sentence on what its folder holds and links to a guide page: `machine.md` for `vm/`, `cloud-run.md` for `job/`, `site.md` for `bin/`, `lib/`, `claude/`, `opencode/` and `skill/`, and `docs/project-guide/agents.md` for `agents/`. Each subfolder is named in a line of the form ``- `<name>/` <sentence>.`` with no colon: `agents/`, `commands/`, `command/` and `kumpel/`. None of the READMEs lists files. `uv run pytest -q tests/guards/test_folder_readmes.py tests/shared/domain/test_folder_readmes_list.py -rs` passes. It skips only `docs/README.md` and `security/README.md`, which belong to other stories; it skips none of this story's eight.
+    - Criterion 2: each of the eight paths and `operator/README.md` are on `docs/checked-documents.txt`, and the document check above finds nothing.
+    - Criterion 3: met by command 1.
+    - Criterion 4: `tests/shared/domain/test_folder_readmes_list.py` passes.
+    - Criterion 5: I did not run `make check` again here. The factory reported it green after the docs stage (entry 21).
+    - Criterion 6: in the "What the folders hold" section of `operator/README.md`, each subfolder line links to its README. The `operator/template/` line says the folder carries no README of its own.
+
+    Findings: none.
+
+    Open: `docs/decisions.md:1653` still says "the 23 paths". The human chose to keep it that way (entry 12), so this is not a finding.
