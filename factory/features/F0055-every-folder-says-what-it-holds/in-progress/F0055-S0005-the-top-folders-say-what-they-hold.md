@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T14:12:02.844826Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -86,6 +90,11 @@ journal:
   at: '2026-11-07T14:11:57.848833Z'
   stage: docs-review
   run: 364612c3987241758f48cc622788e116
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:12:02.844826Z'
+  stage: docs-only
 ---
 
 # The top folders say what they hold
@@ -204,3 +213,4 @@ Expect: `documents ok (<seconds> s)`
     - `security/README.md` names the semgrep rules and the duplicates baseline and links to `CLAUDE.md`, *Checks* (criterion 5).
     - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form and links to the eight READMEs that exist. It names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6).
     - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
+15. factory: started docs-only as vm.
