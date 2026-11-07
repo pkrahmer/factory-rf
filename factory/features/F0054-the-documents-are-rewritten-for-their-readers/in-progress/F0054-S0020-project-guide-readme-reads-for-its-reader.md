@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T08:11:18.361243Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T08:11:18.361243Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T08:13:35.526857Z'
+  stage: docs-review
+  run: 7a689d2edd4843fba898717e5d4791f2
 ---
 
 # The project guide's index reads for the developer
@@ -242,3 +244,27 @@ Expect: `1`
    `secrets`: secrets: green (0.5 s)
    `documents`: documents ok (57.0 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md`. Two files changed: `docs/project-guide/README.md` (rewritten) and `docs/checked-documents.txt` (one line added). I read the whole page against the code, the criteria and `docs/project-guide/style.md`.
+
+    All 15 findings from round 0 are fixed.
+
+    Facts I checked against the code and found true:
+    - *Errors*: the hierarchy block matches the classes, parents and messages in `src/factory/shared/domain/errors.py`.
+    - `push_reason` and `Git.last_push_output`.
+    - The seven test files that the two console blocks run all exist.
+    - `KILL_TO_RERUN` is 5 s, and the signatures of `build_world`, `rerun`, `run_case`, `violations`, `rerun_seconds`, `branch_state` and `work_item_file` match.
+    - `EXCEPTIONS` holds twelve models, and `STEPS` in `tests/support/vm_support.py` holds fifteen.
+    - `check_demos(root: Path) -> list[str]`.
+    - The top-level headings of the other pages named under *The files*.
+    - Every factory word is linked to `glossary.md` at its first use.
+
+    Findings:
+    1. `docs/project-guide/README.md:102`, `walk` fixture: the feature ID `F0002-todo` is still there, against criterion 1 and style rule 1. Entry 9 says it was reworded, but only line 150 was. Fix: "an `AcceptanceWalk` over a due todo feature with two archived stories".
+    2. `docs/project-guide/README.md:50`, the `work.md` entry: its *Sections:* list puts *Journal* after *The form check of a story*. In `docs/project-guide/work.md` it is the third `##` heading (line 131), after *The data of a work item*. Fix: list the headings in the page's order.
+    3. `docs/project-guide/README.md:102, 103, 109, 114, 125, 137, 292, 301, 370`: each of these lines still has a sentence with more than one parenthesis, and most run far past about 25 words, against style rule 2. Round 0 named only four such lines. Examples: the `kill_points`/`agent_runtime`/`clock` run at 102, `CRASH_CONDITIONS (...) or STALL_CONDITIONS (...)` at 292, and the `world` fixture sentence at 301. Fix: split each sentence so it has at most one parenthesis, for example one sentence per fixture or per condition list.
+    4. `docs/project-guide/README.md:66, 76, 78, 88, 109, 140, 143, 161`: file paths start below the repository root, against style rule 8. Examples: `test_layers.py`, `test_test_names.py`, `test_shared_bodies.py`, `human_clone.py`, `recording_log.py`, `contract_support.py`, `stage_run_support.py`, `test_suite_fixtures.py`, `test_stage_on_container_fakes.py`, `container_support.py`, `take_support.py`. Fix: write each one from the root (`tests/guards/test_shared_bodies.py`, `tests/support/human_clone.py`, and so on).
+    5. `docs/project-guide/README.md:349-377`, *The demos*: the section has no code block with the names and signatures, which style.md's project-guide section asks for. `check_demos(root)` appears only in prose at line 367. Fix: add a block above the bullets with `check_demos(root: Path) -> list[str]` and `main(argv: Sequence[str] | None = None) -> int` of `factory.entry.check_demos`.
+
+    Criterion 2: the names dropped on purpose (the per-area package names, now one `factory.<area>.<layer>` block, and `factory.adapters.landlock`, which does not exist) are still justified. Nothing else from the old file is missing.
+
+    Not checked: every one-line description of a `tests/support/` module against its source; neither stage has checked these. I did not run `make documents`. The documenter's run printed `documents ok`, and the factory runs it again as the gate.
