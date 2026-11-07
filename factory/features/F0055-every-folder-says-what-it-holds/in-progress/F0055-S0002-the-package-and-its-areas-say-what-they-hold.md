@@ -2,16 +2,12 @@
 stage: docs-only
 blocked: null
 round: 0
-attempts: 0
+attempts: 1
 crashes: 0
 pull_request: 635
 comments_read: [6706893353]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T12:26:06.429980Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,19 @@ journal:
   kind: started
   at: '2026-11-07T12:26:06.429980Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T12:31:32.861611Z'
+  stage: docs-only
+  run: d17907cc9efa47e78df8e785b548a2dd
+- number: 9
+  speaker: factory
+  kind: stall
+  at: '2026-11-07T12:31:33.409387Z'
+  stage: docs-only
+  run: d17907cc9efa47e78df8e785b548a2dd
+  reason: check_red
 ---
 
 # The package and its areas say what they hold
@@ -116,3 +125,36 @@ Expect: `documents ok (<seconds> s)`
    - Architecture: only READMEs are added, so no code or layer is touched.
    - Scope: within feature F0055, group 1 (S0002), no code change. It is not in the feature's "Out of scope".
 7. factory: started docs-only as vm.
+8. documenter: Wrote the nine folder READMEs and put them on the document check. `make documents` ends with `documents ok (75.1 s)`. `tests/guards/test_folder_readmes.py` passes for all nine and skips none of them.
+
+   Files changed:
+   - `src/factory/README.md`: one opening sentence and a link to `docs/project-guide/README.md`, *The code's layout*. One line each for the seven areas, `entry/` and `contract/`; the `contract/` line says it is generated and never edited by hand.
+   - `src/factory/entry/README.md`: one sentence on what `entry` holds (the commands and the wiring), a link to `docs/project-guide/README.md`, and no subfolder lines.
+   - `src/factory/{agents,hosting,machine,pipeline,shared,watching,work}/README.md`: one sentence on what the area holds, a link to the guide page its `__init__.py` docstring names (`docs/project-guide/<area>.md`), and one line each for `adapters/`, `application/` and `domain/`. I wrote each layer line from the modules in that layer on the branch. The reviewer judges whether the layer lines are right; the human left that to the reviewer.
+   - `docs/checked-documents.txt`: the nine new paths.
+
+   Deviation from the story: the Interface writes the subfolder line as ``- `<name>/`: <sentence>.``, with a colon after the name. The guard (`readme_problems` in `src/factory/shared/domain/folder_readmes.py`) and `docs/project-guide/style.md`, *Folder READMEs*, say ``- `<name>/` <sentence>.``, with no colon. A line with the colon is not recognised as naming the subfolder, so every README failed the guard. I followed the guard and the style guide and left out the colon. If the human wants the colon, the guard and the style guide change, which is outside this story. I did not change the story text, since the Interface is not mine to edit.
+
+   Cross-read and found current:
+   - `docs/project-guide/README.md`, *The code's layout* and *The files*, against the nine READMEs. It names no folder README, so I added no link there.
+   - The `Guide:` lines in the `__init__.py` docstrings, against the links I wrote.
+
+   Stale text noticed and left alone: none. Every sentence in `docs/decisions.md` stays as it was, and I wrote no "Why" or "Rejected" line.
+
+   I did not run `make check`, since I changed only documents and the factory runs it after this stage.
+9. factory: Stage docs-only stalled (attempt 1 of 2): a check is red after the stage: `check`
+   src/factory/watching/application/transcripts.py         61      2     10      0    97%   92-93
+   src/factory/watching/domain/board.py                    55      0      4      1    98%   78->76
+   src/factory/watching/domain/machine.py                  52      3     18      5    89%   45->43, 48, 60, 78->76, 80
+   src/factory/watching/domain/transcripts.py              10      2      0      0    80%   21-22
+   src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   240
+   src/factory/work/application/work_items.py              90      2     24      2    96%   134, 170
+   src/factory/work/domain/acceptance.py                  195      1     52      1    99%   368
+   ------------------------------------------------------------------------------------------------
+   TOTAL                                                11354     55   2296     53    99%
+
+   158 files skipped due to complete coverage.
+   Required test coverage of 90.0% reached. Total coverage: 99.21%
+   ======================================================================================= short test summary info ========================================================================================
+   FAILED tests/guards/test_old_layer_packages_removed.py::test_the_package_holds_only_its_init_the_areas_entry_and_contract - AssertionError: assert {'README.md',...hosting', ...} == {'__init__.py......
+   make: *** [Makefile:89: test] Error 1
