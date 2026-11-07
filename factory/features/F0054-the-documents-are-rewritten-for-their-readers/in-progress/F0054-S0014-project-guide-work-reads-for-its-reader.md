@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:54:36.564872Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -43,6 +47,11 @@ journal:
   stage: docs-only
   run: f10b8f15d2ff4e719281ec3db598b09d
   reason: check_red
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:54:36.564872Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -133,3 +142,4 @@ Expect: `1`
    ======================================================================================= short test summary info ========================================================================================
    FAILED tests/guards/test_project_guide_files.py::test_no_file_names_a_removed_guide_file - AssertionError: assert ['docs/projec...ork-items.md'] == []
    make: *** [Makefile:89: test] Error 1
+7. factory: started docs-only as vm.
