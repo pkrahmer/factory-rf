@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 0
 crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T09:15:34.681485Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,19 @@ journal:
   kind: started
   at: '2026-11-07T09:15:34.681485Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:16:33.491263Z'
+  stage: docs-review
+  run: 2de061e260d54c7b811915437fb31c4e
+- number: 20
+  speaker: factory
+  kind: question
+  at: '2026-11-07T09:16:33.491263Z'
+  stage: docs-review
+  run: 2de061e260d54c7b811915437fb31c4e
+  blocked: round_cap
 ---
 
 # The README reads for a newcomer
@@ -283,3 +292,22 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (58.0 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked the README against `src/factory/shared/domain/documents.py` (`OPERATOR_GUIDE_SECTIONS`, `_stop_rows`, `_stops_messages`, `_project_guide_rows`, `_project_guide_messages`), `docs/decisions.md:3`, `docs/project-guide/glossary.md`, `docs/project-guide/style.md` (*Rules for all documents* and *The README*) and the old README on `main`. I did not run `make documents`; the result in entry 17 is the documenter's.
+
+    Both round-2 findings are fixed, and the facts are now true of the code:
+    - The stop rows are checked in the stops file, with their destination.
+    - The operator guide's three sections and the project guide's two sections and their rows are named.
+    - "says what the tag holds" matches `docs/decisions.md:3`.
+
+    `docs/checked-documents.txt` gains `README.md`. No other document links to an old README heading. Criteria 2 and 4 hold.
+
+    The round-3 rewrite of the paragraph brings back two problems that round 0's finding 5 already sent back.
+
+    Findings:
+    1. README.md:53 (*The document check*), sentences 2 and 3, breaks style rules 2 and 3 (criterion 1).
+       - Sentence 2 runs to about 28 words and sentence 3 to about 32; each joins two checks with "and".
+       - Sentence 3 uses "kill point case" and "fault-injection path" as common nouns. These are private words that are not in the glossary. Round 0 asked for them to appear only as the section names *Kill points* and *Fault-injection paths*.
+       - Fix: split them into four short sentences, one check each, and name the project guide's check through its sections. For example: "It finds a stop whose row in the operator guide's stops file does not name its destination. It finds an operator guide that lacks *Install*, *Configuration* or *The stops*. It finds a project guide that lacks *Kill points* or *Fault-injection paths*. It also finds one whose tables there leave out a case the code tests."
+
+    Earlier tests: none. The diff changes no test file.
+20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
