@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:05:19.928750Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-11-07T06:05:19.928750Z'
   stage: docs-only
+- number: 12
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:11:28.468292Z'
+  stage: docs-only
+  run: 4e001ab95ba248099553d9d4f6a01329
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -200,3 +202,39 @@ Expect: `1`
 
     Open, and not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Also outside this story: `README.md:28` and `docs/project-guide/README.md`, which the documenter reported as unresolved paths.
 11. factory: started docs-only as vm.
+12. documenter: Round 1, fixing the reviewer's findings 1 to 18. `make documents` ends with `documents ok (17.1 s)`. `tests/guards/test_project_guide_files.py` passes. I ran no `make check`, because every file I changed is a document.
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: all findings below.
+    - `docs/project-guide/watching.md`: the citation of the renamed heading now reads *The clock, the log and the stores* (finding 5).
+    - `docs/project-guide/agents.md`: the citations now read *Waiting out the provider's limit* in place of *PatientRuns*, and *The take's rule* in place of *The take*, at lines 24, 381 and 494 (finding 6).
+
+    What I did, by finding:
+    1. Glossary: the first use of stop, instance, lease, role, journal, project command, write paths, crash, feature, acceptance, approval, story, round cap, backlog, stage environment, cost record and dataset is linked to `glossary.md`. So is stage, which the reviewer did not list. A script did the linking, which means two things:
+       - The "lease" at line 17 is the first plain use of the word, so that is the one it linked.
+       - It found no plain first use of "attempts cap" outside code spans and links, so that term is not linked. That is a gap against finding 1.
+    2. and 3. Modules and files: the script links each repository file the page names once, at its first mention outside code blocks. That covers the listed modules, the `tests/...` paths, `tests/support/git_support.py`, `operator/vm/git-credential-factory` and `factory/pipeline.yml`. A file already linked through its `.py` link is not linked again by its dotted name. A name that sits only inside a code block stays plain. I did not check each link by eye. `make documents` found no broken link.
+    4. Repeated links: the script keeps the first link to a file and leaves the text of every later one plain. This covers `stage.py`, `recovery.py`, `machine.md`, `work.md` and the operator-guide files. Links to the glossary repeat for each term, as the style page asks.
+    5. and 6. The other files' citations are fixed as listed above.
+    7. The take block shows the real signatures of `read_baseline` and `restore_work_item`. The sentence about `refusal` is back, with its module `factory.agents.domain.write_paths`, and says that `is_refused` judges both cases.
+    8. Preflight: the items are listed in code order. They are `token-file`, `podman`, then `zfs` and `dataset` for ZFS snapshots or the single item `snapshots` for copy snapshots. After them come `stage-image`, `metadata-block` (only for `container_profile` `job`), `opencode` (only for the opencode runtime) and `agent-run-probe`.
+    9. and 10. The `Boundaries` signature and the field list now hold the eight optional fields with their defaults, and `build_boundaries` shows `images=None` and what it does.
+    11. and 12. The `build_boundaries` text is rewritten from `wiring.py`: `OpencodeRuntime` or `ClaudeCodeRuntime`, `RecordingProjectCommands(ContainerMakeCommands(...))`, `ProjectAgentDefinitions(...)`, `ZfsSnapshots` or `CopySnapshots` and what each requires.
+    13. and 14. The test paths are written from the root, and "as before" is gone.
+    15. Opening sentences are added to every section the reviewer named, including *Starting a stage* and *The stage protocol*.
+    16. A See also line is added to *The handlers of the events*, *The stop records* and *Boundaries*.
+    17. The paragraphs the reviewer named are now bullets. The crash cap has its own heading, and `RunHandler` has its own heading, *Running a stage*. I also made the intro paragraphs of *The clock, the log and the stores* and of *The stop records*, the merged-handler paragraph and the close-handler paragraph into bullets.
+    18. Long sentences: I split the four the reviewer called clear (step 7 and its description paragraph under *`StageFinisher.finish(aftermath)`*, the preflight line, and the `build_boundaries` lines). I did not search the rest of the page for sentences over 40 words, so more of them remain.
+
+    Not done:
+    - The page has no *Reference* section, as in round 0. The criterion allows that.
+    - I added each of the new opening sentences from the code and the page's own text. I did not compare every other claim on the page with the code again; the reviewer's spot-check stands.
+    - The `<code>/tmp/f54</code>` scratch directory from my edit scripts was not removed, because the shell refused `rm`. It lives outside the repository and holds nothing the stage needs.
+
+    Stale text seen, not mine to fix:
+    - `docs/project-guide/README.md` lines 67 to 141 and 283, and `README.md:28`, name paths that do not exist. `make documents` lists them as not checked yet.
+    - The story's Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. This stays open for the human.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok (16.3 s)
