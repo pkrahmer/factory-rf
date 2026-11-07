@@ -1,21 +1,24 @@
 # kumpel-factory
 
-kumpel-factory builds software from stories. You describe a feature as a few short [stories](docs/project-guide/glossary.md). The factory hands each story to AI agents in turn: one writes the tests, one the code, one reviews it, one updates the docs and one runs a smoke test. Then it opens a pull request, and you approve it or send it back.
+kumpel-factory builds software from stories. You describe a [feature](docs/project-guide/glossary.md) as a few short [stories](docs/project-guide/glossary.md). The factory hands each story to AI agents in turn: one writes the tests, one the code, one reviews it, one updates the docs and one runs a smoke test. Then it opens a pull request, and you approve it or send it back.
 
 It runs on a Linux VM or as a Cloud Run job, with Claude Code or opencode as the agents. It builds this repository too.
 
 ## Try it
 
-Install the packages and run the checks. The last line must be `check: green`:
+Install the packages with `uv sync`, then run the checks. The last line must be `check: green`:
 
-    uv sync
-    make check
+```console
+$ make check
+...
+check: green
+```
 
-To run a factory instance you need a prepared machine. [The machine](docs/operator-guide/machine.md) in the operator guide takes you from a fresh VM to a running service. [docs/operator-guide/cloud-run.md](docs/operator-guide/cloud-run.md) does the same for a Cloud Run job.
+To run a factory [instance](docs/project-guide/glossary.md) you need a prepared machine. [The machine](docs/operator-guide/machine.md) in the operator guide takes you from a fresh VM to a running service. [docs/operator-guide/cloud-run.md](docs/operator-guide/cloud-run.md) does the same for a Cloud Run job.
 
 ## Where to read next
 
-- [docs/operator-guide/](docs/operator-guide/README.md): install, configure, the stops and what to do about each, one file per topic. `site.md` there takes a new machine to a running job.
+- [docs/operator-guide/](docs/operator-guide/README.md): install, configure, the [stops](docs/project-guide/glossary.md) and what to do about each, one file per topic. *Setting up an operator's machine* in [site.md](docs/operator-guide/site.md) takes a new machine to a running job.
 - [docs/project-guide/README.md](docs/project-guide/README.md): the guide for agents and developers who change this code, an index of its files by domain.
 - [docs/project-guide/glossary.md](docs/project-guide/glossary.md): the words the factory gives its own meaning.
 - [docs/decisions.md](docs/decisions.md): lasting decisions and what was rejected.
@@ -47,7 +50,7 @@ To run a factory instance you need a prepared machine. [The machine](docs/operat
 
 ### The document check
 
-The check finds a document that is missing, does not say what the factory does in its own words, or leaves a stop, kill point or fault-injection path unnamed. These findings block in every file.
+The check finds a document that is missing, does not say what the factory does in its own words, or leaves a stop unnamed, or leaves out the project guide's *Kill points* or *Fault-injection paths*. These findings block in every file.
 
 Three more checks run on the documents:
 
@@ -59,7 +62,7 @@ The findings of these three block only in a file listed in `docs/checked-documen
 
 ### The machine
 
-The factory runs as a service on a Linux VM with ZFS and rootless Podman. Every stage runs in throwaway containers on one ZFS dataset. `operator/vm/setup.sh` prepares the VM.
+The factory runs as a service on a Linux VM with ZFS and rootless Podman. Every [stage](docs/project-guide/glossary.md) runs in throwaway containers on one ZFS [dataset](docs/project-guide/glossary.md). `operator/vm/setup.sh` prepares the VM.
 
 In a Cloud Run job, `operator/vm/job-start.sh` builds the instance at every start; see [cloud-run.md](docs/operator-guide/cloud-run.md).
 
@@ -67,4 +70,4 @@ A project can add tools to its stage image with a file `<project>/factory/stage.
 
 ### How it is built
 
-The instance of this factory builds this repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, one folder for each feature. One stage agent at a time takes a story through tests, code, review, docs and smoke test. A story's pull request carries the whole story, and merging it accepts the story. The history of the first implementation (github.com/pkrahmer/factory), which built this one until the handover of 2026-10-18, is kept at the tag `planning-history-2026-10-19`.
+The instance of this factory builds this repository from `factory/pipeline.yml`, with its features and stories under `factory/features/`, one folder for each feature. One stage agent at a time takes a story through tests, code, review, docs and smoke test. A story's pull request carries the whole story, and merging it accepts the story. The planning history is kept at the tag `planning-history-2026-10-19`; [decisions.md](docs/decisions.md) records why.

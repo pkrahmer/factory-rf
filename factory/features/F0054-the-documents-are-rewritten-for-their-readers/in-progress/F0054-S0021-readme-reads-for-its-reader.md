@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:00:14.856111Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T09:00:14.856111Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:04:34.299408Z'
+  stage: docs-only
+  run: 1c4a69428cc44671b12cf8950fdbce9f
 ---
 
 # The README reads for a newcomer
@@ -140,3 +142,23 @@ Expect: `1`
 
    Earlier tests: none. The diff changes no test file.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's five findings, all in `README.md`.
+
+   Files changed:
+   - `README.md` (finding 1): the Try-it commands now stand in a `console` block, `$ make check`, then `...`, then `check: green`. `make check` runs the whole suite, so the check skips it (`README.md:11: not run (suite)`). `uv sync` moved into the sentence above the block as inline code. It was a command in the old block, and I did not put a second command in a block whose output I could not show.
+   - `README.md` (finding 2): linked "feature", "stories", "instance", "stops", "stage" and "dataset" to `docs/project-guide/glossary.md` at their first use above the *Reference*. "Stage" and "dataset" are linked at their first use in the *Reference* (the machine section). The glossary has no heading per word, so every link points at the file.
+   - `README.md` (finding 3): the operator-guide line names *Setting up an operator's machine* and links `docs/operator-guide/site.md`. The heading exists at `site.md:277`.
+   - `README.md` (finding 4): the history sentence is now one pointer, "The planning history is kept at the tag `planning-history-2026-10-19`; decisions.md records why." The handover date and the first implementation's name are gone.
+   - `README.md` (finding 5): split the long sentence in the document-check section. "Kill point" and "fault-injection path" now appear only as the project guide's section names *Kill points* and *Fault-injection paths*. I left them unlinked: `docs/project-guide/README.md` has those sections but I did not add anchor links, and the document check requires the names to appear.
+
+   Checks:
+   - `make documents` ends with `documents ok (59.3 s)`.
+   - I did not run `make check`, because only a document changed.
+
+   Cross-read: the README against `docs/project-guide/style.md`, the glossary and `docs/operator-guide/site.md`; all current.
+
+   Stale text noticed and not touched: none.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (58.2 s)
