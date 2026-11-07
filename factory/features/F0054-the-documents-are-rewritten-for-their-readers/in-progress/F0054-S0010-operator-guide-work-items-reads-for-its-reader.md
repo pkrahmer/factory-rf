@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 618
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:17:11.846539Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T02:17:11.846539Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:18:17.373245Z'
+  stage: docs-review
+  run: 0440ae7f0dbc49bfa5e2954101a175c2
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -174,3 +176,20 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (13.4 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `docs/project-guide/style.md`, the glossary and the code.
+
+    I checked the five round-0 fixes, and all five hold:
+    1. Close and merge errors. `docs/operator-guide/work-items.md:113` and `:365` now give the close's `no report on the branch or the main branch` and the merge's `no report on the main branch` separately. This matches `src/factory/work/application/acceptance.py:297` and `:351`.
+    2. What each commit changes. `:346` now says that the discard changes only the story file. This matches `src/factory/pipeline/application/handlers/closed.py:63-70`.
+    3. Glossary links. Backlog, claim, stage, role, journal, cost record, tick, round, stall and project command are each linked at their first use.
+    4. Recovery tests. The three test paths and the `uv run pytest` command are dropped on purpose and named in the documenter's entry, and *Reference* points to the project guide's sections.
+    5. Acts and steps. The opening sentence is narrowed to the acts on a work item. *Branch deletion on merge must be off* is now numbered steps marked for GitHub.
+
+    I also read these against the code, and they agree:
+    - the crash-cap question and the expiry note (`src/factory/hosting/domain/post_texts.py:115-135`);
+    - the defaults in the settings table;
+    - `docs/checked-documents.txt`, which has the one new line.
+
+    Findings:
+    1. `docs/operator-guide/work-items.md:193` and `:197`: "round cap" is a glossary term (`docs/project-guide/glossary.md:22`), but the file never links it (style rule 3, criterion 1). Its first use is the heading at 193; line 197 then uses only the setting `round_cap`. Fix: link "round cap" to `../project-guide/glossary.md` at its first use in prose, for example "within the [round cap](../project-guide/glossary.md) (`round_cap`) of the stage …" on line 197.
+    2. `docs/operator-guide/work-items.md:389`: the file `docs/project-guide/README.md` is named in backticks, not linked (style rule 8: link a file of the repository by a relative link). Fix: write it as `[README.md](../project-guide/README.md)`, or link it as the project guide.
