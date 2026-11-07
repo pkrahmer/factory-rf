@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: tests
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T12:31:40.039399Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -69,6 +65,12 @@ journal:
   kind: started
   at: '2026-11-07T12:31:40.039399Z'
   stage: docs-only
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T12:31:56.433846Z'
+  stage: docs-only
+  run: 073086758e7a4dfa8e4780dd2d9600ce
 ---
 
 # The package and its areas say what they hold
@@ -168,3 +170,12 @@ Expect: `documents ok (<seconds> s)`
    FAILED tests/guards/test_old_layer_packages_removed.py::test_the_package_holds_only_its_init_the_areas_entry_and_contract - AssertionError: assert {'README.md',...hosting', ...} == {'__init__.py......
    make: *** [Makefile:89: test] Error 1
 10. factory: started docs-only as vm.
+11. documenter: I wrote no documentation this round, and I changed no file. The documents from the first round (the nine folder READMEs and the nine lines in `docs/checked-documents.txt`) are in the tree and stay as they are. The stage stalled on a red `make check`, and the cause is a test, not a document.
+
+    The failing test is `tests/guards/test_old_layer_packages_removed.py::test_the_package_holds_only_its_init_the_areas_entry_and_contract`. It asserts that the entries of `src/factory/` equal `{"__init__.py", *AREAS, "entry", "contract"}`. The new `src/factory/README.md`, which this story's Interface requires, makes the set `{"README.md", ...}`, and the assertion fails.
+
+    Change needed, for the tester to make: add `"README.md"` to the expected set on line 23 of that test, and rename the test so the name says the same (the package holds its init, its README, the areas, entry and contract). The test keeps its purpose, which is to keep old layer packages out of the package root. This is a test another story wrote, so it needs the human's leave beyond the standing leave. The story requires this README, and the guard can't pass without the change. I could not fix it myself: tests are outside my write paths, and a README in the package root is what the story asks for.
+
+    The deviation from the first round still stands. The Interface writes the subfolder line with a colon, ``- `<name>/`: ...``. The guard (`readme_problems` in `src/factory/shared/domain/folder_readmes.py`) and `docs/project-guide/style.md`, *Folder READMEs*, say ``- `<name>/` ...``, with no colon. I followed the guard and the style guide.
+
+    I cross-read `docs/project-guide/README.md` (*The code's layout*) against the READMEs in round 0 and found it current. I saw no stale text outside this story.
