@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:46:00.708607Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T01:46:00.708607Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:49:08.700033Z'
+  stage: docs-only
+  run: 348f3079580a47f2bf5955ced173486b
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -142,3 +144,26 @@ Expect: `1`
 
    Open, not mine to fix: the documenter did not check the unchanged `factory-watch` prose line by line. I spot-checked its exit statuses, the `factory-watch: <fault>` and `settings invalid` messages, `is held by` and the `origin/main` git error against `src/factory/entry/watch.py` and `src/factory/pipeline/domain/evaluation.py:225`; they match.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's twelve findings in `docs/operator-guide/records.md`. This is the only file I changed. `make documents` printed `documents ok (13.3 s)`. I did not run `make check`, because I changed only a document.
+
+   1. The introduction now says "a record of each stop of the repository or the machine".
+   2. The version pointer now reads "Why the contract changed is in the decision log". The log does not cover versions 1.2, 1.3 and 4.1, and the version-by-version list stays dropped on purpose (style rule 1).
+   3. The contract command now says that, run from a checkout without a folder, it rewrites `src/factory/contract/`. I took this from `CONTRACT_FOLDER` in `contract.py`.
+   4. and 5. Reading a bill is now two numbered steps: `git fetch`, then `factory-bill`. The two commands stay in an `sh` block. I used `sh` rather than `console github` because I cannot run `factory-bill` against a remote, and I will not write an output I did not see. The text above the block says it reads your project's remote.
+   6. I linked these glossary words at their first use: story, journal, stage, approval, feature, acceptance, round cap and crash. Backlog is still not linked, because it only appears in code spans such as `backlog`.
+   7. "Sidecar" is gone, replaced by "cost file". I also renamed the heading "Cost record: refused tool calls in the sidecar" to "Cost record: refused tool calls". Nothing links to it; I grepped in round 0.
+   8. "Builds its boundaries the same way" now reads "uses the same settings".
+   9. "Merged and not yet booked" now reads "merged with the merge not yet recorded".
+   10. The Factory Timeline is now named once, in the section on the records contract, as an example of a page that shows a factory's records from GitHub. The other mentions are gone.
+   11. I removed "an older line has none of the three" and "(or the record is older than contract 4.4)".
+   12. I split the long `factory-watch` bullets: the claim and lease bullet, the work item row bullet and the exit status bullet. The exit statuses are now a table, and the settings sentence is a separate bullet. The wording is the old wording.
+
+   Cross-read and found current: `docs/operator-guide/README.md`, the links in `work-items.md`, `install.md` and `pipeline.md` that `records.md` points to, and `docs/project-guide/watching.md`.
+
+   Stale text I saw and left alone:
+   - `docs/decisions.md:1560` still lists `records.md` among ten topic files, which is history.
+   - `make documents` prints "does not exist" notes for `docs/project-guide/work.md` ("factory/agents") and other paths. They are not part of this story.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (13.5 s)
