@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:39:00.372322Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T03:39:00.372322Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:39:51.420523Z'
+  stage: docs-review
+  run: f2a9e257f33943f286124168660bb89f
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -279,3 +281,24 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (8.8 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I read the whole page and checked the round-2 changes against the code on the branch and against `docs/project-guide/style.md`.
+
+    What holds:
+    - Round-1 finding 2 is fixed: `take` is linked at line 198, its first use in prose. The italic section name *The take* at line 134 refers to a heading in `machine.md`, so leaving it unlinked is acceptable.
+    - Round-1 finding 3 is fixed: `work item` is linked at line 156 and is plain at line 181.
+    - Round-1 finding 4 is fixed: the `work_tree_id` row (line 309) has no doubled parenthesis and no long sentence. It matches `git_cli.py:393-410`: `shutil.copy2` of the own index, `add --all`, `update-index --force-remove --` for paths `matches_any` selects, then `write-tree`.
+    - Round-1 finding 1 is fixed in the table. The row at line 245 now names the tick's restore (`delete_branch`, `tick.py:199-200`) and the stale-branch cleanup (`delete_remote_branch`, `recovery.py:247`) beside the merge and the discard handlers (`merged.py:36`, `closed.py:70`, `recording.py:90-93`).
+    - The checked-list line is present, and no heading that another document links to has changed.
+
+    Findings:
+    1. `docs/project-guide/hosting.md:181`: the sentence "After a merge or a discard, the tick deletes the local work item branches when it restores the checkout, and the recovery deletes the stale remote branches…" ties both deletions to a merge or a discard, and the code does not.
+       - `Tick._restore_checkout` runs at every tick (`tick.py:114`, `:168`, `:188-200`). It deletes the local branch of every work item that has a remote branch or is in progress, because that branch may hold a rejected push (comment at `tick.py:197-198`).
+       - `delete_stale_branches` also runs at every tick (`tick.py:123`). It deletes the remote branches of stories that are back in the backlog or done (`recovery.py:235-253`).
+       - Fix: keep "After a merge or a discard, the merge and discard handlers delete the work item's branch from the remote and the checkout". Then add separately: at every tick, the restore of the checkout deletes the local branch of each work item with a remote branch or in progress, so a rejected push is not kept; and the stale-branch cleanup deletes the remote branches of stories back in the backlog or done.
+       - Line 156's "The tick and the recovery delete the branches" should be made to agree with that.
+
+    Rejected as findings:
+    - In the `work_tree_id` row, "The index is a copy of the checkout's own" leaves out that the copy is made only when the own index exists (`git_cli.py:402`). The old page left it out too, and nothing in the sentence is false.
+    - The `move` entry in row 245 names only the merge and the discard. Moving the file back to the backlog (`closed.py:67`) is part of the discard, so the row is true.
+
+    Open: nothing beyond the finding above.
