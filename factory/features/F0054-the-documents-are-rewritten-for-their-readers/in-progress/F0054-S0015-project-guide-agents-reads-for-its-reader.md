@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:31:31.337924Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T04:31:26.305400Z'
   stage: docs-review
   run: 06f8ec87f4384267897206c11f862a27
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:31:31.337924Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -254,3 +263,4 @@ Expect: `1`
        - Fix: split each into sentences of one idea.
 
     Dropped on purpose, and acceptable (checked in round 0): the *Replaced* sections, the rename table, the IDs and version history, and the commit `f8bc9d2`.
+12. factory: started docs-only as vm.
