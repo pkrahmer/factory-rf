@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 635
-comments_read: []
+comments_read: [6706893353]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: e7c07b6c0abf486b80bf7d19d917283b
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-07T12:25:41.033588Z'
+  stage: intake
 ---
 
 # The package and its areas say what they hold
@@ -78,3 +83,5 @@ Expect: `documents ok (<seconds> s)`
    2. `src/factory/entry/README.md` is in the Interface. The Interface says "each area's README names its three layers", but `entry` is not an area and has no subfolders (it has no `domain/`, `application/` or `adapters/`). I would take it as one sentence plus a link to `docs/project-guide/README.md` (the guide its `__init__.py` names), with no subfolder lines. Please confirm, and say so in the Interface.
    3. Docs criterion (5) is fine as to sentences: it names the files and dictates no text.
    The format check passed. The smoke test is runnable, and its `Expect:` line is checkable. The scope fits the feature, which puts S0002 in group 1 with no code change. The architecture is unaffected, since it only adds READMEs.
+4. 2026-11-07 human: 1. Agreed: add one criterion for a to c in words a reviewer can check; d stays to the reviewer's judgment.
+   2. Confirmed: src/factory/entry/README.md is one sentence on what entry holds (the commands and the wiring) and a link to docs/project-guide/README.md, the guide its __init__.py names, with no subfolder lines since entry has none. Say so in the Interface.
