@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 641
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T15:07:38.705306Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-07T15:07:33.654163Z'
   stage: tests
   run: 51afc1090c0240be85ad5b71de1a994f
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-07T15:07:38.705306Z'
+  stage: doing
 ---
 
 # A folder README keeps its opening and its link lines short
@@ -114,3 +123,4 @@ Expect: `0`
    Run (`uv run pytest -q tests/shared/domain/test_folder_readmes.py`): four rows fail because the result is wrong. They are `opening-of-three-sentences-with-a-link`, `link-line-of-26-words`, `link-line-of-two-sentences` and `link-line-of-26-words-after-the-list`; each gets `[]` where one line is expected. Every other row passes. The test runner imported every module, since `factory.shared.domain.folder_readmes` already exists. The rows do not import the new constants `LINK_LINE_SENTENCES` and `LINK_LINE_WORDS`.
 
    `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
