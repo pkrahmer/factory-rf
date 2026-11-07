@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The agent files in the agent home: which agents are installed and what each one says."""
 
 from pathlib import Path

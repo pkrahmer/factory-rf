@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The fixture `instance`: a valid instance's settings, state folder and bare remote."""
 
 from pathlib import Path

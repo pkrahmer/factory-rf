@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """In a job, a machine stop that stands long enough ends the factory's process."""
 
 from collections.abc import Callable

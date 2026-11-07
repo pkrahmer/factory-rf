@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The feature acceptance as data: its id, report, state, status and the reviewer's facts."""
 
 from collections.abc import Iterable, Sequence

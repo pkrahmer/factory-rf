@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The check of the documents and the guide's files: sections, rows, words, names, examples."""
 
 import posixpath

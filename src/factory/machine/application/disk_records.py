@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The disk record: the instance's folders measured, kept in the records and the factory log."""
 
 from collections.abc import Callable

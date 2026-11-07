@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The images of the stage, built and read by the `podman` executable."""
 
 import json

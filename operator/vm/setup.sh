@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # Prepares a fresh Ubuntu 24.04 machine for the factory and installs its service: the packages,
 # the ZFS pool and datasets, the user factory, the service's folders, the factory's checkout
 # with its virtual environment, the environment file and the systemd unit. Run as root; every

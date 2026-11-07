@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """What every agent runtime shares: its calls' words, refusals and login, and a run's end."""
 
 import time

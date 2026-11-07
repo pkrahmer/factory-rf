@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The agent runtime that runs an agent as one `claude -p` call under the operator's login."""
 
 import json

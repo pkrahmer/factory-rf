@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """A command's input file, read as UTF-8 text in one place."""
 
 from pathlib import Path

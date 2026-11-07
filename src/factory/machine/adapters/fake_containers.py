@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The fake container runs the tests use: a child process on the host, with the paths mapped."""
 
 from collections.abc import Mapping, Sequence

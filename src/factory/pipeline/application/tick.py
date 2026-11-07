@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The tick: check the disk, fetch, load, restore, publish the stops, preflight, dispatch."""
 
 from collections.abc import Callable, Mapping

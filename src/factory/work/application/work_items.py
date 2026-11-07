@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The work items read from main's lifecycle folders and their branches on the remote."""
 
 from collections.abc import Callable

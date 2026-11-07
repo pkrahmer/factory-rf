@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The plumbing every handler shares: the event's target and the recorder of a work item."""
 
 from pydantic import BaseModel, ConfigDict

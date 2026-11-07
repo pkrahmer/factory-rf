@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Runs a document's examples as processes, each document in a temporary folder of its own."""
 
 import os

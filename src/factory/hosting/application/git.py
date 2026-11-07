@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The interface through which the factory reaches git."""
 
 from abc import ABC, abstractmethod

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The story check command: where each story sits and whether its form is complete."""
 
 import sys

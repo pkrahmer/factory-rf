@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The one module that picks the concrete adapters behind the application's interfaces."""
 
 import math

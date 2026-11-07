@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Replacing a file atomically, so that a reader sees the old text or the new, never half."""
 
 import os

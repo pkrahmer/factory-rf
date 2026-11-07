@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The free space of a file system and the bytes a folder takes, read with the standard library."""
 
 import os

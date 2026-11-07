@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The state of a work item, its claim, its document and how the remote shows it."""
 
 from typing import Self

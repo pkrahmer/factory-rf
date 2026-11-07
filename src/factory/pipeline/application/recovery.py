@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The recovery of a dead run: discard its work, record the crash or expiry, rerun or ask."""
 
 from typing import Final

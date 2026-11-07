@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The work item file: YAML front matter for the state, Markdown for the body."""
 
 from datetime import UTC, datetime

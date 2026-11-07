@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The preflight: the machine's checks, keyed to the image, and the probe of the main branch."""
 
 import os

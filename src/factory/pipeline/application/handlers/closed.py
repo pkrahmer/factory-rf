@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The closed handler: a close before the approval discards the story; one at it sends it back."""
 
 from datetime import UTC

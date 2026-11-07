@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The rules of a send-back at an approval: the reason, the target stage and the round cap."""
 
 from factory.pipeline.domain.pipeline_definition import PipelineDefinition

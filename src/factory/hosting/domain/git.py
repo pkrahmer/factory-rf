@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The git values the factory reasons about."""
 
 from datetime import timedelta

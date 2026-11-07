@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # Start story <id>: move it from its feature's backlog/ to in-progress/ on main, commit "<id>: start",
 # pull and push, with Kumpel <kumpel@noreply.invalid> as its author. The factory claims it at its
 # next tick.

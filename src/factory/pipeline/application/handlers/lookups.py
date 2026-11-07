@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The duplicate and pull request lookup handlers: stops with no work to do, raised as errors."""
 
 from factory.pipeline.application.dispatcher import Handler

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The fixed names of the factory's branches, labels and tree, and the paths of work items."""
 
 from typing import Literal

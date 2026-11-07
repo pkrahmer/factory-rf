@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The agent runtime that runs an agent as one `opencode run` call and reads its JSON events."""
 
 import json

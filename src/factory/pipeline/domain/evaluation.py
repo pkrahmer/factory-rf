@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The evaluation: what the remote shows, judged in four tiers, becomes one event."""
 
 from collections.abc import Callable, Sequence

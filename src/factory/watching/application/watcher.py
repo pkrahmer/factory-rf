@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The watcher: reads the remote and evaluates it into one event for this instance."""
 
 from factory.hosting.domain.git import CommitId

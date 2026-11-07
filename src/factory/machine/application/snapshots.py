@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The interface through which the factory resets, advances and compares the stage's dataset."""
 
 from abc import ABC, abstractmethod

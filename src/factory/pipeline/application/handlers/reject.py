@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The reject handler: an illegal stage change is put back by a new commit on the branch."""
 
 from factory.hosting.domain.hosting import PostKey

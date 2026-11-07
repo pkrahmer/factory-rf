@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """What a stage prepares before its agent runs: the agent, the request and the story form check."""
 
 from collections.abc import Mapping

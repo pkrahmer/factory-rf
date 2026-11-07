@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The one fake of the hosting service: pull requests, comments and posts in memory."""
 
 from collections.abc import Sequence

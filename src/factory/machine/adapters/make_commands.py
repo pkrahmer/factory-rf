@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The project commands of a project whose build is driven by make."""
 
 import os

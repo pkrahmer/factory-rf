@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The stops of a repository, the machine and one work item, and the health status."""
 
 from collections.abc import Sequence

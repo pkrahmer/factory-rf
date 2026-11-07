@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # The operator's site file: one place for a site's own values, read and never executed.
 # Sourced by the operator's scripts; prints nothing of its own on success.
 #   site_path             print the site file's path

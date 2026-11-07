@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The take: what the stage's role may write goes from the dataset into the work tree."""
 
 import os

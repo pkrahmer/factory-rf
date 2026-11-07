@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The bearer token of a model API and the wait before the next one is requested."""
 
 from datetime import timedelta

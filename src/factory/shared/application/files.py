@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The interfaces through which the factory reads and writes its files."""
 
 from abc import ABC, abstractmethod

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Bills: the sums of cost records by stage and in total, and their line and table texts."""
 
 from collections.abc import Sequence

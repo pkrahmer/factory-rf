@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The write paths: what an agent may write, what no agent may write, and the one verdict."""
 
 import re

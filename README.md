@@ -4,6 +4,10 @@ kumpel-factory builds software from [stories](docs/project-guide/glossary.md). Y
 
 It runs on a Linux VM or as a Cloud Run job, with Claude Code or opencode as the agents. It builds this repository too.
 
+## License
+
+kumpel-factory is licensed under the Apache License 2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE). Each file of code and each script of the operator names its license in its first line, `SPDX-License-Identifier: Apache-2.0`, so that a copied file says so too.
+
 ## Try it
 
 Install the packages with `uv sync`, then run the checks. `make check` runs lint, types, layers, sast, secrets, licenses and tests. The last line must be `check: green`:

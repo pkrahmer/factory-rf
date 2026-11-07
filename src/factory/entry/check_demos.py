@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The demo check command: the parts, pipeline definition, stories and index of every demo."""
 
 import argparse

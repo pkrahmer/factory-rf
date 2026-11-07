@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # The operator's hosting client: the code host's API and git over HTTPS, with a token from the site.
 # Sourced after site.sh. The token never reaches an argument list, where ps shows it to every user.
 #   hosting_token                        print the token; return 0, or 4 when its source fails

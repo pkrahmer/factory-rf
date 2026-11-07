@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The watcher's command line: an evaluation's event seen from outside the tick, and the board."""
 
 import argparse

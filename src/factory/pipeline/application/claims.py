@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The claim: the stage-start commit that records an instance's hold on a work item."""
 
 import re

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """What the factory asks of an agent run and what it learns from one."""
 
 from collections.abc import Mapping

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The move rule: which stage changes the pipeline definition allows on a work item."""
 
 from pydantic import BaseModel, ConfigDict

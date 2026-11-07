@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The records contract: the records readers outside the factory may rely on, and their schemas."""
 
 import json

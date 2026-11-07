@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The root of the errors the factory raises on purpose."""
 
 from factory.hosting.domain.git import PushOutcome

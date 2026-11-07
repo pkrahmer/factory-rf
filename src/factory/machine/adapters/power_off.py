@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The machine's power, switched off through `sudo` and `systemctl`, or the loop's stop."""
 
 from collections.abc import Callable

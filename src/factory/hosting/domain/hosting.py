@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The pull request DTOs, the factory's marker and the post key."""
 
 import re

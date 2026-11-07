@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The write paths of a stage, read from the pipeline definition at its stage-start commit."""
 
 from factory.agents.domain.agent_runs import WritePathSettings

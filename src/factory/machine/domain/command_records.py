@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The record of one run of a project command, telemetry beside the factory log."""
 
 from pydantic import BaseModel, ConfigDict

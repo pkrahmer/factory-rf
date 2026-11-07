@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The crash and the expiry: the count they raise and the journal texts that record the discard."""
 
 from factory.hosting.domain.git import CommitId

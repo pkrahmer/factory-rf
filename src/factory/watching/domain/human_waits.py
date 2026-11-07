@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The human's waits: one per blocking question, until the human's next record, and their line."""
 
 from collections.abc import Sequence

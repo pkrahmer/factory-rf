@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The merged handler: a merged story is archived on main with its bill, then its branch goes."""
 
 from factory.hosting.domain.post_texts import done_entry_text

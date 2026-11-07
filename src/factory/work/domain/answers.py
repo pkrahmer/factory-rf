@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """What an answer does to a waiting work item: the wait ends and its own counter starts over."""
 
 from factory.work.domain.work_item import WorkItemState

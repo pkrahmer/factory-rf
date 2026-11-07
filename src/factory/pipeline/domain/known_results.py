@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The key a project command's result depends on, its records, and the result known for a key."""
 
 import hashlib

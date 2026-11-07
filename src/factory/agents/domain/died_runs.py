@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The factory log's line for a run that died: the run, its work item and stage, and its text."""
 
 

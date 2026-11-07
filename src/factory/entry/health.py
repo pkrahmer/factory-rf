@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The container's health check: the stops in force as lines, and an exit status."""
 
 import argparse

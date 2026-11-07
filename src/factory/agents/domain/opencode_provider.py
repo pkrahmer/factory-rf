@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The opencode provider file: one OpenAI-compatible provider, its rules and its configuration."""
 
 import re

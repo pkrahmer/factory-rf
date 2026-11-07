@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # Wait until the factory needs the operator, or until <minutes> have passed (default 9; keep it below
 # the shell tool's timeout). Prints exactly one line:
 #   event: <the status line that changed or waits>   when a pull request waits on the operator,

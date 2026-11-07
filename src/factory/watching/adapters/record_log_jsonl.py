@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """An append-only file of records, one JSON object per line."""
 
 from pathlib import Path

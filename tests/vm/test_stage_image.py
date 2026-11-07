@@ -505,7 +505,8 @@ def test_nothing_of_the_long_lived_container_is_left(stage_dockerfile: str, word
 def test_the_first_line_names_the_build_command_with_the_runtime(
     stage_dockerfile: str, change: Callable[[str], str], named: bool
 ) -> None:
-    first = change(stage_dockerfile).splitlines()[0]
+    # The license header stands on line 1; the build command's line follows it.
+    first = change(stage_dockerfile).splitlines()[1]
 
     assert first.startswith("#")
     assert "podman build -f operator/vm/Dockerfile" in first

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The snapshots of a ZFS dataset, reached through the `zfs` executable."""
 
 import functools

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The board: one row per feature with its story counts, one per work item in progress."""
 
 from collections.abc import Mapping, Sequence

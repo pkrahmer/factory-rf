@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The push of a stage's result or a recorded change, tried again when a wait may cure it."""
 
 from datetime import timedelta

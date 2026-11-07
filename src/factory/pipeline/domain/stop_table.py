@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Every stop v1 left only in a log, with the destination v1.1 gives it."""
 
 import re

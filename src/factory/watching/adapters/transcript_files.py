@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The transcript folder on the factory's own disk, or on a bucket mounted as one."""
 
 import hashlib

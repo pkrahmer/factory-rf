@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Named points where a test can inject a crash into the factory's wrappers."""
 
 from enum import StrEnum

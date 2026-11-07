@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # The factory's Cloud Run job, from the site's values: create, update, execute and delete it,
 # and read an execution's log and the job's status.
 #   job.sh create  [--dry-run]   create the job; refused when it exists

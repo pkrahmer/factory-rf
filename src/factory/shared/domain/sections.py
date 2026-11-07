@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The title, the `## ` sections and the fenced code blocks of a Markdown body."""
 
 import re

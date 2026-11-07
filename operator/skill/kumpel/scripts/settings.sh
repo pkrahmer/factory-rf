@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # The operator's settings: the site file's repository and checkout, and one JSON file outside every
 # repository for the switches (and for the repository and the checkout when the site gives none).
 #   settings.sh show                         print the settings

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The lines a program printed, read without the blank ones."""
 
 

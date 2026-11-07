@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The lease clock: the age of a claim, its expiry and the status it gives an instance."""
 
 from datetime import datetime, timedelta

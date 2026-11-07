@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The one place that starts a process: every command-line tool is reached through it."""
 
 import contextlib

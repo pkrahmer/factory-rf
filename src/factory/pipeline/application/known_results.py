@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """A stage's project commands, run only when no passed result is known for the same key."""
 
 from datetime import timedelta

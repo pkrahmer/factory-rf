@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The factory log: time-stamped lines to standard output and an appended file."""
 
 import sys

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The opening of a work item: its branch prepared from the remote and its draft pull request."""
 
 from pydantic import BaseModel, ConfigDict

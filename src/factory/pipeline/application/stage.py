@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """A stage from its start to its result: the run, the decision, the checks and the result commit."""
 
 import re

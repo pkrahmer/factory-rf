@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # The stage image of every stage's containers, the tools alone; build: podman build -f operator/vm/Dockerfile --build-arg AGENT_RUNTIME=<claude|opencode> -t <FACTORY_STAGE_IMAGE> .
 # Every tool that shapes a result is pinned; Debian's packages follow the base image's release (docs/decisions.md).
 ARG BASE_IMAGE=python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258

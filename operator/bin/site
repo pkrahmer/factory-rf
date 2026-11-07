@@ -1,4 +1,5 @@
 #!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
 # The operator's site file: where it is, a first copy of it, and its values.
 #   site path             print the site file's path
 #   site init             write the example to the path, mode 0600

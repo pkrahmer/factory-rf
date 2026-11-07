@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The generic result of a project command, judged by its exit status alone."""
 
 import re

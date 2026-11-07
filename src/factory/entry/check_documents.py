@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The documents command: the findings of the documents and the guide's files, one per line."""
 
 import argparse

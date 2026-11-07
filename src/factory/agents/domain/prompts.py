@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The prompt of a stage's agent and the decisions it may end with, composed from fixed lines."""
 
 from collections.abc import Sequence

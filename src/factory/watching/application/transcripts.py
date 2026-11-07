@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Each agent run's transcript, kept compressed in a folder no container and no commit reaches."""
 
 import gzip

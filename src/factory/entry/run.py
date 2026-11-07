@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The process of one instance: its loop over one tick until a signal stops it."""
 
 import os

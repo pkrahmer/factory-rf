@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """The paths of a work item moved from one lifecycle folder of its feature to another."""
 
 from factory.shared.domain.paths import LifecycleFolder, folder_of
