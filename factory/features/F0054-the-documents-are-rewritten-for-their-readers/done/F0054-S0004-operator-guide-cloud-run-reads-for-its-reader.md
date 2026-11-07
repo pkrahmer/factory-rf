@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -91,6 +91,11 @@ journal:
   at: '2026-11-07T00:12:33.310976Z'
   stage: docs-review
   run: cc4b507705734aa2a3781d1a7c9c94e8
+- number: 16
+  speaker: factory
+  kind: done
+  at: '2026-11-07T00:16:26.812799Z'
+  stage: docs-approval
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -227,3 +232,4 @@ Expect: `1`
     - The Description's "style rules 8 to 10" names rules that style.md does not number past 8. That is the story's own text, not the diff under review, and the docs criterion is met either way.
 
     no findings
+16. factory: done (pull request merged); cost: 7 runs, 7.0 min, 64 turns, 250883 tokens in (1821811 more from cache), 38648 out, $2.44
