@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:46:44.168153Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -104,6 +108,11 @@ journal:
   at: '2026-11-07T09:46:38.706449Z'
   stage: docs-review
   run: f535638cd5ec436b95229b8df62ebff9
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:46:44.168153Z'
+  stage: docs-only
 ---
 
 # The operator folder's README reads for its reader
@@ -293,3 +302,4 @@ Expect: `1`
     Findings:
     1. `operator/README.md:74`: "The checks are those of the [approval] stage." The code does not bear this out. The glossary says the approval stage is where the human reads the pull request, and the factory has no six checks there. The six checks are Kumpel's own: it judges them on a story at `stage:approval` (`operator/skill/kumpel/references/approving.md:3-5`, `scripts/approval.sh:2`). Fix: say that these are the six checks Kumpel judges on a story at the approval stage, and link `operator/skill/kumpel/references/approving.md` where they are listed.
     2. `operator/README.md` steps 2, 4 and 5 (lines 23, 36-42, 48-54): the text above these `sh` blocks does not say where they run. Style.md, *Examples that are not run*, requires it: "The text above the block says where it runs." These commands use paths relative to the repository root (`operator/bin/site`, `operator/opencode/...`, `operator/skill/kumpel/scripts/settings.sh`), and they write to `~`. Only steps 1 and 3 say "from the root of this repository" or "on the operator's machine". Fix: in each of steps 2, 4 and 5, say that it runs on the operator's machine from the root of this repository, as step 3 does. Or say it once above step 1 for every step and drop the repeats.
+18. factory: started docs-only as vm.
