@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:11:56.014235Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T03:11:50.632874Z'
   stage: docs-review
   run: e18bdc3531bb4964a46cace6042fd379
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:11:56.014235Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -281,3 +290,4 @@ Expect: `1`
        - Fix: split each into sentences of one idea.
 
     Not a finding: `docs/project-guide/machine.md:443` still says "(since F0044-S0010)". That text was already on `main`, and `machine.md` is outside this story's rewrite.
+12. factory: started docs-only as vm.
