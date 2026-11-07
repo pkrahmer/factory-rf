@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:12:50.736910Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T04:12:45.946559Z'
   stage: intake
   run: f9c96d4ca24f45e6a60fd82371ed819b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:12:50.736910Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -71,3 +80,4 @@ Expect: `1`
    - Scope: within F0054's scope (S0015 is listed, one file per story). It touches nothing in the feature's out-of-scope list (`decisions.md`, `docs/runs/`, the operator playbook, behaviour changes).
 
    Route: docs-only.
+4. factory: started docs-only as vm.
