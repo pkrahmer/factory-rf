@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T07:48:46.118859Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T07:48:46.118859Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T07:49:01.169177Z'
+  stage: intake
+  run: 9e8091ff994c463899c59a082035015b
 ---
 
 # The project guide's index reads for the developer
@@ -60,3 +62,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete paths only, `docs/project-guide/README.md` (rewritten) and `docs/checked-documents.txt` (one line). It states no code signatures and says no code, test or agent file changes. Both paths are ones the documenter may write, so the route is docs-only.
+   - Criteria: criteria 1 and 2 are judged by the reviewer against the style page and the code, which is the docs route's check. Criterion 3 is checkable with `make documents`. Criteria 4 and 5 are checkable as broken links. Criterion 6 is `make check`. The Interface states no limit, default or rejected input, so no rule needs a failing-side criterion. The link rule and the checked-list line each have a criterion (4 and 3).
+   - Smoke test: `grep -cx "docs/project-guide/README.md" docs/checked-documents.txt` is runnable. `Expect: 1` can be checked against its output. It runs no pytest.
+   - Docs criterion: criterion 7 asks for criteria 1 to 5 and for no change to `docs/decisions.md`. It names what the reader must know (the facts of the old file kept or moved to Reference, with working examples). It dictates no sentences.
+   - Architecture: only documents change, so the layers in CLAUDE.md are untouched. The page being rewritten is the project guide's index, which CLAUDE.md names.
+   - Scope: S0020 is listed in F0054's stories. It touches no `decisions.md`, `docs/runs/` or operator-playbook file, and it changes no behaviour.
