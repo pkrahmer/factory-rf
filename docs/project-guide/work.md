@@ -10,7 +10,7 @@ A work item has an id, a place in the order and a place in the repository. Two p
     is_name(text) -> bool
     parse_work_item_file_name(text) -> WorkItemFileName | None
     parse_feature_directory_name(text) -> FeatureDirectoryName | None
-    work_item_order(id) -> tuple
+    work_item_order(id) -> tuple[str, int, str]
     branch_name(id) -> str
     work_item_of_branch(branch) -> WorkItemId | None
     work_item_path(feature_directory, folder, file_name) -> str
@@ -505,7 +505,7 @@ journal:
 ```
 
 - A missing value is `null`, an empty list `[]`, a non-empty `comments_read` a flow list, `claim` is `claim: null` when absent, and `journal` is a block list of mappings.
-- A journal record's `at`, `stage` and `run` are left out of the file when unset. Every other key stays (`claim: null`). A record with all three:
+- Every unset field of a journal record (`at`, `stage`, `run`, `blocked`, `reason`) is left out of the file. Every key of the state itself stays (`claim: null`). A record with all three of `at`, `stage` and `run`:
 
   ```yaml
   - number: 2

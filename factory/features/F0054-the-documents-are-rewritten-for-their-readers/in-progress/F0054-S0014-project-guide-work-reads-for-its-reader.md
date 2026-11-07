@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:04:43.927542Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -96,6 +92,12 @@ journal:
   kind: started
   at: '2026-11-07T04:04:43.927542Z'
   stage: docs-only
+- number: 16
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:07:16.433825Z'
+  stage: docs-only
+  run: 862285c7715c42f59572ec3043b62be8
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -277,3 +279,18 @@ Expect: `1`
     1. `docs/project-guide/work.md:508`: "A journal record's `at`, `stage` and `run` are left out of the file when unset. Every other key stays (`claim: null`)." The code contradicts this for a record. The writer dumps each record with `model_dump(exclude_none=True)` (`src/factory/work/adapters/work_item_markdown.py:175`), so an unset `blocked` and `reason` are left out too. Line 92 of the same page already says so ("leaves an unset field out"). Fix: say that every unset field of a journal record (`at`, `stage`, `run`, `blocked`, `reason`) is left out of the file, and that every key of the state itself stays (`claim: null`).
     2. `docs/project-guide/work.md:13`: the signature says `work_item_order(id) -> tuple`. The code returns `tuple[str, int, str]` (`src/factory/shared/domain/identifiers.py:81`). This is the same kind of loose type as round 0's finding 3. Fix: write `-> tuple[str, int, str]`.
 15. factory: started docs-only as vm.
+16. documenter: I fixed the reviewer's two findings from the last docs-review. Both are in `docs/project-guide/work.md`. `make documents` ends with `documents ok (9.8 s)`. I changed only a document, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/work.md`, line 13: the signature now reads `work_item_order(id) -> tuple[str, int, str]`, as in `src/factory/shared/domain/identifiers.py:81`.
+    - `docs/project-guide/work.md`, line 508: the bullet now says that every unset field of a journal record (`at`, `stage`, `run`, `blocked`, `reason`) is left out of the file, and that every key of the state itself stays (`claim: null`). The writer dumps records with `exclude_none=True`, and line 92 of the same page already says so. The example that follows is the record with `at`, `stage` and `run` all set, and the bullet now says that.
+
+    I changed no heading, so no link from another file moved. I cross-read nothing new this round. `docs/project-guide/README.md`, `docs/checked-documents.txt` and the operator-guide links were found current in the earlier rounds.
+
+    Stale text I saw but did not touch, because it is unrelated to this story: `make documents` still lists "not checked yet" names in `docs/project-guide/agents.md`, `docs/project-guide/machine.md` and `docs/project-guide/README.md`.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (10.0 s)
