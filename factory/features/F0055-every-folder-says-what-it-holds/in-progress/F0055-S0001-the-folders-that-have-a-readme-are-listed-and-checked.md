@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-07T10:57:48.031903Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -225,6 +229,11 @@ journal:
   at: '2026-11-07T10:57:42.907874Z'
   stage: review
   run: 85b721fa68cb4928a64c8e7305ddd4f1
+- number: 40
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:57:48.031903Z'
+  stage: docs
 ---
 
 # The folders that have a README are listed and checked
@@ -606,3 +615,4 @@ Expect: `23 ['x: no README.md']`
     Notes:
     - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) is still a copy of `_run` in `tests/entry/test_check_documents_checked_files.py:50`. The human made moving it to `tests/support/check_documents_support.py` optional in entry 29.
     - `tests/guards/test_folder_readmes.py:10` (`ROOT = Path(__file__).parents[2]`) repeats the `ROOT` that `tests/support/shipped_agents.py:13`, `tests/support/operator_support.py:10` and others already define. Many guards follow the same pattern.
+40. factory: started docs as vm.
