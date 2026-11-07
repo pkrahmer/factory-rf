@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987, 6707415610]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-07T13:28:11.846789Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-07T13:28:11.846789Z'
   stage: smoke-test
+- number: 26
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T13:29:46.173991Z'
+  stage: smoke-test
+  run: 737a13c074aa4e20bfb1c27d60a946c1
 ---
 
 # The tests say how they are laid out
@@ -375,3 +377,21 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (60.6 s)
 25. factory: started smoke-test as vm.
+26. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, as written.
+
+    Command 1: `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 48ms
+    documents ok (60.2 s)
+    ```
+    (The first line is uv's own message on stderr, which the pipe to `tail` does not filter. The command's exit status was 0.)
+    Expect: `documents ok (<seconds> s)`. **Met.**
+
+    Checking the output against the acceptance criteria:
+    - Criterion 1: `tests/README.md`, `tests/support/README.md` and `tests/guards/README.md` exist. `tests/README.md` opens with one sentence on what the folder holds, links to `CLAUDE.md` *Tests*, and has a line for each subfolder in the ``- `<name>/` …`` form. I also ran `uv run pytest tests/guards/test_folder_readmes.py tests/guards/test_tests_layout.py` as an extra check: 123 passed, 11 skipped. All 11 skips are folders this story does not cover (`agents/`, `docs/`, `operator/*`, `security/`). None of the three new READMEs was skipped.
+    - Criterion 2: the document check finds nothing. The three paths are on `docs/checked-documents.txt` at lines 35–37.
+    - Criterion 3: the smoke test shows it. It ran the document check module directly, not `make documents`, but that module is what prints the line.
+    - Criterion 4: I did not run `make check` here. The factory's checks cover it.
+    - Criterion 5 (docs): in `docs/project-guide/README.md`, *Shared test helpers*, line 63 ("The root of `tests/` holds `conftest.py`, its `README.md` and folders") and line 72 (what the layout guard fails on) both name the root's `README.md`.
+
+    Findings: none. I fixed nothing and left the working tree unchanged.
