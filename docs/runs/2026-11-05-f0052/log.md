@@ -163,3 +163,4 @@ Times are UTC. The plan: `night-plan.md`.
 - 05:35Z: F0054-S0017 PR #625 hit the round cap (3) at docs-review ($5.28, 9 runs); the last two findings are real code facts (who calls project_image_settings; ImageBuild's warnings field). One more round answered by the human's word for tonight.
 - 05:48Z: F0054-S0017 PR #625 merged at docs-approval: the project guide's machine.md rewritten and listed; ImageBuild's warnings now named. $6.26, 14 runs, one round cap.
 - 05:48Z: F0054-S0018 (F0054-S0018-project-guide-pipeline-reads-for-its-reader) started.
+- 06:25Z: F0054-S0018 PR #626 hit the round cap (3) at docs-review ($7.35, 10 runs; pipeline.md is the longest page); the last findings are real (a build order, a lost condition, long sentences). One more round answered by the human's word for tonight.
