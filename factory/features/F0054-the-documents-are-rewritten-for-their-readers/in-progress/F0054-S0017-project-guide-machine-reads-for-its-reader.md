@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T05:40:34.184226Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-07T05:40:29.181072Z'
   stage: docs-review
   run: 3bd8a4b992404a31a76f5e1116af456f
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:40:34.184226Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -455,3 +464,4 @@ Expect: `1`
     1. docs/project-guide/machine.md:725, the bullet this round rewrote, breaks style rule 2 (`docs/project-guide/style.md`:8: one idea per sentence, split anything over about 25 words). The sentence "A different text calls `chosen_image`; it passes a `StageImageReport` when a stage file exists or at the start, and none for a later follow without a stage file (`stage_image_report`: log, clock, the commit's first 12 hex digits)." runs to about 37 words and joins two ideas with a semicolon. Fix: split it. For example: "A different text calls `chosen_image`. It passes a `StageImageReport` (`stage_image_report`: log, clock, the commit's first 12 hex digits) when a stage file exists or at the start. A later follow without a stage file passes none."
 
     Earlier tests: none needed (the diff changes no test file).
+28. factory: started docs-only as vm.
