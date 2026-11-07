@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T11:59:58.674977Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-07T11:59:53.679905Z'
   stage: intake
   run: 164af4b33f924f108633b22a8d827554
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:59:58.674977Z'
+  stage: tests
 ---
 
 # Every file of code and every script names its license
@@ -97,3 +106,4 @@ Expect: `0`
    - Docs criterion: names what the reader must know (license, the header in each file, links to `LICENSE` and `NOTICE`, the guard, the rejected options). It dictates no sentences.
    - Architecture: the guard sits in `tests/guards/` as the project's layout requires. The only code change is a comment line, so there is no layer or wrapper concern. The generated schemas are untouched.
    - Scope: S0007 is listed in the feature's Scope and in decisions 7 to 9. The tests, `operator/template/`, `demo/`, the documents and the agent files are excluded as the feature says. The route is `tests` because the Interface changes `src/` and `operator/` files, which the documenter may not write.
+7. factory: started tests as vm.
