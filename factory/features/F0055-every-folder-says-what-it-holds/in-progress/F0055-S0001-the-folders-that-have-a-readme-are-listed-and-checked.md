@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T10:51:25.269173Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -192,6 +196,11 @@ journal:
   at: '2026-11-07T10:51:20.009727Z'
   stage: doing
   run: 9a9e46d8d45a429290526af103755303
+- number: 34
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:51:25.269173Z'
+  stage: tests
 ---
 
 # The folders that have a README are listed and checked
@@ -508,3 +517,4 @@ Expect: `23 ['x: no README.md']`
     Refactor pass: the diff is one line, and nothing else needed changing. I did not rewrite the Description; the journal changed no meaning beyond what entry 27 already corrected. I did not touch any test.
 
     Noticed but not touched, as in earlier entries: `folder_readmes` imports the large `documents` module. Both are domain layers, so this is allowed.
+34. factory: started tests as vm.
