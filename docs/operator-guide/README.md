@@ -1,38 +1,53 @@
 # Operator guide
 
-The guide for the person who runs the factory this repository implements: how to install and configure an instance, which stops it can reach and what to do about each. The machine of v1.2, a VM that runs the instance's stages in containers on a ZFS dataset, is described in "The machine" in [machine.md](machine.md). An operator of v1.1's long-lived container finds its guide at the tag `v1.1`; this guide describes the VM alone.
+The guide for the person who runs an [instance](../project-guide/glossary.md) of the factory this repository implements. It shows how to install and configure an instance, how to watch it, and what to do when it [stops](../project-guide/glossary.md).
+
+An instance runs on a VM with ZFS and rootless Podman, and every [stage](../project-guide/glossary.md) runs in throwaway containers on one ZFS dataset. "The machine" in [machine.md](machine.md) describes that VM. You know Linux, git and a terminal; you do not need to read the code.
+
+## Where to start
+
+1. Prepare the machine and install the factory: read "The machine" in [machine.md](machine.md), then [install.md](install.md).
+2. Set the instance's settings: read "Configuration" in [install.md](install.md).
+3. Check that the instance is healthy: read [health.md](health.md).
+4. When the instance stops, look the stop up in "The stops" in [stops.md](stops.md).
+
+## The files of the guide
 
 The guide is this index and one file per topic:
 
-- [install.md](install.md): installing the factory, its configuration, a process that refuses to start, the loop and its pauses, and the project's make targets.
-- [agent-runtime.md](agent-runtime.md): the agent runtime (Claude Code or opencode, the login, a proxy, a provider's limits) and the agent files.
-- [machine.md](machine.md): the machine, the VM with ZFS and rootless Podman that runs every stage, its stage image, its service, its costs and its logs.
-- [site.md](site.md): the site file, repeating a trial, and setting up an operator's machine from one site file.
-- [cloud-run.md](cloud-run.md): running the factory in a Cloud Run job.
-- [health.md](health.md): the preflight and the health check, the factory log and the health status file, and the transcripts.
-- [stops.md](stops.md): the stops and what to do about each, what a stage run shows, stalls, the factory's own questions, an event that keeps failing and stops that cannot be done.
-- [pipeline.md](pipeline.md): the pipeline definition and checking a story before it starts.
-- [records.md](records.md): the records contract, what a work item cost (`factory-bill`) and looking at the remote (`factory-watch`).
-- [work-items.md](work-items.md): a feature acceptance, the hand-over at the approval, merges, closes, stale branches, a stage changed by hand, a restart during a stage, an expired lease, and claims, leases and the clock.
-- This index: what v1.2 and v1.1 replaced, under "Replaced in v1.2" and "Replaced from v1".
+| File | What it covers |
+| --- | --- |
+| [install.md](install.md) | Installing the factory, its configuration, a process that refuses to start, the loop and its pauses, and the project's make targets. |
+| [agent-runtime.md](agent-runtime.md) | The agent runtime (Claude Code or opencode), the login, a proxy, a provider's limits and the agent files. |
+| [machine.md](machine.md) | The VM with ZFS and rootless Podman that runs every stage, its stage image, its service, its costs and its logs. |
+| [site.md](site.md) | The site file, repeating a trial, and setting up an operator's machine from one site file. |
+| [cloud-run.md](cloud-run.md) | Running the factory in a Cloud Run job. |
+| [health.md](health.md) | The preflight and the health check, the factory log and the health status file, and the transcripts. |
+| [stops.md](stops.md) | The stops and what to do about each, what a stage run shows, stalls, the factory's own questions, an event that keeps failing and stops that cannot be done. |
+| [pipeline.md](pipeline.md) | The pipeline definition and checking a story before it starts. |
+| [records.md](records.md) | The records contract, what a work item cost (`factory-bill`) and looking at the remote (`factory-watch`). |
+| [work-items.md](work-items.md) | A feature acceptance, the hand-over at the approval, merges, closes, stale branches, a stage changed by hand, a restart during a stage, an expired lease, and claims, leases and the clock. |
 
-## Replaced in v1.2
+The reasons behind the factory's design are in the decision log, [decisions.md](../decisions.md).
 
-What v1.1 did and the machine of v1.2 does not, so that a name you remember from v1.1's guide is not mistaken for a live one. The decision log keeps the reasons ("One snapshot instead of many layers").
+## Reference
 
-- The kernel's write guard (F0044-S0001, F0044-S0002): the wrapper `factory-confine`, which put Landlock rules around every agent call, and the pipeline definition's `tool_paths` are gone. The container is the boundary, the dataset's rollback clears what the agent wrote, and the take copies out only the paths the role may write. A pipeline definition that still holds `tool_paths` is refused.
-- The second user (F0044-S0005): the `agent` user, the `sudo` chain that started a call as it and `FACTORY_AGENT_USER` are gone. The agent's container runs as `factory` with `--userns=keep-id` and mounts the dataset only; the token is on the host, which alone pushes.
-- The leftovers program (F0044-S0003): `factory.entry.leftovers`, which ended what a call left running, is gone. The end of the call's container ends everything in it.
-- The fresh home (F0044-S0004): `factory.entry.fresh_home`, which emptied the agent's home before a call, is gone. The agent's home is `home/` on the dataset, and the rollback to the base clears it before every stage.
-- The checkout's hygiene (F0044-S0006): the seal of `.git`, the removal of ignored paths and nested repositories, the re-clone and the stop `nested_repository` are gone. The checks run on a rolled-back copy of the dataset, and only the paths the role may write reach the checkout. The records contract rose to `3.0`.
-- The inline environment (F0044-S0008): v1.1's way of running a stage in the factory's own container, and `FACTORY_STAGE_ENVIRONMENT`, which chose between it and the containers, are gone. `ContainerEnvironment` is the only environment; an instance without `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` is refused. An environment file that still holds the variable is harmless: nothing reads it.
-- The undo (F0044-S0009): `UndoService`, which put back what a run wrote outside its write paths, is gone. The take leaves such changes out of the work tree, and the journal says `The factory left out changes outside the write paths: ...`.
-- The Docker path (F0044-S0010): the Docker image, the compose file, the long-lived container with its entrypoint, its health check and `docker exec` are gone, and with them `image/`, apart from the credential helper that moved to `operator/vm/git-credential-factory`. The machine is the VM of "The machine" in [machine.md](machine.md); the stage image (`operator/vm/Dockerfile`) holds the tools alone.
+What the instance does and does not do, for the operator who knows an older setup or an older option.
 
-## Replaced from v1
+### What the stage environment is
 
-What v1 did and v1.1 does not, so that a file or an option you remember is not mistaken for a live one.
+- Every stage runs in containers. The [stage environment](../project-guide/glossary.md) is the containers; an instance without `FACTORY_DATASET`, `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` is refused. A setting file that holds a variable the factory does not read, such as `FACTORY_STAGE_ENVIRONMENT`, is harmless: nothing reads it.
+- The container is the boundary. The agent's container runs as the user `factory` with `--userns=keep-id` and mounts the [dataset](../project-guide/glossary.md) only. The token is on the host, which alone pushes.
+- The agent's home is `home/` on the dataset. The rollback to the [base](../project-guide/glossary.md) clears it before every stage, and it clears whatever else a run left on the dataset.
+- The factory ends everything an agent's call started by ending the call's container.
+- The checks run on a rolled-back copy of the dataset. After a run, the [take](../project-guide/glossary.md) copies into the work tree only the changed paths the role may write. The journal records what it left out as `The factory left out changes outside the write paths: ...`.
+- A [pipeline definition](../project-guide/glossary.md) that holds `tool_paths` is refused: no tool call is judged, and the write paths are the only rule.
+- The stage image (`operator/vm/Dockerfile`) holds the tools alone. The credential helper is `operator/vm/git-credential-factory`, which `operator/vm/setup.sh` installs as `/usr/local/bin/git-credential-factory`.
 
-- `factory-watch` has no `--follow` mode and nothing writes the file `factory-last-line`: `--follow` is an unknown option. A file of that name left by v1 is not read and can be deleted.
-- v1's leftover files in `.git/` (`factory-run.json`, `factory-tick.lock`, `factory-tick.json`) are neither read nor written; they change nothing and can be deleted.
-- This repository's v1 history (v1's `stages.yml`, `TICKET.md`, `FEATURE.md` and its features F0001 to F0017) was `factory/v1/` and is kept at the tag `planning-history-2026-10-19`. Since the handover of 2026-10-18 v1.1 builds this repository from `factory/pipeline.yml`, `factory/story-form.md` and the features under `factory/features/`.
+### Options that do not exist
+
+- `factory-watch` has no follow mode: an option for it is unknown.
+
+### This repository's own history
+
+The planning history of this repository (the first pipeline's forms and its first features) is kept at the tag `planning-history-2026-10-19`. The factory builds this repository from `factory/pipeline.yml`, `factory/story-form.md` and the features under `factory/features/`.
