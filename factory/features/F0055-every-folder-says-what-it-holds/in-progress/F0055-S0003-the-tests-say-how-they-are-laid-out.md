@@ -1,17 +1,13 @@
 ---
 stage: doing
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 636
 comments_read: [6707209251]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T13:01:31.482798Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,13 @@ journal:
   kind: started
   at: '2026-11-07T13:01:31.482798Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: question
+  at: '2026-11-07T13:02:05.843573Z'
+  stage: doing
+  run: 9a70c9c27b9f444295896f3576a82069
+  blocked: question
 ---
 
 # The tests say how they are laid out
@@ -136,3 +139,20 @@ Expect: `documents ok (<seconds> s)`
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: I stopped before writing anything. Nothing in this story can be fixed from the coder's write paths, so the doing stage's gate (`make check`) can't go green and a `review` decision would just stall here.
+
+    What I checked: I ran `uv run pytest -q tests/guards/test_test_folder_readmes.py tests/guards/test_tests_layout.py tests/guards/test_folder_readmes.py`. It gave 7 failures, the ones the tester expected:
+    - `test_a_test_folder_readme_is_written_so_its_guard_does_not_skip_it`, rows `tests/README.md`, `tests/support/README.md`, `tests/guards/README.md`: the files are missing.
+    - `test_a_test_folder_readme_is_on_the_checked_documents`, the same three rows: the paths are not in `docs/checked-documents.txt`.
+    - `test_the_root_holds_only_conftest_and_packages`: it now expects `README.md` in `tests/`.
+
+    To make them pass, someone has to write `tests/README.md`, `tests/support/README.md`, `tests/guards/README.md` and three lines in `docs/checked-documents.txt`. According to `factory/pipeline.yml`, the coder's write paths are `src/*`, `agents/*` and `operator/...`. None of these files are in them. They are all in the documenter's write paths, and the documenter runs only after review. The doing stage checks `make check`, so the red tests hold the work item at doing before docs ever runs. The tester's entry 8 already pointed out that the story should pass through doing with no code change, but the gate does not allow that.
+
+    Options I see:
+    (a) You commit the three READMEs and the three `docs/checked-documents.txt` lines on `work-item/F0055-S0003` yourself, and doing runs again with nothing to write. The docs stage then checks the wording.
+    (b) You give the coder these four paths for this story, by changing `factory/pipeline.yml`. That is a pipeline file, so only you can change it. I would then write the READMEs from the code and docstrings.
+    (c) You send the story back to the docs-only route (intake → docs-only → tests are its stages). The documenter writes the READMEs and the list first, and the tests turn green after them. Today the tests route puts the red tests in front of a stage that cannot satisfy them.
+
+    I would choose (c): it is the route whose order matches the work, a documents-only change with a guard that follows it. (a) is the quickest if you'd rather not reroute.
+
+    Noticed, not touched: the tester's changes in `tests/guards/test_test_folder_readmes.py` and `tests/guards/test_tests_layout.py` look right for the criteria. I made no change to the working tree.
