@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 617
 comments_read: [6700706147]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:04:17.035877Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-07T02:04:17.035877Z'
   stage: docs-review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:04:52.022766Z'
+  stage: docs-review
+  run: ac4065621b1b47af98ec2f097e1e4679
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -396,3 +398,20 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (13.6 s)
 26. factory: started docs-review as vm.
+27. reviewer: Review after the human's answer in journal 21. I reviewed `git diff main...HEAD -- README.md docs operator/README.md`. It changes `docs/operator-guide/records.md` and `docs/checked-documents.txt`. I checked the documenter's change from journal 25 against `src/factory/watching/domain/cost_records.py` and `docs/operator-guide/health.md`.
+
+    Fixed from the last review (journal 23, finding 1):
+    - `docs/operator-guide/records.md:170` no longer presents its list as every optional key. It now reads "Some optional keys of a cost record", which settles what the human asked for in journal 21.
+    - `records.md:170` now has a sentence for `transcript`. It matches `CostRecord.transcript: TranscriptRef | None` (`cost_records.py:131`) and its docstring at line 107: "names the run's kept transcript; it is `None` when none was kept".
+    - The link `health.md#transcripts` points to the heading `## Transcripts` at `health.md:338`.
+    - "A reader ignores a key it does not know" carries over the rule for readers of unknown properties that the old text held on `main` (line 32).
+
+    Still met:
+    - Criterion 2: the only thing dropped on purpose is still the version-by-version list of the records contract (style rule 1), unchanged since the first review. `transcript`, which that list used to name, is now named in the Reference.
+    - Criterion 3: the file is on the checked list, and journal 25 shows `documents ok`.
+    - Criterion 4: no link points to a renamed heading.
+    - Criterion 1: I found no new break of a style rule in the changed sentence.
+
+    no findings
+
+    Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files. That is history.
