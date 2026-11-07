@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:20:27.799744Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T04:20:27.799744Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:23:01.847201Z'
+  stage: docs-review
+  run: 3a8f51c964b447be86869e162d367726
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -128,3 +130,32 @@ Expect: `1`
    `secrets`: secrets: green (0.5 s)
    `documents`: documents ok (13.3 s)
 6. factory: started docs-review as vm.
+7. reviewer: I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I compared the new `docs/project-guide/agents.md` with the old one on `main`, checked its claims against the code on the branch and judged its writing against `docs/project-guide/style.md`. Criteria 3 and 5 hold: the page is on `docs/checked-documents.txt`, the journal records `documents ok`, and the one heading other pages link to, *The agent definition reader*, is kept, along with *Calls in a container*, which `machine.md:288` names.
+
+   Findings:
+   1. `docs/project-guide/agents.md:340`: says "This repository's `secrets` recipe is the template's". `tests/agent_files/test_demo_makefile_secrets.py` compares the template with `demo/todo-service/project/Makefile`, not with this repository's Makefile. Fix: say the todo demo's recipe (`demo/todo-service/project/Makefile`) is the template's.
+   2. `docs/project-guide/agents.md:520`: "The run's configuration and rules files". The opencode runtime writes only `opencode-<run>.json` (`files.config` in `src/factory/agents/adapters/opencode_runtime.py`), and line 122 of the page says there is no rules file. Fix: "The run's configuration file is the first call's and is removed only after the resume."
+   3. `docs/project-guide/agents.md:383`: the list of "twelve patterns" gives the last one as `<project>/factory/agents/*`. In the code it is `f"{PROJECT_AGENTS_DIRECTORY}/*"`, which is `factory/agents/*` (`src/factory/agents/domain/write_paths.py:33`, `src/factory/shared/domain/paths.py:20`). Fix: quote the real pattern, for example as `PROJECT_AGENTS_DIRECTORY` + `/*`, and say in prose that it matches `<project>/factory/agents/` at the project's root.
+   4. `docs/project-guide/agents.md:109`: the old page named `.local/share/opencode`, `.local/state/opencode`, `.cache/opencode` and `.config/opencode`. They are now "its folders under `.local` and `.cache`", and the journal does not list this as dropped on purpose (criterion 2). The sentence also does not parse ("in the agent's home and its configuration under `.config`"). Fix: name the four folders with a placeholder (`<home>/.local/share/opencode` and so on) in one sentence that parses.
+   5. `docs/project-guide/agents.md:253` and `:270`: two parts of the old page's rule for editing agent files are gone. One is that a sentence outside `## Lessons` and the listed passages keeps its words when edited. The other is what sets the listed passages apart: they are the factory's own text, and the rest is the renamed original text. "Other fixed passages" no longer says why they are fixed. This is a rule for whoever edits an agent file, not only history (criterion 2). Fix: one sentence that the other sentences keep their words when edited, and a one-line pointer to *The shipped agents carry v1's texts, renamed, and `stuck` does not exist* in `docs/decisions.md` (style rule 1 allows one line).
+   6. `docs/project-guide/agents.md:3`: says the factory's own words are "in italics" and in the glossary. No glossary word on the page is in italics or linked: stall (7), stage (17), dataset and base (101), work item and journal (255), pipeline definition and role (170), write paths (350), backlog (278), approval (332). Criterion 1 and style rule 3 fail. Fix: link each glossary word to `glossary.md` at its first use, and drop or correct the sentence about italics.
+   7. Links on `docs/project-guide/agents.md` (Interface, criterion 4), in three parts:
+      - Linked more than once: `decisions.md` (15, 131, 145, 570, 577), `wiring.py` (20, 119), `agent_runtime.py` (7, 176), `agent_launch.py` (72, 422), `machine.md` (24, 68) and `pipeline.md` (24, 204, 346, 363).
+      - Named but never linked: `fake_agent_runtime` (14, 151, in a code block with nothing linked above it), `factory.watching.application.transcripts` (105), `factory.agents.domain.tokens`, `factory.agents.application.tokens`, `factory.agents.adapters.oauth_token` and `factory.shared.domain.errors` (140-142), `factory.agents.domain.provider_limits` (464), `factory.shared.adapters.validation_faults` (233), `factory.shared.domain.identifiers` (404), `factory.shared.domain.paths` (383), `tests/conftest.py` (149), `tests/support/claude_stand_in.py` (44), `tests/support/opencode_stand_in.py` (129), the `tests/guards/` and `tests/agent_files/` files (42, 142, 256, 257, 273, 275, 282-284, 300, 304, 333, 340), `tests/support/shipped_agents.py` (284) and the two `test_write_paths.py` files (361).
+      - Linked after the code block instead of above it: `project_agents.py` is linked at 213, below its block at 210. `operator/template/factory/pipeline.yml` is first named at 282 but linked at 331.
+      - Fix: link each file once, at its first mention, by a relative link, above any code block that names it.
+   8. `docs/project-guide/agents.md:300`: `test_claude_agent_texts_review_groups.py` starts below the repository root (style rule 8). Fix: `tests/agent_files/test_claude_agent_texts_review_groups.py`, linked.
+   9. `docs/project-guide/agents.md:137`: `python -m factory.entry.refresh_token` is shown as a bare command. It is neither a runnable `console` example nor a marked block (reviewer *Documents* item, Description). Fix: either a `console` example of what it prints when run without its settings, or an `sh` block with a sentence saying where it runs.
+   10. Style rules 2 and 7 and the project-guide section form, in `docs/project-guide/agents.md`:
+       - Sentences well over 25 words, or with more than one parenthesis: 264, 266, 272, 336 (about 60 words), 342 and 119.
+       - "The moved constants" (93) is history (rule 7).
+       - *Matching and placeholders* (365) opens with bullets: it has no two or three plain sentences and no signatures of `matches_any` and `is_writable`.
+       - Fix: split those sentences, write "the constants defined in `agent_launch`", and give that section its opening sentences and a signature block.
+
+   Dropped on purpose, and acceptable as history (style rules 1 and 7):
+   - the two *Replaced in v1.2* sections and the *Replaced from v1* rename table;
+   - the feature and story IDs, the version history, the commit `f8bc9d2` and "step 5 of the cycle";
+   - the `factory/features/F0004-x` example;
+   - the protected-path examples `factory/agentsx/coder.md`, `src/x.claude/a` and `src/pyproject.toml`, which line 386 now states as rules.
+
+   The added `tool_uses` line matches `src/factory/agents/application/agent_runtime.py:34`.
