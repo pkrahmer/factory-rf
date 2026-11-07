@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T06:01:15.123650Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -54,6 +58,11 @@ journal:
   at: '2026-11-07T06:01:09.927638Z'
   stage: docs-only
   run: 7f74800d6a2544078fae85262d9b17ca
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:01:15.123650Z'
+  stage: docs-review
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -153,3 +162,4 @@ Expect: `1`
    `check`: check: green
    `secrets`: secrets: green (0.7 s)
    `documents`: documents ok (16.3 s)
+9. factory: started docs-review as vm.
