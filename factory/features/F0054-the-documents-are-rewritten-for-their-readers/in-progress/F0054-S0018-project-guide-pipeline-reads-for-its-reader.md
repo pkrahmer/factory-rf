@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:22:23.371465Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -129,6 +125,19 @@ journal:
   kind: started
   at: '2026-11-07T06:22:23.371465Z'
   stage: docs-review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:23:35.999805Z'
+  stage: docs-review
+  run: 4677c19d69274f74bdf1ef60c1e93d93
+- number: 23
+  speaker: factory
+  kind: question
+  at: '2026-11-07T06:23:35.999805Z'
+  stage: docs-review
+  run: 4677c19d69274f74bdf1ef60c1e93d93
+  blocked: round_cap
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -401,3 +410,41 @@ Expect: `1`
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok (16.7 s)
 21. factory: started docs-review as vm.
+22. reviewer: Round 3 review. I read `git diff main...HEAD -- README.md docs operator/README.md` against the work item, `docs/project-guide/style.md` and the code on the branch. I checked the round-2 findings and the lines changed in round 3 (`git diff 0abc5ab64 HEAD`), and looked for sentences that are still long.
+
+    Fixed since round 2:
+    - Finding 1: the fixture bullet at line 811 now matches the `boundaries` fixture (`tests/conftest.py:286-337`). It names `snapshots` and `containers` through `fake_dataset`, `machine=FakeMachineReadings()` and the other fields with their values.
+    - Finding 3: line 484 says "differs from `origin/main`".
+    - Finding 4, in part: the sentences at lines 70, 442, 446, 448, 547, 734 and 769 are split.
+
+    Findings:
+    1. `docs/project-guide/pipeline.md:773-780`: "It then builds the following, in this order" lists the `SystemClock`, the log and `JsonHealthStatusFile` first. The code builds the clock, then `GitCli`, then the log (`entry/wiring.py:318-320`). It builds the health file only inside the `Boundaries(...)` call, after `ProjectAgentDefinitions` (`health=health_store(state)`, `wiring.py:352`). Fix: drop "in this order". Or list `SystemClock`, `GitCli`, the log, the runtime, the project commands, the readers and writers, `ProjectAgentDefinitions`, then `JsonHealthStatusFile`.
+    2. `docs/project-guide/pipeline.md:716`: "It prints `healthy` and returns 0." has lost its condition, which the old sentence had before the split, so it reads as always true. The code prints `healthy` only when `status.healthy` holds (`entry/health.py:39-40`). Fix: "When no stop is in force, it prints `healthy` and returns 0."
+    3. `docs/project-guide/pipeline.md`, style rule 2 (round-2 finding 4, still open, as the documenter's entry 20 says): sentences still run well past about 25 words or hold more than one parenthesis. Each needs to be split into sentences of about 25 words with at most one parenthesis.
+       - Line 3: the last sentence.
+       - Line 68: both sentences about `stage` and `role`, with six and four parentheses.
+       - Line 87: the `yaml_fault` sentence.
+       - Line 137: the sentences about `reads ... with git.show_file` and `When those checks pass`.
+       - Line 192: the second sentence.
+       - Line 237: the first sentence.
+       - Line 284: the last sentence.
+       - Line 291: the `StallContext` sentence.
+       - Line 303: one sentence over three cases.
+       - Line 541: the last two sentences.
+       - Line 550: the `get_pull_request` sentence.
+       - Line 640: the `unblock` sentence.
+       - Line 658: one sentence of about 100 words.
+       - Line 707: the list of first implementations.
+       - Line 721: the `post(stop)` sentence.
+       - Line 733: the `Boundaries.stop_records` sentence.
+       - Line 756: the field list, with eight parentheses.
+       - Line 772: the second sentence.
+       - Line 785: the first sentence.
+       - Line 811: the new fixture sentence, with about 78 words and eight parentheses.
+       - Line 820: the second sentence.
+       - Line 828: one sentence of about 60 words.
+
+    Open, and not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria say which rules are meant, so the human has to decide.
+    - The page has no *Reference* section. Criterion 2 allows that.
+23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
