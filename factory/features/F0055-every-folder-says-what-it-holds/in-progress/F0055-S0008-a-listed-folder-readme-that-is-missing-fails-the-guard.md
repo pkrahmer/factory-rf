@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T14:53:57.115729Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T14:53:57.108425Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:53:57.115729Z'
+  stage: intake
+---
+
 # A listed folder README that is missing fails the guard
 
 ## Description
@@ -40,3 +67,6 @@ here=$(pwd); cd "$d/r" && uv run --project "$here" pytest -o addopts= tests/guar
 Expect: `missing-fails`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
