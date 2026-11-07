@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T08:21:49.653647Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T08:21:49.653647Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T08:27:50.820859Z'
+  stage: docs-only
+  run: 33c5fdd32ddb41988b4e7f231b39d729
 ---
 
 # The project guide's index reads for the developer
@@ -367,3 +369,27 @@ Expect: `1`
 
     Not checked: the one-line descriptions of the `tests/support/` modules against their source; no stage has done this. I did not run `make documents`; the documenter's run printed `documents ok`, and the factory runs it as the gate.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the reviewer's four round-2 findings in `docs/project-guide/README.md`. `make documents` ends with `documents ok (57.6 s)`. Only documents changed, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/README.md`: the fixes below. `docs/checked-documents.txt` is unchanged.
+
+    Findings, by number:
+    1. Parentheses. I rewrote every line the reviewer named so that no sentence has more than one prose parenthesis. The changed lines are the `hosting.md`, `agents.md`, `watching.md` and `operator.md` page entries (the watching entry is now one sentence per topic), and the `tests/support/` entries for `check_documents_support`, `claude_resume_support`, `contract_login_support`, `stage_image_support`, `function_support`, `recording_stand_in_support`, `search_support`, `stall_support`, `vm_support`, `operator_job_support`, `operator_skill_support`, `site_check_support` and `wiring_support`. The `demo/<name>/project/` bullet is changed too. A gloss now follows a colon or stands in a sentence of its own. I kept every name.
+    2. Long sentences. I split the removal-guard sentence, the `tests/guards/test_shared_*.py` sentence, the `AGENT_TEXT` sentence, the "Each case drives …" sentence, the *Path 9* sentence, the `rerun_seconds`/`branch_state` sentence, the `check_demos` command sentence and the *The demos* opening sentence. The reader remark on `RuamelPipelineDefinitionReader` is out of the findings list and stands in a paragraph of its own after it.
+    3. Paths. `stage_run_support.py` is now `tests/support/stage_run_support.py`. Every mention of `machine.md`, `agents.md`, `shared.md`, `pipeline.md` and `work.md` in *Errors*, *The models' configuration*, *Fault-injection paths* and *The demos* is now a relative link such as [`pipeline.md`](pipeline.md).
+    4. Signature blocks. *The kill-point cases* now has a code block with `SCENARIOS`, `KILL_TO_RERUN`, `run_case`, `violations`, `build_world`, `start_story`, `run_ticks`, `restart`, `rerun` and `work_item_file`. *Fault-injection paths* has a block with `FAULT_PATHS`, `FaultPath(number, title, case, test)`, `rerun_seconds` and `branch_state`. I copied each signature from `tests/support/proof_support.py` and `src/factory/pipeline/domain/fault_paths.py` on this branch. The `world`, `work_item` and `start_story` sentences keep their rules.
+
+    Cross-read and found current: the signatures in `proof_support.py` and `fault_paths.py` (read this round), and the page headings that other files link to, which I did not touch. I did not re-read `src/factory/entry/check_demos.py` this round; the round-2 reviewer checked its signatures.
+
+    Not done: the one-line descriptions of the `tests/support/` modules are still not compared with their source. No stage has done that comparison. In the `claude_resume_support` entry I wrote "The module also holds `LIMIT`" and did not describe it further, because I had read only that it is a `timedelta` of 30 seconds.
+
+    Stale text noticed and not touched, because it is unrelated to this story:
+    - `demo/README.md` and `CLAUDE.md` still say "v1.1".
+    - The report line `README.md:28: factory/stage.Containerfile does not exist` comes from the top-level README, which is not on the checked list.
+
+    The `/tmp/xxwork` folder from round 0 was not in `/tmp` when I looked. I left nothing in `/tmp` this round.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (57.3 s)
