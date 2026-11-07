@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:28:56.196925Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T04:28:56.196925Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:31:26.305400Z'
+  stage: docs-review
+  run: 06f8ec87f4384267897206c11f862a27
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -213,3 +215,42 @@ Expect: `1`
    `secrets`: secrets: green (0.5 s)
    `documents`: documents ok (13.1 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked the new `docs/project-guide/agents.md` against the code on the branch and against `docs/project-guide/style.md`.
+
+    The ten round-0 findings are fixed as the documenter's entry 9 says. I checked those lines again:
+    - the secrets recipe now names `demo/todo-service/project/Makefile`;
+    - the opencode resume names one configuration file;
+    - the twelfth protected pattern is `PROJECT_AGENTS_DIRECTORY` + `/*`;
+    - the four opencode folders are named;
+    - the editing rule is back, with its pointer to the decision log;
+    - the glossary words that finding named are linked;
+    - the files that finding named are linked once;
+    - the review-groups test has its full path;
+    - `refresh_token` is a marked `sh` block;
+    - the named long sentences are split.
+
+    These claims match the code: the agent table against the front matter of `agents/agents/*.md`, the settings bullets against `agents/settings.json`, `LOCKDOWN_SWITCHES`, `LEFT_OUT_TOOLS` and the body layout of the agent files. Criteria 3 and 5 hold: the page is on `docs/checked-documents.txt`, the journal records `documents ok`, and the headings other pages link to (*The agent definition reader*, *Calls in a container*) are kept.
+
+    Findings:
+    1. `docs/project-guide/agents.md:486`: "Until the application layer waits the limit out, it is a stall like `died`" is false. `PatientRuns` (`src/factory/agents/application/provider_limits.py:21`, called at `src/factory/pipeline/application/stage.py:131`) waits out the limit and resumes the run until the waits reach `ceiling`. Only a run that still ends `provider_limit` at the ceiling is a stall. Fix: say that, and point to *PatientRuns* in `pipeline.md`.
+    2. `docs/project-guide/agents.md:480`: `ProviderLimit` is described with only `status` and `message`, read from two variables. The model also has `cooldown` and `ceiling` (`src/factory/agents/domain/provider_limits.py:51-52`), read from `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` and `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES` (`src/factory/shared/domain/settings.py:63-64`). Fix: name all four fields and all four variables.
+    3. `docs/project-guide/agents.md:261` and `:263` have two errors:
+       - "`intake`, `tester`, `coder`, `reviewer` and `documenter` have more" is false: `smoke-tester` (3 bullets) and `acceptance-reviewer` (4 bullets) also have more lessons, as lines 270-271 say.
+       - "The lessons that go beyond those two:" reads as the complete list, but it leaves out `intake`'s three lessons, `reviewer`'s two, `coder`'s helper search and its never-change-a-test lesson, `tester`'s both-sides and test-data lessons, and `documenter`'s guide-size lesson (`agents/agents/*.md`, `## Lessons`).
+       - Fix: say that every agent has more, and either list them all or introduce the list as a selection ("Among them:").
+    4. Criterion 1 and style rule 3: these glossary words are not linked to `glossary.md` at their first use: instance (20), crash (161), tick (220), project command (261), story (268), feature (278), round (279), acceptance (283), stage environment (339) and take (360). Fix: link each one at its first use.
+    5. Interface, criterion 4: these names are never linked, or not at their first mention:
+       - `factory.shared.adapters.process`, `git_cli` and `make_commands` (42) are named but never linked;
+       - `agents/settings.json` is first named at 290 but linked only at 324;
+       - `operator/README.md` (294) is never linked.
+       - Fix: link each once, at its first mention, by a relative link.
+    6. Style rule 8: three plain later mentions give paths that start below the repository root: `wiring.py` (119), `agent_runtime.py` (178) and `test_claude_agent_texts.py` (287). Fix: write them from the root, for example `src/factory/entry/wiring.py`, as was done for round-0 finding 8.
+    7. Style rule 2: these sentences run well over about 25 words, or hold two parentheses:
+       - 88, the `make_state_directory` sentence;
+       - 280, the `intake` step 2 sentence;
+       - 338, the second sentence, which also has two parentheses;
+       - 343, the helper sentence;
+       - 348, the first sentence, about 50 words.
+       - Fix: split each into sentences of one idea.
+
+    Dropped on purpose, and acceptable (checked in round 0): the *Replaced* sections, the rename table, the IDs and version history, and the commit `f8bc9d2`.
