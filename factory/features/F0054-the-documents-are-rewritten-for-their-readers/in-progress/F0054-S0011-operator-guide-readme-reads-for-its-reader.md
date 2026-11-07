@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:51:34.395764Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -158,6 +162,11 @@ journal:
   at: '2026-11-07T02:51:29.161485Z'
   stage: docs-review
   run: 654a9ca211904f71af5361182f23e77b
+- number: 28
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:51:34.395764Z'
+  stage: docs-only
 ---
 
 # The operator guide's index reads for the operator
@@ -359,3 +368,4 @@ Expect: `1`
 
     Findings:
     1. `docs/operator-guide/README.md:5`: the line says "An instance runs on a VM with ZFS and rootless Podman, and every stage runs in throwaway containers on one ZFS dataset". The code and the guide itself say otherwise. `src/factory/shared/domain/settings.py:98` and `:168` allow `FACTORY_SNAPSHOTS=copy`, which needs no ZFS. `docs/operator-guide/machine.md:111-113` (*Without ZFS*) and `cloud-run.md:73` run an instance in a Cloud Run job without ZFS. Line 39 of this same file says that with `copy` the instance "runs without a dataset". Fix: keep the common case first and add the other one. For example: "An instance usually runs on a VM with ZFS and rootless Podman, where every stage runs in throwaway containers on one ZFS dataset. It can also run without ZFS, in a Cloud Run job ([cloud-run.md](cloud-run.md))." Keep the dataset link at its first use.
+28. factory: started docs-only as vm.
