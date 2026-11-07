@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 632
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T10:04:39.235457Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-07T10:04:39.235457Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-07T10:04:57.555123Z'
+  stage: intake
+  run: a68300c45fd44c088e1cc80f13b0fc27
+  blocked: question
 ---
 
 # The folders that have a README are listed and checked
@@ -71,3 +74,9 @@ Expect: `23 ['x: no README.md']`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: 1. Interface, `factory.entry.check_documents`: `_named_documents` also returns `operator/README.md`. No criterion tests it. Criterion 5 only covers a README of `FOLDER_READMES`. Should I add: "with `operator/README.md` in the minimal documents, a missing module it names is a finding"? I would choose yes.
+   2. Interface: "A listed path of `FOLDER_READMES` that does not exist yet stays the finding `checked_list_findings` gives today." No criterion tests it. Should I add one: a listed path of `FOLDER_READMES` with no file gives the same finding as today? I would choose yes.
+   3. Interface, guard: "its subfolders read from the folder (hidden folders and `__pycache__` left out)". No criterion tests it. Criterion 4 only says the guard passes and skips. Should I add one that a hidden folder and `__pycache__` are not counted as subfolders? If the guard has no test for that, I suggest it be a helper function in the module with a parametrized test. I would choose yes.
+   4. Interface, `readme_problems`: "link line" and "opening" are not defined. For example, does a link line begin with `[` or `- [`, and is the opening the non-blank lines between the title and the first link or list line? Two coders could read them differently. Criterion 2 pins only some of the rows. Please state the form of a link line, for example "a line that contains a relative Markdown link and is not a subfolder line". I would choose that.
+
+   The format check passed. Scope, architecture (domain constant in `shared`, wiring in `entry`) and the docs criterion (it names what the reader must know) are fine. The smoke test is runnable and its `Expect:` line is checkable. The count of 23 paths matches the list.
