@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T12:55:50.184206Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-07T12:55:45.064772Z'
   stage: intake
   run: e4932ebc626d4609bc95cb4b56754b86
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:55:50.184206Z'
+  stage: tests
 ---
 
 # The tests say how they are laid out
@@ -95,3 +104,4 @@ Expect: `documents ok (<seconds> s)`
    - Docs criterion: it names the files and what the guide keeps unchanged, and dictates no sentences.
    - Architecture: the READMEs stand beside the test folders, with no code or layer change; this fits feature decisions 2, 4 and 6.
    - Scope: within the feature's S0003, and not in its Out of scope. The only test change is the human's leave for earlier guards.
+7. factory: started tests as vm.
