@@ -1,3 +1,182 @@
+---
+stage: docs-approval
+blocked: null
+round: 1
+attempts: 0
+crashes: 0
+pull_request: 638
+comments_read: [6707873070, 6708142009]
+handed_over: docs-approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T13:57:33.067854Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:57:33.075344Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-07T13:57:54.282307Z'
+  stage: intake
+  run: c9cccc5f2a584650a680f57c2223c858
+  blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-07T13:59:40.479661Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:59:42.854596Z'
+  stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-07T14:00:02.882984Z'
+  stage: intake
+  run: 6b82ed978aba45938b9c82b14bf02a48
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:00:08.086216Z'
+  stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:05:49.297825Z'
+  stage: docs-only
+  run: 153b93e798aa49fdafbbc504c38cae14
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:05:54.330244Z'
+  stage: docs-review
+- number: 10
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:06:45.786591Z'
+  stage: docs-review
+  run: 40189e18bd5e4a6f8dfa2f262d09a538
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:06:50.747586Z'
+  stage: docs-only
+- number: 12
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:11:14.255009Z'
+  stage: docs-only
+  run: 768a5c9f736b4c699f214568d1ea3dd1
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:11:19.553967Z'
+  stage: docs-review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:11:57.848833Z'
+  stage: docs-review
+  run: 364612c3987241758f48cc622788e116
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:12:02.844826Z'
+  stage: docs-only
+- number: 16
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:17:25.974922Z'
+  stage: docs-only
+  run: 285a5495a5564b49b871196842923b53
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:17:31.235576Z'
+  stage: docs-review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:18:09.369448Z'
+  stage: docs-review
+  run: 764313dfb53644529ee000eea3159534
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:18:14.260525Z'
+  stage: docs-only
+- number: 20
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:22:32.870164Z'
+  stage: docs-only
+  run: db250fc7f6f04ee0be730e34818851a4
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:22:37.829751Z'
+  stage: docs-review
+- number: 22
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:23:26.497914Z'
+  stage: docs-review
+  run: fc8d3218cacf44b39d4db2ae92647acf
+- number: 23
+  speaker: factory
+  kind: question
+  at: '2026-11-07T14:23:26.497914Z'
+  stage: docs-review
+  run: fc8d3218cacf44b39d4db2ae92647acf
+  blocked: round_cap
+- number: 24
+  speaker: human
+  kind: comment
+  at: '2026-11-07T14:25:12.854421Z'
+  stage: docs-review
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:25:15.157526Z'
+  stage: docs-review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:25:45.145089Z'
+  stage: docs-review
+  run: 2f46ca67f39f4b04b0a608ad668f2357
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:25:50.772042Z'
+  stage: docs-only
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:30:18.493520Z'
+  stage: docs-only
+  run: 2057c84c6fd34f1cb9aa04b972bf78f5
+- number: 29
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:30:24.034875Z'
+  stage: docs-review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:30:50.839569Z'
+  stage: docs-review
+  run: ed759dc1567a4582869c570ad06704b7
+---
+
 # The top folders say what they hold
 
 ## Description
@@ -18,8 +197,11 @@ This story writes the READMEs of `docs/` and `security/`, and the root `README.m
 1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/` <one sentence>.`` (no colon, as the guard and the style page write it). The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
 2. Every name, path and link in these files exists (the document check finds nothing), and each file is on `docs/checked-documents.txt`.
 3. `make documents` ends with `documents ok (<seconds> s)`.
-4. `make check` stays green.
-5. docs: the files of the Interface. `README.md`: the list of top folders. `docs/decisions.md`: none.
+4. `docs/README.md` names the operator guide, the project guide, the decision log and the operator playbook, and says that `docs/runs/` is the human's.
+5. `security/README.md` says what the baselines and the semgrep rules are for and links to `CLAUDE.md`, *Checks*.
+6. The root `README.md` has a new section `## The folders`, placed after `## Where to read next` and before `## Reference`, in the subfolder-line form of `docs/project-guide/style.md`, *Folder READMEs*. It lists the ten top folders (`agents/`, `demo/`, `docs/`, `factory/`, `operator/`, `planning/`, `security/`, `session-logs/`, `src/`, `tests/`), one line each, links to each folder's README that exists, and says in their lines that `factory/`, `planning/` and `session-logs/` are the human's. `## Where to read next` is unchanged.
+7. `make check` stays green.
+8. docs: the files of the Interface. A newcomer who opens `docs/` or `security/` on GitHub knows which document to read for which need, who owns `docs/runs/`, and what the baselines and the semgrep rules in `security/` are for; the root README's `## The folders` points them to each folder's README. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -29,3 +211,219 @@ uv run python -m factory.entry.check_documents | tail -1
 Expect: `documents ok (<seconds> s)`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
+3. intake: Questions (the format check passed, no findings):
+
+   1. The Interface states behaviours that no criterion covers. (a) `docs/README.md` names the four documents and who reads which (operator guide, project guide, decision log, operator playbook) and names `runs/` as the human's. (b) `security/README.md` says what the baselines and the semgrep rules are for and links to `CLAUDE.md`, *Checks*. (c) The root `README.md` lists the top folders, one line each, with a link to its README where one exists. Criterion 1 only covers shape (opening sentence, a link, subfolder lines) and criterion 2 only that names and links exist. Two documenters could satisfy both and still leave out (a), (b) or (c). Proposal: add a criterion per item. For (a), `docs/README.md` names the operator guide, the project guide, the decision log and the operator playbook, and says `docs/runs/` is the human's. For (b), `security/README.md` says what the baselines and the semgrep rules are for and links to `CLAUDE.md`. For (c), the root `README.md` lists every top folder (`agents/`, `demo/`, `docs/`, `factory/`, `operator/`, `planning/`, `security/`, `src/`, `tests/`) and links to each README that exists. Please confirm the exact set of top folders for (c). I would choose the list above.
+
+   2. The docs criterion (5) names only files. It does not say what the reader must know afterwards. Proposal: a newcomer who opens `docs/` or `security/` on GitHub knows which document to read for which need, and who owns `docs/runs/`. They also know what the baselines and the semgrep rules in `security/` are for, and that the root README's folder list points them to each folder's README. Please confirm or reword.
+
+   3. The root `README.md` is a docs-route path the documenter may write, but the Interface does not say where the folder list goes or how it relates to any existing folder list in it. Is it a new section, or does it replace an existing one?
+
+   The rest checks out. The smoke test runs the document check, which exists. The Interface changes only paths on the documenter's write paths (`docs/*`, `README.md`, `security/README.md`). `docs/README.md` and `security/README.md` are already on the folder list in `folder_readmes.py`. `docs/` has three subfolders (`operator-guide/`, `project-guide/`, `runs/`) and `security/` has one (`semgrep/`). The scope fits the feature, and the story is not in "Out of scope" because `docs/runs/` is only named in the README, not written.
+4. 2026-11-07 human: 1. Yes, one criterion each for (a), (b) and (c). For (c) the top folders are agents/, demo/, docs/, factory/, operator/, planning/, security/, session-logs/, src/ and tests/: ten folders, one line each, with a link to each README that exists. Say in their lines that factory/, planning/ and session-logs/ (and docs/runs/ in docs/README.md) are the human's.
+   2. Confirmed as you wrote it.
+   3. A new section, ## The folders, placed after ## Where to read next and before ## Reference. The root README has no folder list today; Where to read next stays as it is and the new section does not repeat it. The root README is not on FOLDER_READMES and keeps its own form; its new section follows the subfolder-line form of style.md, *Folder READMEs*.
+5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) carried into the story.
+   - Interface: names `docs/README.md`, `security/README.md` and the root `README.md` (new section `## The folders`, after `## Where to read next`, before `## Reference`, per entry 4 answer 3). Every path is one the documenter may write, so the route is docs-only. The existing test-leave sentence is the human's own and stays.
+   - Criteria: I added criteria 4, 5 and 6, one each for (a) docs/README.md, (b) security/README.md and (c) the root folder list, from entry 4 answer 1: ten top folders, links to each README that exists, and factory/, planning/ and session-logs/ named as the human's. Criteria 7 (`make check`) and 8 (`docs:`) now close the list. Criterion 1 covers the shape and the subfolder lines, which cover the failing side too, since the guard fails on a missing or extra line. Each criterion is testable.
+   - Smoke test: `uv run python -m factory.entry.check_documents | tail -1` runs no pytest, so there is no `-q` problem. Its `Expect:` is checkable.
+   - Docs criterion: criterion 8 now says what the reader must know (entry 4 answer 2) and dictates no sentences.
+   - Architecture: nothing is changed in code. The files are READMEs on the folder list.
+   - Scope: this is S0005 of F0055. `docs/runs/` is only named, not written, and the story is not in the feature's Out of scope. The Description did not change.
+7. factory: started docs-only as vm.
+8. documenter: Files changed:
+   - `docs/README.md` (new): opening sentence, a link to the project guide, one line each for `operator-guide/`, `project-guide/` and `runs/`. It names `decisions.md` and `operator-playbook.md` and says `runs/` is the human's.
+   - `security/README.md` (new): says the semgrep rules serve `make sast` and `duplicates-baseline.txt` serves `make duplicates`. It links `CLAUDE.md`, *Checks*, and has one line for `semgrep/`. The baseline text is in the opening because the form allows no other prose; my first draft had an extra paragraph and the guard failed on it ("line 7 is no part of the form").
+   - `README.md`: new section `## The folders` between `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form, with links to the READMEs that exist (agents, demo, docs, operator, planning, security, src/factory, tests). `factory/`, `planning/` and `session-logs/` are marked as the human's. `## Where to read next` is untouched, and its existing `agents/` line also stays.
+   - `docs/checked-documents.txt`: added `docs/README.md` and `security/README.md`.
+
+   Checks: `make documents` ends with `documents ok (58.8 s)`. `uv run pytest -q tests/guards/test_folder_readmes.py` passes, so the guard is green for both new folders. I did not run `make check`, because I changed only documents. I changed no tests and no code.
+
+   Cross-read and found current: the root `README.md` and `docs/project-guide/style.md` (*Folder READMEs*), against the code of `folder_readmes.py`, the `Makefile` targets `sast` and `duplicates`, and the contents of `security/`.
+
+   Open or noted:
+   - `session-logs/` does not exist on this branch. `.gitignore` excludes it, as "Local copies of the session transcripts (the human, 2026-10-15)". The root line is written without a link. The name check did not flag it.
+   - Stale text, not touched because it is unrelated to this story: the `agents/` line in `## Where to read next` of the root README now duplicates the new `## The folders` line. Criterion 6 says to leave `## Where to read next` unchanged, so I left it.
+   - `docs/decisions.md` is untouched, as the docs criterion says.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (60.1 s)
+9. factory: started docs-review as vm.
+10. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` and the work item. I also read `security/README.md`, because criteria 1, 2 and 5 name it. I checked the facts against `src/factory/shared/domain/folder_readmes.py`, the `Makefile` targets `sast` and `duplicates`, the contents of `security/`, `docs/`, `docs/runs/` and `.gitignore`, the READMEs the root section links to, and the human's own files `CLAUDE.md` and `planning/README.md`. I checked the writing against `docs/project-guide/style.md`, *Folder READMEs*.
+
+    Findings:
+    1. `security/README.md:3` ("The vendored semgrep rules"): the rules in `security/semgrep/python.yml` are this project's own (ids `factory-no-eval-exec`, `factory-no-subprocess-shell`). They are not copied from an outside source, and line 5 of the same README calls them "The semgrep rules of this project". "Vendored" is a word of the demo project (`demo/todo-service/README.md:9`), not of this one. Fix: drop "vendored", e.g. "The semgrep rules that `make sast` applies".
+    2. `docs/README.md:7` ("The human's records of finished runs and sweeps"): `docs/runs/` holds run logs and reports only (`2026-10-12-overnight`, `2026-10-19-baseline-todo`, `2026-11-04-f0050`, `2026-11-05-f0052`). The mutation sweep reports are in `planning/` (`planning/README.md:3`). Fix: "The human's logs and reports of finished runs".
+    3. `docs/README.md:7` ("no stage reads or writes them"): `CLAUDE.md`, *The human's files*, says only that no stage edits `docs/runs/` and that it is outside every write path. Nothing keeps a stage from reading it; `not_read` in `factory/pipeline.yml` is about what `make check` reads, not what agents read. Fix: "no stage writes them", as `CLAUDE.md` says.
+
+    Checked and found true: the root `## The folders` section sits between `## Where to read next` (unchanged) and `## Reference`. It has ten lines in the subfolder-line form, and links to the six READMEs that exist (`src/` links to `src/factory/README.md`; `src/` itself has no README). It names `factory/`, `planning/` and `session-logs/` as the human's, and `session-logs/` is ignored in `.gitignore:15-16`. `docs/README.md` names all four documents and has a line for each of the three subfolders. `security/README.md` matches the `sast` and `duplicates` targets and links `CLAUDE.md`, *Checks*. `docs/checked-documents.txt` gains both paths. The trailing link sentence of `docs/README.md` passes the guard (`_read_line` takes any line with a link) and serves criterion 8; I left it as it is.
+11. factory: started docs-only as vm.
+12. documenter: Fixed the reviewer's three findings and nothing else.
+
+    Files changed:
+    - `security/README.md`: finding 1. "The vendored semgrep rules that `make sast` applies" is now "The semgrep rules that `make sast` applies". The rules are this project's own.
+    - `docs/README.md`: findings 2 and 3. The `runs/` line now reads "The human's logs and reports of finished runs; no stage writes them." This matches `CLAUDE.md`, *The human's files*, and the run logs and reports that `docs/runs/` actually holds.
+
+    `make documents` ends with `documents ok (61.1 s)`. I changed only documents, so I did not run `make check`. The factory runs it after this stage.
+
+    Cross-read and found current: the root `README.md` section `## The folders`, which the reviewer had already checked against the code.
+
+    Open:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it). The root line for it has no link.
+    - The `agents/` line in the root `## Where to read next` now duplicates its line in `## The folders`. Criterion 6 says to leave `## Where to read next` unchanged, so I did not touch it.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (59.7 s)
+13. factory: started docs-review as vm.
+14. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, because criteria 1, 2 and 5 name it. I checked the facts against `planning/README.md`, `agents/README.md`, `demo/README.md`, `operator/README.md`, `src/factory/README.md`, the contents of `docs/` and `security/`, and the glossary. I checked the writing against `docs/project-guide/style.md`: *Rules for all documents*, *Folder READMEs* and *The README*.
+
+    Findings:
+    1. `README.md:40`, the `factory/` line of `## The folders`: "pipeline definition" is a glossary word (`docs/project-guide/glossary.md:18`), and this line is its first use in the root README. It has no link, which breaks rule 3 of *Rules for all documents* in `style.md`. Every other glossary word in this README is linked at its first use (stories, feature, instance, stops, tick, work item, stage, dataset). Fix: link it, e.g. "the [pipeline definition](docs/project-guide/glossary.md), the forms and ...".
+
+    Checked and found true:
+    - The round-0 findings are fixed. `security/README.md:3` no longer says "vendored". The `runs/` line in `docs/README.md:7` reads "logs and reports of finished runs; no stage writes them", which matches `CLAUDE.md`, *The human's files*.
+    - The `planning/` line ("no stage reads or writes") matches `planning/README.md:3`, the human's own file.
+    - `docs/README.md` names the four documents and says `runs/` is the human's (criterion 4).
+    - `security/README.md` names the semgrep rules and the duplicates baseline and links to `CLAUDE.md`, *Checks* (criterion 5).
+    - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form and links to the eight READMEs that exist. It names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6).
+    - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
+15. factory: started docs-only as vm.
+16. documenter: Fixed the reviewer's one finding (round 2) and nothing else.
+
+    Files changed:
+    - `README.md`: the `factory/` line of `## The folders` now links "pipeline definition" to `docs/project-guide/glossary.md` at its first use in the root README, as rule 3 of *Rules for all documents* in `style.md` asks. (My first edit hit the wrong line and changed nothing; I checked and applied it to line 40.)
+
+    `make documents` ends with `documents ok (58.3 s)`. I changed only a document, so I did not run `make check`; the factory runs it after this stage.
+
+    Cross-read and found current: `docs/README.md`, `security/README.md` and the rest of `## The folders`, which the reviewer already checked.
+
+    Open or noted, not mine to fix:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it), so its root line has no link.
+    - The `agents/` line in `## Where to read next` duplicates its line in `## The folders`. Criterion 6 says to leave `## Where to read next` unchanged.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (58.9 s)
+17. factory: started docs-review as vm.
+18. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, which is new on the branch and named by criteria 1, 2 and 5. I checked the writing against `docs/project-guide/style.md` (*Rules for all documents*, *Folder READMEs*) and the glossary. I compared it with the folder READMEs already on `main` (`operator/README.md` links each glossary word at its first use; `agents/README.md` uses none).
+
+    Findings:
+    1. `docs/README.md:5`, the `operator-guide/` line: "the stops" is the first use of the glossary word "stop" (`docs/project-guide/glossary.md:26`) in this file, and it has no link. That breaks rule 3 of *Rules for all documents* ("linked at their first use in a file"). Fix: write "the [stops](project-guide/glossary.md) and what to do about each". This is the same rule as round 1's finding on the root README.
+    2. `docs/README.md:7`, the `runs/` line: "no stage writes them" is the first use of the glossary word "stage" (`docs/project-guide/glossary.md:23`) in this file, and it has no link. Same rule. Fix: write "no [stage](project-guide/glossary.md) writes them".
+
+    Checked and found true:
+    - Round 1's finding is fixed: `README.md:40` links "pipeline definition" to the glossary.
+    - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form, links the eight READMEs that exist, and names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6). Every other glossary word in the root README is linked earlier in the file.
+    - `docs/README.md` names the four documents and says that `runs/` is the human's (criterion 4).
+    - `security/README.md` names the semgrep rules and the duplicates baseline and links `CLAUDE.md`, *Checks*. It uses no glossary word (criterion 5).
+    - Every sentence I checked is within about 25 words.
+    - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
+    - I cannot give a reason why I did not name these two findings in round 1. The rule and the file were the same then.
+19. factory: started docs-only as vm.
+20. documenter: Fixed the reviewer's two round-3 findings and nothing else.
+
+    Files changed:
+    - `docs/README.md`: line 5, "the stops" now links to `project-guide/glossary.md` at its first use in the file (finding 1). Line 7, "no stage writes them" now links "stage" to the same page (finding 2). Rule 3 of *Rules for all documents* in `docs/project-guide/style.md` asks for the link at the first use of a glossary word in a file.
+
+    `make documents` ends with `documents ok (59.4 s)`. I changed only a document, so I did not run `make check`; the factory runs it after this stage.
+
+    Cross-read and found current: `security/README.md` (it uses no glossary word) and the root `README.md` `## The folders`, which the reviewer already checked.
+
+    Open or noted, not mine to fix:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it), so its root line has no link.
+    - The `agents/` line in the root `## Where to read next` duplicates its line in `## The folders`. Criterion 6 says to leave `## Where to read next` unchanged.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (59.4 s)
+21. factory: started docs-review as vm.
+22. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, which criteria 1, 2 and 5 name. I checked the facts against `demo/README.md`, `agents/README.md`, `operator/README.md`, `planning/README.md`, the contents of `docs/`, `docs/runs/` and `security/`, and the READMEs that `## The folders` links to. I checked the writing against `docs/project-guide/style.md` (*Rules for all documents*, *Folder READMEs*) and against every term in `docs/project-guide/glossary.md`. This time I checked every new line of the root README against the whole glossary word list, not one word at a time.
+
+    Findings:
+    1. `README.md:37`, the `agents/` line of `## The folders`: "one per role" is the first prose use of the glossary word "role" (`docs/project-guide/glossary.md:20`) in the root README, and it has no link. Line 33 has `<role>` only inside a code span, and the README never links "role" anywhere. This breaks rule 3 of *Rules for all documents*. Fix: write "one per [role](docs/project-guide/glossary.md)".
+    2. `README.md:41`, the `planning/` line: "no stage reads or writes" uses the glossary word "stage" (`docs/project-guide/glossary.md:23`). The README's only link for "stage" is at line 82, after this line, so the new line puts an unlinked use ahead of the link. Same rule. Fix: write "no [stage](docs/project-guide/glossary.md) reads or writes". Line 33's "stage image" is older than this story and outside this diff.
+
+    Checked and found true:
+    - Round 3's findings are fixed: `docs/README.md:5` links "stops" and `docs/README.md:7` links "stage".
+    - In `docs/README.md` no other glossary word is left unlinked. "Area", "agents" and "decision log" are not glossary words. It names the four documents and says that `runs/` is the human's (criterion 4). The three subfolder lines match `docs/`.
+    - `security/README.md` uses no glossary word. It matches `security/`, names the semgrep rules and the duplicates baseline, and links `CLAUDE.md`, *Checks* (criterion 5).
+    - The other new root lines are true of the folders they describe. "Story", "feature", "instance" and "pipeline definition" are linked at or before their first use. The section sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines, links the eight READMEs that exist, and names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6).
+    - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
+    - Round 2's reviewer wrote that every other glossary word in the root README was linked earlier. That was wrong for "role" and "stage", and these two findings could have been raised then.
+23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+24. 2026-11-07 human: One more round. Both findings are real and mechanical: the documenter links 'role' and 'stage' at their first prose use in README.md as the reviewer proposes. Before it ends, it checks by script every glossary word of docs/project-guide/glossary.md against README.md, docs/README.md and security/README.md (first prose use outside code spans is a link), and quotes the script's empty output in its entry. The reviewer checks with the same script and raises nothing else of this kind.
+25. factory: started docs-review as vm.
+26. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`, plus `security/README.md`, which is new on the branch and named by criteria 1, 2 and 5. After the human's answer (entry 24), the factory started docs-review directly (entry 25). No documenter ran in between, so the branch still holds the text that round 4 reviewed (last content commit b74c45995). The two findings the human confirmed are still open.
+
+    Findings:
+    1. `README.md:37`, the `agents/` line of `## The folders`: "one per role" is still the first prose use of the glossary word "role" (`docs/project-guide/glossary.md`, **role**), and it has no link. This breaks rule 3 of *Rules for all documents* in `docs/project-guide/style.md`. Fix, as the human's entry 24 says: "one per [role](docs/project-guide/glossary.md)".
+    2. `README.md:42`, the `planning/` line: "which no stage reads or writes" uses the glossary word "stage" before its only link, at `README.md:82`. Line 33's "stage image" is older than this story and outside the diff. Fix, as entry 24 says: "no [stage](docs/project-guide/glossary.md) reads or writes".
+
+    How I checked: the human's entry 24 asks the documenter to check by script and asks the reviewer to use the same script. No documenter has run since then, so no such script exists yet. My role lets me write no code, so I checked with `grep` instead: I compared every glossary term against the new lines of `README.md`, `docs/README.md` and `security/README.md`. Following entry 24, I raise nothing else of this kind. I found nothing beyond the two findings above:
+    - `docs/README.md` links "stops" (line 5) and "stage" (line 7).
+    - `security/README.md` uses no glossary word.
+    - In the root section, "instance", "feature", "story" and "pipeline definition" are linked at or before their first use.
+
+    For the documenter, as entry 24 asks: after the two fixes, run the glossary-link check by script over all three files and quote its empty output in your entry.
+
+    Still true from earlier rounds:
+    - Criteria 4, 5 and 6 are met.
+    - `docs/checked-documents.txt` gains both paths.
+    - The last documenter run ended `documents ok`.
+27. factory: started docs-only as vm.
+28. documenter: Fixed the reviewer's two round-5 findings (the human's entry 24) and nothing else.
+
+    Files changed:
+    - `README.md`: line 37 (`agents/` line) now links "role" to `docs/project-guide/glossary.md` at its first prose use (finding 1). Line 42 (`planning/` line) now links "stage" to the same page (finding 2).
+
+    The check the human asked for: I wrote a script in a temporary directory, which is now removed. It reads every glossary word of `docs/project-guide/glossary.md` and finds its first prose use outside code spans in `README.md`, `docs/README.md` and `security/README.md`. It reports a word when that use is not inside a link. Its output:
+    ```
+    README.md 3 story
+    README.md 21 take
+    README.md 33 stage
+    ```
+    It is not empty, and none of the three comes from the lines of this story:
+    - Line 3 "story" is a false hit of my script: line 3 opens with the link "[stories]", but the script matches only "story" and "storys", so it skipped the plural.
+    - Line 21 "take" is the verb in "takes you from a fresh VM". It is not the glossary word.
+    - Line 33 "The stage image copies them" is older than this story and sits in `## Where to read next`, which criterion 6 says to leave unchanged. So I left it. If the human wants it linked, that needs their word that criterion 6's "unchanged" gives way.
+    `docs/README.md` and `security/README.md` printed nothing. After the two fixes no line of `## The folders` is reported.
+
+    `make documents` ends with `documents ok (62.8 s)`. I changed only a document, so I did not run `make check`; the factory runs it after this stage.
+
+    Cross-read and found current: `docs/README.md`, `security/README.md` and the rest of `## The folders`.
+
+    Open or noted, not mine to fix:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it), so its root line has no link.
+    - The `agents/` line in `## Where to read next` duplicates its line in `## The folders`; criterion 6 says to leave `## Where to read next` unchanged.
+    - Line 33's unlinked "stage" (above).
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (60.5 s)
+29. factory: started docs-review as vm.
+30. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, which is new on the branch and which criteria 1, 2 and 5 name. The human's entry 24 limits the glossary-link check to the two findings it confirmed and asks for nothing else of this kind.
+
+    no findings
+
+    Checked and found true:
+    - Round 5's two findings are fixed. In `README.md:37` the `agents/` line links "role" to `docs/project-guide/glossary.md`. In `README.md:42` the `planning/` line links "stage" before its later link at the old line 82.
+    - Glossary check: the documenter's script was removed, so I could not rerun it, and my role lets me write no code. Instead I used `grep` to compare every term in `docs/project-guide/glossary.md` (acceptance … write paths) with the new lines of the three files.
+      - No new line has an unlinked first prose use of a glossary word.
+      - The three hits the documenter's script reported in entry 28 are outside this story's lines. "stories" at line 3 is linked. "takes" at line 21 is the verb. "stage image" at line 33 is older than this story and sits in `## Where to read next`, which criterion 6 keeps unchanged.
+    - Criterion 4: `docs/README.md` names the operator guide, the project guide, `decisions.md` and `operator-playbook.md`, and says `runs/` is the human's. Its three subfolder lines match `docs/`: `operator-guide/`, `project-guide/` and `runs/`, which holds only run logs and reports.
+    - Criterion 5: `security/README.md` names the semgrep rules (`make sast`) and `duplicates-baseline.txt` (`make duplicates`) and links `CLAUDE.md`, *Checks*. Its one subfolder line, `semgrep/`, matches `security/`.
+    - Criterion 6:
+      - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`.
+      - It has ten lines in the subfolder-line form, with no colons, and links the eight READMEs that exist.
+      - It names `factory/`, `planning/` and `session-logs/` as the human's.
+    - Criterion 2: `docs/checked-documents.txt` now lists both new paths. The documenter's last run (entry 28) ended `documents ok (60.5 s)`, and the factory's gate was `check: green`.
+
+    Open, not a finding:
+    - The `agents/` line in `## Where to read next` covers the same folder as its line in `## The folders`. Criterion 6 keeps the old section unchanged.
+    - `session-logs/` is ignored by git (`.gitignore`), so its line has no link.

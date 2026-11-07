@@ -44,3 +44,5 @@ operator/lib/README.md
 operator/opencode/README.md
 operator/skill/README.md
 operator/vm/README.md
+docs/README.md
+security/README.md
