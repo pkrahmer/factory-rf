@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 1
@@ -143,6 +143,11 @@ journal:
   at: '2026-11-07T12:48:35.568897Z'
   stage: smoke-test
   run: b9d44bdf565e48398075486a051e8bff
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-07T12:52:29.283560Z'
+  stage: approval
 ---
 
 # The package and its areas say what they hold
@@ -365,3 +370,4 @@ Expect: `documents ok (<seconds> s)`
     - `uv run pytest -q tests/guards/test_folder_readmes.py tests/guards/test_old_layer_packages_removed.py` passes. The skips there are other stories' folders, as the tester reported in journal 16.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 10 runs, 13.2 min, 66 turns, 208355 tokens in (1457174 more from cache), 22524 out, $1.87
