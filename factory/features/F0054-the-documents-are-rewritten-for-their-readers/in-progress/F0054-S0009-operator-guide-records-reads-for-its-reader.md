@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:49:13.617905Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T01:49:13.617905Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:50:45.105247Z'
+  stage: docs-review
+  run: 6447226898b74d798e48f1bf81bf2623
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -177,3 +179,25 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (13.5 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/records.md` and `docs/checked-documents.txt`. I read the new file against `docs/project-guide/style.md` and against `src/factory/entry/bill.py`, `contract.py`, `watch.py` and `src/factory/watching/application/costs.py` (`in_flight`).
+
+    What is fixed from round 0:
+    - Findings 1 to 3 and 6 to 11 are fixed.
+    - Finding 5 is fixed: the bill is now two numbered steps.
+
+    What is met:
+    - Criterion 3: the file is on the checked list, and the journal shows `documents ok`.
+    - Criterion 4: no link points to the renamed headings.
+    - Criterion 2: the only thing dropped on purpose is the version-by-version list of the records contract (style rule 1), as named in round 0.
+
+    Round-0 finding 4 is still open, and finding 12 is only partly fixed.
+
+    Findings:
+    1. `docs/operator-guide/records.md:49-54`: the text says "It reads your project's remote, so no run can be shown here", which is false. `factory-bill` reads only the checkout's remote-tracking refs (`BillService._ref_of`, `in_flight` in `costs.py`). I ran `uv run factory-bill <id>` in this stage's own checkout, and it printed a full table and `Cost:` line. So the `sh` block does not fit the style's rule for `sh`, which covers only commands where no run can be copied. The block also stands at column 0 after the list, not under step 2. Fix: remove the false sentence. Make the block a `console vm` block with output copied from a real run, indented under step 2, and have the text above it name where it ran.
+    2. `docs/operator-guide/records.md:132` (style rule 2): "Each row has these columns: …" is about 45 words long and has three parentheses. Fix: a table with the columns column and meaning, with one row each for the title, `stage`, `blocked`, `claim`, `running_since` and `pull_request`.
+    3. `docs/operator-guide/records.md:131` (style rule 2): the first sentence is about 38 words. The `acceptance` sentence is about 40 words, and its one parenthesis holds both a list of six values and a link. Fix: split each into sentences of about 25 words. Put the status values in their own sentence and the link in another.
+    4. `docs/operator-guide/records.md:133`: "A claim of the instance `factory-watch` runs as shows in one of two ways." does not parse. Fix: "The claim of the instance that `factory-watch` runs as shows in one of two ways."
+    5. `docs/operator-guide/records.md:117` (style rule 2): "It evaluates once, as a tick would after its fetch, except that … since a tick never looks while its own stage runs." is about 33 words long. Fix: two sentences: "It evaluates once, as a tick would after its fetch. It judges its own instance's claim by the lease, because a tick never looks while its own stage runs."
+    6. `docs/operator-guide/records.md:135` (style rule 3): "provider limit" is a private word that is not in the glossary and is not explained. Fix: say it in plain words, for example "a usage limit of the model's provider", or link the page of the operator guide that explains it.
+    7. `docs/operator-guide/records.md:36` (style rule 3): "moved to `done/` by the archive commit" uses a private word without explaining it. Fix: "moved to `done/` by the commit the factory makes after the merge".
+    8. `docs/operator-guide/records.md:27`: "Run as `uv run python -m factory.entry.contract` from a checkout, without a folder, it rewrites `src/factory/contract/`, …" is a dangling sentence with two stacked conditions. The code it describes is `CONTRACT_FOLDER` in `contract.py:9`. Fix: "Without a folder, the command rewrites `src/factory/contract/`, where the committed schemas are; run it as `uv run python -m factory.entry.contract` from a checkout."
