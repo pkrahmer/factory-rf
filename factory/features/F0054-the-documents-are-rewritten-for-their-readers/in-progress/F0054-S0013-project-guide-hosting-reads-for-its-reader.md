@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:39:56.549564Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T03:39:51.420523Z'
   stage: docs-review
   run: f2a9e257f33943f286124168660bb89f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:39:56.549564Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -302,3 +311,4 @@ Expect: `1`
     - The `move` entry in row 245 names only the merge and the discard. Moving the file back to the backlog (`closed.py:67`) is part of the discard, so the row is true.
 
     Open: nothing beyond the finding above.
+16. factory: started docs-only as vm.
