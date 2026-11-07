@@ -36,13 +36,13 @@ How the stage environment works and what the instance refuses.
 
 ### What the stage environment is
 
-- Every stage runs in containers. The [stage environment](../project-guide/glossary.md) is the containers; an instance without `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` is refused, and so is one without `FACTORY_DATASET` when the snapshots are `zfs` (with `FACTORY_SNAPSHOTS=copy` it runs without a dataset). A setting file that holds a variable the factory does not read, such as `FACTORY_STAGE_ENVIRONMENT`, is harmless: nothing reads it.
-- The container is the boundary. On the VM the agent's container runs as the user `factory` with `--userns=keep-id`; a Cloud Run job runs without the user namespace (see `cloud-run.md`). The [dataset](../project-guide/glossary.md) is the only writable mount; the login files are mounted read-only at their own paths. The token is on the host, which alone pushes.
+- Every stage runs in containers. The [stage environment](../project-guide/glossary.md) is the containers; an instance without `FACTORY_WORKSPACE` and `FACTORY_STAGE_IMAGE` is refused, and so is one without `FACTORY_DATASET` when the snapshots are `zfs`, or without `FACTORY_SNAPSHOT_BASE` when they are `copy` (with `FACTORY_SNAPSHOTS=copy` it runs without a dataset). A setting file that holds a variable the factory does not read, such as `FACTORY_STAGE_ENVIRONMENT`, is harmless: nothing reads it.
+- The container is the boundary. On the VM the agent's container runs as the user `factory` with `--userns=keep-id`; a Cloud Run job runs without the user namespace (see [cloud-run.md](cloud-run.md)). The [dataset](../project-guide/glossary.md) is the only writable mount; the login files are mounted read-only at their own paths. The token is on the host, which alone pushes.
 - The agent's home is `home/` on the dataset. The rollback to the [base](../project-guide/glossary.md) clears it before every stage, and it clears whatever else a run left on the dataset.
 - The factory ends everything an agent's call started by ending the call's container.
 - The checks run on a rolled-back copy of the dataset. After a run, the [take](../project-guide/glossary.md) copies into the work tree only the changed paths the role may write. The journal records what it left out as `The factory left out changes outside the write paths: ...`.
 - A [pipeline definition](../project-guide/glossary.md) that holds `tool_paths` is refused: no tool call is judged, and the write paths are the only rule.
-- The stage image (`operator/vm/Dockerfile`) holds the tools alone. The credential helper is `operator/vm/git-credential-factory`, which `operator/vm/setup.sh` installs as `/usr/local/bin/git-credential-factory`.
+- The stage image ([Dockerfile](../../operator/vm/Dockerfile)) holds the tools alone. The credential helper is [git-credential-factory](../../operator/vm/git-credential-factory), which [setup.sh](../../operator/vm/setup.sh) installs as `/usr/local/bin/git-credential-factory`.
 
 ### Command-line options
 

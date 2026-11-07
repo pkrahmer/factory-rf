@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T02:35:56.481265Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T02:35:56.481265Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T02:38:36.550245Z'
+  stage: docs-only
+  run: bf96caf190684cf2843de0361120c0ca
 ---
 
 # The operator guide's index reads for the operator
@@ -187,3 +189,16 @@ Expect: `1`
     1. `docs/operator-guide/README.md`, *What the stage environment is*, bullet 1: the bullet lists the settings without which the instance is refused, and it says "with `FACTORY_SNAPSHOTS=copy` it runs without a dataset". It leaves out that copy snapshots require `FACTORY_SNAPSHOT_BASE` (`src/factory/shared/domain/settings.py:168`, `required="with copy"`). An operator who switches to `copy` would expect to need nothing else. Fix: add "and one without `FACTORY_SNAPSHOT_BASE` when the snapshots are `copy`".
     2. `docs/operator-guide/README.md`, *What the stage environment is*, bullets 2 and 7: style rule 8 says a file of the repository is linked by a relative link. "(see `cloud-run.md`)" names the file in backticks with no link. So do `operator/vm/Dockerfile`, `operator/vm/git-credential-factory` and `operator/vm/setup.sh`. `docs/operator-guide/machine.md:129` already links `[Dockerfile](../../operator/vm/Dockerfile)` this way. Fix: write `[cloud-run.md](cloud-run.md)`, `[Dockerfile](../../operator/vm/Dockerfile)`, `[setup.sh](../../operator/vm/setup.sh)` and `[git-credential-factory](../../operator/vm/git-credential-factory)`. Leave the installed path `/usr/local/bin/git-credential-factory` in backticks.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: fixed the reviewer's two findings from entry 11, both in `docs/operator-guide/README.md`, section *Reference*, *What the stage environment is*.
+    1. Bullet 1 now also says an instance is refused without `FACTORY_SNAPSHOT_BASE` when the snapshots are `copy`. I checked this against `src/factory/shared/domain/settings.py:168` (`required="with copy"`).
+    2. Bullets 2 and 7 now use relative links: `[cloud-run.md](cloud-run.md)`, `[Dockerfile](../../operator/vm/Dockerfile)`, `[git-credential-factory](../../operator/vm/git-credential-factory)` and `[setup.sh](../../operator/vm/setup.sh)`. The installed path `/usr/local/bin/git-credential-factory` stays in backticks.
+
+    `make documents` ends with `documents ok (13.6 s)`. I changed only documents, so I did not run `make check`.
+
+    Cross-read and found current: the rest of the guide's README and the earlier fixes (as in entries 5 and 9).
+
+    Stale text seen, not touched: only the items already listed in entry 5. They belong to other stories.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (13.8 s)
