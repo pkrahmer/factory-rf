@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T10:32:52.122835Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -112,6 +108,12 @@ journal:
   kind: started
   at: '2026-11-07T10:32:52.122835Z'
   stage: review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T10:34:19.372120Z'
+  stage: review
+  run: 29ddc7d7620b48bcb063a873398c379e
 ---
 
 # The folders that have a README are listed and checked
@@ -148,8 +150,9 @@ The repository is to give every folder a reader would ask about a short `README.
 6. `agents/agents/documenter.md` names the folder READMEs among the files the documenter may write, with the rule that a README points to the guides (one test).
 7. A listed path of `FOLDER_READMES` with no file gives the same finding of `checked_list_findings` as today.
 8. The guard's subfolder reading leaves out hidden folders and `__pycache__`, through a helper in the guard module, with a parametrized test.
-9. `make check` stays green.
-10. docs: `docs/project-guide/shared.md`, the document check: the reader learns which READMEs the check reads and where their list lives. `docs/project-guide/README.md`: the guard of the folder READMEs among the guards. `docs/project-guide/style.md`, a new section *Folder READMEs*: the form of a folder README and its limits (feature decisions 2 and 6), and that anything needing explanation belongs in the guide page the README links to. `docs/decisions.md`: one entry for feature decisions 1 to 3, with the rejected option: a README in every folder, which would cost about 25 more files that all say the same.
+9. The shape rules hold from the first line and for every fence, as more rows of the test of criterion 2: a first line that is a heading other than `# <title>` (`## A`) gives `has a section`; a first line of prose gives `line 1 is no part of the form`; a `~~~` fence and a fence indented by spaces each give `has a code block`; a README whose only link is a web address (`https://…`) gives `links to no guide`.
+10. `make check` stays green.
+11. docs: `docs/project-guide/shared.md`, the document check: the reader learns which READMEs the check reads and where their list lives. `docs/project-guide/README.md`: the guard of the folder READMEs among the guards. `docs/project-guide/style.md`, a new section *Folder READMEs*: the form of a folder README and its limits (feature decisions 2 and 6), and that anything needing explanation belongs in the guide page the README links to. `docs/decisions.md`: one entry for feature decisions 1 to 3, with the rejected option: a README in every folder, which would cost about 25 more files that all say the same.
 
 ## Smoke test
 
@@ -295,3 +298,18 @@ Expect: `23 ['x: no README.md']`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 39 known, 4 gone
 18. factory: started review as vm.
+19. reviewer: Review, round 1. I read the work item, the whole diff outside `factory/` (`src/factory/shared/domain/folder_readmes.py`, `src/factory/entry/check_documents.py`, `agents/agents/documenter.md`, the four new test files), and the helpers it now uses in `factory.shared.domain.sections` and `factory.shared.domain.documents`. The coder's round-1 fixes for both round-0 findings are in the code. Line 1 is now checked (`_read`, `_TITLE`), and fences now come from `sections.code_blocks` / `lines_outside_blocks`, whose `_FENCE_OPENING` accepts `~~~` and indented fences. But no test pins either fix.
+
+    Findings:
+    1. criterion 9 added: it needs its test. The diff now builds behaviour no criterion names, and pinning it needs no change under `src/`. These are more rows of the criterion-2 test `test_a_readme_out_of_its_form_gives_one_line_per_rule` in `tests/shared/domain/test_folder_readmes.py`: a first line `## A` gives `has a section`; a first line of prose gives `line 1 is no part of the form`; a `~~~` fence and an indented fence each give `has a code block`; a README whose only link is `https://…` gives `links to no guide`. The closing criteria are renumbered to 10 (`make check`) and 11 (docs).
+    2. `src/factory/shared/domain/folder_readmes.py:45` (`_RELATIVE_LINK`): this is a second, different copy of the relative-link reading in `factory.shared.domain.documents` (`_LINK_TARGET` and `_link_name`, lines 101 and 499-505). That reading refuses targets that start with `/` or `#`, `mailto:`, anything with `://`, and placeholders or globs. The copy refuses only a scheme or `#`, so a root-absolute link such as `[guide](/docs/operator-guide/README.md)` counts as relative here. A README whose only link is root-absolute then gets no `links to no guide`, against the Interface's "no relative link", while the document check does not treat that same link as relative. Fix: decide "relative link" through one shared public helper in `documents.py` (made from `_LINK_TARGET` / `_link_name`) and drop `_RELATIVE_LINK`. Then a row "only link root-absolute → `links to no guide`" can be pinned; that row needs this code change, so I did not add it as a criterion. The coder should ask for it, or the tester adds it with criterion 9's rows.
+
+    Checked and found sound:
+    - Group 1: criteria 1 to 8 each have a test that tests what the criterion names. The boundary rows are there on both sides: an opening of 2 and 3 sentences, a subfolder line of 25 and 26 words, the line limit at 12 and at 13. The criterion-7 test pins the unchanged `checked_list_findings` finding. The journal shows `make check` green after the coder (entry 17).
+    - Group 2: the layering holds. `folder_readmes` is a pure domain module in `shared` and now reuses `sections`; the wiring is in `entry`.
+    - Group 3: no silencing markers, no secrets, no shell or SQL built from strings.
+    - Group 4: apart from finding 2, the names, docstrings and why-comments (`_OPERATOR_README`, the no-title comment in `_read`) are fine.
+    - Group 5: the Description still matches what was built. The journal gives the main decision (one pass; a missing title means no opening) and what was rejected. The docs criterion is unchanged and still fits.
+    - The diff changes no document under `README.md`, `docs/` or `operator/README.md`.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
