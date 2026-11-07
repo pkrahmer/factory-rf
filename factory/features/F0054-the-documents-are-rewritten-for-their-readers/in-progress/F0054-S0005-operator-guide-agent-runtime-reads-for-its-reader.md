@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:17:26.058600Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T00:17:21.039257Z'
   stage: intake
   run: 0c107ab4b5584702a6fcf48c2c12c797
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:17:26.058600Z'
+  stage: docs-only
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    Docs criterion: it refers to criteria 1 to 4 and names what the reader must know, which is the agent runtime facts kept in the file or its Reference section. It dictates no sentences.
    Architecture: the story changes documents only, so the code layers are untouched. `docs/decisions.md` is explicitly left alone.
    Scope: this is S0005 in the feature's story list, and the work is a document rewrite with no behaviour change. Nothing in the feature's Out of scope is touched.
+4. factory: started docs-only as vm.
