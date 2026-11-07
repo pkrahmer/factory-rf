@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:58:39.844289Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T00:58:39.844289Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:59:02.587961Z'
+  stage: docs-review
+  run: cd447a95522c4e07b22f37c8b07a8b68
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -254,3 +256,18 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (12.1 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/health.md` and `docs/checked-documents.txt`. I read this round's change (`git diff f65377c1c ec879053b -- docs`) and the lines around it against the code and `docs/project-guide/style.md`.
+
+    All three round-1 findings are fixed:
+    1. "base" now links to the glossary at its first use in prose, in the `snapshots` row of the items table (`health.md:107`).
+    2. The sentence on the extras no longer has its two parentheses (`health.md:93`). The new sentence, "`metadata-block` runs only under the profile `job`, and `opencode` only under opencode.", matches the rows at lines 110 and 111.
+    3. The sample stop line is now introduced by "A line for a stop has this format; `factory-health` prints it:" (`health.md:75`), with no source path. The line matches the format `src/factory/entry/health.py:17-19` builds: `<reason> (<scope>): <detail> (since <%Y-%m-%dT%H:%M:%SZ>)`. It sits in a `text` block as a format sample, not a command, so it needs no record of a real run.
+
+    This round changed nothing else. The findings fixed in rounds 0 and 1, and the checks of criteria 1 to 4, still hold:
+    - the file is on `docs/checked-documents.txt`;
+    - `make documents` printed `documents ok` (entry 13);
+    - no heading changed, so links from other documents still resolve.
+
+    Criterion 2 is met without a *Reference* section. Entry 7 names what was dropped on purpose.
+
+    No findings.
