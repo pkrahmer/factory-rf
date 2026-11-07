@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T12:25:43.662489Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T12:25:41.033588Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:25:43.662489Z'
   stage: intake
 ---
 
@@ -85,3 +94,4 @@ Expect: `documents ok (<seconds> s)`
    The format check passed. The smoke test is runnable, and its `Expect:` line is checkable. The scope fits the feature, which puts S0002 in group 1 with no code change. The architecture is unaffected, since it only adds READMEs.
 4. 2026-11-07 human: 1. Agreed: add one criterion for a to c in words a reviewer can check; d stays to the reviewer's judgment.
    2. Confirmed: src/factory/entry/README.md is one sentence on what entry holds (the commands and the wiring) and a link to docs/project-guide/README.md, the guide its __init__.py names, with no subfolder lines since entry has none. Say so in the Interface.
+5. factory: started intake as vm.
