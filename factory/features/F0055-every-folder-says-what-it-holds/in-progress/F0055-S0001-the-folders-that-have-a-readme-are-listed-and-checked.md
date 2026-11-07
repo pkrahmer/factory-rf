@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-07T11:03:39.076385Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -236,6 +240,11 @@ journal:
   at: '2026-11-07T11:03:33.697798Z'
   stage: docs
   run: 093960cb89a04c96831c31b18b23f47d
+- number: 42
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:03:39.076385Z'
+  stage: smoke-test
 ---
 
 # The folders that have a README are listed and checked
@@ -640,3 +649,4 @@ Expect: `23 ['x: no README.md']`
     `check`: check: green
     `secrets`: secrets: green (2.0 s)
     `documents`: documents ok (60.4 s)
+42. factory: started smoke-test as vm.
