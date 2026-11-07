@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T14:54:22.836784Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T14:54:17.059914Z'
   stage: intake
   run: ce19b8efcc704376b197045219973e65
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:54:22.836784Z'
+  stage: tests
 ---
 
 # A listed folder README that is missing fails the guard
@@ -81,3 +90,4 @@ Expect: `missing-fails`
    - Scope: the story is inside F0055's folder-README guard (S0001). It leaves `tests/guards/test_test_folder_readmes.py` alone, and the Description says so. It changes nothing in `FOLDER_READMES`.
 
    Route: `tests`. The Interface changes only a test file, which the documenter may not write.
+4. factory: started tests as vm.
