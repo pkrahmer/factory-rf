@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 641
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T15:06:55.954507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T15:06:55.954507Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-07T15:07:33.654163Z'
+  stage: tests
+  run: 51afc1090c0240be85ad5b71de1a994f
 ---
 
 # A folder README keeps its opening and its link lines short
@@ -99,3 +101,16 @@ Expect: `0`
    - Architecture: the change is confined to a pure `shared.domain` module with no I/O, as CLAUDE.md requires.
    - Scope: it fits feature decision 6 (a README stays a pointer) and is not in the feature's out-of-scope list. The route is `tests` because the Interface changes code under `src/`.
 4. factory: started tests as vm.
+5. tester: Added seven rows to `test_a_readme_out_of_its_form_gives_one_line_per_rule` in `tests/shared/domain/test_folder_readmes.py`, as the human allowed on 2026-11-07. I did not change any existing row. I also added a constant `GUIDE_LINK`, a constant `LONG_LINK_LINE_5` and a helper `_link_line(words)` to the same module. The helper builds one sentence with a relative link; the link `[the guide](../docs/README.md)` counts as two words, as written.
+
+   - criterion 1: tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule, rows `opening-of-two-sentences-with-a-link` (no line) and `opening-of-three-sentences-with-a-link` (the opening line)
+   - criterion 2: the same test, rows `link-line-of-25-words` (no line), `link-line-of-26-words` and `link-line-of-two-sentences` (both `line 5 is a long link line`), `link-line-of-26-words-after-the-list` (`line 9 is a long link line`). The row `link-line-of-25-words-after-the-list` (no line) is the accepted side of that limit after the list.
+   - criterion 3: the existing rows of the same test and of `test_a_readme_and_its_subfolders_give_what_they_disagree_on`, unchanged. All of them pass today.
+   - criterion 4: `make check`, the coder's to keep green. `make lint` is green.
+   - criterion 5: docs, not tested.
+
+   Files: no new files. The only file changed is `tests/shared/domain/test_folder_readmes.py`, which F0055-S0001 wrote, under the leave quoted in the Interface.
+
+   Run (`uv run pytest -q tests/shared/domain/test_folder_readmes.py`): four rows fail because the result is wrong. They are `opening-of-three-sentences-with-a-link`, `link-line-of-26-words`, `link-line-of-two-sentences` and `link-line-of-26-words-after-the-list`; each gets `[]` where one line is expected. Every other row passes. The test runner imported every module, since `factory.shared.domain.folder_readmes` already exists. The rows do not import the new constants `LINK_LINE_SENTENCES` and `LINK_LINE_WORDS`.
+
+   `lint`: lint: green (0.1 s)
