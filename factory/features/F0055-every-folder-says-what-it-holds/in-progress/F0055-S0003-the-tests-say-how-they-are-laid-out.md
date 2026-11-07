@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T12:55:50.184206Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-07T12:55:50.184206Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-07T13:01:26.419269Z'
+  stage: tests
+  run: dc58e30d11574fc58d5f328e36a3614e
 ---
 
 # The tests say how they are laid out
@@ -105,3 +107,22 @@ Expect: `documents ok (<seconds> s)`
    - Architecture: the READMEs stand beside the test folders, with no code or layer change; this fits feature decisions 2, 4 and 6.
    - Scope: within the feature's S0003, and not in its Out of scope. The only test change is the human's leave for earlier guards.
 7. factory: started tests as vm.
+8. tester: Wrote the tests for the acceptance criteria and made the guard change that the human's leave allows (Interface; journal entry 4). The tests are red on purpose.
+
+   Criterion → test:
+   - criterion 1 (each README exists, its form and subfolder lines, guard skips none): `tests/guards/test_test_folder_readmes.py::test_a_test_folder_readme_is_written_so_its_guard_does_not_skip_it`, one row per README. The form itself is checked by the existing guard `tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder`. Its rows `tests/README.md`, `tests/support/README.md` and `tests/guards/README.md` are already in `FOLDER_READMES`, and the guard skips a row only when the file is missing, which the new test rules out.
+   - criterion 2 (each file on `docs/checked-documents.txt`): `tests/guards/test_test_folder_readmes.py::test_a_test_folder_readme_is_on_the_checked_documents`, one row per README. No test of mine checks "the document check finds nothing". CLAUDE.md forbids tests that run the document check on the real documents, so that half is left to `make documents` (criterion 3).
+   - criterion 3 (`make documents`), criterion 4 (`make check`), criterion 5 (docs): these are checks and the docs criterion, so they have no test.
+
+   Earlier guard changed under the leave:
+   - `tests/guards/test_tests_layout.py::test_the_root_holds_only_conftest_and_packages` now expects `["README.md", "conftest.py"]` in the root of `tests/`. I also rewrote the module docstring's first line so it still says what the file checks.
+
+   How I found every such check: I put three stand-in READMEs at the three paths, ran all of `tests/guards`, then deleted them. The only failure was the test above. With them in place, `test_folder_readmes.py` passed all three rows without skipping. I also searched `tests/` outside `guards/` for tests that list the root of `tests/` or read `checked-documents.txt`, and found only `tests/support/guide_files_support.py` and `tests/guards/test_document_tests_write_their_documents.py`. Neither failed.
+
+   Files: created `tests/guards/test_test_folder_readmes.py`; changed `tests/guards/test_tests_layout.py`.
+
+   Run of the files I wrote or changed, plus the existing guard: 7 failures, all for the right reason. The READMEs are missing, they are not on `docs/checked-documents.txt`, and `test_the_root_holds_only_conftest_and_packages` fails because `README.md` is not in `tests/` yet. The test runner could import every module. `make lint` is green.
+
+   Open for the next stages: the three READMEs and the `docs/checked-documents.txt` lines are inside the documenter's write paths, not the coder's. So the coder has no code to write, and these tests turn green only after the docs stage. The story should pass through doing with no code change.
+
+   `lint`: lint: green (0.2 s)

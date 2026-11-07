@@ -1,4 +1,4 @@
-"""The root of `tests/` holds only `conftest.py` and packages, sorted by kind."""
+"""The root of `tests/` holds only `conftest.py`, its `README.md` and packages, sorted by kind."""
 
 import ast
 from fnmatch import fnmatch
@@ -261,7 +261,7 @@ def test_the_root_holds_only_conftest_and_packages() -> None:
         if path.name != "__pycache__" and not path.name.startswith(".")
     ]
     files = sorted(path.name for path in entries if not path.is_dir())
-    assert files == ["conftest.py"]
+    assert files == ["README.md", "conftest.py"]
     not_packages = [
         path.relative_to(TESTS).as_posix()
         for path in _folders(TESTS)
