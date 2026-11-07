@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:30:50.272505Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -41,6 +45,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T09:30:47.803902Z'
+  stage: docs-only
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:30:50.272505Z'
   stage: docs-only
 ---
 
@@ -110,3 +119,4 @@ Expect: `1`
 
    **Stale text I saw and did not touch.** `operator/skill/kumpel/SKILL.md` repeats "Second version, 2026-11-01" and "kumpel-factory v1.2 or later". That is the skill's file, not a document I may write. The old README linked nothing in `planning/`; I kept `planning/operator-skill/DESIGN.md` as a plain path because the folder belongs to the human.
 6. 2026-11-07 human: Option 1. This story stays docs-only: the rewritten operator/README.md is its whole change, and the checked-list part of criterion 3 and of the Interface is dropped. Leave docs/checked-documents.txt unchanged. Making operator/README.md a document of the check is now part of F0055-S0001, and F0055-S0004 adds the line to the checked list. Since the check does not read this file yet, run each runnable console example of the page by hand once more before you end, and quote the results in your entry. The reviewer reviews the page as it is, without criterion 3's list line.
+7. factory: started docs-only as vm.
