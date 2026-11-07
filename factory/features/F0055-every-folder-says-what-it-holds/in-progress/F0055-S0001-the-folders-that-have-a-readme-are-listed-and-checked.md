@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T10:40:12.308493Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-07T10:40:06.979228Z'
   stage: tests
   run: 6422c9e797e2418194922323e8c02445
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:40:12.308493Z'
+  stage: doing
 ---
 
 # The folders that have a README are listed and checked
@@ -371,3 +380,4 @@ Expect: `23 ['x: no README.md']`
     Not tested: a README whose only link is root-absolute (`[guide](/docs/operator-guide/README.md)` gives `links to no guide`). The reviewer offered this row in entry 19 and the coder built the behaviour in round 2. But it is in no criterion, and criterion 9 names only the `https://…` case. The tester tests only what the criteria say, so this row needs to be added to criterion 9 (by the reviewer or the human) before I write it. Once added, it is one more row of the same test.
 
     `lint`: lint: green (0.2 s)
+24. factory: started doing as vm.
