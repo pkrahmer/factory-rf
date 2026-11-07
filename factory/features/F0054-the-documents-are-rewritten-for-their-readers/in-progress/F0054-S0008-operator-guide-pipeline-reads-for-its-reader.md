@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T01:34:36.585936Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -80,6 +84,11 @@ journal:
   at: '2026-11-07T01:34:31.284162Z'
   stage: docs-only
   run: 40bb61f1efbe4196b0d212778881869b
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:34:36.585936Z'
+  stage: docs-review
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -236,3 +245,4 @@ Expect: `1`
     `check`: check: green
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (12.9 s)
+14. factory: started docs-review as vm.
