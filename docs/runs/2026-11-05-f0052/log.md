@@ -154,3 +154,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 03:23Z: F0054-S0013 (F0054-S0013-project-guide-hosting-reads-for-its-reader) started.
 - 03:47Z: F0054-S0013 PR #621 merged at docs-approval: the project guide's hosting.md rewritten and listed. $3.55, 9 runs, no question.
 - 03:47Z: F0054-S0014 (F0054-S0014-project-guide-work-reads-for-its-reader) started.
+- 04:12Z: F0054-S0014 PR #622 merged at docs-approval: the project guide's work.md rewritten and listed. $3.23, 8 runs, no question.
+- 04:12Z: F0054-S0015 (F0054-S0015-project-guide-agents-reads-for-its-reader) started.
