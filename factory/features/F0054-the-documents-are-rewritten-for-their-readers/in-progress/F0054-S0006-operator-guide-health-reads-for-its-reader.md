@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 614
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T00:42:00.207016Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T00:42:00.207016Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T00:42:18.510260Z'
+  stage: intake
+  run: d94a1610a34048dc9c1b92f1c0fa1371
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names concrete paths only (`docs/operator-guide/health.md` exists; `docs/checked-documents.txt` exists and does not yet list it). It changes only documents and no code, test or agent file, so the docs route fits.
+   - Criteria: all six are about documents and each can be judged or checked. 1 and 2 are the reviewer's comparison, 3 is `make documents`, 4 is a link check, 5 is `make check`. The Interface states no behaviour or rule with a failing side, so no criterion is missing.
+   - Smoke test: `grep -cx "docs/operator-guide/health.md" docs/checked-documents.txt` is runnable and its `Expect: 1` can be checked against the output.
+   - Docs criterion: it names the reader (an operator who knows Linux and does not read the code) and what the file must hold (the facts of the old file, corrected against the code). It quotes no sentences to write.
+   - Architecture: no code is touched, so nothing conflicts with the layers in `CLAUDE.md`.
+   - Scope: the story is S0006 of F0054's list and in its scope. It touches none of the out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`).
