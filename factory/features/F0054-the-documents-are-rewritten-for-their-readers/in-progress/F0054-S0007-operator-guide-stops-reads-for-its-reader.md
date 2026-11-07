@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:18:23.283600Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T01:18:23.283600Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:19:11.659961Z'
+  stage: docs-review
+  run: 108d032ce9e84f1eb6f5a842b00e13f8
 ---
 
 # The operator guide's the stops reads for the operator
@@ -265,3 +267,22 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (12.0 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 review. I read the work item, `git diff main...HEAD -- README.md docs operator/README.md` (`docs/operator-guide/stops.md` and `docs/checked-documents.txt`), and the round-2 change on its own (`git diff 29e33518f ca8b88c22 -- docs/operator-guide/stops.md`). I checked it against `docs/project-guide/style.md` (rules 2 and 3 and the operator guide's rule for tasks) and against the round-1 findings.
+
+    All eight round-1 findings are fixed:
+    1. Line 119: "dataset" is linked to the glossary.
+    2. Line 294: the disk sentence is now three sentences, with no parenthesis.
+    3. Line 132: the **You see** is now two sentences, the cause and check name first, then the code block.
+    4. Line 326: the two causes have a sentence of their own, and the retry follows in the next one.
+    5. Line 338: the pushes that are tried again come first, then the recorded changes, then the two failures that count.
+    6. Lines 62, 272 and 284: each is split into sentences with one idea each.
+    7. Lines 88, 153, 206 and 207: each is split at its colon, semicolon or "and".
+    8. Lines 147 to 151: below the cap is now a sentence, and only the three actions at the cap are numbered.
+
+    Round 2 changed wording only. Comparing the two versions, I found no fact added, removed or changed. The facts rounds 0 and 1 checked against the code still hold. These include the stop table, the stall causes and texts, the attempts-cap example, the push retries, the handler-error line, the events list against `EventKind`, and the "cannot handle" reasons.
+
+    The headings that other files link to are unchanged (criterion 4). `docs/checked-documents.txt` holds the line `docs/operator-guide/stops.md` (criterion 3). The documenter's journal entry 13 gives `documents ok`, and the factory checks it again after this stage.
+
+    I looked for remaining sentences over the roughly 25 words of rule 2. The longest left are table cells such as the one on line 21, at about 27 words, which is within "about". I let them stand.
+
+    no findings
