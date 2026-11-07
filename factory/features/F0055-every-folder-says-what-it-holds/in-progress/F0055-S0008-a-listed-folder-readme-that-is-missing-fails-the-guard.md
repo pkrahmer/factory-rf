@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T15:00:09.870533Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T15:00:09.870533Z'
   stage: docs
+- number: 11
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T15:04:29.038158Z'
+  stage: docs
+  run: 0ec81675f2f8486bac6b98a35849d523
 ---
 
 # A listed folder README that is missing fails the guard
@@ -178,3 +180,22 @@ Expect: `missing-fails`
    Earlier tests:
    - `tests/guards/test_folder_readmes.py` (written by F0055-S0001) was changed under the human's leave of 2026-11-07, named in the story's Interface. Within that leave, the skip was dropped from `test_a_folder_readme_agrees_with_its_folder`, which keeps its name and checks the same agreement, and the module docstring was updated. Everything else in the file is added: the private helper, the README constants and the new criterion-1 test.
 10. factory: started docs as vm.
+11. documenter: Changed one file:
+    - `docs/project-guide/shared.md`, *The folder READMEs*, the guard bullet. It said the guard runs on every listed README that exists and skips one that does not. It now says the guard runs on every listed README, and that a listed README with no file fails with `<folder>: no README.md` and nothing is skipped. I checked this against the diff of `tests/guards/test_folder_readmes.py` (`_listed_readme_problems`, and the test with no skip).
+
+    `make documents` ended with `documents ok (60.9 s)`. I ran no `make check`, because I changed only a document.
+
+    Cross-read and found current:
+    - the other bullets of *The folder READMEs* (the name check, `FOLDER_READMES`, `readme_problems`)
+    - `README.md`
+    - `docs/operator-guide/`
+
+    I found no other text about skipping a folder README.
+
+    Noticed and not touched: `tests/guards/test_test_folder_readmes.py` is now redundant with this guard. The story leaves it for the human to decide.
+
+    No findings for the coder. There is no `decisions.md` entry, because the story names no lasting decision.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (59.1 s)
