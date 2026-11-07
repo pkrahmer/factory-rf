@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 4
+blocked: null
+round: 0
 attempts: 1
 crashes: 0
 pull_request: 626
-comments_read: []
+comments_read: [6703344230]
 handed_over: null
 claim: null
 journal:
@@ -138,6 +138,11 @@ journal:
   stage: docs-review
   run: 4677c19d69274f74bdf1ef60c1e93d93
   blocked: round_cap
+- number: 24
+  speaker: human
+  kind: comment
+  at: '2026-11-07T06:27:27.590800Z'
+  stage: docs-review
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -448,3 +453,4 @@ Expect: `1`
     - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria say which rules are meant, so the human has to decide.
     - The page has no *Reference* section. Criterion 2 allows that.
 23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+24. 2026-11-07 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes findings 1 to 3 of the last review: the build order as the code has it, the condition back on `healthy`, and every sentence over about 25 words or with more than one parenthesis split. Before it ends, it checks the sentence lengths of the changed lines by script and reads each function whose order or condition it states.
