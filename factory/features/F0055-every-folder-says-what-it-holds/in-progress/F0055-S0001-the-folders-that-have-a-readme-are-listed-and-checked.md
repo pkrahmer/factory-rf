@@ -1,11 +1,11 @@
 ---
 stage: tests
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 632
-comments_read: [6705414222]
+comments_read: [6705414222, 6705474496]
 handed_over: null
 claim: null
 journal:
@@ -54,6 +54,11 @@ journal:
   stage: tests
   run: 3e230f03b651466d959e847c3351ced4
   blocked: question
+- number: 9
+  speaker: human
+  kind: comment
+  at: '2026-11-07T10:14:23.889133Z'
+  stage: tests
 ---
 
 # The folders that have a README are listed and checked
@@ -150,3 +155,4 @@ Expect: `23 ['x: no README.md']`
    `make lint`: green, after `ruff format` on the new files.
 
    I changed no earlier test. Which earlier documenter tests the new sentence breaks depends on how the coder words it, so I can't name them yet. Under the leave in feature decision 5, I make that change after the coder's run names them.
+9. 2026-11-07 human: (a) to both: the 25 words count only the sentence after the backticked name, and <n> is the 1-based line number in the whole README, blank lines counted. What you settled yourself is confirmed: a subfolder line is a dash, the backticked name ending in /, a space and a sentence ending with a period; sentences are counted by their closing periods; each row of criterion 2 checks only its own line. Keep the tests as they are.
