@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T08:03:05.566887Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T08:03:05.566887Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T08:05:41.526479Z'
+  stage: docs-review
+  run: 44b5a4f25a18475c9a75a499f4051ba5
 ---
 
 # The project guide's index reads for the developer
@@ -144,3 +146,42 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (57.6 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md` (`docs/project-guide/README.md` rewritten, `docs/checked-documents.txt` +1 line) against the code, the criteria and `docs/project-guide/style.md`.
+
+   Facts I checked and found true:
+   - The `Guide:` lines in `src/factory/*/__init__.py`.
+   - The required headings in `src/factory/shared/domain/documents.py:50-56`.
+   - The two headings `operator/vm/setup.sh` names (lines 405 and 476).
+   - `build_world`, `rerun`, `run_case` and `violations` in `tests/support/proof_support.py`.
+   - `check_story_form`, `backlog_story_findings`, `finding_line`, `RuamelPipelineDefinitionReader`, `build_pipeline_definition_reader` and `factory-check-story`.
+   - The messages of `GitError` and `PushFailed`, and `OUTPUT_TAIL_LINES = 30`.
+
+   Criterion 2: the names the old file had and the new one lacks are the per-area package names (now one `factory.<area>.<layer>` block), the bare `support/...` paths and `todo/` (corrected) and `factory.adapters.landlock` (does not exist). All are dropped for good reasons.
+
+   Findings:
+   1. `docs/project-guide/README.md:166`, *Errors*: the scope sentence ("the classes that more than one area raises or catches") is not true of the code. `CostRecordFormatError` is raised only in `watching`, yet it is listed. `PipelineDefinitionInvalid` (raised in `agents` and `pipeline`) and `SettingsInvalid` (raised in `shared` and `entry`) are left out. Fix: either describe every class in `src/factory/shared/domain/errors.py` and point to its area page, or state a scope that the list matches.
+   2. `docs/project-guide/README.md:172-175`: "first", "second", "third" and "fourth subtype" are order-of-addition history, and false for the code. In `errors.py` the fourth `BoundaryError` subclass is `SnapshotError`, not `AgentRuntimeError`. Fix: drop the ordinals and write "a `BoundaryError`".
+   3. `docs/project-guide/README.md:168-170`: the hierarchy block shows only `GitError` under `BoundaryError`. The bullets name seven more subclasses, and the block omits `PushFailed`, `CannotHandle` and the rest. Fix: list every class the section describes, each with its parent.
+   4. `docs/project-guide/README.md:245` and `:285`: the console blocks run `tests/shared/domain/test_kill_point_cases.py`, `tests/pipeline/domain/test_fault_paths_table.py`, `tests/pipeline/domain/test_fault_paths.py` and `tests/pipeline/domain/test_fault_paths_all_rows.py`. None of these files is linked anywhere in the file, against the Interface ("its file is linked above the block") and criterion 4. Fix: link each one above its block.
+   5. `docs/project-guide/README.md:297-298`, *The demos*: `[README.md](../../README.md)` links to the repository's top-level README, and `[factory/pipeline.yml](../../factory/pipeline.yml)` and `[factory/story-form.md](../../factory/story-form.md)` link to this repository's own pipeline files, not a demo's. Fix: link `demo/todo-service/README.md` and `demo/todo-service/project/factory/...` as the example, or leave the placeholder paths unlinked.
+   6. `docs/project-guide/README.md:64-68` and `:298-299`: `guards/`, `operator_scripts/`, `vm/`, `agent_files/`, `<area>/<layer>/`, `entry/`, `project/` and `features/<feature>/...` start below the repository root, against style rule 8. Fix: write `tests/guards/`, `tests/vm/`, `demo/<name>/features/<feature>/feature.md` and so on.
+   7. `docs/project-guide/README.md:241`: there is a parenthesis inside a parenthesis, "`STALL_CONDITIONS` (… left out of the result commit (the take does not copy them; nothing is undone), …)", against style rule 2. Fix: take the inner remark out as a sentence of its own.
+   8. Several sentences break style rule 2: they run past about 25 words and hold more than one parenthesis. They are at line 194 (the *Kill points* opening, three parentheses), line 255 (the *Fault-injection paths* opening, three), line 177 (`PushFailed`, two) and line 48 (the `shared.md` entry). Fix: split each one so that it has at most one parenthesis.
+   9. Factory words are not linked to `glossary.md` at their first use (style rule 3, criterion 1): "leases" and "stops" (line 20), "acceptance" (line 17), "approval" (line 94), "round cap" (line 265) and "attempts cap" (line 266). Fix: link each one at its first use.
+   10. `docs/project-guide/README.md` sections do not follow the shape the Description and style.md ask for, which is an idea opener, then names in a code block, then one rule per bullet, then See also:
+       - *Shared test helpers* (line 59) has no opening idea and no See also.
+       - *The models' configuration* (line 186) gives its rules as prose, with no bullets and no See also.
+       - *The kill-point cases* (line 225) has no See also.
+       Fix: give each section that shape.
+   11. `docs/project-guide/README.md:35`: "Every other list item in this section starts with a word, plain or in italics, and a name in backticks that is no page fails the guard." The sentence cannot be parsed. Fix: write it as two sentences. First, a list item that is no page entry starts with a plain or italic word. Second, an item that starts with a backticked name that is no page fails the guard.
+   12. `docs/project-guide/README.md:65`: "the tests of the operator's scripts under `operator/` (not `operator/`: …)" reads as a contradiction. Fix: say that the folder is named `operator_scripts` and not `operator` because a package named `operator` would hide the standard library's module.
+   13. `docs/project-guide/README.md:274-277`: the paths are "removed by the claim and the crash rules" and "removed by the empty bill at start". This is planning history that a reader who never saw the plan cannot follow (style rules 1 and 7). Fix: say for each path what the code does instead, for example "needs no row: the claim and the crash rules cover it".
+   14. The *Sections:* lists do not match the pages' headings:
+       - `docs/project-guide/README.md:48`, the `shared.md` entry, omits *Reference*.
+       - `:49`, the `hosting.md` entry, omits *Reference*.
+       - `:51`, the `agents.md` entry, omits *Reference*.
+       - `:50`, the `work.md` entry, omits the top-level *Journal*.
+       Fix: list each page's `##` headings as they stand.
+   15. `docs/project-guide/README.md:287`: the line starts with a stray space before `` `check_demos(root)` ``. Fix: remove it.
+
+   Not checked: every one-line description of a `tests/support/` module against its source. I did not run `make documents`; the documenter's run printed `documents ok`, and the factory runs it again as the gate.
