@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T10:51:25.269173Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -201,6 +197,12 @@ journal:
   kind: started
   at: '2026-11-07T10:51:25.269173Z'
   stage: tests
+- number: 35
+  speaker: tester
+  kind: result
+  at: '2026-11-07T10:52:15.877772Z'
+  stage: tests
+  run: 9d46e4fde71b43f29a6f0a3c0d2c80ac
 ---
 
 # The folders that have a README are listed and checked
@@ -518,3 +520,21 @@ Expect: `23 ['x: no README.md']`
 
     Noticed but not touched, as in earlier entries: `folder_readmes` imports the large `documents` module. Both are domain layers, so this is allowed.
 34. factory: started tests as vm.
+35. tester: Mode: a test change the human approved (entry 29), as the coder's entry 33 names it.
+
+    What I changed:
+    - Criterion 10 now has a test. I added one row, `only-link-root-absolute`, to `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule`. It is a README whose only link is `[the guide](/docs/operator-guide/README.md)`, and it expects `<folder>: links to no guide` exactly once. This is finding 1 of the reviewer's entry 31.
+    - I also did one of the two optional notes in entry 29. I removed the docstring of the private helper `_subfolders` in `tests/guards/test_folder_readmes.py`, because CLAUDE.md *Docs* says private names get none. The helper's code and its parametrized test are unchanged. I wrote this file myself earlier in this story.
+
+    What I left out: the other optional note, moving `_run` into `tests/support/check_documents_support.py`. The human allowed it but did not require it, and it would change `tests/entry/test_check_documents_checked_files.py`, an earlier story's test file. I kept the change to what the round needs, so no earlier test file was changed.
+
+    Criterion → test, for the rows touched:
+    criterion 10: tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule[only-link-root-absolute]
+    criterion 8: tests/guards/test_folder_readmes.py (the test of `_subfolders`, unchanged apart from the removed docstring)
+
+    Files created: none; I changed only the two files above.
+    Modules the test run could not import: none. The code already exists, and the new row passes, as the coder expected: `relative_link_targets` refuses a target that starts with `/`.
+
+    Run: `uv run pytest -q` on the two files passed, with 23 guard cases skipped because their READMEs do not exist yet. `make lint` is green.
+
+    `lint`: lint: green (0.1 s)

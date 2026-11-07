@@ -188,6 +188,12 @@ FREE_PROSE = "This line says more than the form allows."
             1,
             id="only-link-a-web-address",
         ),
+        pytest.param(
+            _readme(links=("The guide is in [the guide](/docs/operator-guide/README.md).",)),
+            f"{FOLDER}: links to no guide",
+            1,
+            id="only-link-root-absolute",
+        ),
     ],
 )
 def test_a_readme_out_of_its_form_gives_one_line_per_rule(

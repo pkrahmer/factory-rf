@@ -13,7 +13,6 @@ LEFT_OUT = "__pycache__"
 
 
 def _subfolders(folder: Path) -> list[str]:
-    """The names of the folders directly in `folder`, hidden folders and `__pycache__` left out."""
     return sorted(
         entry.name
         for entry in folder.iterdir()
