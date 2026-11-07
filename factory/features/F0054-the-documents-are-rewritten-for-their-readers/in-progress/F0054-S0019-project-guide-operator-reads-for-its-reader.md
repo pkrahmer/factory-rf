@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T07:26:56.282714Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T07:26:56.282714Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T07:27:53.371414Z'
+  stage: docs-review
+  run: 01583a78a79c461182b05bb5f190a137
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -176,3 +178,18 @@ Expect: `1`
    `secrets`: secrets: green (0.5 s)
    `documents`: documents ok (16.5 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/operator.md`, `docs/project-guide/README.md` and `docs/checked-documents.txt`. I read the new page against the old one on `main`, `docs/project-guide/style.md`, `docs/project-guide/glossary.md`, `operator/skill/kumpel/scripts/reset-to-tag.sh`, `merge.sh` and `start-story.sh`, and the file lists of `tests/operator_scripts/` and `tests/support/`.
+
+    What holds:
+    - All nine findings of entry 7 are fixed.
+    - The new `reset-to-tag.sh` rules match the script: without `--yes` it only prints the plan (reset-to-tag.sh:4-5, 76), and it requires `SITE_REPOSITORY` to equal `SITE_RESET_REPOSITORY` (reset-to-tag.sh:17-18).
+    - Every linked test and support module exists.
+    - The index lists *Reference*.
+    - No other document links into the page's headings.
+    - Criterion 2 still holds: every name, command, setting and rule of the old file is still on the page. The only thing dropped on purpose is the F0048 decision 22 pointer, which is history.
+
+    Findings:
+    1. docs/project-guide/operator.md:24: criterion 4 is not met. `settings.sh`, `status.sh`, `wait.sh`, `approval.sh`, `next-story.sh` and `start-story.sh` under `operator/skill/kumpel/scripts/` are named but linked nowhere on the page, and the Interface says every file the page names is linked once. Fix: link each to `../../operator/skill/kumpel/scripts/<name>` at this mention.
+    2. docs/project-guide/operator.md:3: "The exact detail (every status code, key and file) is in the *Reference*" is not true. The *Reference* holds the status codes, the names of the `site check` checks, `site_job_keys` and the test modules by script. It lists neither every key (those are in `site.env.example`) nor every file. Fix: name what the *Reference* actually holds.
+    3. docs/project-guide/operator.md:7: the first sentence has two parentheses, "([site.sh](...))" and "([hosting.sh](...))". Style rule 2 allows at most one per sentence. Fix: split the sentence, or link the two files without parentheses, for example "The loader, [site.sh](...), and ...".
+    4. docs/project-guide/operator.md:7: "keep it current from the docs criterion" uses a private word that the glossary does not explain (style rule 3). Fix: say it plainly, for example "update it when a story changes a file under `operator/`".
