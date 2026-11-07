@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:35:11.306669Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T04:35:11.306669Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:36:13.425418Z'
+  stage: docs-review
+  run: f819b69486cd47c4afe133736799599e
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -305,3 +307,28 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (13.0 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, then read the whole new `docs/project-guide/agents.md` against the code on the branch and against `docs/project-guide/style.md`.
+
+    The seven round-1 findings are fixed as entry 13 says. I checked each one again:
+    - The provider-limit stall now names `PatientRuns`, which matches `docs/project-guide/pipeline.md:199`.
+    - `ProviderLimit`'s four fields and four variables match `src/factory/agents/domain/provider_limits.py:48-51`.
+    - The lessons list is introduced as a selection.
+    - The ten glossary words are linked.
+    - `git_cli.py`, `make_commands.py`, `process.py`, `agents/settings.json` and `operator/README.md` are each linked once, and their targets exist.
+    - The three later paths start at the repository root.
+    - The five long sentences are split.
+
+    I also spot-checked the Reference against the code and found these to match:
+    - the `claude` flags (`src/factory/agents/adapters/claude_runtime.py:186-193`);
+    - `SWITCHES`, `LOCKDOWN_SWITCHES` and `OPENCODE_TOOLS`;
+    - `MINIMUM_RESUME_BUDGET`, `VERSION_TIME_LIMIT` and `CONTAINER_KILL_STATUSES` (`src/factory/agents/adapters/agent_launch.py:22-29`);
+    - the stall sentence (`src/factory/hosting/domain/post_texts.py:36`).
+
+    Criteria 3 and 5 hold. The page is on `docs/checked-documents.txt`, the journal records `documents ok`, and the headings that other pages link to (*The agent definition reader*, *Calls in a container*) are still there.
+
+    Findings:
+    1. `docs/project-guide/agents.md:343`: the round-2 split broke the sentence. "`sync` installs the tools after a checkout; the stage environment runs it and no stage lists it, the seven roles with their write paths, and the stages." now attaches the roles and stages to the `sync` clause. Fix: "It holds the four project commands `check`, `lint`, `test` and `sync` with their `time_limit`s, the seven roles with their write paths, and the stages." Then a separate sentence: "`sync` installs the tools after a checkout; the stage environment runs it, and no stage lists it." (This matches `operator/template/factory/pipeline.yml:9`.)
+    2. `docs/project-guide/agents.md:300`: the docs-route table says intake chooses `docs-only` in "Step 6". In `agents/agents/intake.md:58` the route is chosen in step 7; step 6 (`:57`) is the question for a missing or ambiguous story. The old page had the same error. Fix: "Step 7".
+    3. `docs/project-guide/agents.md:491`: "`named_wait(text)` is the earliest wait the text names" can be read as the shortest wait. The code takes the first match in the text (`_WAIT.search`, docstring "The first wait `text` names", `src/factory/agents/domain/provider_limits.py:80-81`). Fix: "the first wait the text names".
+
+    Notes (not findings): line 345 ends with a trailing space after "checks.".
