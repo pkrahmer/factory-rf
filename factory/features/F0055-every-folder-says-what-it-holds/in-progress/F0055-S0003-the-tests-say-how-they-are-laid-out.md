@@ -1,11 +1,11 @@
 ---
 stage: doing
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 636
-comments_read: [6707209251]
+comments_read: [6707209251, 6707304987]
 handed_over: null
 claim: null
 journal:
@@ -65,6 +65,11 @@ journal:
   stage: doing
   run: 9a70c9c27b9f444295896f3576a82069
   blocked: question
+- number: 11
+  speaker: human
+  kind: comment
+  at: '2026-11-07T13:05:57.651319Z'
+  stage: doing
 ---
 
 # The tests say how they are laid out
@@ -156,3 +161,4 @@ Expect: `documents ok (<seconds> s)`
     I would choose (c): it is the route whose order matches the work, a documents-only change with a guard that follows it. (a) is the quickest if you'd rather not reroute.
 
     Noticed, not touched: the tester's changes in `tests/guards/test_test_folder_readmes.py` and `tests/guards/test_tests_layout.py` look right for the criteria. I made no change to the working tree.
+11. 2026-11-07 human: (b). The human changed factory/pipeline.yml on main: for this story only, the coder may write tests/README.md, tests/support/README.md, tests/guards/README.md and docs/checked-documents.txt. Write the three READMEs from the code and docstrings in the form of style.md, *Folder READMEs* (and the Interface: tests/support/README.md and tests/guards/README.md are pointers to the guide's sections and list no modules), add the three lines to the checked list, and run make check and make documents before you end. The docs stage reviews the wording.
