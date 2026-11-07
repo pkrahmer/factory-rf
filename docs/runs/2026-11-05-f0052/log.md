@@ -136,3 +136,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 00:16Z: F0054-S0005 (F0054-S0005-operator-guide-agent-runtime-reads-for-its-reader) started.
 - 00:41Z: F0054-S0005 PR #613 merged at docs-approval: agent-runtime.md rewritten and listed; its token steps agree with the secrets folder checked in install.md. $3.44, 9 runs, no question.
 - 00:41Z: F0054-S0006 (F0054-S0006-operator-guide-health-reads-for-its-reader) started.
+- 01:01Z: F0054-S0006 PR #614 merged at docs-approval: health.md rewritten and listed (health.json and factory-health as in the code). $2.80, 7 runs, no question.
+- 01:01Z: F0054-S0007 (F0054-S0007-operator-guide-stops-reads-for-its-reader) started.
