@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:50:46.711489Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T00:50:41.573513Z'
   stage: docs-review
   run: d4c6da3cebaa49f78ee00a2c0bf0c5ef
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:50:46.711489Z'
+  stage: docs-only
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -145,3 +154,4 @@ Expect: `1`
    14. `docs/operator-guide/health.md:284, 346`: "runs as it did before" and "starts and runs as before" are history wording (style rule 7). The documenter removed the same phrase from the helper's rules. Fix: "the command runs" and "the factory starts and runs normally".
 
    Also checked: criterion 3 (the file is on `docs/checked-documents.txt` and `make documents` printed `documents ok` per the journal) and criterion 4 (no changed heading, so the links from other files still resolve). The `sh` blocks of VM and gcloud commands each say where they run.
+8. factory: started docs-only as vm.
