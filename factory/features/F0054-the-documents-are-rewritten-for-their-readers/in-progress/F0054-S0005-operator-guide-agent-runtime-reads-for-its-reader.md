@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:30:12.480424Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T00:30:06.713196Z'
   stage: docs-review
   run: b3f7a2b855844a619f3813f216335331
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:30:12.480424Z'
+  stage: docs-only
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -239,3 +248,4 @@ Expect: `1`
     6. `docs/operator-guide/agent-runtime.md:288`: the paragraph "Starting it with the instance…" starts with a stray space. Fix: remove it.
 
     Dropped on purpose, still accepted from round 0: the `planning/cloud-sandbox/` pointer, the F0043 and F0044 notes, "This repository's own build stays on the subscription", and `limit_wait`.
+12. factory: started docs-only as vm.
