@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-07T12:44:48.800944Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -121,6 +125,11 @@ journal:
   at: '2026-11-07T12:44:43.522047Z'
   stage: review
   run: 3e974a85d0fe4da3869c2029e40cdf98
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:44:48.800944Z'
+  stage: docs
 ---
 
 # The package and its areas say what they hold
@@ -312,3 +321,4 @@ Expect: `documents ok (<seconds> s)`
 
     Earlier tests:
     - `tests/guards/test_old_layer_packages_removed.py`: changed under the human's leave, journal 14, item 1. It adds `"README.md"` to the expected set and renames the test to `test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract`, and the module docstring says the same. Nothing goes beyond that leave.
+21. factory: started docs as vm.
