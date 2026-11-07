@@ -11,11 +11,11 @@ This story writes the READMEs of `docs/` and `security/`, and the root `README.m
   - `security/README.md`
 - `docs/README.md` names the four documents and who reads which (the operator guide, the project guide, the decision log, the operator playbook) and names `runs/` as the human's. `security/README.md` says what the baselines and the semgrep rules are for and links to `CLAUDE.md`, *Checks*. The root `README.md` gains a short list of the top folders, one line each with a link to its README where one exists.
 - `docs/checked-documents.txt` gains each new path.
-- No code and no test changes. The story takes the docs route.
+- No code changes, and no test changes but this one leave of the human's: an earlier guard whose only failure is a `README.md` of this story standing in its folder may add that README to the entries it expects, keeping its name's purpose; the entry names each such test. The story takes the docs route.
 
 ## Acceptance criteria
 
-1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/`: <one sentence>.``. The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
+1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/` <one sentence>.`` (no colon, as the guard and the style page write it). The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
 2. Every name, path and link in these files exists (the document check finds nothing), and each file is on `docs/checked-documents.txt`.
 3. `make documents` ends with `documents ok (<seconds> s)`.
 4. `make check` stays green.
