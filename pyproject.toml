@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "The factory, reimplemented by v1 of itself"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 dependencies = [
     "pydantic==2.14.1",
     "PyGithub==2.10.0",
