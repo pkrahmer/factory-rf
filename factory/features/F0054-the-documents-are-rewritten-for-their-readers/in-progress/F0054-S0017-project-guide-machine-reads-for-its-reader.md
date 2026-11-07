@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T05:36:44.662687Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-07T05:36:39.377496Z'
   stage: docs-review
   run: 2272b7e2c5694d5b8b7da921bcd241a4
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:36:44.662687Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -399,3 +408,4 @@ Expect: `1`
     2. docs/project-guide/machine.md:357: the field list "`ImageBuild` (`passed`, `duration`, `output_tail`: the last 20 lines)" leaves out `warnings`. That field is a `NonNegativeInt`, default 0, counting the output lines that warn (src/factory/machine/application/images.py:24). `chosen_image` writes it into the `stage image: built ...` log line (wiring.py:505). Fix: add `warnings` to the list.
 
     Earlier tests: none (the diff changes no test file).
+24. factory: started docs-only as vm.
