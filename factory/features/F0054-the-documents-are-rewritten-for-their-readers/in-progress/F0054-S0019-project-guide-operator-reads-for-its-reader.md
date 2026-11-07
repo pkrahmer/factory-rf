@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 627
 comments_read: [6704005122]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T07:40:08.050021Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-07T07:40:08.050021Z'
   stage: docs-only
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T07:43:09.214225Z'
+  stage: docs-only
+  run: 0853ec9f07d5479f87860c10b9cbcda0
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -350,3 +352,36 @@ Expect: `1`
     4. docs/project-guide/operator.md:24: `comment.sh`, `merge.sh` and `reset-to-tag.sh` are first named here without links, and are linked only later (lines 122 and 131). Fix: link all three on line 24, write the mentions on lines 122 and 131 plain, and drop "such as …" from line 122's sentence.
     5. docs/project-guide/operator.md:3: the command `site` (`operator/bin/site`) is first mentioned here in "the checks of `site check`", but its link comes only on line 7. This is the same rule as finding 4, and a script run under entry 21 would catch it. Fix: link `site` at line 3, for example "the checks of [`site check`](../../operator/bin/site)", and write line 7's `site` plain. Or reword line 3 so that line 7 really is the first mention.
 24. factory: started docs-only as vm.
+25. documenter: Round 4: I fixed the five findings of the last review. `make documents` ends `documents ok (17.2 s)`. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/operator.md`:
+      1. Line 3 now links `site check` to `operator/bin/site`; line 7 names `site` plain.
+      2. Line 24 links `comment.sh`, `merge.sh` and `reset-to-tag.sh` at their first mention. Line 122 drops "such as …" and names no file. Line 131 names `merge.sh` plain.
+      3. Line 92 names `job-start.sh` plain.
+      4. The table rows for the skill's scripts and the Python isolation name `test_operator_skill_signature.py`, `test_operator_texts.py` and `test_operator_python_isolation.py` plain, since lines 128 and 132 link them first.
+
+    Link check: I ran a throwaway script (in /tmp, removed afterwards) over the page. It counts, for every linked file, how often the page links it, and it looks for a plain mention before the first link. Its last output was:
+
+        early plain site
+        early plain setup.sh
+        early plain job-start.sh
+        early plain factory.service
+        early plain git-credential-factory
+        early plain Dockerfile
+        early plain CLAUDE.md
+        early plain Makefile
+        early plain SKILL.md
+        bad 9 links 46
+
+    It printed no "double" line, so no file is linked twice. The nine "early plain" lines are not violations:
+    - `site` is the word "site file" in prose.
+    - The other eight are the names in the layout code block (lines 9-19). A code block cannot hold links. Round 1 accepted linking those files in the bullets just below it, and the reviewer's round-2 notes accepted that too.
+
+    Cross-read: nothing new this round. The earlier rounds' cross-reads still stand (project-guide README.md, glossary.md, style.md, operator-guide/site.md, operator/README.md).
+
+    Stale text I saw and did not touch, because it is unrelated to this story: the `make documents` report (not checked yet) for docs/project-guide/README.md names `support/*.py` files that do not exist (about lines 134 to 141) and `project/factory/pipeline.yml` and `story-form.md` (line 283).
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (16.2 s)
