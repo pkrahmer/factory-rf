@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T12:31:40.039399Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -60,6 +64,11 @@ journal:
   stage: docs-only
   run: d17907cc9efa47e78df8e785b548a2dd
   reason: check_red
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:31:40.039399Z'
+  stage: docs-only
 ---
 
 # The package and its areas say what they hold
@@ -158,3 +167,4 @@ Expect: `documents ok (<seconds> s)`
    ======================================================================================= short test summary info ========================================================================================
    FAILED tests/guards/test_old_layer_packages_removed.py::test_the_package_holds_only_its_init_the_areas_entry_and_contract - AssertionError: assert {'README.md',...hosting', ...} == {'__init__.py......
    make: *** [Makefile:89: test] Error 1
+10. factory: started docs-only as vm.
