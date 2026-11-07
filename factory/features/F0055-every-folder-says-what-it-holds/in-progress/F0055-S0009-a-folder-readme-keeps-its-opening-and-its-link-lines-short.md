@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 641
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T15:06:55.954507Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T15:06:50.924801Z'
   stage: intake
   run: 162835f69b1e4918a5ba14b8dbd1b009
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T15:06:55.954507Z'
+  stage: tests
 ---
 
 # A folder README keeps its opening and its link lines short
@@ -89,3 +98,4 @@ Expect: `0`
    - Docs criterion: it names what the reader must know, in `style.md` *Folder READMEs* and `shared.md` *The folder READMEs*. It dictates no sentences.
    - Architecture: the change is confined to a pure `shared.domain` module with no I/O, as CLAUDE.md requires.
    - Scope: it fits feature decision 6 (a README stays a pointer) and is not in the feature's out-of-scope list. The route is `tests` because the Interface changes code under `src/`.
+4. factory: started tests as vm.
