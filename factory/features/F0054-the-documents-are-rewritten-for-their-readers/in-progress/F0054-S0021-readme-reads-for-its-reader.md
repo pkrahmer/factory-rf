@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 629
 comments_read: [6704964498]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T09:18:22.978204Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -124,6 +128,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T09:18:20.560346Z'
+  stage: docs-review
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:18:22.978204Z'
   stage: docs-review
 ---
 
@@ -317,3 +326,4 @@ Expect: `1`
     Earlier tests: none. The diff changes no test file.
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes the one finding of the last review as it proposes: four short sentences, one check each, and the project guide's check named through its sections. Before it ends, it counts the words of every sentence of README.md by script and splits any above the style page's limit, and its entry quotes the script's last output. It changes nothing else in the page.
+22. factory: started docs-review as vm.
