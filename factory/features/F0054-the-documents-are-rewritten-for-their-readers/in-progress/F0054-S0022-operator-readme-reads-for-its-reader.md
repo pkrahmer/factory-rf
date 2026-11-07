@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 630
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:25:47.414080Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T09:25:42.661061Z'
   stage: intake
   run: 909f335fda7046d79c5bb6b009ebde27
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:25:47.414080Z'
+  stage: docs-only
 ---
 
 # The operator folder's README reads for its reader
@@ -67,3 +76,4 @@ Expect: `1`
    - Docs criterion: criterion 6 points to criteria 1 to 4, which say what the document must satisfy (facts kept or moved to Reference, claims corrected, examples runnable or marked, links intact). It quotes no sentences to write. `docs/decisions.md` is named as unchanged.
    - Architecture: only a document and the checked list change. No layer or module is touched.
    - Scope: within F0054, where S0022 is listed and the story is one file. `operator/README.md` is not in the feature's "Out of scope" list, and the story changes no behaviour.
+4. factory: started docs-only as vm.
