@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T13:59:42.854596Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-07T13:59:42.854596Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-07T14:00:02.882984Z'
+  stage: intake
+  run: 6b82ed978aba45938b9c82b14bf02a48
 ---
 
 # The top folders say what they hold
@@ -62,8 +64,11 @@ This story writes the READMEs of `docs/` and `security/`, and the root `README.m
 1. Each file of the Interface exists, opens with one sentence on what its folder holds, links to at least one guide page or document that explains it, and names every direct subfolder of its folder in one line ``- `<name>/` <one sentence>.`` (no colon, as the guard and the style page write it). The guard `tests/guards/test_folder_readmes.py` passes for each and skips none of them.
 2. Every name, path and link in these files exists (the document check finds nothing), and each file is on `docs/checked-documents.txt`.
 3. `make documents` ends with `documents ok (<seconds> s)`.
-4. `make check` stays green.
-5. docs: the files of the Interface. `README.md`: the list of top folders. `docs/decisions.md`: none.
+4. `docs/README.md` names the operator guide, the project guide, the decision log and the operator playbook, and says that `docs/runs/` is the human's.
+5. `security/README.md` says what the baselines and the semgrep rules are for and links to `CLAUDE.md`, *Checks*.
+6. The root `README.md` has a new section `## The folders`, placed after `## Where to read next` and before `## Reference`, in the subfolder-line form of `docs/project-guide/style.md`, *Folder READMEs*. It lists the ten top folders (`agents/`, `demo/`, `docs/`, `factory/`, `operator/`, `planning/`, `security/`, `session-logs/`, `src/`, `tests/`), one line each, links to each folder's README that exists, and says in their lines that `factory/`, `planning/` and `session-logs/` are the human's. `## Where to read next` is unchanged.
+7. `make check` stays green.
+8. docs: the files of the Interface. A newcomer who opens `docs/` or `security/` on GitHub knows which document to read for which need, who owns `docs/runs/`, and what the baselines and the semgrep rules in `security/` are for; the root README's `## The folders` points them to each folder's README. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -89,3 +94,10 @@ Expect: `documents ok (<seconds> s)`
    2. Confirmed as you wrote it.
    3. A new section, ## The folders, placed after ## Where to read next and before ## Reference. The root README has no folder list today; Where to read next stays as it is and the new section does not repeat it. The root README is not on FOLDER_READMES and keeps its own form; its new section follows the subfolder-line form of style.md, *Folder READMEs*.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answers (journal entry 4) carried into the story.
+   - Interface: names `docs/README.md`, `security/README.md` and the root `README.md` (new section `## The folders`, after `## Where to read next`, before `## Reference`, per entry 4 answer 3). Every path is one the documenter may write, so the route is docs-only. The existing test-leave sentence is the human's own and stays.
+   - Criteria: I added criteria 4, 5 and 6, one each for (a) docs/README.md, (b) security/README.md and (c) the root folder list, from entry 4 answer 1: ten top folders, links to each README that exists, and factory/, planning/ and session-logs/ named as the human's. Criteria 7 (`make check`) and 8 (`docs:`) now close the list. Criterion 1 covers the shape and the subfolder lines, which cover the failing side too, since the guard fails on a missing or extra line. Each criterion is testable.
+   - Smoke test: `uv run python -m factory.entry.check_documents | tail -1` runs no pytest, so there is no `-q` problem. Its `Expect:` is checkable.
+   - Docs criterion: criterion 8 now says what the reader must know (entry 4 answer 2) and dictates no sentences.
+   - Architecture: nothing is changed in code. The files are READMEs on the folder list.
+   - Scope: this is S0005 of F0055. `docs/runs/` is only named, not written, and the story is not in the feature's Out of scope. The Description did not change.
