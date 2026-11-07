@@ -188,3 +188,4 @@ Times are UTC. The plan: `night-plan.md`.
 - 09:24Z: F0054-S0021 PR #629 merged at docs-approval: the README rewritten for a newcomer and listed. $2.64, 12 runs, one round cap.
 - 09:25Z: F0054-S0022 (operator/README.md reads for its reader) started.
 - 09:29Z: F0054-S0022 PR #630 asked at docs-only: operator/README.md is no document of the check, so it cannot go on the checked list without code. Answered option 1: the story stays docs-only and drops the list line; F0055-S0001 now makes operator/README.md a document of the check (its _named_documents), and F0055-S0004 lists it. Both pass factory-check-story.
+- 09:48Z: the human: a new area must not come without a README. F0055 decision 10 and S0001: the guard also checks that every package directly under src/factory/ (a folder with __init__.py) is on FOLDER_READMES; the eight packages are on it today, and contract/ has no __init__.py. S0001 passes factory-check-story.
