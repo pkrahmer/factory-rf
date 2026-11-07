@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:32:06.444554Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -174,6 +170,12 @@ journal:
   kind: started
   at: '2026-11-07T06:32:06.444554Z'
   stage: docs-review
+- number: 30
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:33:20.812245Z'
+  stage: docs-review
+  run: b14a0e981c3d4786bdfc67d65d2ec676
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -534,3 +536,33 @@ Expect: `1`
     `secrets`: secrets: green (1.3 s)
     `documents`: documents ok (16.0 s)
 29. factory: started docs-review as vm.
+30. reviewer: Review after the human's answer (entry 24) and the documenter's round (entry 28). I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read what changed since the last review (`git diff 8167e2a35 HEAD -- docs/project-guide/pipeline.md`) and checked the two code claims against the code on the branch.
+
+    Fixed since the last review:
+    - Finding 1: the build-order list under *Boundaries* (`docs/project-guide/pipeline.md:806-815`) now matches `entry/wiring.py:313-353`. The container adapters come first, then the hosting service, `SystemClock()`, `GitCli(...)` and `machine_log(state, clock)`. After those come the runtime, `RecordingProjectCommands(ContainerMakeCommands(...))`, the readers and writers and `ProjectAgentDefinitions`. `health_store(state)` comes last, inside the `Boundaries(...)` call.
+    - Finding 2: line 742 now reads "When no stop is in force, it prints `healthy` and returns 0." This matches `entry/health.py:39-40`.
+    - Finding 3, in part: the sentences the documenter names in entry 28 are split, and the splits add no new claim.
+    - The other files in the diff are still correct: `docs/checked-documents.txt` (one added line), `docs/project-guide/README.md:35`, `agents.md:24,381,494` and `watching.md:277`.
+
+    Findings:
+    1. `docs/project-guide/pipeline.md`, style rule 2 ("split a sentence of more than about 25 words; at most one parenthesis per sentence, and none inside another"): this is finding 3 of entries 22 and 26, and the human's entry 24 asks for every such sentence to be split. Entry 28 says about 40 sentences of 34 to 39 words are still there, and more are flagged for parentheses. Clear cases on the branch:
+       - 308: the first sentence of the stall's step 1.
+       - 462: the `OSError` and `disk_low_detail` sentences, each with two or more parentheses.
+       - 539: the first sentence.
+       - 541: the Guards sentence, which nests one parenthesis inside another.
+       - 542: the second sentence.
+       - 660: the last sentence.
+       - 750: the first sentence.
+       - 804: the second sentence, with three parentheses.
+       - 817: one sentence with a nested parenthesis.
+       - 845: the fixture sentence, about 78 words with eight parentheses. Entries 22 and 26 already named it (as line 811), and it is unchanged.
+       - 863: the second sentence.
+       - 865: both sentences.
+       - Also the places entry 28 itself lists: near lines 100, 160, 177, 211, 293, 322-323, 372, 386-388, 422, 486-487, 526-530, 583-585, 669, 723, 791 and 802.
+
+       Fix: split each into sentences of about 25 words with at most one parenthesis and none nested. Then re-run the sentence-length script over the whole page until it flags nothing. In that script, do not count the `(path)` of a Markdown link `[text](path)` as a parenthesis: the reader never sees it. That removes most of the parenthesis-only flags entry 28 mentions.
+
+    Open, not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human decides which rules are meant.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - If the human would rather accept the remaining sentences of 26 to 39 words than run another round, saying so in a comment closes finding 1. Nothing else is open.
