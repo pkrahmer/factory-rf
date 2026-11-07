@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:15:24.966962Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T01:15:19.954591Z'
   stage: docs-review
   run: 197b6e36946d4f3b99cb92a35ea7bf7c
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:15:24.966962Z'
+  stage: docs-only
 ---
 
 # The operator guide's the stops reads for the operator
@@ -221,3 +230,4 @@ Expect: `1`
     6. `docs/operator-guide/stops.md:62,271,283`: each has a sentence of 33 to 35 words (rule 2): "Each tick, right after it restored the checkout ...", "That fetch compares the project's stage file ... and no tick runs in that iteration" and "The restore throws away every uncommitted change ...". Fix: split each into two sentences, one idea each.
     7. `docs/operator-guide/stops.md:88,119,152,205,206`: each has a sentence of about 28 to 33 words (rule 2). They are: "Two files with one id are both read: ...", "Only then does it post the note and write ... label too.", "Every report that ran adds one line ...; the line has the same form ...", "When the diff builds a behaviour ..." and "When a story's Description has gone stale ...". Fix: split each at its semicolon, colon or "and", one idea each.
     8. `docs/operator-guide/stops.md:147-150`: the numbered steps are not one action each, as the operator guide's style asks. Step 1 ("Below the attempts cap, nothing") is a case, not an action. It is also an alternative to steps 2 to 4, not a step before them. Fix: say first, as a sentence, that below the cap there is nothing to do. Then number only the steps at the cap: read the 15 lines and run `make check` on the branch, fix the cause, answer on the pull request.
+12. factory: started docs-only as vm.
