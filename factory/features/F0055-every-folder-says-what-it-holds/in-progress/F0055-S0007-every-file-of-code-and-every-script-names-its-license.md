@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T12:05:04.397035Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-07T12:04:59.487917Z'
   stage: tests
   run: c7b363cb206347039870f4cf14bbb03b
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:05:04.397035Z'
+  stage: doing
 ---
 
 # Every file of code and every script names its license
@@ -126,3 +135,4 @@ Expect: `0`
    My one run (`uv run pytest -q tests/guards/test_license_headers.py tests/vm/test_stage_image.py`) left three failures, all wrong results: the criterion 1 guard (the headers are missing) and both rows of the stage image test (line 2 is not yet the build command). All the modules imported. `make lint` is green.
 
    `lint`: lint: green (0.1 s)
+9. factory: started doing as vm.
