@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T10:15:08.069062Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -79,6 +75,12 @@ journal:
   kind: started
   at: '2026-11-07T10:15:08.069062Z'
   stage: doing
+- number: 13
+  speaker: coder
+  kind: result
+  at: '2026-11-07T10:26:11.919571Z'
+  stage: doing
+  run: 12dc6cac235b499b82a11940e364fd01
 ---
 
 # The folders that have a README are listed and checked
@@ -200,3 +202,25 @@ Expect: `23 ['x: no README.md']`
 
     `lint`: lint: green (0.2 s)
 12. factory: started doing as vm.
+13. coder: I built the folder README list and its checks. `make test` passes in full (no earlier test broke) and `make check` is green.
+
+    - `src/factory/shared/domain/folder_readmes.py` (new): `FOLDER_READMES` holds the 23 paths in the Interface's order. `readme_problems` makes one pass over the README's lines into a private `_Reading`, then builds the subfolder lines and the shape lines from it and sorts them. The limits are module constants: `OPENING_SENTENCES`, `SUBFOLDER_LINE_SENTENCES`, `SUBFOLDER_LINE_WORDS` and `BASE_LINES`.
+      - It counts sentences by their closing `.`, `!` or `?` followed by a space or the line's end, so a dotted module name in backticks does not count.
+      - A relative link is a Markdown link whose target has no scheme and is not an `#anchor`.
+      - Lines inside a code fence are skipped. A heading gives "has a section" and nothing else.
+      - The line limit counts every non-blank line, the lines inside a code fence included.
+      - A subfolder line without a sentence (``- `x/` ``) still ends the opening, but it names nothing.
+      - The 25 words count only the sentence after the name, and `<n>` is the line number in the whole README, as the human answered in entry 9.
+    - `src/factory/entry/check_documents.py`: `_named_documents` also returns each path of `FOLDER_READMES` that exists, and `operator/README.md`. No shape rule is applied there. A listed README that does not exist is left out, so `checked_list_findings` gives the same finding as before.
+    - `agents/agents/documenter.md`: after the "Write only README and `docs/`" bullet, a new bullet says the documenter may also write the folder READMEs of `FOLDER_READMES` in `factory.shared.domain.folder_readmes`. A folder README points to the guides, and whatever needs explaining goes into the guide page it links to. No earlier documenter test fails with this sentence, so the tester has no change to make under feature decision 5.
+
+    Main decision: I used a single line-by-line pass that records what it finds, then derived the problem lines from that record. I rejected a separate regex pass for each rule. It would have read the opening, the code fences and the list again for each rule and would disagree at the edges, for example a heading inside a fence.
+
+    Refactor pass: I renamed `in_list` to `past_opening`, because the flag marks the end of the opening and not a list. Nothing else needed changing.
+
+    Noticed but not touched:
+    - The real `operator/README.md` and `docs/README.md` are now read by the name check. Whatever names in them do not resolve show up in the report of `make documents` until they are listed. That is the docs stage's concern.
+    - The documenter's `write_paths` stay the human's change at merge, as the Interface says.
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 39 known, 4 gone

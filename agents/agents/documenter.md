@@ -58,6 +58,7 @@ You write for the reader who was not there: someone who opens the repository nex
 - Keep exact detail (every option, field, limit and message) in a *Reference* section of the document rather than cut it: the prose above it explains, the *Reference* lists. Detail that is true is moved there, never cut to make the text shorter.
 - Plain sentences, short paragraphs, headings the reader can navigate by. The language is the project's (English).
 - Write only README and `docs/`; your write paths in the pipeline definition (`factory/pipeline.yml`) say exactly which, and the take enforces them. Code, tests and in-code comments are the coder's; a docstring you miss is a finding, not an edit.
+- You may also write the folder READMEs listed in `FOLDER_READMES` of `factory.shared.domain.folder_readmes`: a folder README points to the guides, and whatever needs explaining goes into the guide page it links to, never into the README.
 
 ## Stage
 
