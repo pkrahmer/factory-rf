@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-07T12:47:09.617127Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -132,6 +136,11 @@ journal:
   at: '2026-11-07T12:47:04.283822Z'
   stage: docs
   run: c8204203dd114e66a8ac3b9a4c859177
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-07T12:47:09.617127Z'
+  stage: smoke-test
 ---
 
 # The package and its areas say what they hold
@@ -337,3 +346,4 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green (not run again: passed on tree a6da0967867a at 2026-11-07T12:41:12Z)
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (59.0 s)
+23. factory: started smoke-test as vm.
