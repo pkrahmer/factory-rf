@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:11:18.540414Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T09:11:13.364093Z'
   stage: docs-review
   run: 673617d24aff49c0b5026dfc2e0f875f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:11:18.540414Z'
+  stage: docs-only
 ---
 
 # The README reads for a newcomer
@@ -246,3 +255,4 @@ Expect: `1`
     2. README.md:73 (*How it is built*), last sentence: "[decisions.md](docs/decisions.md) records why" the planning history is kept at the tag. The decision log does not say why. `docs/decisions.md:3` and `:621` only say that the records and `factory/v1/` were removed and are kept at the tag `planning-history-2026-10-19`. Fix: say that decisions.md says what the tag holds (the planning records its older entries cite), or drop the clause.
 
     Earlier tests: none. The diff changes no test file.
+16. factory: started docs-only as vm.
