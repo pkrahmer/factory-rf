@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T07:17:33.845270Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T07:17:29.028461Z'
   stage: intake
   run: 41130474e6c645c3ae6261b17c0586cf
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T07:17:33.845270Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    Docs criterion: names what the reader must know (style, completeness against the code, checked status, links) and dictates no sentences.
    Architecture: the page is the project guide's page for the operator's scripts, a path the documenter may write; nothing in `src` changes.
    Scope: one file of the 22 in feature F0054, S0019, and nothing in the feature's Out of scope (no `decisions.md`, no behaviour change).
+4. factory: started docs-only as vm.
