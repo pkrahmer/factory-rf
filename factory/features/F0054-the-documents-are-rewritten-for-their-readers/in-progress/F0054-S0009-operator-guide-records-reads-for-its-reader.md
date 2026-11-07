@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:40:05.386752Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T01:40:00.049524Z'
   stage: intake
   run: 871a78ae3eb145c787aa0f4e5e53a45b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:40:05.386752Z'
+  stage: docs-only
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    - Docs criterion: criterion 6 says "as criteria 1 to 4", which name what the reader must know only by reference to style and facts, but it dictates no sentences. I accepted it, since it is the same shape across this feature.
    - Architecture: every path the Interface changes is one the documenter may write (`docs/*`), so the docs route applies. No `factory/` change.
    - Scope: within F0054's scope (one file, one story, S0009) and outside its out-of-scope list (`decisions.md` is untouched).
+4. factory: started docs-only as vm.
