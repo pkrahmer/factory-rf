@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -141,6 +141,11 @@ journal:
   at: '2026-11-07T11:49:58.476533Z'
   stage: smoke-test
   run: c80f6fb2e7ae4af2a22bf665220cb2f2
+- number: 25
+  speaker: factory
+  kind: done
+  at: '2026-11-07T11:53:53.000998Z'
+  stage: approval
 ---
 
 # A reference to another page's heading names a heading it has
@@ -408,3 +413,4 @@ Expect: `documents ok (<seconds> s)`
     - Criteria 1 to 3 and 5 are about unit tests, entry tests and `make check`. The smoke test does not target them, and nothing it showed contradicts them. I did not run `make check`; the factory runs that gate.
 
     Findings: none.
+25. factory: done (pull request merged); cost: 11 runs, 16.7 min, 74 turns, 267261 tokens in (1619445 more from cache), 34980 out, $2.78
