@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T05:40:34.184226Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -167,6 +163,12 @@ journal:
   kind: started
   at: '2026-11-07T05:40:34.184226Z'
   stage: docs-only
+- number: 29
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T05:43:27.581178Z'
+  stage: docs-only
+  run: ff43d30c336846bfabc9f2ee86047acb
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -465,3 +467,17 @@ Expect: `1`
 
     Earlier tests: none needed (the diff changes no test file).
 28. factory: started docs-only as vm.
+29. documenter: Round 5: I fixed the one finding in the reviewer's entry 27.
+
+    Files changed:
+    - `docs/project-guide/machine.md`, line 725 (Reference section *How the stage file is followed*): I split the 37-word sentence into four short ones. A different text calls `chosen_image`. It passes a `StageImageReport` (`stage_image_report`: log, clock, the commit's first 12 hex digits) when a stage file exists or at the start. A later follow without a stage file passes none. Given a report, `chosen_image` writes the `stage image:` lines and puts `at <commit>: ` before the stop's detail. The meaning is unchanged. I named `chosen_image` as the subject of the last sentence because wiring.py:502, :519, :526 and :527 write those lines in `chosen_image`.
+
+    Cross-read and found current: the other changes on this page and in the other files are unchanged since the last review. No heading was renamed.
+
+    Stale text I saw and did not touch, because it is unrelated to this story: `docs/project-guide/pipeline.md`, in the tick step, lists the preflight items without `metadata-block` and the `copy` variant, which machine.md states. No `docs/decisions.md` entry was written, because the criterion says none.
+
+    `make documents` ended `documents ok (16.4 s)`. I did not run `make check`, because the only changed file is a document.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.1 s)
+    `documents`: documents ok (16.2 s)
