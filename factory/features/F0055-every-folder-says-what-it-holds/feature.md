@@ -33,7 +33,7 @@ F0054 (the documents are rewritten for their readers) is merged, so the style pa
 
 ## The human's changes
 
-- **At S0001's merge:** `factory/pipeline.yml`, the documenter's `write_paths` gain the README paths of S0001's list, so that S0002 to S0005 take the docs route. Check the new entries against the write-path rules before pushing.
+- **At S0001's merge:** `factory/pipeline.yml`, the documenter's `write_paths` gain the 23 README paths of S0001's list, one exact path per entry, as `operator/README.md` stands there today (for example `"src/factory/agents/README.md"`). No folder pattern such as `src/*` or `*/README.md`: the documenter may write these READMEs and nothing else in their folders, so it can never change code, a test or a script on the docs route. Check the new entries against the write-path rules before pushing.
 - **After S0005's merge:** the human writes `factory/README.md`, `factory/features/README.md` and `docs/runs/README.md` in the same form and adds them to the list and the checked list.
 
 ## Decisions taken for the human
