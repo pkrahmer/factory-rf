@@ -1,17 +1,13 @@
 ---
 stage: docs-review
-blocked: null
-round: 3
+blocked: round_cap
+round: 4
 attempts: 1
 crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T06:44:02.768261Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -218,6 +214,19 @@ journal:
   kind: started
   at: '2026-11-07T06:44:02.768261Z'
   stage: docs-review
+- number: 38
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T06:47:17.156885Z'
+  stage: docs-review
+  run: b2f2f103d2394be88eb24c82a71c9201
+- number: 39
+  speaker: factory
+  kind: question
+  at: '2026-11-07T06:47:17.156885Z'
+  stage: docs-review
+  run: b2f2f103d2394be88eb24c82a71c9201
+  blocked: round_cap
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -680,3 +689,54 @@ Expect: `1`
     `secrets`: secrets: green (1.4 s)
     `documents`: documents ok (16.1 s)
 37. factory: started docs-review as vm.
+38. reviewer: Review of the documenter's entry 36. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read the changes since the last review (`git diff 29fd0d4a1 HEAD -- docs/project-guide/pipeline.md`) and then the whole page against `docs/project-guide/style.md` rule 2. I checked each changed claim against the earlier text, and against the code where the meaning could have moved.
+
+    Fixed since the last review:
+    - Finding 1: line 323 now reads "`commit` is the pushed head. `attempts`, `attempts_cap` and `pull_request` are at least 1." That matches `src/factory/pipeline/application/stalls.py:45-48`.
+    - Finding 2: every line entry 34 listed is split, and the splits keep the claims. I checked the reworded ones against the code:
+      - 295: `StallReason` is defined in `work/domain/journal.py:47`, and `decisions.py:17` re-exports it.
+      - 879: `idle_shutdown_of` and `_idle_power` at `entry/wiring.py:798-823`. The power is `SystemctlPowerOff` for `poweroff` and `ProcessExit` for `exit`, and `exit` without `request_stop` is a `ValueError`.
+      - 887: the idle threshold, unchanged.
+    - The other files in the diff are as earlier reviews found them: `docs/checked-documents.txt`, `docs/project-guide/README.md:35`, `agents.md` and `watching.md`.
+
+    Findings (style rule 2, which the human's entry 24 asks to be met everywhere). I went through the whole page this time, so this list should be the last one. I did not count a Markdown link's `(path)` as a parenthesis, and I left out sentences of 25 to 27 words. A split must keep each claim. A dotted module name in parentheses beside a link to the same file may be dropped, since the link already names the file.
+    1. `docs/project-guide/pipeline.md`: these sentences have two or more parentheses.
+       - 137: the Tests line.
+       - 196: `time_limit (...)` and `working_directory (...)`.
+       - 283: the second sentence.
+       - 285: the two module paths.
+       - 431: the first sentence.
+       - 733: `RepositoryStop (...)` and `HealthStatus (...)`.
+       - 741: four parentheses.
+       - 772: the `Each row has` sentence.
+       - 792: the second sentence.
+       - 810: `(ZFS)` and `(copy)`.
+       - 812: the `Boundaries.settings` sentence.
+       - 846, 847: the first sentence of each.
+       - 848: the first sentence.
+       Fix: give each sentence at most one parenthesis, by splitting it or by turning the second parenthesis into a clause.
+    2. `docs/project-guide/pipeline.md`: these sentences run to about 28 words or more.
+       - 23: the second sentence.
+       - 91.
+       - 171.
+       - 226: the `ensure_pull_request` list, about 34 words.
+       - 268.
+       - 413: the first sentence.
+       - 442.
+       - 482.
+       - 536.
+       - 552: the subject sentence.
+       - 594: the last sentence.
+       - 609: the second sentence.
+       - 611.
+       - 614: a semicolon list inside a parenthesis, about 32 words.
+       - 677.
+       - 680: the first sentence.
+       - 707: the second sentence.
+       Fix: split each into sentences of about 25 words. A semicolon list in a parenthesis, as at 614, becomes its own sentence.
+
+    Open, not this stage's to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human decides which rules are meant.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - If the human would rather accept these sentences than run another round, a comment saying so closes both findings. No factual finding is open.
+39. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
