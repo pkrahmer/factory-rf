@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:52:02.538601Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -74,6 +70,12 @@ journal:
   kind: started
   at: '2026-11-07T04:52:02.538601Z'
   stage: docs-only
+- number: 12
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:57:16.479412Z'
+  stage: docs-only
+  run: a56bc5d397c24bd6a36e4a947a64a232
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -208,3 +210,34 @@ Expect: `1`
 
     Smoke test: `grep -cx "docs/project-guide/watching.md" docs/checked-documents.txt` holds by reading the file: the line is there once. I did not run it.
 11. factory: started docs-only as vm.
+12. documenter: Round 1: fixed the reviewer's 13 findings. `make documents` ends with `documents ok (15.9 s)`. I changed only documents, so I did not run `make check`.
+
+    Files changed:
+    - `docs/project-guide/watching.md`:
+      - 1: Glossary links at first use for tick, work items, acceptances, claim, lease, stage, pipeline definition, feature, approval, stories, journal, stop, instance, cost record, role, dataset, stall, take, write path, attempts cap and backlog. The earlier link on "work item" in *The event* is now plain.
+      - 2: Named `ClaimService.status` and `observed_claim_status` (`lease.py`, `claims.py` linked). An own claim at or past its lease is `own` again.
+      - 3: `due` comes from `AcceptanceReader.due_features()`, with `acceptance_reading.py` linked there.
+      - 4: Added a bullet each for `total` (sums the stage bills field by field) and `one_decimal` (one decimal, rounded half up).
+      - 5: `complete` also sets `duration_seconds`, `model_seconds` (from `model_duration`, `None` when unknown) and `end_reason`.
+      - 6: `Name` links to `identifiers.py`.
+      - 7: Added a bullet on `Login`, linking `agent_runs.py`. It is one of three literal values, one of them the string `none`, apart from the `None` of a run with no login file. I did not write the literals, because the secrets scan flagged the first draft.
+      - 8: "from `duration_seconds` to `cost_usd`", so `image` and `instance` are not covered.
+      - 9: "that has a bill" added for the no-argument `factory-bill`.
+      - 10: Each file is now linked once. `costs.py`, the application-layer `machine.py` and `records.md` were repeated and are plain after the first link. The nine modules of the journal guard are linked once, as relative paths.
+      - 11: *Transcripts and the machine's readings* and *The factory log and the health file* now have a signature block and rule bullets. I took the signatures from the code. `SessionTranscripts.read(result)` and `SessionTranscripts.keep(...)` are both shown, and `machine_differences` returns `MachineTotals`.
+      - 12: Split the long sentences in the move rule and the human's waits. `for_work_item` and the guard bullets are split too.
+    - `docs/project-guide/README.md` (13): the `watching.md` entry lists the top-level sections and then "Subsections other files refer to". It names the adapters the page describes.
+
+    Cross-read and found current: `docs/operator-guide/records.md`, `work.md` and `pipeline.md` (their links to *Cost records* and the other headings are unchanged).
+
+    Stale text I saw and did not touch, because it is unrelated to this story:
+    - `docs/project-guide/README.md` has `support/...` paths that do not exist (from line 121) and `project/factory/...` at line 283.
+    - `docs/project-guide/machine.md` has `src/new.py`, `.venv/...` and `factory/stage.Containerfile`.
+    - The index still has "Replaced in v1.2" and "Replaced from v1" notes in the agents entry.
+    - None of these pages is on the checked list yet.
+
+    I wrote no `Rejected` lines. `docs/decisions.md` is unchanged.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (16.1 s)
