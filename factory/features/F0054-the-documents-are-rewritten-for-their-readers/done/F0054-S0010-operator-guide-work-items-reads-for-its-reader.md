@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -91,6 +91,11 @@ journal:
   at: '2026-11-07T02:21:46.503124Z'
   stage: docs-review
   run: 6e0862e12a1641d6a22c686dbf0682c3
+- number: 16
+  speaker: factory
+  kind: done
+  at: '2026-11-07T02:25:40.416675Z'
+  stage: docs-approval
 ---
 
 # The operator guide's work items, approval and merges reads for the operator
@@ -260,3 +265,4 @@ Expect: `1`
     - **Criterion 2:** the items dropped on purpose are the ones named in entries 7 and 9: the example IDs, "v1's", and the recovery-test paths with their `uv run pytest` command.
 
     No findings.
+16. factory: done (pull request merged); cost: 7 runs, 7.0 min, 64 turns, 256372 tokens in (1918999 more from cache), 38236 out, $2.45
