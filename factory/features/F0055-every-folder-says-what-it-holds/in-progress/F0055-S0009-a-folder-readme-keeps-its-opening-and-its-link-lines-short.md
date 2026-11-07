@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 641
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T15:06:28.406925Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T15:06:28.406925Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T15:06:50.924801Z'
+  stage: intake
+  run: 162835f69b1e4918a5ba14b8dbd1b009
 ---
 
 # A folder README keeps its opening and its link lines short
@@ -76,3 +78,14 @@ Expect: `0`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `factory.shared.domain.folder_readmes`, the two constants `LINK_LINE_SENTENCES` and `LINK_LINE_WORDS`, and the `readme_problems` signature. It also states the opening as the paragraph up to the first blank line, the new finding text `line <n> is a long link line`, and how words and line numbers are counted.
+   - Criteria: each is testable as a row of the existing parametrized test.
+     - The opening is covered on both sides (two sentences with a link pass, three fail).
+     - The link line is covered on both sides: 25 words pass, 26 words fail, two sentences fail, and 26 words after the subfolder list fail.
+     - Criterion 3 keeps the existing rows' results. The Interface names the human's leave to add rows to that test and change none (2026-11-07).
+     - The unchanged rules (a line without a link is "no part of the form", no title means no opening) stay pinned by the existing rows.
+   - Smoke test: the commands are runnable. In the second one, `More here…` falls on line 7, so the expected `line 7` is right. The pytest command passes no `-q`, and the project's `addopts` already sets it. Its `grep -c failed` on the summary line gives `0`, so the Expect line can be checked.
+   - Docs criterion: it names what the reader must know, in `style.md` *Folder READMEs* and `shared.md` *The folder READMEs*. It dictates no sentences.
+   - Architecture: the change is confined to a pure `shared.domain` module with no I/O, as CLAUDE.md requires.
+   - Scope: it fits feature decision 6 (a README stays a pointer) and is not in the feature's out-of-scope list. The route is `tests` because the Interface changes code under `src/`.
