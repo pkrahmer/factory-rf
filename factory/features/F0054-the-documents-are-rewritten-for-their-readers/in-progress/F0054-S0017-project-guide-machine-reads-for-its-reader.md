@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:14:53.662724Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T05:14:53.662724Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:19:02.388616Z'
+  stage: docs-review
+  run: b9deaf16374548129eaf12db9f08d2d6
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -133,3 +135,25 @@ Expect: `1`
    `secrets`: secrets: green (1.1 s)
    `documents`: documents ok (16.1 s)
 6. factory: started docs-review as vm.
+7. reviewer: I reviewed `git diff main...HEAD -- README.md docs operator/README.md` (machine.md rewritten; checked-documents.txt, project-guide README.md and pipeline.md one line each) against the code on the branch and `docs/project-guide/style.md`. The three one-line changes are right: the line in checked-documents.txt; the index entry, now *Known results* and *Reference*; and the pipeline.md link, now *The checks*, which exists. Every machine.md heading that another file cites still exists.
+
+   I checked these claims against the code and they match: the ZFS commands, diff reading and faults; the copy snapshots; the fakes; the container path rules; the sync script and its mounts; the timing line; the take and `copy_changed`; the preflight items and their messages; `KnownResults.run` and `command_line`; the record log; the disk record; the constants.
+
+   Dropped on purpose and named in entry 5: the feature and story IDs, the "Replaced in v1.2" section (its rule is now a bullet), and the `planning/` references. That is fine.
+
+   Findings:
+   1. docs/project-guide/machine.md:373: the signature `MakeProjectCommands(directory, kill_points=None, *, executable="make", user=None)` names a `user` parameter the code lacks (src/factory/machine/adapters/make_commands.py:54-60 has `directory, kill_points=None, *, executable="make"`). Line 377 also says the class takes no user. Fix: drop `user=None`.
+   2. docs/project-guide/machine.md:120 and the Reference table under *The settings of the stage environment*: the signature `PodmanRuns(executable, image, workspace, *, time_limit=..., profile=...)` and the built boundary `PodmanRuns(podman_executable, stage_image, workspace)` both leave out the required keyword `instance` (podman_runs.py:82, wiring.py:577). Fix: add `instance` (and `instance=settings.instance`, `profile=settings.container_profile` in the table).
+   3. docs/project-guide/machine.md, *The podman command line* (the `text` block and its bullets) and *The job profile* ("a `job` launch reads `... run --rm --http-proxy=false ...`"): both leave out the words `--label factory.instance=<instance>` that podman_runs.py:121-123 puts right after `--rm` in every launch. Fix: add the words to the block, the job example and one bullet giving their reason: the service's unit stops the containers by this label, because rootless podman places them outside the service's cgroup (podman_runs.py:119-120).
+   4. docs/project-guide/machine.md:92: "whenever the boundaries hold snapshots ... `snapshots.mount_point / "checkout"`, else `boundaries.checkout`" is false. `agent_working_directory` (take.py:36-38) always returns `boundaries.snapshots.mount_point / "checkout"`, and has no else. Fix: state the one return value and drop "whenever ... else".
+   5. docs/project-guide/machine.md:223: "`Boundaries.snapshots` and `Boundaries.containers` ... default to `None`. `stage_environment_of` picks the container environment only when both are set" is false. Both fields are required, with no default (src/factory/pipeline/application/boundaries.py:62-63), and `stage_environment_of` always builds `ContainerEnvironment` (stage_environment.py:216). Fix: say they are required, as line 156 already does.
+   6. docs/project-guide/machine.md:301 and :308: `workspace_overlap_fault(...) -> str | None` is wrong. It returns `tuple[str, str] | None` (the variable and the fault), and it also refuses a relative workspace (settings.py:288-305), not only "the overlap rule". Also at :150, the code types `stage_environment_of` as `-> StageEnvironment`, not `-> ContainerEnvironment`. Fix: correct both signatures and the bullet.
+   7. docs/project-guide/machine.md:104: "The base is `BASE_SNAPSHOT`, `<dataset>@base`" reads as if the constant held the whole name. In zfs_snapshots.py:14, `BASE_SNAPSHOT = "base"`. Fix: "the base is the snapshot `<dataset>@<BASE_SNAPSHOT>`, `BASE_SNAPSHOT` being `base`".
+   8. docs/project-guide/machine.md:455, under *Mutation testing*: "found from the commit subjects that start `work item <id>-S<nnnn>:`" leaves out `ticket <id>-S<nnnn>:`, which `FEATURE_MODULES` in the Makefile (line 117, `--grep='^(ticket|work item) ...'`) still matches. The old text said so, and entry 5 does not name the fact as dropped (criterion 2). Fix: name both subject forms without version words. Also dropped silently: the old *The grace* named `HOME`, `XDG_RUNTIME_DIR` and `PATH` as what the `podman` program needs from the factory's environment. Fix: restore it in the `launch` bullet at :133.
+   9. docs/project-guide/machine.md, criterion 1 / style rule 3: these glossary words are not linked at their first use. "take" is never linked (first at :6/:14), and neither are stage (:7), claim (:9), role (:14), cost record (:164), stall (:218), journal (:262), instance (:298), tick (:336), feature and story (:455). Fix: link each to glossary.md at its first use.
+   10. Style rule 2, one idea per sentence, at most about 25 words and one parenthesis. These lines break it: :359 (about 50 words), :361, :461, :92, :164, and the Tests lines :94, :169 and :229 (three parentheses in one sentence each). In the Reference, the "second refspec" bullet of *Why the fetch is so wide* and the last bullet of *The temporary folder of a mutants run* are past anecdotes ("On the first VM stage ...", "This was seen on 2026-10-20"). Rule 7 asks for the current rule. Fix: split the long sentences, keep one parenthesis per sentence, and state the reasons as rules.
+   11. Style, the project guide section, and the Interface's link rule:
+       - These sections have no "See also": *The fakes*, *The agent's container*, *The project's stage image*, *Project commands* and *Known results*. *The tests' umask and login variables* (:426) opens with bullets and no plain sentence on what it is for. Fix: add them.
+       - These names are not linked: `factory.entry.run` (:661), `factory.shared.domain.printed_lines` (:683), `test_claude_runtime.py` (last bullet), and this repository's own `Makefile` and `factory/pipeline.yml` (:381). The links already there point to the operator template's files. Fix: link each one once.
+
+   Earlier tests: none (the diff changes no test file).
