@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:19:45.135560Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-07T03:19:45.135560Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:20:54.152769Z'
+  stage: docs-review
+  run: bbd94c94c24046a5ab89326eaa6bf022
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -401,3 +403,46 @@ Expect: `1`
     `secrets`: secrets: green (0.7 s)
     `documents`: documents ok (8.9 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3 review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes three files:
+    - `docs/project-guide/shared.md`
+    - `docs/project-guide/machine.md`: lines 443 and 446.
+    - `docs/checked-documents.txt`: one line added.
+
+    I read the whole new page, checking it against style.md and against the code.
+
+    The four round-2 findings are fixed:
+    1. The indented-fence sentence is split. It is now `shared.md:207`.
+    2. The `--write-baseline` bullet at line 131 is now four short sentences. Its claims match `src/factory/entry/check_duplicates.py`:
+       - the header text matches `_BASELINE_HEADER` (line 19);
+       - similar code comes before dead code (`_findings`, line 27);
+       - a key found twice is written once (`dict.fromkeys`, line 33);
+       - the printed line matches line 35.
+       The baseline bullet at line 133 ends its first sentence at "only the tests use" and lists the three fakes in a second sentence.
+    3. The types of the check are a nested list, one type per bullet (lines 296-301).
+    4. `document_examples.py` at line 214 is plain text now. The adapter module is linked once, at line 19, and the application module once, at line 199. These are two different files.
+
+    What else holds:
+    - `docs/checked-documents.txt` holds `docs/project-guide/shared.md` once.
+    - The two references in `machine.md` point to *Reading output and killing a group* in shared.md, and that heading exists.
+    - style.md still links to *How the check is tested* (style.md:34), and that heading is kept.
+    - No other document in `README.md`, `docs/` or `agents/` links to a heading of shared.md.
+    - The page has no `console` block. The usage lines at 103 and 143 are signatures with placeholders, as round 2 judged.
+    - Every glossary word the page uses is linked at its first use:
+      - project command (50)
+      - journal (107)
+      - stage and work item (139)
+      - story (145)
+      - stop (148)
+      - pipeline definition (155)
+      - instance (229)
+
+    The criteria:
+    - Criteria 2 and 4 hold, as rounds 1 and 2 confirmed. Nothing was dropped on purpose except the `grep -c "does not exist"` command. The round-1 review named it, and the documenter's round-1 entry says why it was dropped.
+    - Criterion 3 rests on the documenter's run: `make documents` printed `documents ok`, and no report line names shared.md. The factory runs it again.
+
+    No findings.
+
+    Open, outside this story:
+    - The project guide's index, `docs/project-guide/README.md:29`, lists only some of shared.md's sections.
+    - `machine.md:443` still says "(since F0044-S0010)". That text was already on `main`.
+    - The docstring of `tests/guards/test_wrapper_search.py` says "the three wrappers", but the guard lists nine modules.
