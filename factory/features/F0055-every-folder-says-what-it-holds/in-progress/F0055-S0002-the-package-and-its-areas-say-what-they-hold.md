@@ -1,17 +1,13 @@
 ---
 stage: tests
-blocked: null
+blocked: question
 round: 0
 attempts: 1
 crashes: 0
 pull_request: 635
 comments_read: [6706893353]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T12:32:01.567807Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -80,6 +76,13 @@ journal:
   kind: started
   at: '2026-11-07T12:32:01.567807Z'
   stage: tests
+- number: 13
+  speaker: tester
+  kind: question
+  at: '2026-11-07T12:32:27.391326Z'
+  stage: tests
+  run: 196af7c5c2954d50a07b35be4417314d
+  blocked: question
 ---
 
 # The package and its areas say what they hold
@@ -189,3 +192,16 @@ Expect: `documents ok (<seconds> s)`
 
     I cross-read `docs/project-guide/README.md` (*The code's layout*) against the READMEs in round 0 and found it current. I saw no stale text outside this story.
 12. factory: started tests as vm.
+13. tester: I wrote no test and changed no file. I stopped at step 1 because two things stand in the way, and I need your word on both.
+
+    1. The existing guard conflicts with the Interface. `tests/guards/test_old_layer_packages_removed.py::test_the_package_holds_only_its_init_the_areas_entry_and_contract` asserts that the entries of `src/factory/` are exactly `{"__init__.py", *AREAS, "entry", "contract"}`. The Interface requires `src/factory/README.md`, so this guard is red and `make check` (criterion 5) cannot pass. The story says "No code and no test changes", and another story wrote this test. The change is not a move of a shared helper, so the standing leave in `CLAUDE.md` does not cover it. Options:
+       a. You give leave. I add `"README.md"` to the expected set and rename the test to `test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract`, and the module docstring says the same. It keeps its purpose, which is keeping old layer packages out of the package root. The story's "no test changes" line is then rewritten to name this one change. **I would choose a.**
+       b. Leave the test as it is and drop `src/factory/README.md` from the story. The other eight READMEs stay, and criterion 3's part on `src/factory/README.md` goes.
+
+    2. Criterion 1 and the Interface give the subfolder line as ``- `<name>/`: <one sentence>.``, with a colon. The guard (`readme_problems` in `src/factory/shared/domain/folder_readmes.py`) and `docs/project-guide/style.md`, *Folder READMEs*, expect ``- `<name>/` <sentence>.``, with no colon. The documenter followed the guard. Options:
+       a. Correct the criterion's wording to the form with no colon, which matches the guard and the READMEs as written. **I would choose a.**
+       b. Keep the colon. Then the guard and the style guide change too, which is outside this story.
+
+    Other criteria: criteria 1 to 3 are checked by the existing guards (`tests/guards/test_folder_readmes.py`) and by the document check, so I see no new test to write for them. Criterion 4 is the docs stage's `make documents`. If you want a test for criterion 3 (the layout link, the `contract/` sentence, each area's guide link, and `entry` with no subfolder lines), say so, and I would add it under `tests/guards/`.
+
+    Files created: none. Modules the test run could not import: none (no run was made).
