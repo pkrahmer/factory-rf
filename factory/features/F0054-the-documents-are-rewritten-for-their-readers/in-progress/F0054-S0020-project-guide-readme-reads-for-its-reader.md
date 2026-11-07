@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T07:49:05.994376Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T07:49:05.994376Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T08:02:58.433137Z'
+  stage: docs-only
+  run: 76f490c38f7b4484935637fbcc467c8d
 ---
 
 # The project guide's index reads for the developer
@@ -79,3 +81,56 @@ Expect: `1`
    - Architecture: only documents change, so the layers in CLAUDE.md are untouched. The page being rewritten is the project guide's index, which CLAUDE.md names.
    - Scope: S0020 is listed in F0054's stories. It touches no `decisions.md`, `docs/runs/` or operator-playbook file, and it changes no behaviour.
 4. factory: started docs-only as vm.
+5. documenter: Rewrote `docs/project-guide/README.md` in the style of `docs/project-guide/style.md`. `make documents` ends with `documents ok (57.4 s)`. `uv run pytest -q tests/guards/test_project_guide_files.py tests/guards/test_area_guides.py tests/entry/test_check_documents_guide_files.py` passed. I did not run `make check`, because only documents changed.
+
+   Files changed:
+   - `docs/project-guide/README.md`: rewritten for its reader.
+     - The opening is two plain paragraphs: who the guide is for, what to read first, and the split rule for long pages.
+     - *The code's layout* has the layer pattern in a code block, one bullet per area, and a See also line.
+     - *The files* was reworded, and every page entry is kept.
+     - *Errors* now opens with one idea sentence and a short hierarchy block, then one bullet per error class, then a See also line.
+     - *Kill points* and *Fault-injection paths* have their pytest commands as `console` blocks with output (a tail line matched with `<name>[100%]`).
+     - *The demos* has a `console` block for `check_demos`.
+     - About 100 files and modules are linked once at first mention by a relative link.
+     - Factory words are linked to `glossary.md` at first use.
+     - The page entries in *The files* are the exception: their leading name stays plain, because the guard reads `` - `name` `` at the start of the item. Their links are in the See also line below the list.
+   - `docs/checked-documents.txt`: added `docs/project-guide/README.md`.
+
+   I checked these facts against the code and found them current:
+   - The 12 `EXCEPTIONS` in `tests/guards/test_model_configuration.py`.
+   - The four members of `KillPoint`.
+   - The `check_demos` options and output.
+   - The test files the example commands run.
+   - The `FactoryError` subclasses the *Errors* section names.
+   - Every linked file path and dotted module name; `make documents` resolved them all.
+
+   Changes to wrong paths, found by the name check (`make documents`):
+   - `support/<name>.py` is now `tests/support/<name>.py`.
+   - `support/conftest.py` is now `tests/conftest.py`. It is the suite's real fixtures file, and `tests/support/conftest.py` does not exist.
+   - The handlers' conftest now has its full path.
+   - The demo files are now written as `demo/<name>/project/factory/...`.
+   - The demo example is `todo-service/`, because `demo/todo/` does not exist.
+
+   I dropped these on purpose:
+   - The bullet about the heading *Replaced from v1*, and the mentions of the sections *Replaced in v1.2* and *Replaced from v1* in the `agents.md` entry. No such headings exist in the pages now.
+   - "It grows with each story", and "Later stories add their error types under it".
+   - The example name `factory.adapters.landlock`, which does not exist.
+   - The sentence "No path is mapped to a removing item ... v1.1 keeps every mechanism". It was version history.
+   - "v1's", "v1.1" and the feature id `F0002-todo` (reworded to "the due todo feature").
+
+   Left as it was, and open for the reviewer:
+   - *Errors* still lacks `TokenError`, `FixtureError`, `PipelineDefinitionInvalid`, `AgentDefinition*`, `UnhandledEvent`, `SettingsInvalid` and `MachineStopStood`, which `src/factory/shared/domain/errors.py` defines. The old text did not describe them either. The new intro says the area's page describes any other error. I did not check that every area page does.
+   - I did not add a *Reference* section. The long test-helper lists and the tables keep all their detail in place.
+   - The *Sections:* lists in the page entries of *The files* were not compared with each page's actual headings.
+   - I did not verify every one-line description of a test-support module against its source.
+
+   Stale text noticed and not touched, because it is unrelated to this story:
+   - `demo/README.md` still says "v1.1".
+   - `CLAUDE.md` mentions v1.1.
+   - The report line `README.md:28: factory/stage.Containerfile does not exist` is printed for the top-level README. That file is not on the checked list.
+
+   Not cleaned up: `/tmp/xxwork`, my scratch folder of edit scripts, outside the repository. The command to remove it was denied by the environment, so I left it.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (57.6 s)
