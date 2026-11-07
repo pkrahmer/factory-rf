@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 2
 attempts: 0
@@ -91,6 +91,11 @@ journal:
   at: '2026-11-07T01:19:11.659961Z'
   stage: docs-review
   run: 108d032ce9e84f1eb6f5a842b00e13f8
+- number: 16
+  speaker: factory
+  kind: done
+  at: '2026-11-07T01:20:01.308079Z'
+  stage: docs-approval
 ---
 
 # The operator guide's the stops reads for the operator
@@ -286,3 +291,4 @@ Expect: `1`
     I looked for remaining sentences over the roughly 25 words of rule 2. The longest left are table cells such as the one on line 21, at about 27 words, which is within "about". I let them stand.
 
     no findings
+16. factory: done (pull request merged); cost: 7 runs, 10.3 min, 80 turns, 337369 tokens in (3173399 more from cache), 58108 out, $3.40
