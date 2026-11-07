@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:31:02.573025Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T03:31:02.573025Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:34:29.172775Z'
+  stage: docs-only
+  run: 340a2ed5def1488782bc45aa845b3185
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -173,3 +175,32 @@ Expect: `1`
 
    Open: nothing beyond the findings above.
 8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's nine findings in `docs/project-guide/hosting.md`. `make documents` ends with `documents ok (9.0 s)`, and no finding names `hosting.md`. I did not run `make check`, because the only file I changed is a document.
+
+   Files changed:
+   - `docs/project-guide/hosting.md` is the only file. `docs/checked-documents.txt` stays as it was.
+
+   How each finding was handled:
+   1. `wiring.py` is linked once, in *The PyGithub client*. In *The git wrapper* it is now plain text.
+   2. `pipeline.md` is linked at its first mention, in the first See also. `machine.md` is linked in the See also of *The git wrapper*. `decisions.md` is linked at its first mention, in *The marker and the post key*. Later mentions are plain. I kept the link in the section where the page is first named, so the plain mentions follow the linked one in reading order.
+   3. `git-credential-factory` and `setup.sh` under `operator/vm/` are linked by a relative link at their first mention. The credential helper's name is kept in the link text, in code, so the name check still resolves it.
+   4. Glossary words are linked at their first use: instance, crash, stall, story, project commands, dataset, claim, pipeline definition, feature, backlog, stage environment and write paths. I removed the second link on "take", which was already linked in *The git wrapper*.
+   5. The *Reference* now names `InstanceSettings.checkout` and `InstanceSettings.state_directory` as the fields that `FACTORY_CHECKOUT` and `FACTORY_STATE` fill. It also says that the validator of `InstanceSettings` refuses a relative path. It is a separate paragraph from the "models are frozen" sentence about `GitOptions`.
+   6. A new bullet in *The PyGithub client* says that `pygithub_service` builds a lazy `github.Github` with `retry=hosting_retry()`.
+   7. *Deleting and merging branches* now opens with a short paragraph before its code block.
+   8. The sentences are split:
+      - the opening sentence of *The hosting service* now has no parentheses;
+      - the `ignored` row of the Reference table has no parentheses;
+      - the `work_tree_id` temporary-index sentence is now several sentences, and `GIT_INDEX_FILE` is tied to the temporary index.
+   9. The `status` row in *Which part uses which operation* now says the claim and the stall handling read `status` too. I checked `claims.py:96` and `stalls.py:111` as the reviewer cited them.
+
+   Cross-read: `docs/project-guide/README.md` and `docs/project-guide/machine.md` still agree with the page. They name only the page and its *The git wrapper* section, and I changed no heading.
+
+   Not touched (unchanged from round 0):
+   - The hosting area's files `application/opening.py`, `application/pushes.py`, `domain/hand_over.py`, `domain/post_texts.py`, `adapters/checkout_fixture.py` and `adapters/instance_fixture.py` are not described on this page. The old page did not describe them either.
+   - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder but looks like a machine-area test.
+   - I wrote no "Rejected" line in `docs/decisions.md`; that file is out of scope for this story.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (9.1 s)

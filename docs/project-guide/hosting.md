@@ -4,7 +4,7 @@ This file covers the area `hosting`: git and the hosting service. Read the index
 
 ## The hosting service
 
-The factory reaches the hosting service (pull requests and their comments) only through one interface, the abstract base class `HostingService` in [hosting.py](../../src/factory/hosting/application/hosting.py) (`factory.hosting.application.hosting`). The application layer knows no concrete client. Two classes implement it: the PyGithub client in [pygithub_hosting.py](../../src/factory/hosting/adapters/pygithub_hosting.py) and the one fake in [fake_hosting.py](../../src/factory/hosting/adapters/fake_hosting.py).
+The factory reaches the hosting service, meaning pull requests and their comments, only through one interface. It is the abstract base class `HostingService` in [hosting.py](../../src/factory/hosting/application/hosting.py), module `factory.hosting.application.hosting`. The application layer knows no concrete client. Two classes implement it: the PyGithub client in [pygithub_hosting.py](../../src/factory/hosting/adapters/pygithub_hosting.py) and the one fake in [fake_hosting.py](../../src/factory/hosting/adapters/fake_hosting.py).
 
     HostingService.create_pull_request(branch, title, body, *, draft) -> PullRequestView
     HostingService.find_open_pull_request(branch) -> PullRequestView | None
@@ -34,6 +34,7 @@ See also: *The marker and the post key* below, and *Asking the human* in [pipeli
     hosting_retry() -> GithubRetry
 
 - The constructor reads nothing from the repository, so building the service sends no request.
+- `pygithub_service` builds a lazy `github.Github` (`lazy=True`) with `retry=hosting_retry()`, and wraps its `Repository` in the service.
 - Every failing call raises `HostingServiceError(operation, detail)`. A `github.GithubException` or an `OSError` (a connection error is one) inside any of the ten operations is re-raised with the operation's name and `str(error)` as detail, chained to the original. Any other exception, and `InjectedKill`, passes through unchanged.
 - `hosting_retry()` is the one place the retry is built: a `GithubRetry` with `total=5`, `backoff_factor=2` and `allowed_methods` the default methods plus `PATCH`, so a write that sets a whole state (a label set, a close, a ready mark) is tried again too. A call that still fails after the retries is a `HostingServiceError`.
 - `post_comment` lists the comments first and returns `"already_posted"` without posting when one has the same key. Otherwise it posts `render_post(text, key)`, reaches `KillPoint.AFTER_POST` and returns `"posted"`.
@@ -108,7 +109,7 @@ Every post the factory makes ends with two lines, so that a repeat or a restart 
 - `parse_post_key` reads only the last non-blank line, which must be exactly a valid key comment. Trailing whitespace and `\r` are ignored. Anything else gives `None`.
 - `PullRequestComment.from_body` sets `by_factory` when the body contains the marker, whoever the author is, and `key` to the parsed key when it is by the factory.
 
-Why: see [decisions.md](../decisions.md). See also: *Asking the human* in [pipeline.md](pipeline.md).
+Why: see [decisions.md](../decisions.md). See also: *Asking the human* in `pipeline.md`.
 
 ## The git wrapper
 
@@ -126,11 +127,11 @@ Git is reached only through the abstract base class `Git` in [git.py](../../src/
 - Git is isolated: no user or system configuration reaches it, and the identity comes from the options (see *Identity and isolation* below).
 - The three reads `changed_paths`, `status` and `work_tree_id` describe what the checkout holds. Nothing is decided from them without the remote. The [tick](glossary.md) looks at `status()` before it restores the checkout.
 
-[wiring.py](../../src/factory/entry/wiring.py) fills `identity` from the instance settings `GIT_USER_NAME` and `GIT_USER_EMAIL`. It fills `environment` with `git_environment()`: the credential helper for the factory's own pushes, `core.hooksPath` set to the null device and `core.fsmonitor` set to `false`. The helper reads the token file. The token itself is never in the environment, so the agent run never receives it.
+`wiring.py` fills `identity` from the [instance](glossary.md) settings `GIT_USER_NAME` and `GIT_USER_EMAIL`. It fills `environment` with `git_environment()`: the credential helper for the factory's own pushes, `core.hooksPath` set to the null device and `core.fsmonitor` set to `false`. The helper reads the token file. The token itself is never in the environment, so the agent run never receives it.
 
-The helper is `operator/vm/git-credential-factory` (shell). It answers `get` only for the host of `FACTORY_REPOSITORY_URL` when that variable is set, and prints nothing and exits 1 otherwise. Why: the code may come from another repository on another host (`operator/vm/setup.sh --code-url`), and the project's token must not reach it. The exact comparison is in the *Reference*.
+The helper is [git-credential-factory](../../operator/vm/git-credential-factory) (`operator/vm/git-credential-factory`, shell). It answers `get` only for the host of `FACTORY_REPOSITORY_URL` when that variable is set, and prints nothing and exits 1 otherwise. Why: the code may come from another repository on another host ([setup.sh](../../operator/vm/setup.sh) with `--code-url`), and the project's token must not reach it. The exact comparison is in the *Reference*.
 
-See also: *The take* in [machine.md](machine.md), which uses `ignored`, and *The take's rule* in [pipeline.md](pipeline.md), which uses `revert_paths`.
+See also: *The take* in [machine.md](machine.md), which uses `ignored`, and *The take's rule* in `pipeline.md`, which uses `revert_paths`.
 
 ### Pushing
 
@@ -151,6 +152,8 @@ Push never forces. It runs `git push --porcelain --set-upstream origin refs/head
 - `KillPoint.BEFORE_PUSH` is reached once per call, before git runs (between a commit and its push, so nothing reaches the remote). `KillPoint.AFTER_PUSH` is reached only after a push that returned `"pushed"`. A rejected or unreachable push reaches only the first. A `GitCli` without kill points pushes normally.
 
 ### Deleting and merging branches
+
+A merge or a discard of a work item removes its branch from the remote and from the checkout. Preparing a stage merges the main branch into the work item's branch. Both return a value for the outcomes a caller must decide on, and raise `GitError` for the rest.
 
     GitCli.delete_remote_branch(branch) -> PushOutcome
     GitCli.delete_branch(branch) -> None
@@ -179,7 +182,7 @@ Who uses them: preparing a stage merges the main branch into a [work item](gloss
 
 ### Restoring the checkout
 
-These three make the checkout disposable: whatever a stage or a crash left behind can be put back.
+These three make the checkout disposable: whatever a stage or a [crash](glossary.md) left behind can be put back.
 
     GitCli.reset_to(ref) -> None
     GitCli.revert_paths(commit, paths) -> None
@@ -192,7 +195,7 @@ These three make the checkout disposable: whatever a stage or a crash left behin
 - `move(source, destination)` creates the destination's parent folders and runs `git mv`. The move is staged as a rename, but `status()` and `changed_paths()` still show it as a deletion plus an addition.
 - A `source` that is not tracked, or a `destination` that exists, is a `GitError`.
 
-Who uses them: a stall or a crash reverts or resets. The tick resets the checkout to the remote. The [take](glossary.md)'s restore of a broken work item is `revert_paths`. A merge or a discard moves the story file.
+Who uses them: a [stall](glossary.md) or a crash reverts or resets. The tick resets the checkout to the remote. The take's restore of a broken work item is `revert_paths`. A merge or a discard moves the [story](glossary.md) file.
 
 ### The argument and branch rules
 
@@ -216,7 +219,7 @@ accepted:  a/b.txt
 refused:   ../x      a/../../x      (empty)      (absolute)
 ```
 
-Why not `--end-of-options`, and why not an explicit `refs/heads/<b>:refs/heads/<b>` refspec: see [decisions.md](../decisions.md).
+Why not `--end-of-options`, and why not an explicit `refs/heads/<b>:refs/heads/<b>` refspec: see `decisions.md`.
 
 ### Identity and isolation
 
@@ -227,33 +230,33 @@ Every call sets `GIT_AUTHOR_NAME`, `GIT_COMMITTER_NAME`, `GIT_AUTHOR_EMAIL` and 
 - `LC_ALL=C` keeps git's messages English. The push outcome `"unreachable"` and an already-deleted remote branch are recognised by them, and an operator's locale must not turn them into a `GitError`. It does not change how paths are read: the `-z` listings are the paths' bytes and `run_process` decodes them as UTF-8.
 - Credentials reach git only through the environment (for example `GIT_ASKPASS`, or `GIT_CONFIG_COUNT`, `GIT_CONFIG_KEY_<n>`, `GIT_CONFIG_VALUE_<n>`), never through global or system configuration, and never inside a URL, because git may print a URL.
 
-Why: see [decisions.md](../decisions.md).
+Why: see `decisions.md`.
 
 ### Which part uses which operation
 
 | Operation | Used by |
 |---|---|
-| `changed_paths` | the preflight and the make-based project commands: the paths changed since a commit |
+| `changed_paths` | the preflight and the make-based [project commands](glossary.md): the paths changed since a commit |
 | `revert_paths` | the take: puts a deleted or unreadable work item back from the stage-start commit |
 | `merge` | the stage's preparation: merges the main branch into the work item's branch |
-| `ignored` | the take: which changed paths of the dataset the host's own ignore rules ignore (see *The take*, [machine.md](machine.md)) |
-| `status`, `reset_to` | the tick: looks at the checkout and resets it to the remote |
+| `ignored` | the take: which changed paths of the [dataset](glossary.md) the host's own ignore rules ignore (see *The take*, `machine.md`) |
+| `status`, `reset_to` | the tick: looks at the checkout and resets it to the remote; `status` is also read by the claim and by the stall handling |
 | `reset_to` | also the stage's preparation and the crash recovery: a stall or a crash |
 | `delete_remote_branch`, `delete_branch`, `move` | the merge and the discard |
 | `work_tree_id` | the known results: the key of a known project-command result is the tree the command would read |
-| `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and writes, used by the tick, the stages and the claim, and `clone` by the checkout preparer |
+| `fetch`, `remote_branches`, `resolve`, `show_file`, `list_files`, `is_ancestor`, `log`, `clone`, `checkout`, `commit`, `push` | the pipeline's reads and writes, used by the tick, the stages and the [claim](glossary.md), and `clone` by the checkout preparer |
 
 ### Testing with real git
 
 Git is not faked. Tests use real git on a bare remote in `tmp_path`, and check results with plain git through `run_git`, not through other `GitCli` methods.
 
-- The `remote` fixture is a bare repository with the pipeline definition, the story form and one feature with one story on `main`.
+- The `remote` fixture is a bare repository with the [pipeline definition](glossary.md), the story form and one [feature](glossary.md) with one story on `main`.
 - `make_remote` builds it once per session, once per pytest-xdist worker, as the `remote_template` fixture. Each test gets a copy of the whole folder, seed and bare repository, made by `copy_remote(template, root)` without a git process, so what a test pushes stays its own. A test that needs a remote of its own layout builds it with `make_remote`.
 - `checkout` is a `GitCli` on a clone of it, with the identity `TEST_IDENTITY`.
 - [git_support.py](../../tests/support/git_support.py) has the helpers: `run_git` (through `run_process`, same isolation, author `Test Author`), `write_executable` for a stand-in `executable`, and `remote_commit(remote, branch)`, which reads a branch of the bare remote with plain git and gives `None` when it is absent.
 - The autouse fixture `reopened_tmp_path` in `tests/conftest.py` calls `reopen(tmp_path)` from [tmp_path_support.py](../../tests/support/tmp_path_support.py) after every test that uses `tmp_path`, after the test's own teardowns. It gives the owner read, write and search permission on every folder and read and write on every other entry, links not followed. So a test that closes a folder, or a mutant of the seal that closes `.git`, leaves nothing pytest cannot remove, and a test need not open what it closed for that reason.
 - The `human` fixture (`HumanClone` in [human_clone.py](../../tests/support/human_clone.py)) is a second clone of `remote`, the writer a push test needs besides `checkout`. It is built with `TEST_IDENTITY` and drives `GitCli`. Every push it makes must return `"pushed"`.
-- `human.start(path)` moves a story file from `backlog/` to `in-progress/` on `main`, commits and pushes.
+- `human.start(path)` moves a story file from the [backlog](glossary.md) (`backlog/`) to `in-progress/` on `main`, commits and pushes.
 - `human.push_file(branch, path, text)` writes the file on that branch (created from `origin/main` if the remote has none), commits and pushes.
 - `human.merge(branch, method)` brings `origin/<branch>` into `main` and pushes it. `"merge"` makes a merge commit, `"squash"` makes one ordinary commit that leaves the branch tip outside the history of `main`, and `"rebase"` replays the branch's commits with no merge commit.
 
@@ -271,7 +274,9 @@ Exact detail that the sections above summarise.
 | `executable` | `"git"` | the program to run (tests give a stand-in) |
 | `time_limit` | `GIT_TIME_LIMIT` (5 minutes) | per command |
 
-The models are frozen and forbid unknown keys. The settings `FACTORY_CHECKOUT` and `FACTORY_STATE` (`CHECKOUT_VARIABLE`, `STATE_VARIABLE` in `factory.shared.domain.settings`) default to `CHECKOUT_PATH` and `STATE_DIRECTORY`. A relative one is `SettingsInvalid(<variable>, "is not an absolute path")`, and the model's validator refuses it with a `ValidationError`. The settings of the stage environment (`FACTORY_DATASET`, `FACTORY_WORKSPACE`, `FACTORY_STAGE_IMAGE` and the others) are in *The settings and the wiring* in [machine.md](machine.md).
+The models are frozen and forbid unknown keys.
+
+The settings `FACTORY_CHECKOUT` and `FACTORY_STATE` (`CHECKOUT_VARIABLE`, `STATE_VARIABLE` in `factory.shared.domain.settings`) fill the fields `InstanceSettings.checkout` and `InstanceSettings.state_directory`. They default to `CHECKOUT_PATH` and `STATE_DIRECTORY`. A relative one is `SettingsInvalid(<variable>, "is not an absolute path")`, and the validator of `InstanceSettings` refuses it with a `ValidationError`. The settings of the [stage environment](glossary.md) (`FACTORY_DATASET`, `FACTORY_WORKSPACE`, `FACTORY_STAGE_IMAGE` and the others) are in *The settings and the wiring* in `machine.md`.
 
 ### The credential helper
 
@@ -296,12 +301,12 @@ The models are frozen and forbid unknown keys. The settings `FACTORY_CHECKOUT` a
 | `delete_branch(branch)` | `None` |
 | `merge(ref, *, fast_forward_only=False)` | `MergeOutcome` |
 | `reset_to(ref)` | `None`; `git reset --hard` then `git clean -fd` |
-| `ignored(paths)` | `list[str]`: those of `paths` that the checkout's ignore rules ignore, in the order given; `[]` for no paths, without running git; a path that is absolute or holds a `..` segment raises `ValueError` before git runs. `git check-ignore --verbose --non-matching -- <paths...>`, one call per group of at most `IGNORE_GROUP` (1,000) paths (`-z` needs `--stdin`, which is not fed). It prints one line per path, in the paths' order: `<source>:<line>:<pattern><TAB><path>`, or `::<TAB><path>` for a path no rule matches and for a tracked path. A path is ignored when the text before the tab is not `::` and its pattern does not start with `!` (a negation). Exit status 0 and 1 are both answers; any other status, and a call that printed more or fewer lines than it had paths, is `GitError` |
+| `ignored(paths)` | `list[str]`: those of `paths` that the checkout's ignore rules ignore, in the order given; `[]` for no paths, without running git; a path that is absolute or holds a `..` segment raises `ValueError` before git runs. `git check-ignore --verbose --non-matching -- <paths...>`, one call per group of at most `IGNORE_GROUP` paths, which is 1,000. The option `-z` is not used, because it needs `--stdin`, which is not fed. It prints one line per path, in the paths' order: `<source>:<line>:<pattern><TAB><path>`, or `::<TAB><path>` for a path no rule matches and for a tracked path. A path is ignored when the text before the tab is not `::` and its pattern does not start with `!` (a negation). Exit status 0 and 1 are both answers; any other status, and a call that printed more or fewer lines than it had paths, is `GitError` |
 | `revert_paths(commit, paths)` | `None` |
 | `move(source, destination)` | `None` |
 | `log(ref, *, since=None, path=None)` | `list[CommitInfo(commit, parents, subject, author, committed_at)]`: the commits reachable from `ref`, newest first, a commit always before its parents (a merge commit has two). `commit` and `parents` are full ids, `subject` is the first line of the message, `author` the author's name, `committed_at` the committer date in UTC. With `since`, only commits not reachable from it (`since == ref` gives `[]`); with `path`, only commits that changed that file or anything under that directory. An unknown `ref` or `since` is a `GitError` |
 | `changed_paths(since)` | `list[ChangedPath(path, change)]`: the net difference between the commit `since` and the work tree, whether committed, staged, unstaged or untracked. Untracked files that are not ignored count, as `"added"`; ignored paths do not. A path added and deleted again, or changed and restored, is not listed. Sorted by path in plain string order. An unknown `since` is a `GitError` |
-| `work_tree_id(left_out=())` | `TreeId` (`factory.hosting.domain.git`, 40 lower-case hex characters, the pattern of `CommitId`): the id of the tree a commit of the work tree would record now, less the paths that match `left_out` (`matches_any`, as for write paths: case-sensitive, `*` also crosses `/`). Tracked files count with their content in the work tree, untracked files that are not ignored count, deleted and ignored files do not; a tracked file that `.gitignore` matches still counts, as in a commit. The tree is built in a temporary index, a copy of the checkout's own with its modification time (`shutil.copy2`), so git's racily-clean rule applies to the copy as to the own index and rehashes a file changed in the tick of the last index write, set through `GIT_INDEX_FILE` and removed afterwards: `add --all`, then `update-index --force-remove --` for the left-out paths (literal paths, never pathspecs), then `write-tree`. The checkout's index, `HEAD`, refs and work tree stay as they are; the tree object itself is written to the object store. Any git failure is a `GitError` |
+| `work_tree_id(left_out=())` | `TreeId` (`factory.hosting.domain.git`, 40 lower-case hex characters, the pattern of `CommitId`): the id of the tree a commit of the work tree would record now, less the paths that match `left_out` (`matches_any`, as for [write paths](glossary.md): case-sensitive, `*` also crosses `/`). Tracked files count with their content in the work tree, untracked files that are not ignored count, deleted and ignored files do not; a tracked file that `.gitignore` matches still counts, as in a commit. The tree is built in a temporary index, which is set through `GIT_INDEX_FILE` and removed afterwards. The index is a copy of the checkout's own, made with `shutil.copy2` so that it keeps the modification time. Git's racily-clean rule therefore applies to the copy as to the own index, and git rehashes a file changed in the tick of the last index write. The steps are `add --all`, then `update-index --force-remove --` for the left-out paths (literal paths, never pathspecs), then `write-tree`. The checkout's index, `HEAD`, refs and work tree stay as they are; the tree object itself is written to the object store. Any git failure is a `GitError` |
 | `status()` | `WorkTreeStatus(branch, head, changes)`: `branch` is `None` when HEAD is detached, `head` is `None` in a repository without commits (`branch` then names the unborn branch). `changes` has one `ChangedPath` per path that differs from HEAD, staged, unstaged or untracked, listed once and sorted by path. A deleted path is `"deleted"`, a path HEAD lacks (untracked or newly staged, even if edited again) is `"added"`, anything else `"modified"`. Ignored paths are never listed |
 
 ### The result models
