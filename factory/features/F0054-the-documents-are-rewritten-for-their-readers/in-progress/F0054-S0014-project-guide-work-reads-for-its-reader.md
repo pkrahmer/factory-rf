@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 1
 crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:57:22.012883Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -63,6 +59,12 @@ journal:
   kind: started
   at: '2026-11-07T03:57:22.012883Z'
   stage: docs-review
+- number: 10
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:59:26.248985Z'
+  stage: docs-review
+  run: fb36a262832f41b4b1a0c1bf0f847ba5
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -172,3 +174,19 @@ Expect: `1`
    `secrets`: secrets: green (0.6 s)
    `documents`: documents ok (9.7 s)
 9. factory: started docs-review as vm.
+10. reviewer: I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the work item, against the old `docs/project-guide/work.md` on `main`, against `docs/project-guide/style.md`, and against the code on the branch (identifiers, paths, sections, story_form, acceptance, contract, entry/contract, journal). No other file links to a heading that was removed. I grepped `README.md`, `docs/`, `agents/` and `src/` for *Ids and names*, *Order*, *The tree*, *The document and its error*, *The layout*, *The body* and *Faults*. So criterion 5 holds. The documenter's entry 5 says "the old headings stay". That is not true: those seven headings are gone or moved into *Reference*. Nothing points to them, so this is not a finding against the document. The `docs/checked-documents.txt` line and the index entry in `docs/project-guide/README.md` are correct.
+
+    Findings:
+    1. `docs/project-guide/work.md:304`: the signature says `check_story_place(...) -> list[str]`, but `src/factory/work/domain/story_form.py:244` returns `list[FormFinding]`. Fix: write `-> list[FormFinding]`.
+    2. `docs/project-guide/work.md:195`: the signature says `write_contract(folder) -> None`, but `src/factory/entry/contract.py:17` returns `list[Path]`. Fix: write `-> list[Path]`.
+    3. `docs/project-guide/work.md:146` and `:18`: the return types are less exact than the code. `acceptance_status` returns `AcceptanceStatus` (`src/factory/work/domain/acceptance.py:165`), not `str`, and `folder_of` returns `LifecycleFolder | None` (`src/factory/shared/domain/paths.py:53`). Fix: write the code's types.
+    4. `docs/project-guide/work.md:197`: `uv run python -m factory.entry.contract [<folder>]` is a command in an indented block. It is neither a runnable `console` example nor marked for the VM, GitHub or a model, so the Description's rule ("Every command the file shows is a runnable example or is marked") is broken. Fix: make it a `console` block that writes into a new folder, such as `$ uv run python -m factory.entry.contract schemas`, followed by `contract: 5 schemas written`. If `uv` cannot run under the check, use the form the other examples use.
+    5. `docs/project-guide/work.md:35,66,126,251,290`: the examples call a bare `python`. This works only when the project's virtual environment is on PATH, and CLAUDE.md says "Run Python through `uv run`". A reader who copies a command into a plain shell gets `ModuleNotFoundError`. Fix: add one sentence above the first example saying that these commands run in the project's environment and are `uv run python -c ...` from a shell.
+    6. `docs/project-guide/work.md:168`: "See also: *The reading of a remote's work items* below" names a heading that does not exist. The section is *The remote's work items* (line 170). Fix: use that name.
+    7. `docs/project-guide/work.md:72`: "See *The data of a work item* in the Reference for its fields" points nowhere useful. The Reference's *The data of a work item* (lines 395–422) lists the fields of `WorkItemState` and `JournalRecord` but not those of `Claim`, which line 74 already gives. Fix: remove the sentence, or point to line 74's bullet.
+    8. `docs/project-guide/work.md:62`: "the journal module, which keeps a private `_state_of` (see *The journal's entries*)" points to a section that no longer mentions `_state_of`. The old text said it there. Line 123 now stops at "it cannot use `require_state`". Fix: add to line 123 that the module therefore keeps its own private `_state_of` (`src/factory/work/domain/journal.py:143`), the one other function that checks a document's state.
+    9. `docs/project-guide/work.md:390`: "`PROJECT_AGENTS_DIRECTORY` (`<project>/factory/agents`)" and "`project_agent_file(name)` gives `<project>/factory/agents/<name>.md`" misstate the values. The constant is `"factory/agents"` (`src/factory/shared/domain/paths.py:20`), and the function returns a path relative to the project's root. Fix: say that both are paths relative to the project's root, so the folder is `<project>/factory/agents/`, and keep the placeholder only on the folder.
+    10. `docs/project-guide/work.md:154`: a rule of the old file was dropped without being named. The old text said "`parse_work_item_file_name` reads it back to the id and that slug" for the acceptance report file name, and neither the section nor the Reference keeps it (criterion 2). Fix: add it back to this bullet.
+    11. `docs/project-guide/work.md:182`: "the folders of the old layout" is history wording (style rules 1 and 7). It replaced "v1's folders". Fix: say what is ignored now, for example "any path that `folder_of` refuses", without naming an earlier layout.
+    12. `docs/project-guide/work.md`: many words that the glossary defines are not linked at their first use (criterion 1, style rule 3). They are: acceptance (l.20), feature (l.27), claim (l.45), stage (l.91), approval, round cap, attempts cap and crash (l.92), stall (l.93), role (l.95), cost record (l.141), backlog (l.224), pipeline definition (l.205) and write paths (l.462, or wherever they first appear). Only work item, instance, journal and story are linked. Fix: link each to `glossary.md` at its first use in the file.
+    13. `docs/project-guide/work.md:89,98,166,222,446`: modules the page names are not linked, as the Interface requires ("Each module, file or page ... is linked once"). They are `factory.work.domain.decisions` (`src/factory/work/domain/decisions.py`), `factory.watching.domain.cost_records`, `factory.entry.wiring` (`src/factory/entry/wiring.py`), `factory.hosting.domain.hand_over` (`src/factory/hosting/domain/hand_over.py`) and `factory.watching.application.costs` (`src/factory/watching/application/costs.py`). Fix: link each once at its first mention, or once in a See also.
