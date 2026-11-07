@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 4
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 619
-comments_read: []
+comments_read: [6701199398]
 handed_over: null
 claim: null
 journal:
@@ -120,6 +120,11 @@ journal:
   stage: docs-review
   run: f758a314bc3242da931c6d57c9fc2a8e
   blocked: round_cap
+- number: 21
+  speaker: human
+  kind: comment
+  at: '2026-11-07T02:46:51.754632Z'
+  stage: docs-review
 ---
 
 # The operator guide's index reads for the operator
@@ -283,3 +288,4 @@ Expect: `1`
        - At line 43: "role", "write paths" and "journal".
        Fix: link each one to `../project-guide/glossary.md` at its first use in the file. Later uses stay plain.
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes findings 1 and 2 of the last review: each glossary word is linked at its first use in the file, also in the file table and the two sections named, and only there. Before it ends, it lists the glossary words the page uses and checks each first use by script.
