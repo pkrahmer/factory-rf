@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T08:21:49.653647Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -91,6 +95,11 @@ journal:
   at: '2026-11-07T08:21:42.508013Z'
   stage: docs-review
   run: 292318554dc94ef7baf685935d7c1a46
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T08:21:49.653647Z'
+  stage: docs-only
 ---
 
 # The project guide's index reads for the developer
@@ -357,3 +366,4 @@ Expect: `1`
     This list is meant to be complete for the page as it stands. I went through every sentence for rules 2 and 8 and every section for the project-guide shape.
 
     Not checked: the one-line descriptions of the `tests/support/` modules against their source; no stage has done this. I did not run `make documents`; the documenter's run printed `documents ok`, and the factory runs it as the gate.
+16. factory: started docs-only as vm.
