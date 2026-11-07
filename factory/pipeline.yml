@@ -20,7 +20,7 @@ project_commands:
 roles:
   intake: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   tester: {write_paths: ["tests/*"], time_limit: 40, lease_duration: 60}
-  coder: {write_paths: ["src/*", "agents/*", "operator/vm/*", "operator/template/*", "operator/bin/*", "operator/claude/*", "operator/job/*", "operator/lib/*", "operator/opencode/*", "operator/skill/*", "operator/site.env.example", "tests/README.md", "tests/support/README.md", "tests/guards/README.md", "docs/checked-documents.txt"], time_limit: 40, lease_duration: 60}   # the four last paths for F0055-S0003 only, removed at its merge (the human, 2026-11-07)
+  coder: {write_paths: ["src/*", "agents/*", "operator/vm/*", "operator/template/*", "operator/bin/*", "operator/claude/*", "operator/job/*", "operator/lib/*", "operator/opencode/*", "operator/skill/*", "operator/site.env.example"], time_limit: 40, lease_duration: 60}
   reviewer: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
   documenter: {write_paths: ["README.md", "docs/*", "operator/README.md", "agents/README.md", "operator/bin/README.md", "operator/claude/README.md", "operator/job/README.md", "operator/lib/README.md", "operator/opencode/README.md", "operator/skill/README.md", "operator/vm/README.md", "security/README.md", "src/factory/README.md", "src/factory/agents/README.md", "src/factory/entry/README.md", "src/factory/hosting/README.md", "src/factory/machine/README.md", "src/factory/pipeline/README.md", "src/factory/shared/README.md", "src/factory/watching/README.md", "src/factory/work/README.md", "tests/README.md", "tests/support/README.md", "tests/guards/README.md"], time_limit: 40, lease_duration: 60}
   smoke-tester: {write_paths: ["{work_item}"], time_limit: 40, lease_duration: 60}
