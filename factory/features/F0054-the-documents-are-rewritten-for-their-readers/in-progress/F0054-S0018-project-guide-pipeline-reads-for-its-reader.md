@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T06:05:19.928750Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -65,6 +69,11 @@ journal:
   at: '2026-11-07T06:05:14.575538Z'
   stage: docs-review
   run: 705f029ae1e54dde9870105f8e18dcb4
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:05:19.928750Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -190,3 +199,4 @@ Expect: `1`
     18. `docs/project-guide/pipeline.md` (style rule 2): many sentences run far past 25 words and hold several parentheses. Lines 362, 445, 692 and 699 are clear cases, and about 34 sentences are over 40 words. Fix: split them, with one parenthesis at most per sentence.
 
     Open, and not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Also outside this story: `README.md:28` and `docs/project-guide/README.md`, which the documenter reported as unresolved paths.
+11. factory: started docs-only as vm.
