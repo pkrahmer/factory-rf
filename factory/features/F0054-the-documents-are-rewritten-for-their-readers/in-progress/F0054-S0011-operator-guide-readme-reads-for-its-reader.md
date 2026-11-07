@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 619
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:32:20.299507Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T02:32:15.278255Z'
   stage: docs-review
   run: 962bb58675354edea471f44e5c8eafd2
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:32:20.299507Z'
+  stage: docs-only
 ---
 
 # The operator guide's index reads for the operator
@@ -125,3 +134,4 @@ Expect: `1`
    3. `docs/operator-guide/README.md`, *What the stage environment is*, bullet 2: "mounts the dataset only" is false. `src/factory/agents/adapters/agent_launch.py:206` also mounts the login files read-only at their own paths. The sync container also mounts the checkout's `.git` and the agent home read-only (`src/factory/machine/application/stage_environment.py:188-191`). Fix: say the dataset is the only writable mount, and the login files are mounted read-only.
    4. `docs/operator-guide/README.md`, *Options that do not exist*: "an option for it is unknown" is vague and reads as a note about a removed option (style rules 1 and 7). `src/factory/entry/watch.py:72-73` builds an argument parser with no arguments, so `factory-watch` takes no option but `--help`. Fix: state the current truth, "`factory-watch` takes no options; it refuses any option but `--help`", and drop the heading's "do not exist" framing.
    5. `docs/operator-guide/README.md`, *Reference*, opening line: "for the operator who knows an older setup or an older option" frames the section as history, against style rules 1 and 7. Fix: say what the section holds, for example "How the stage environment works and what the instance refuses".
+8. factory: started docs-only as vm.
