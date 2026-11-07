@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-07T11:41:41.905081Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -119,6 +123,11 @@ journal:
   at: '2026-11-07T11:41:36.551831Z'
   stage: review
   run: 2cdd2b9ddefa485bb4ed0127219839c9
+- number: 21
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:41:41.905081Z'
+  stage: docs
 ---
 
 # A reference to another page's heading names a heading it has
@@ -344,3 +353,4 @@ Expect: `documents ok (<seconds> s)`
 
     Earlier tests:
     - `tests/entry/test_check_documents_checked_files.py`: none needed. The diff only adds constants and one test at the end of the file and leaves every earlier test as it was. The story's Interface also allows rows in this module.
+21. factory: started docs as vm.
