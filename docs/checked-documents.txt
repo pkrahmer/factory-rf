@@ -23,3 +23,12 @@ docs/project-guide/pipeline.md
 docs/project-guide/operator.md
 docs/project-guide/README.md
 README.md
+src/factory/README.md
+src/factory/agents/README.md
+src/factory/entry/README.md
+src/factory/hosting/README.md
+src/factory/machine/README.md
+src/factory/pipeline/README.md
+src/factory/shared/README.md
+src/factory/watching/README.md
+src/factory/work/README.md
