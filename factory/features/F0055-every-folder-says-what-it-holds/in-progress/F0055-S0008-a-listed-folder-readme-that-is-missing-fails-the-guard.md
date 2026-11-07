@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T14:54:22.836784Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-07T14:54:22.836784Z'
   stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-07T14:55:08.081227Z'
+  stage: tests
+  run: 1c224e6efbb64ff5928a4a34ad4cbbfe
 ---
 
 # A listed folder README that is missing fails the guard
@@ -91,3 +93,25 @@ Expect: `missing-fails`
 
    Route: `tests`. The Interface changes only a test file, which the documenter may not write.
 4. factory: started tests as vm.
+5. tester: Tests written. All of this story's code is in one test file, so the tests are green now rather than red.
+
+   - criterion 1: tests/guards/test_folder_readmes.py::test_a_listed_readme_gives_its_problems_and_a_missing_one_fails, with three rows on `x` under `tmp_path`, each with the subfolder `y/`:
+     - `names-its-subfolder`: a README in the form that names `y/` gives `[]`.
+     - `no-readme`: no `README.md` gives `["x: no README.md"]`.
+     - `subfolder-not-named`: a README in the form that does not name `y/` gives `["x: y/ is not named"]`.
+   - criterion 2: tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder. It now only asserts `_listed_readme_problems(ROOT, path) == []` for every path in `FOLDER_READMES`, with no skip.
+   - criterion 3 (`make check`) and criterion 4 (docs) have no test of their own.
+
+   Files: I created none. I changed only `tests/guards/test_folder_readmes.py`, under the human's leave of 2026-11-07 named in the Interface:
+   - The module docstring now says that every listed folder README exists, agrees with its folder and keeps the README's form.
+   - `test_a_folder_readme_agrees_with_its_folder` keeps its name, checks the same agreement and no longer skips.
+   - I added the private helper `_listed_readme_problems(root, path)` exactly as the Interface describes it. A missing file is read as `None` and handed to `readme_problems`, and the subfolders are read by `_subfolders(root / folder)`.
+   - I added two module constants, `NAMING_README` and `SILENT_README`, as the data for the criterion-1 test.
+
+   Why the helper is mine: it lives in a test module, and the coder never edits tests (R9). Intake routed the story to this stage for that reason, so writing it here is the only way the Interface gets built.
+
+   Result: no test fails before an implementation, because there is no implementation outside the tests. One run of `uv run pytest -q tests/guards/test_folder_readmes.py`: 31 passed, no skips. `make lint` is green. Every module the tests import already exists, so none was missing.
+
+   Left open for the coder: no change under `src/` is called for. The coder's `make check` is all that remains.
+
+   `lint`: lint: green (0.2 s)
