@@ -14,6 +14,7 @@ F0054 (the documents are rewritten for their readers) is merged, so the style pa
 - The document check reads those READMEs, so they can go on the checked list (S0001).
 - The documenter may write them, so the stories that write them take the docs route (S0001, with the human's change).
 - The READMEs themselves, in four groups (S0002 to S0005).
+- The document check resolves references to another page's heading (S0006, the human, 2026-11-07).
 
 ## Out of scope
 
@@ -26,6 +27,7 @@ F0054 (the documents are rewritten for their readers) is merged, so the style pa
 ## Stories
 
 - S0001: The folders that have a README are listed and checked
+- S0006: A reference to another page's heading names a heading it has (runs right after S0001)
 - S0002: The package and its areas say what they hold
 - S0003: The tests say how they are laid out
 - S0004: The operator's folders say what they hold
