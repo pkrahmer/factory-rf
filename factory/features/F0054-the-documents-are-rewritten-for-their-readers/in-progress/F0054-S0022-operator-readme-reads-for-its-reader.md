@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T09:51:06.472872Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -124,6 +120,12 @@ journal:
   kind: started
   at: '2026-11-07T09:51:06.472872Z'
   stage: docs-review
+- number: 21
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:51:33.814051Z'
+  stage: docs-review
+  run: 46d6f7a2bbd848f286e81f7792e87e9c
 ---
 
 # The operator folder's README reads for its reader
@@ -331,3 +333,14 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (59.2 s)
 20. factory: started docs-review as vm.
+21. reviewer: Round 2 docs-review of `operator/README.md` on the branch. It is the only file the diff changes. I checked it against the operator files it describes and against `docs/project-guide/style.md`. As the human decided in journal 6, `docs/checked-documents.txt` was not under review.
+
+    Both findings of journal 17 are fixed, and I checked each against the code:
+    - `operator/README.md:74` no longer calls the six checks the approval stage's own. It now says they are the six checks Kumpel judges on a story at the approval stage, and it links `operator/skill/kumpel/references/approving.md`. That file exists, and its *The six checks* section lists them for a story at `stage:approval` (lines 3-14), so the sentence is true of the code. The link is relative, as style rule 8 asks.
+    - Steps 2, 4 and 5 (lines 23, 36, 48 and 54) now say above each `sh` block that it runs on the operator's machine, from the root of this repository. That is what style.md, *Examples that are not run*, asks for. Steps 1 and 3 already said so.
+
+    Criterion 2 still holds. What was dropped on purpose is the same set I accepted in journal 13: the "Second version" paragraph, the TRIAL-1 note, the Story column, "(for the trial)" and "(the human, 2026-10-31)". Criterion 4 still holds: the heading *Installing* is kept, and `docs/operator-guide/site.md` links to it. The one runnable `console` example, `site init`, is unchanged since the documenter ran it by hand (journal 8).
+
+    Open, not a finding of this page: the story's Interface line for `docs/checked-documents.txt` and the list part of criterion 3 still name the list line. Journal 6 dropped both, and the review rules let me rewrite only the Description.
+
+    no findings
