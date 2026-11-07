@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T10:07:09.965913Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-07T10:07:05.127664Z'
   stage: intake
   run: 7b2be5e0daf24820b37ce99477b081c6
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:07:09.965913Z'
+  stage: tests
 ---
 
 # The folders that have a README are listed and checked
@@ -111,3 +120,4 @@ Expect: `23 ['x: no README.md']`
    - Docs criterion: it names what the reader must know in four places (shared.md, the project guide README, the style page, decisions.md) and dictates no sentences.
    - Architecture: a domain constant in `shared` and the wiring in `entry` fit the layering. `check_documents` already sits in `entry`.
    - Scope: within feature.md's S0001 scope. The write_paths change stays with the human, and the leave for the documenter's tests is stated in the Interface (feature decision 5). Route: `tests`, because the Interface changes code and tests.
+7. factory: started tests as vm.
