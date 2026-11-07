@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 615
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T01:01:32.006481Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T01:01:32.006481Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T01:01:46.356028Z'
+  stage: intake
+  run: b042b84a37d0422eba00902f2941d37f
 ---
 
 # The operator guide's the stops reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete paths (`docs/operator-guide/stops.md`, `docs/checked-documents.txt`); it changes only documents the documenter may write, with no code, test or agent file.
+   Criteria: criteria 1 to 4 are checkable against the files (style rules and the old-versus-new comparison by the reviewer, `make documents` printing `documents ok`, links resolving). The Interface states no behaviour or rule beyond the document list, so no failing side is missing.
+   Smoke test: `grep -cx "docs/operator-guide/stops.md" docs/checked-documents.txt` is runnable, and its `Expect: 1` can be checked against the output. It runs no pytest.
+   Docs criterion: criterion 6 says "as criteria 1 to 4", so it names what the reader must know (the stops, from the code) and dictates no sentences.
+   Architecture: documents only; it matches the docs route and the CLAUDE.md docs split.
+   Scope: it is one of the 22 per-file stories of F0054 (S0007), and `decisions.md` is untouched, which is outside the Out of scope list.
