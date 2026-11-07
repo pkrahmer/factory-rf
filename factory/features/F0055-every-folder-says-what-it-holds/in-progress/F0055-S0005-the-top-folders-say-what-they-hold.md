@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070, 6708142009]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T14:25:50.772042Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -162,6 +158,12 @@ journal:
   kind: started
   at: '2026-11-07T14:25:50.772042Z'
   stage: docs-only
+- number: 28
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:30:18.493520Z'
+  stage: docs-only
+  run: 2057c84c6fd34f1cb9aa04b972bf78f5
 ---
 
 # The top folders say what they hold
@@ -364,3 +366,32 @@ Expect: `documents ok (<seconds> s)`
     - `docs/checked-documents.txt` gains both paths.
     - The last documenter run ended `documents ok`.
 27. factory: started docs-only as vm.
+28. documenter: Fixed the reviewer's two round-5 findings (the human's entry 24) and nothing else.
+
+    Files changed:
+    - `README.md`: line 37 (`agents/` line) now links "role" to `docs/project-guide/glossary.md` at its first prose use (finding 1). Line 42 (`planning/` line) now links "stage" to the same page (finding 2).
+
+    The check the human asked for: I wrote a script in a temporary directory, which is now removed. It reads every glossary word of `docs/project-guide/glossary.md` and finds its first prose use outside code spans in `README.md`, `docs/README.md` and `security/README.md`. It reports a word when that use is not inside a link. Its output:
+    ```
+    README.md 3 story
+    README.md 21 take
+    README.md 33 stage
+    ```
+    It is not empty, and none of the three comes from the lines of this story:
+    - Line 3 "story" is a false hit of my script: line 3 opens with the link "[stories]", but the script matches only "story" and "storys", so it skipped the plural.
+    - Line 21 "take" is the verb in "takes you from a fresh VM". It is not the glossary word.
+    - Line 33 "The stage image copies them" is older than this story and sits in `## Where to read next`, which criterion 6 says to leave unchanged. So I left it. If the human wants it linked, that needs their word that criterion 6's "unchanged" gives way.
+    `docs/README.md` and `security/README.md` printed nothing. After the two fixes no line of `## The folders` is reported.
+
+    `make documents` ends with `documents ok (62.8 s)`. I changed only a document, so I did not run `make check`; the factory runs it after this stage.
+
+    Cross-read and found current: `docs/README.md`, `security/README.md` and the rest of `## The folders`.
+
+    Open or noted, not mine to fix:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it), so its root line has no link.
+    - The `agents/` line in `## Where to read next` duplicates its line in `## The folders`; criterion 6 says to leave `## Where to read next` unchanged.
+    - Line 33's unlinked "stage" (above).
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (60.5 s)
