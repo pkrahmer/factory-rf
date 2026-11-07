@@ -1,6 +1,6 @@
 # The pipeline definition and the story check
 
-A topic of the [operator guide](README.md). It covers the file that configures your pipeline, `factory/pipeline.yml`, and the command that checks a story before the factory starts it.
+A topic of the [operator guide](README.md). It covers the file that configures your pipeline, `factory/pipeline.yml`, and the command that checks a [story](../project-guide/glossary.md) before the factory starts it.
 
 ## The pipeline definition
 
@@ -30,7 +30,7 @@ The order of the stages in the file is the pipeline's order. The first `next` of
 2. Check it against the rules below, most of all the stage `done` and the [lease](../project-guide/glossary.md).
 3. Merge the change to `main`. The factory reads the new text at its next [tick](../project-guide/glossary.md).
 
-A refused definition stops the factory with `pipeline_definition_invalid` until you fix it on `main` (see "The stop `pipeline_definition_invalid`" in [stops.md](stops.md)).
+A refused definition [stops](../project-guide/glossary.md) the factory with `pipeline_definition_invalid` until you fix it on `main` (see "The stop `pipeline_definition_invalid`" in [stops.md](stops.md)).
 
 ### The rules you meet most often
 
@@ -38,7 +38,7 @@ A refused definition stops the factory with `pipeline_definition_invalid` until 
 - The contract major must be 1. Any minor is read.
 - Every stage other than `done` needs a non-empty `next` and either a role or `approval: true`. Every name in `next` must be a stage.
 - The lease: for each stage with a role, the role's `time_limit` plus the `time_limit` of every command in the stage's `checks` and `reports` must be at most the role's `lease_duration`. With the defaults, 40 + 10 (one check) + 10 (one report) = 60 fits. A stage with two checks and a report adds up to 70 and is refused. Raise the `lease_duration` or lower a limit.
-- Values are taken only in their YAML type. A limit is an integer (not `'30'`, `30.0` or `true`). `approval` is `true` or `false` (not `'yes'` or `1`). Names and write paths are text.
+- Values are taken only in their YAML type. A limit is an integer (not `'30'`, `30.0` or `true`). `approval` is `true` or `false` (not `'yes'` or `1`). Names and [write paths](../project-guide/glossary.md) are text.
 - A key that is not listed is refused, so a misspelt key is never ignored. That holds for `tool_paths` too. An agent run may write only its write paths, and there is no folder for tool state.
 - A given `project_commands` replaces the default set as a whole. List `check`, `lint` and `test` again if you still want them.
 - Every role needs an agent file, a project's own or the installed one (see "The agent files" in [agent-runtime.md](agent-runtime.md)).
@@ -47,7 +47,7 @@ A refused definition stops the factory with `pipeline_definition_invalid` until 
 
 ### More than one route
 
-A definition may hold more than one route and more than one approval stage. When you close a pull request at an approval stage, the story goes to that stage's second `next`. The stage whose first `next` is that approval counts the rounds.
+A definition may hold more than one route and more than one [approval](../project-guide/glossary.md) stage. When you close a pull request at an approval stage, the story goes to that stage's second `next`. The stage whose first `next` is that approval counts the [rounds](../project-guide/glossary.md).
 
 The smoke test of the template reads `smoke-test: {role: smoke-tester, next: [approval, doing, docs], round_cap: 3}`. A finding that is only a slip in a document goes from the smoke test straight to `docs`. There the documenter fixes it and hands back to the smoke test. This counts as a round against the `round_cap`, as a return to `doing` does.
 
@@ -106,9 +106,9 @@ The keys of the definition:
 | `stages` | name to stage; the order in the file is the pipeline's order | required | `doing: {role: coder, next: [review]}` |
 | `roles` | name to role; the name is also the agent file's name | required | `coder: {write_paths: ['src/*']}` |
 | `project_commands` | name to `time_limit` in minutes and, optionally, `not_read` | `check`, `lint` and `test`, each 10 minutes and `not_read: []` | `check: {time_limit: 8}` |
-| `attempts_cap` | stalls of one stage before the human is asked | 2 | `attempts_cap: 3` |
-| `crash_cap` | crashes before the human is asked | 2 | `crash_cap: 3` |
-| `acceptance_stage` | the stage of the feature acceptance; it needs a role | none | `acceptance_stage: acceptance` |
+| `attempts_cap` | [stalls](../project-guide/glossary.md) of one stage before the human is asked | 2 | `attempts_cap: 3` |
+| `crash_cap` | [crashes](../project-guide/glossary.md) before the human is asked | 2 | `crash_cap: 3` |
+| `acceptance_stage` | the stage of the feature [acceptance](../project-guide/glossary.md); it needs a role | none | `acceptance_stage: acceptance` |
 
 The keys of a stage:
 
@@ -127,7 +127,7 @@ The keys of a role:
 |---|---|---|---|
 | `write_paths` | the paths the role may write; at least one, and each holds a character that is not whitespace | required | `['src/*', '{work_item}']` |
 | `time_limit` | minutes one agent run may take | 40 | `time_limit: 30` |
-| `lease_duration` | minutes a claim holds | 60 | `lease_duration: 90` |
+| `lease_duration` | minutes a [claim](../project-guide/glossary.md) holds | 60 | `lease_duration: 90` |
 
 The keys of a project command:
 
@@ -138,25 +138,22 @@ The keys of a project command:
 
 Further rules:
 
-- A write path may hold `{work_item}`, the work item's own file, and `{feature}`, its feature's path, such as `factory/features/<feature>`.
+- A write path may hold `{work_item}`, the [work item](../project-guide/glossary.md)'s own file, and `{feature}`, its [feature](../project-guide/glossary.md)'s path, such as `factory/features/<feature>`.
 - The protected paths are outside every write path: `factory/pipeline.yml`, the story and feature forms, every `feature.md`, `CLAUDE.md`, `Makefile`, `pyproject.toml`, `uv.lock`, `.claude/` and the project's `<project>/factory/agents/`.
 - Every limit and cap is a positive whole number.
 - `human`, `factory` and `question` cannot be a stage name or a role name.
 - Every name in `checks` and `reports` must be a project command.
-- `sync` is a project command like the others (`sync: {time_limit: 5}` in the template). The stage environment reads its limit for the container that prepares the tools after a checkout. No stage lists it, so it never enters a lease. A definition without `sync` gives it 10 minutes.
+- `sync` is a project command like the others (`sync: {time_limit: 5}` in the template). The [stage environment](../project-guide/glossary.md) reads its limit for the container that prepares the tools after a checkout. No stage lists it, so it never enters a lease. A definition without `sync` gives it 10 minutes.
 
 ## Checking a story before it starts
 
-`factory-check-story` checks story files against where they sit and against your project's `factory/story-form.md`. Run it from the root of a checkout, with the paths relative to that root. The checkout needs `factory/story-form.md`, a `feature.md` in each feature's directory, and the stories in `backlog`, `in-progress` or `done`.
+`factory-check-story` checks story files against where they sit and against your project's `factory/story-form.md`. Run it from the root of a checkout, with the paths relative to that root. The checkout needs `factory/story-form.md`, a `feature.md` in each feature's directory, and the stories in [`backlog`](../project-guide/glossary.md), `in-progress` or `done`.
 
 1. Go to the root of the checkout.
-2. Run the command with one or more paths:
-
-       factory-check-story factory/features/F0001-example/backlog/F0001-S0001-example-story.md
-
+2. Run the command with one or more paths, as in the example below.
 3. Read the lines it prints. A story that fits the form prints `<path>: ok`. Every finding is a line of its own, and the table below says what to do.
 
-`python -m factory.entry.check_story <path>...` does the same; use it with `uv run` in the factory's own checkout. The example below builds a story in a new folder, so you can see both results.
+`python -m factory.entry.check_story <path>...` does the same; use it with `uv run` in the factory's own checkout. The example builds a story in a new folder, so you can see both results.
 
 ```console
 $ mkdir -p factory/features/F0001-example/backlog
@@ -178,7 +175,7 @@ The exit status:
 |---|---|
 | 0 | every file is ok |
 | 1 | at least one file has a finding |
-| 2 | the command could not do its job: no path (it prints the usage line), `factory/story-form.md` unreadable, or a file that does not exist or is not UTF-8 (`cannot read <path>: <reason>`). Nothing more is checked after such a file; what was printed before stays. |
+| 2 | the command could not do its job. There was no path, and it prints the usage line. Or `factory/story-form.md` is unreadable. Or a file does not exist or is not UTF-8, and it prints `cannot read <path>: <reason>`. Nothing more is checked after such a file; what was printed before stays. |
 
 ### Where a story may sit
 

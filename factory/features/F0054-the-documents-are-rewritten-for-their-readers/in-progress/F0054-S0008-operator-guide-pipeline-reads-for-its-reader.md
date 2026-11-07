@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:27:54.763611Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -56,6 +52,12 @@ journal:
   kind: started
   at: '2026-11-07T01:27:54.763611Z'
   stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:30:48.134042Z'
+  stage: docs-only
+  run: cd4b16c0cd0f4cf2bcfa6b830ce656b2
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -159,3 +161,20 @@ Expect: `1`
    - The sync bullet's "the container that prepares the tools after a checkout" matches `_SYNC_SCRIPT`, which runs the checkout and then `make sync`.
    - The l.86 sentence is about 27 words, which is within "about 25".
 8. factory: started docs-only as vm.
+9. documenter: Round 1: fixed the reviewer's three findings in `docs/operator-guide/pipeline.md`. `make documents` ends with `documents ok (13.0 s)`. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/pipeline.md`:
+     1. Glossary links at first use, to `../project-guide/glossary.md`: story, stops, write paths, approval, rounds, stalls, crashes, acceptance, claim, work item, feature, backlog and stage environment. The link for write paths now sits in the rules list, where the term first appears. I removed the later link in the *Reference* table. I did not add a separate link for "approval stage", because `approval` is already linked at its first prose use.
+     2. Step 2 of "Checking a story before it starts" no longer shows a bare, unrunnable command block. It now points to the runnable `console` example below it, which I ran earlier. The sentence that introduces the example now says "The example builds".
+     3. Exit status 2 is split into one sentence per cause: no path (the usage line), an unreadable `factory/story-form.md`, and a file that is missing or not UTF-8 (`cannot read <path>: <reason>`).
+
+   Cross-read and found current: the earlier cross-read from round 0 stands. `stops.md`, `health.md`, `records.md` and `README.md` link to headings I kept.
+
+   Stale text I noticed and did not touch, because it is unrelated to this story: `docs/operator-guide/records.md` line 30 carries a long version history that style rule 1 forbids. That belongs to the story that rewrites that file.
+
+   No rejected options to name; this story adds nothing to `docs/decisions.md`.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (13.1 s)
