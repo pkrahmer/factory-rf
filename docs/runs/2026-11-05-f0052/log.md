@@ -138,3 +138,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 00:41Z: F0054-S0006 (F0054-S0006-operator-guide-health-reads-for-its-reader) started.
 - 01:01Z: F0054-S0006 PR #614 merged at docs-approval: health.md rewritten and listed (health.json and factory-health as in the code). $2.80, 7 runs, no question.
 - 01:01Z: F0054-S0007 (F0054-S0007-operator-guide-stops-reads-for-its-reader) started.
+- 01:20Z: F0054-S0007 PR #615 merged at docs-approval: stops.md rewritten and listed; make documents, which requires a row for every stop of the code, passed in its docs stage. $3.40, 7 runs, no question.
+- 01:20Z: F0054-S0008 (F0054-S0008-operator-guide-pipeline-reads-for-its-reader) started.
