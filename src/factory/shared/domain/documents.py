@@ -507,7 +507,8 @@ def relative_link_targets(line: str) -> list[str]:
     return [target for target in _LINK_TARGET.findall(line) if _is_relative_link_target(target)]
 
 
-def _link_name(document: str, target: str) -> str | None:
+def link_name(document: str, target: str) -> str | None:
+    """The repository path a relative link target names from the document, without its fragment."""
     if not _is_relative_link_target(target):
         return None
     relative = target.split(_FRAGMENT, 1)[0]
@@ -527,13 +528,14 @@ def _line_references(
         if kind is not None:
             references.append(Reference(document=document, line=number, name=text, kind=kind))
     for target in _LINK_TARGET.findall(line):
-        name = _link_name(document, target)
+        name = link_name(document, target)
         if name is not None:
             references.append(Reference(document=document, line=number, name=name, kind="link"))
     return references
 
 
-def _checked_lines(text: str) -> list[int]:
+def checked_lines(text: str) -> list[int]:
+    """The indexes of the lines the name check reads: outside fenced blocks and exempt sections."""
     exempt = _section_lines(text, UNCHECKED_SECTIONS)
     lines = split_lines(text)
     return [index for index in lines_outside_blocks(lines) if index not in exempt]
@@ -554,7 +556,7 @@ def named_references(document: str, text: str, top_level: frozenset[str]) -> lis
     lines = split_lines(text)
     return [
         reference
-        for index in _checked_lines(text)
+        for index in checked_lines(text)
         for reference in _line_references(document, index + 1, lines[index], top_level)
     ]
 

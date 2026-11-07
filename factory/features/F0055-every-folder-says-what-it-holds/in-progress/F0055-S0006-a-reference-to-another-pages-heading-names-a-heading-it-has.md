@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T11:27:08.786140Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -62,6 +58,12 @@ journal:
   kind: started
   at: '2026-11-07T11:27:08.786140Z'
   stage: doing
+- number: 10
+  speaker: coder
+  kind: result
+  at: '2026-11-07T11:34:17.106602Z'
+  stage: doing
+  run: 5cd4b0d1dbaf4084ae2b9eda7e191642
 ---
 
 # A reference to another page's heading names a heading it has
@@ -159,3 +161,27 @@ Expect: `documents ok (<seconds> s)`
 
    `lint`: lint: green (0.2 s)
 9. factory: started doing as vm.
+10. coder: The document check now looks up each reference to another page's heading in that page's headings. `make check` is green, and the tester's two test files pass.
+
+    Built:
+    - `src/factory/shared/domain/heading_references.py` (new) holds `HeadingReference`, `heading_references`, `page_headings` and `unresolved_headings`.
+      - One regular expression finds a reference: a heading in italics or double quotes, an optional `)` or `,`, then `in` or `of` and a Markdown link.
+      - The heading may not start or end with a space. Without that rule, the text between two separate italic spans could be taken as a heading.
+      - A target is dropped when it has a `#`, does not end in `.md`, or resolves to the document's own file.
+      - Headings lose only their backticks and asterisks.
+    - `src/factory/shared/domain/documents.py`: I made two private helpers public so the new module reuses them instead of copying them.
+      - `_link_name` is now `link_name`; it resolves a link against the document's folder and drops the fragment.
+      - `_checked_lines` is now `checked_lines`; it gives the lines outside fenced blocks and the exempt sections.
+      - Both got docstrings, and their uses there were renamed. Behaviour is unchanged.
+    - `src/factory/entry/check_documents.py`: the new `_heading_findings` reads every named document once and builds each one's headings with `page_headings`. `headings(target)` is that map's `.get`, so a page that is no document of the check gives `None` and no finding. The findings become `GatedFinding`s next to the name check's, so they block in a listed document and are reported in any other.
+
+    Main choice: reuse the name check's link resolution and line selection. The alternative I rejected was writing the heading check's own path joining and fence skipping, which would have copied existing helpers and could drift from the name check.
+
+    Refactor pass: I read the diff and found nothing to change.
+
+    Noticed, not touched:
+    - `make documents` on the repository now blocks on three of the four references the story names: `install.md:121`, `work-items.md:66` and the project guide's `machine.md:487`. The docs stage of this story fixes those (criteria 4 and 6).
+    - The fourth, `agent-runtime.md:407`, reads "The stage environment" under *Configuration* in [install.md](install.md). In the checked form only *Configuration* comes right before `in` and the link, and `install.md` has that heading, so the check gives no finding there. The quoted paragraph name is not checked. The documenter fixes it by hand, as criterion 6 says.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
