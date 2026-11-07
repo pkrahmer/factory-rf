@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987, 6707415610]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T13:17:29.095008Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -118,6 +114,12 @@ journal:
   kind: started
   at: '2026-11-07T13:17:29.095008Z'
   stage: doing
+- number: 20
+  speaker: coder
+  kind: result
+  at: '2026-11-07T13:22:47.188370Z'
+  stage: doing
+  run: e1c462e63f544799b5895616d976a405
 ---
 
 # The tests say how they are laid out
@@ -275,3 +277,27 @@ Expect: `documents ok (<seconds> s)`
     Earlier tests:
     - `tests/guards/test_tests_layout.py` was changed under the human's leave (the Interface; journal entry 4). `README.md` was added to the expected root files of `test_the_root_holds_only_conftest_and_packages`, and the module docstring was adjusted to match. The test keeps its name and purpose.
 19. factory: started doing as vm.
+20. coder: Rework round 1. I fixed the reviewer's finding 1 from entry 18, following the human's answer 16 (1)(a).
+
+    Changed: `tests/guards/README.md`. It now links `docs/project-guide/README.md`, *Shared test helpers*, instead of *The files*. The sentence now says only what that section holds: it names the guards in its `tests/guards/` bullet and says what the layout guard keeps in the paragraph on `test_tests_layout.py`. No other file changed. No code, no test.
+
+    Findings 2 and 3 are not done, because I can't write the work item. In `factory/pipeline.yml` the coder's write paths do not include `{work_item}`, so any edit to its Interface or criteria would be dropped. Per stage step 5, here is what the journal changed in the task, for a stage that may write the work item:
+    - Interface: answer 16 (1) moves the `tests/guards/README.md` link from *The files* to `docs/project-guide/README.md`, *Shared test helpers*. The built README now follows that.
+    - Criterion 5: answer 16 (2) extends it. The documenter updates the two sentences of *Shared test helpers* in `docs/project-guide/README.md` so that both name the root's `README.md`, and leaves the list of modules and fixtures unchanged:
+      - "The root of `tests/` holds `conftest.py` and folders"
+      - the layout-guard sentence "fails when the root holds anything but `conftest.py` and packages"
+
+      `CLAUDE.md` is already changed on `main` by the human.
+
+    Main choice: I kept the README a one-sentence pointer and changed only its link and its claim. I rejected also citing the layout-guard paragraph's rules in the README, because the Interface says the README lists no modules and keeps the detail in the guide.
+
+    Refactor: nothing to change, since the diff is one sentence.
+
+    Checks:
+    - `make documents`: `documents ok (59.1 s)`
+    - `make check`: `check: green`
+
+    Noticed, not touched: the two stale sentences in `docs/project-guide/README.md` (lines 63 and 72). They are the documenter's under the extended criterion 5, and outside my write paths.
+
+    `check`: check: green
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
