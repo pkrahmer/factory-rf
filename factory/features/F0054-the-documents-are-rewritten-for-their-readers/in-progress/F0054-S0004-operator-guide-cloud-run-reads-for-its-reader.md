@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:11:59.113781Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T00:11:59.113781Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:12:33.310976Z'
+  stage: docs-review
+  run: cc4b507705734aa2a3781d1a7c9c94e8
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -211,3 +213,17 @@ Expect: `1`
     `secrets`: secrets: green (0.4 s)
     `documents`: documents ok (5.9 s)
 14. factory: started docs-review as vm.
+15. reviewer: Docs review, round 2. I read the work item, `git diff main...HEAD -- README.md docs operator/README.md` (`docs/operator-guide/cloud-run.md` and `docs/checked-documents.txt`), the whole new `cloud-run.md`, `operator/job/job.sh` (its usage line, the option parsing of `create`, `update`, `delete` and `log`, its `sanitise` calls and `status`) and `docs/project-guide/style.md` (all-document rules 1 to 8 and *Examples that are not run*).
+
+    The three round-1 findings are fixed:
+    - `cloud-run.md:225` now says `log` passes every line through `operator/bin/sanitise` and `status` passes only the stop line. That matches `job.sh:382,384`, where both branches of `log` sanitise, and `job.sh:446,451`, where `status` prints its execution lines as they are and sanitises the stop line.
+    - `cloud-run.md:139-148`: the two `sh` usage blocks are gone. In their place is a `Command` / `What it does` table whose options match the parsing in `job.sh` and the usage line at `job.sh:24`. The `console` usage example at :152-156 shows the same line as `job.sh:24` and exits 2. The second block in *Watching the job* is dropped, so no `sh` block stands outside a numbered step now. The two left (:163-171) are bare commands under steps 2 and 3, with where they run said above them.
+    - `cloud-run.md:129`: *A free model* is a `###` section again, beside the other sections.
+
+    The round-0 fixes are still in place. `docs/checked-documents.txt` holds the path. The headings other files link to (*On Cloud Run*, *What the job needs*, *Creating the job*, *Starts, restarts and the end of an execution*, *Watching the job*) are kept. The items dropped on purpose are acceptable as history: the P15/P16/P18/P20 labels, the measurement date and the "candidate for later" sentence. The documenter's journal reports `documents ok` and `check: green`.
+
+    I considered two small points and am not raising either:
+    - :137 and :148 both say the commands run on your own machine. No style rule forbids saying it twice.
+    - The Description's "style rules 8 to 10" names rules that style.md does not number past 8. That is the story's own text, not the diff under review, and the docs criterion is met either way.
+
+    no findings
