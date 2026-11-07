@@ -1,52 +1,110 @@
-# Kumpel's skill (staging)
+# The operator folder
 
-Kumpel is the product; kumpel-factory, this repository, is one of its components. This folder stages another: `kumpel`, a skill that lets an agent (Claude Code, or opencode at work) run a factory instance with its human: watch the work items' pull requests, answer the factory's questions within the feature's decisions, check and (when allowed) merge finished stories, start the next story, and shape stories and features on request. The plan and its decisions are in `planning/operator-skill/DESIGN.md`.
+This folder holds what an operator runs next to a factory [instance](../docs/project-guide/glossary.md): the skill `kumpel`, the scripts for the site file and the Cloud Run job, and the files that set up a VM. Kumpel is the product; kumpel-factory, this repository, is one of its components.
 
-**Second version, 2026-11-01.** The first version was tried on the todo demo (three stories, `planning/operator-skill/TRIAL-1.md`); this one carries its fixes. Next: a trial at work with opencode against the Cloud Run job. Until then, nothing here is used. Once it holds, it moves to a repository of its own, `kumpel-skill`, and this folder goes (the human, 2026-10-31).
+The skill lets an agent (Claude Code, or opencode at work) run an instance together with you. It watches the pull requests of the [work items](../docs/project-guide/glossary.md), answers the factory's questions within the feature's decisions, checks and (when you allow it) merges finished stories, starts the next story, and shapes stories and features on request. Its plan is in `planning/operator-skill/DESIGN.md`.
 
-## What is here
+The skill is a trial. Nothing here is used until a trial at work with opencode against the Cloud Run job has shown that it holds. After that it moves to a repository of its own, `kumpel-skill`, and this folder goes.
 
-The map of the folder: each file, the story that made or last reshaped it (the skill's own scripts came before the factory built this folder), and its use.
+Where to read next:
 
-| Path | Story | Use |
-|---|---|---|
-| `site.env.example` | F0048-S0001 | every key of the site file, each with a comment and a made-up value |
-| `lib/site.sh` | F0048-S0001 | the loader every operator script sources: `site_path`, `site_load`, `site_require`, `site_value` |
-| `lib/hosting.sh` | F0048-S0003 | the hosting client: `hosting_token`, `hosting_api`, `hosting_repo_api`, `hosting_git`, with the token from `SITE_TOKEN_CMD` or `gh` |
-| `bin/site` | F0048-S0001, F0048-S0009 | the command for the site file: `path`, `init`, `show`, `get`, and `check`, the read-only checks that say whether a machine is ready |
-| `bin/sanitise` | F0048-S0006 | strips the site's names and the tokens from text that leaves the machine; `sanitise check FILE...` proves a file clean |
-| `job/job.sh` | F0048-S0005 | the factory's Cloud Run job: `create`, `update`, `execute`, `delete`, `log`, `status` |
-| `skill/kumpel/SKILL.md` | | the skill: what to read first, the loop, the switches |
-| `skill/kumpel/references/` | | the standing orders, how to answer, how to approve, how to shape |
-| `skill/kumpel/scripts/settings.sh` | | the switches, and the repository and checkout when the site file does not give them |
-| `skill/kumpel/scripts/status.sh` | | the state of the work items' pull requests, from the hosting service |
-| `skill/kumpel/scripts/wait.sh` | | waits for the next event |
-| `skill/kumpel/scripts/approval.sh` | | the six approval checks' facts |
-| `skill/kumpel/scripts/next-story.sh` | | the next story of the build order |
-| `skill/kumpel/scripts/start-story.sh` | | starts a story |
-| `skill/kumpel/scripts/comment.sh` | F0048-S0012 | posts a signed comment |
-| `skill/kumpel/scripts/merge.sh` | F0048-S0008 | merges an approved story and waits for its archive |
-| `skill/kumpel/scripts/reset-to-tag.sh` | F0048-S0008 | resets a trial repository to a tag |
-| `opencode/command/kumpel.md` | | the command `/kumpel [<switch> on\|off]` for opencode |
-| `claude/commands/kumpel.md` | | the same command for Claude Code |
+- [Setting up an operator's machine](../docs/operator-guide/site.md): the whole setup, from a machine with nothing on it to a running job and a skill that drives it.
+- [The operator guide](../docs/operator-guide/README.md): install, configure and run an instance.
 
-Kumpel signs everything it does. A comment ends with the line `— Kumpel, for the human who owns this project` and the marker `<!-- kumpel -->`, a start commit has the author `Kumpel <kumpel@noreply.invalid>`, and a merge commit says `Merged by Kumpel after the six approval checks.` So a reader of the pull request, the journal or the history can tell Kumpel's acts from the human's, although both use the human's token.
+## Installing
 
-## Installing (for the trial)
+1. Write the site file and fill in its values, at least `SITE_REPOSITORY` and `SITE_CHECKOUT`. The file never enters a repository. Run this from the root of this repository:
 
-First the site file: `sh operator/bin/site init`, fill in the values (at least `SITE_REPOSITORY` and `SITE_CHECKOUT`), then `sh operator/bin/site check`. The file never enters a repository. The whole setup of a machine is in `docs/operator-guide/site.md`, *Setting up an operator's machine*.
+   ```console
+   $ sh operator/bin/site init
+   site: wrote <path>; edit it, then run: site check
+   ```
 
-Both tools read Claude Code's skill folder, so one copy serves both:
+2. Check the machine. The command is read-only and ends with `site: ready` when every check passes:
 
-```bash
-mkdir -p ~/.claude/skills
-ln -s "$(pwd)/operator/skill/kumpel" ~/.claude/skills/kumpel
-```
+   ```sh
+   sh operator/bin/site check
+   ```
 
-Then the command: for opencode `cp operator/opencode/command/kumpel.md ~/.config/opencode/command/`, for Claude Code `cp operator/claude/commands/kumpel.md ~/.claude/commands/`. Start the tool again, so that it reads the skill list.
+3. Link the skill into Claude Code's skill folder. Both tools read that folder, so one copy serves both. Run this on the operator's machine, from the root of this repository:
 
-The skill takes the repository and the checkout from the site file. When it gives both, `~/.config/kumpel/settings.json` holds only the switches (`sh operator/skill/kumpel/scripts/settings.sh init` takes no argument); otherwise the skill asks for both.
+   ```sh
+   mkdir -p ~/.claude/skills
+   ln -s "$(pwd)/operator/skill/kumpel" ~/.claude/skills/kumpel
+   ```
 
-## Needs
+4. Copy the command `/kumpel [<switch> on|off]` for your tool, and start the tool again so that it reads the skill list. For opencode:
 
-`git`, `curl`, `python3` and a POSIX shell; a hosting-service token from `SITE_TOKEN_CMD` or, without it, a `gh` login; for an instance in a Cloud Run job, `gcloud` (the job, and its log when a stop needs its reason; status itself comes from GitHub alone).
+   ```sh
+   cp operator/opencode/command/kumpel.md ~/.config/opencode/command/
+   ```
+
+   For Claude Code:
+
+   ```sh
+   cp operator/claude/commands/kumpel.md ~/.claude/commands/
+   ```
+
+5. Write the settings file. The skill takes the repository and the checkout from the site file. When the site file gives both, the settings file holds only the switches, and `init` takes no argument. Otherwise the skill asks for both, and you pass them to `init`:
+
+   ```sh
+   sh operator/skill/kumpel/scripts/settings.sh init
+   sh operator/skill/kumpel/scripts/settings.sh init <owner/name> <checkout>
+   ```
+
+   The file is `~/.config/kumpel/settings.json`, or the path in `KUMPEL_SETTINGS`. A new file has `merge` off, and `answer` and `start_next` on.
+
+## What you need
+
+- `git`, `curl`, `python3` and a POSIX shell.
+- A hosting-service token, from `SITE_TOKEN_CMD` in the site file or, without it, from a `gh` login.
+- `gcloud`, for an instance in a Cloud Run job: it creates the job and reads its log when a [stop](../docs/project-guide/glossary.md) needs its reason. The status of the work items comes from the hosting service alone.
+
+## How Kumpel's acts are told from yours
+
+Kumpel works with your token, so it signs everything it does. A reader of the pull request, the journal or the history can then tell its acts from yours.
+
+- A comment ends with the line `— Kumpel, for the human who owns this project` and the marker `<!-- kumpel -->`.
+- A start commit has the author `Kumpel <kumpel@noreply.invalid>`.
+- A merge commit says `Merged by Kumpel after the six approval checks.`
+
+## Reference
+
+### Files
+
+| Path | Use |
+|---|---|
+| `site.env.example` | every key of the site file, each with a comment and a made-up value |
+| `lib/site.sh` | the loader every operator script sources: `site_path`, `site_load`, `site_require`, `site_value` |
+| `lib/hosting.sh` | the hosting client: `hosting_token`, `hosting_api`, `hosting_repo_api`, `hosting_git`, with the token from `SITE_TOKEN_CMD` or `gh` |
+| `bin/site` | the command for the site file: `path`, `init`, `show`, `get`, and `check`, the read-only checks that say whether a machine is ready |
+| `bin/sanitise` | strips the site's names and the tokens from text that leaves the machine; `sanitise check FILE...` proves a file clean |
+| `job/job.sh` | the factory's Cloud Run job: `create`, `update`, `execute`, `delete`, `log`, `status` |
+| `skill/kumpel/SKILL.md` | the skill: what to read first, the loop, the switches |
+| `skill/kumpel/references/` | the standing orders, how to answer, how to approve, how to shape |
+| `skill/kumpel/scripts/settings.sh` | the switches, and the repository and checkout when the site file does not give them |
+| `skill/kumpel/scripts/status.sh` | the state of the work items' pull requests, from the hosting service |
+| `skill/kumpel/scripts/wait.sh` | waits for the next event |
+| `skill/kumpel/scripts/approval.sh` | the six approval checks' facts |
+| `skill/kumpel/scripts/next-story.sh` | the next story of the build order |
+| `skill/kumpel/scripts/start-story.sh` | starts a story |
+| `skill/kumpel/scripts/comment.sh` | posts a signed comment |
+| `skill/kumpel/scripts/merge.sh` | merges an approved story and waits for its archive |
+| `skill/kumpel/scripts/reset-to-tag.sh` | resets a trial repository to a tag |
+| `opencode/command/kumpel.md` | the command `/kumpel [<switch> on\|off]` for opencode |
+| `claude/commands/kumpel.md` | the same command for Claude Code |
+| `vm/setup.sh` | prepares a fresh Ubuntu machine and installs the factory's service |
+| `vm/factory.service` | the factory as a system service, one instance per name |
+| `vm/Dockerfile` | the stage image of every stage's containers |
+| `vm/git-credential-factory` | git's credential helper, which hands out the hosting token |
+| `vm/job-start.sh` | the command of a Cloud Run job: it builds an instance and ends in `factory-run` |
+| `template/` | the start of a new project: a pipeline definition, a `CLAUDE.md` and a `Makefile` |
+
+### Settings file
+
+| Name | What it does | Default | Example |
+|---|---|---|---|
+| `merge` | Kumpel merges an approved story itself | off | `merge on` |
+| `answer` | Kumpel answers the factory's questions | on | `answer off` |
+| `start_next` | Kumpel starts the next story when one is archived | on | `start_next off` |
+| `KUMPEL_SETTINGS` | the path of the settings file | `~/.config/kumpel/settings.json` | `/tmp/kumpel.json` |
