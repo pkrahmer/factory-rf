@@ -5,3 +5,4 @@ docs/project-guide/glossary.md
 docs/operator-guide/install.md
 docs/operator-guide/site.md
 docs/operator-guide/machine.md
+docs/operator-guide/cloud-run.md

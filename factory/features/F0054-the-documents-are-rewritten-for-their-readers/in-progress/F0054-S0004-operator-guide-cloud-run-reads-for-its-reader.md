@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-06T23:58:52.079670Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -34,6 +30,12 @@ journal:
   kind: started
   at: '2026-11-06T23:58:52.079670Z'
   stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:02:54.622085Z'
+  stage: docs-only
+  run: 4e6ebb47bfa64cfea4bc4c70480b9aee
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -77,3 +79,31 @@ Expect: `1`
    - Architecture: the story touches documents only, so there is no code layering to break. The route is docs-only, since every path the story changes is one the documenter may write.
    - Scope: the story is one of the 22 files in F0054's scope (S0004). It leaves out `docs/decisions.md`, `docs/runs/` and the operator playbook, and it makes no behaviour change.
 4. factory: started docs-only as vm.
+5. documenter: Rewrote `docs/operator-guide/cloud-run.md` for the operator and added it to `docs/checked-documents.txt`. `make documents` ends with `documents ok (6.4 s)` and prints no finding for the file. I did not run `make check`, because I changed only documents.
+
+   Files changed:
+   - `docs/operator-guide/cloud-run.md`: rewritten and checked against `operator/vm/job-start.sh` (read in full) and `operator/job/job.sh` (messages, defaults, limits and the usage line).
+     - It follows the style page: glossary links at first use, numbered steps for tasks, the environment variables in `Name / What it does / Default / Example` tables, and one-idea sentences.
+     - Headings that other files link to are kept: *On Cloud Run*, *What the job needs*, *Creating the job*, *Starts, restarts and the end of an execution*, *Watching the job*. The `README.md` and `docs/operator-guide/site.md` links still resolve.
+     - Added a *Reference* section at the end. It holds the `job-start.sh` messages with their statuses, the texts `log --quiet` drops, and the `job.sh` messages.
+     - Two `console` examples were run and copied from real output: `job-start.sh` with an empty environment, and the usage line of `job.sh`. Commands that need `gcloud` or the cloud account stand in `sh` blocks under a numbered step.
+   - `docs/checked-documents.txt`: added the path `docs/operator-guide/cloud-run.md`.
+
+   Removed or corrected on purpose:
+   - The P15, P16, P18 and P20 measurement labels, and the date "measured on 2026-10-31". Those are history, so the text says "about" or nothing.
+   - The sentence "A stop between stages before the nightly restart is a candidate for later and does not exist yet". It describes no behaviour.
+   - `FACTORY_CLAUDE_HOME` is now given as `<root>/factory/agents`. The code sets it to `$code/agents`, and the old text said only "under `<root>`".
+   - The old table of environment variables had no columns for default and example. I added them from the script, and the example values are my own illustrations.
+   - I did not add the `\`-quoted default of the model-cost refusal `.` alone. The code also refuses a lone `.`, and the text says "digits with at most one `.`".
+
+   Cross-read and found current: `README.md` (its pointer to *On Cloud Run*), `docs/operator-guide/README.md`, `install.md`, `site.md` (its links to this file's headings) and `machine.md` (the sections this file points to). I did not read `health.md`, `agent-runtime.md`, `work-items.md` or `stops.md` against the code, only that the headings this file names exist there.
+
+   Stale text I saw and did not touch:
+   - `docs/decisions.md` line 1560 names the old single-file layout of the operator guide, which is history in the decision log.
+   - `docs/runs/` belongs to the human.
+
+   No `docs/decisions.md` entry was written, as criterion 6 says. No findings for the coder: the code agrees with what the old file said.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (5.9 s)
