@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:02:16.514770Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T03:02:16.514770Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:04:35.830588Z'
+  stage: docs-review
+  run: 8ee8556dac6e4b73857c8c4d0ea58a61
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -119,3 +121,40 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (13.7 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/shared.md` and `docs/checked-documents.txt`. I compared the new page line by line with the old one from `main`, and checked its claims against `src/factory/shared/adapters/process.py`, `src/factory/shared/domain/documents.py`, `src/factory/machine/adapters/power_off.py`, `tests/guards/test_wrapper_search.py`, `tests/support/time_limits.py`, `docs/operator-guide/install.md` and `docs/project-guide/glossary.md`.
+
+   The facts I confirmed: there are nine importers of `process.py`, `document_examples` among them. `OPERATOR_GUIDE_FILES` has ten files. `PIPE_DRAIN` is 5 s and the read step 0.05 s. `ROOMY_LIMIT` is 10 s and `ROOMY_BOUND_SECONDS` is 25. `_start`, `_kill_session`, `NO_COMMAND`, `INSTANCE_FIXTURE` and the check's functions all exist. `docs/checked-documents.txt` holds the line once. The link from `style.md` to *How the check is tested* still resolves.
+
+   Findings:
+
+   1. `docs/project-guide/shared.md:204`: the page says "The operator guide has no `Default` column and no refusal table". `docs/operator-guide/install.md` has `| Name | What it does | Default | Example |` tables at lines 49 to 118 and a `### The refusals` table headed `Refusal` at lines 123 to 127. Fix: say that the guide's tables have a `Default` column and a refusal table and that the check compares them, or remove the bullet.
+   2. `docs/project-guide/shared.md:120`: the page says the check "reads the README and the two guides". The code also reads the decision log: `_RULES[DECISION_LOG]` in `documents.py:429` gives `missing`, `empty` or `no decision recorded`. Line 126 of the page also says "four documents". Fix: say it reads the four documents, the decision log included, and add the decision log's rule as a bullet.
+   3. `docs/project-guide/shared.md:43`: the page says "What the factory starts on the host is git, `zfs` and `podman`". `power_off.py:11,29` also starts `sudo -n /usr/bin/systemctl poweroff` on the host. Fix: name the power-off command too.
+   4. `docs/project-guide/shared.md` as a whole fails criterion 1 (style rule 3). No factory word is linked to the [glossary](glossary.md): "project command" (43), "work item" and "docs stage" (120), "story" (124), "instance" (184) and "stop" (127). Fix: link each of these at its first use.
+   5. `docs/project-guide/shared.md:129-130` breaks style rule 1 (no version names) with "the v1 words of `GLOSSARY_FORBIDDEN`" and "the v1 words". Fix: describe them without the version name, for example "the retired words of `GLOSSARY_FORBIDDEN`". Keep the exact heading `## Replaced from v1`.
+   6. `docs/project-guide/shared.md` breaks style rule 2 in these places. Line 82 has three parentheses in one sentence. Line 156 has two. Lines 124, 160 and 218 have sentences of more than 25 words. In the Reference, line 231 is one sentence with five parentheses and line 230 has a sentence of more than 25 words. Fix: split each one.
+   7. `docs/project-guide/shared.md:149`: the command `uv run python -m factory.entry.check_documents | grep -c "does not exist"` is neither a runnable example nor marked for the VM, GitHub or a model. It cannot be a plain `console` block, because the check would run itself. Fix: drop it, or put it in a `console vm` block copied from a named real run.
+   8. Files and modules are not linked as the Interface asks. `docs/project-guide/shared.md:14-17` names the modules `git_cli`, `make_commands`, `claude_runtime`, `fake_containers`, `opencode_runtime`, `podman_runs`, `zfs_snapshots` and `power_off`. Line 114 names `factory.shared.adapters.clock`, `factory.agents.adapters.fake_agent_runtime` and `factory.hosting.adapters.fake_hosting`. Lines 126-128 name `docs/operator-guide/README.md`, `docs/operator-guide/install.md` and `docs/operator-guide/stops.md`. Line 210 names `tests/conftest.py`. None of them is linked. Fix: link each once, at its first mention or in See also.
+   9. Two code blocks have their file links below them, not above as the Interface says. The block at `docs/project-guide/shared.md:90` is followed by the links to `check_duplicates.py` (92) and `duplicates-baseline.txt` (109). The block at line 122 is followed by the link to `check_documents.py` (124). Fix: move the links into the sentences above each block.
+   10. `docs/project-guide/machine.md:443,446` still point to *Killing a process group* in this page. That section name is gone; the content now sits under *Reading output and killing a group*. This fails criterion 5 and the Interface's rule that links to a changed heading change with it. Fix: point those two references to the new heading in [shared.md](shared.md).
+   11. Under *Starting a process*, the page drops facts of the old file, and the entry does not name any of them as dropped on purpose (criterion 2):
+       - the 64 KiB read size behind "however many reads it takes" (line 52);
+       - "also not one already read in the same chunk" (line 53);
+       - a last line's bytes stay in `stdout` (line 50);
+       - "not from reader threads" (line 51);
+       - a grandchild may still be ending for a moment after the kill returns (line 39);
+       - after a timed-out read, `run_process` closes the pipes (line 37);
+       - in the drain case, `run_streaming` has passed every complete line;
+       - what `run_streaming` is for (the opencode runtime's budget and provider limit) and that `run_process` hands output over only at the end (line 47).
+       Fix: restore each in its bullet or in the *Reference*, or name it in the entry as dropped on purpose.
+   12. Under *The duplicates report* and *The document check*, more old facts are dropped without being named (criterion 2):
+       - `gone` keys are to be removed from the baseline (line 97);
+       - pylint and vulture are development dependencies;
+       - the pipeline definition `factory/pipeline.yml` is what runs `make documents` (line 131);
+       - `--root` names another checkout (line 122);
+       - the example `factory.shared.domain.documents.named_references` for the module check (line 153);
+       - the examples of a table that does not count: first column `Setting`, or the table under another heading (line 199).
+       Fix: restore them or name each as dropped on purpose.
+   13. `docs/project-guide/shared.md:164-180` (*The examples*), `133-145` (*The checked documents and the report*) and `206-218` (*How the check is tested*) do not follow the project guide's form in `style.md`. They name the main signatures only inside bullets: `examples(text)`, `Fixture.prepare(folder)`, `ExampleRunner.run_document(document, examples, fixtures)`, `read_checked_documents(text)`, `minimal_documents(root)` and `add_and_commit(root, {path: text})`. They have no signature block. Fix: put these signatures in an indented block after each section's opening sentences.
+
+   Open: the stale docstring in `tests/guards/test_wrapper_search.py` ("the three wrappers") that the documenter noted is outside this story's write paths, and I have not named it as a finding.
