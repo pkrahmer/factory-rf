@@ -1,5 +1,5 @@
 ---
-stage: intake
+stage: tests
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T11:25:15.787107Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -40,6 +36,12 @@ journal:
   kind: started
   at: '2026-11-07T11:25:15.787107Z'
   stage: intake
+- number: 6
+  speaker: intake
+  kind: result
+  at: '2026-11-07T11:25:35.500075Z'
+  stage: intake
+  run: bf31b02245b24720845868917064be44
 ---
 
 # A reference to another page's heading names a heading it has
@@ -61,6 +63,7 @@ The documents point the reader to a section of another page in one form: a headi
   ```
 
   - A reference is a heading text in italics (`*...*`) or in double quotes, then optional `)` or `,`, then `in` or `of`, then a Markdown link to a `.md` file without a `#` anchor. The link is resolved against the document's folder, as the name check resolves links.
+  - `page_headings(text: str) -> set[str]` (public, same module): the headings of one page's heading lines with only the code marks stripped (backticks and asterisks), nothing else; `factory.entry.check_documents` builds `headings(target)` from it. `StageFinisher.finish` is not `StageFinisher.finish(aftermath)`.
   - `HeadingReference` is a frozen model with `document`, `line`, `heading` and `target`. The heading text loses its backticks and asterisks.
   - `headings(target)` gives the set of headings of the linked page, with backticks and asterisks removed, or `None` when the page is no document of the check. A reference to such a page gives no finding.
   - A finding reads `<document>:<line>: <heading> is no heading of <target>`.
@@ -70,12 +73,13 @@ The documents point the reader to a section of another page in one form: a headi
 
 ## Acceptance criteria
 
-1. `heading_references` finds a reference in each form, with its line, heading and resolved target. Rows: italics with `in`, quotes with `of`, a closing `)` before `in`, a heading with backticks, a link in a subfolder (`../`), and no reference for a link with a `#` anchor, a link to a file that is not `.md`, and a heading text without `in` or `of` after it.
-2. `unresolved_headings` gives one finding for a heading the linked page does not have, none for one it has, and none for a link to a page that is no document of the check. Rows of one parametrized test.
-3. On minimal documents, `main(["--root", ...])` reports a broken reference in an unlisted page and blocks on it in a listed one (rows of one test).
+1. `heading_references` finds a reference in each form, with its line, heading and resolved target. Rows: italics with `in`, quotes with `of`, a closing `)` before `in`, a `,` before `in`, a heading with asterisks inside, a reference to the document's own file (no reference), a heading with backticks, a link in a subfolder (`../`), and no reference for a link with a `#` anchor, a link to a file that is not `.md`, and a heading text without `in` or `of` after it.
+2. `unresolved_headings` gives one finding for a heading the linked page does not have, none for one it has, and none for a link to a page that is no document of the check; the finding reads exactly `<document>:<line>: <heading> is no heading of <target>`. Rows of one parametrized test.
+   `page_headings` strips backticks and asterisks only: a heading with backticks matches the reference without them, one with asterisks matches too, and `StageFinisher.finish` does not match `StageFinisher.finish(aftermath)`. Rows of one parametrized test.
+3. On minimal documents, `main(["--root", ...])` reports a broken reference in an unlisted page and blocks on it in a listed one, gives no finding for a valid reference and none for a reference to a page that is no document of the check (rows of one test).
 4. `make documents` on the repository ends with `documents ok (<seconds> s)`.
 5. `make check` stays green.
-6. docs: `docs/project-guide/shared.md`, the name check: the reader learns which references to another page's heading are checked, in which form, and what the finding says. `docs/project-guide/style.md`, rule 8: the reader learns to write a reference to another page's section in this form, so that it is checked. `docs/decisions.md`: none.
+6. docs: `docs/project-guide/shared.md`, the name check: the reader learns which references to another page's heading are checked, in which form, and what the finding says. `docs/project-guide/style.md`, rule 8: the reader learns to write a reference to another page's section in this form, so that it is checked. The documenter also fixes the four broken references, in `docs/operator-guide/install.md`, `docs/operator-guide/work-items.md`, `docs/project-guide/machine.md` and `docs/operator-guide/agent-runtime.md`: the reader finds each referenced section under the name the target page writes, or as a named paragraph under the heading it stands in. `docs/decisions.md`: none.
 
 ## Smoke test
 
@@ -102,3 +106,14 @@ Expect: `documents ok (<seconds> s)`
    5. Yes: criterion 3's test also has a row with a valid reference (no finding) and a row with a reference to a page that is no document of the check (no finding).
    6. Yes: criterion 6 names install.md, work-items.md, machine.md (the project guide's) and agent-runtime.md as pages the documenter fixes; afterwards the reader finds each referenced section under the name the target page writes, or as a named paragraph under the heading it stands in.
 5. factory: started intake as vm.
+6. intake: accepted, with the human's answer (journal entry 4) written into the story.
+   - Interface: concrete. `factory.shared.domain.heading_references` has `heading_references`, `unresolved_headings` and, from entry 4, `page_headings(text) -> set[str]`. I added the `page_headings` line to the Interface, and `factory.entry.check_documents` builds `headings(target)` from it. Every path it changes is code, so the route is tests, not docs-only.
+   - Criteria: I added what entry 4 asked for.
+     - Criterion 1 gains rows for `,`, for asterisks inside a heading and for a reference to the document's own file.
+     - Criterion 2 states the exact finding text, and gains `page_headings` rows (backticks, asterisks, and `StageFinisher.finish` not matching `StageFinisher.finish(aftermath)`).
+     - Criterion 3 gains the valid-reference row and the row for a page that is no document of the check.
+     - Each criterion is testable by one parametrized test, and the failing side of every rule has a row.
+   - Smoke test: `uv run python -m factory.entry.check_documents | tail -1` is runnable. It does not call pytest, so the `-q` rule does not apply. Its Expect line `documents ok (<seconds> s)` can be checked.
+   - Docs criterion: it names what the reader must know about `shared.md` and `style.md`. I added the four pages the documenter fixes (`install.md`, `work-items.md`, `machine.md`, `agent-runtime.md`), with the reader finding each section under the name the target page writes. It dictates no sentences.
+   - Architecture: the new module is in `shared/domain` and is pure. The entry wiring stays in `factory.entry.check_documents`.
+   - Scope: it fits the feature's scope ("The document check resolves references to another page's heading (S0006)"). No earlier test changes, and the story states that no earlier row changes its result.
