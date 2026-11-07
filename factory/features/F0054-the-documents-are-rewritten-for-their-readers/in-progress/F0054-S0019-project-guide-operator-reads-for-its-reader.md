@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T07:31:50.918143Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T07:31:50.918143Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T07:34:38.293632Z'
+  stage: docs-only
+  run: 69bf5450b7634b1ea92e4c79fcd10188
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -259,3 +261,17 @@ Expect: `1`
     1. docs/project-guide/operator.md:3: the round-2 rewrite of the intro names `site.env.example` for the first time here, unlinked; its link comes only on line 21. The Interface says each file is linked once, at its first mention or in See also. Fix: move the link `[site.env.example](../../operator/site.env.example)` to line 3 and leave line 21's mention plain.
     2. docs/project-guide/operator.md:27, 31, 57, 79 and 104: these files are linked twice, but the Interface says once, and the documenter's own entry 13 reads it as exactly once. The doubles are `site.md` (lines 3 and 27), `site.sh` and `site` (lines 7 and 31), `hosting.sh` (lines 7 and 57), `job.sh` (lines 7 and 79) and `sanitise` (lines 7 and 104). Fix: keep the first link of each and write the later mentions as plain names, as entry 9 already did for `sanitise` in *`job.sh`*. For `site.md`, keep line 3's link and write line 27's See also as *Setting up an operator's machine* in site.md, plain.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the two findings of the last review. `make documents` ends `documents ok (16.2 s)`. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/operator.md`:
+      1. `site.env.example` is now linked at its first mention (line 3). The mention in the layout section (line 21) is plain.
+      2. Each double link is reduced to one, the first. `site.md` keeps its link on line 3, and the See also on line 27 names *Setting up an operator's machine* in site.md as plain text. `site.sh` and `site` (line 31), `hosting.sh` (line 57), `job.sh` (line 79) and `sanitise` (line 104) are plain names after their first links on line 7.
+
+    Cross-read: nothing new this round; the earlier rounds' cross-reads still stand (project-guide README.md, glossary.md, style.md, operator-guide/site.md, operator/README.md).
+
+    Stale text I saw and did not touch, because it is unrelated to this story: the `make documents` report (not checked yet) for docs/project-guide/README.md names `support/*.py` files that do not exist (about lines 134 to 141) and `project/factory/pipeline.yml` and `story-form.md` (line 283).
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (17.0 s)

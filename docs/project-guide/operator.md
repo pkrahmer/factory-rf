@@ -1,6 +1,6 @@
 # The operator's scripts
 
-This file covers the shell and Python scripts under `operator/`, and the tests that run them. They let an operator set up one machine from one site file, and drive an [instance](glossary.md) from a terminal. Read the index, [README.md](README.md), first. The *Reference* at the end holds the status codes of the site scripts, the checks of `site check`, the job keys and the test modules by script; every key of the site file is in `site.env.example`. The operator's side (install, the values, the [stops](glossary.md)) is *Setting up an operator's machine* in [site.md](../operator-guide/site.md).
+This file covers the shell and Python scripts under `operator/`, and the tests that run them. They let an operator set up one machine from one site file, and drive an [instance](glossary.md) from a terminal. Read the index, [README.md](README.md), first. The *Reference* at the end holds the status codes of the site scripts, the checks of `site check`, the job keys and the test modules by script; every key of the site file is in [site.env.example](../../operator/site.env.example). The operator's side (install, the values, the [stops](glossary.md)) is *Setting up an operator's machine* in [site.md](../operator-guide/site.md).
 
 ## The layout
 
@@ -18,17 +18,17 @@ The scripts are small and each has one job. The loader, [site.sh](../../operator
     operator/opencode/command/kumpel.md
     operator/claude/commands/kumpel.md
 
-- [site.env.example](../../operator/site.env.example) holds every key of the site file, each with a comment and a made-up value. `site init` copies it.
+- `site.env.example` holds every key of the site file, each with a comment and a made-up value. `site init` copies it.
 - `operator/vm/` sets up and runs an instance on a VM: [setup.sh](../../operator/vm/setup.sh), [job-start.sh](../../operator/vm/job-start.sh), [factory.service](../../operator/vm/factory.service) and [git-credential-factory](../../operator/vm/git-credential-factory). Its [Dockerfile](../../operator/vm/Dockerfile) is the base image's.
 - `operator/template/` is what the operator copies into a new project: [CLAUDE.md](../../operator/template/CLAUDE.md), [Makefile](../../operator/template/Makefile) and `factory/`.
 - The skill ([SKILL.md](../../operator/skill/kumpel/SKILL.md)) has `references/` that hold the standing orders and how to answer, approve and shape. Its `scripts/` are [settings.sh](../../operator/skill/kumpel/scripts/settings.sh), [status.sh](../../operator/skill/kumpel/scripts/status.sh), [wait.sh](../../operator/skill/kumpel/scripts/wait.sh), [approval.sh](../../operator/skill/kumpel/scripts/approval.sh), [next-story.sh](../../operator/skill/kumpel/scripts/next-story.sh), [start-story.sh](../../operator/skill/kumpel/scripts/start-story.sh), `comment.sh`, `merge.sh` and `reset-to-tag.sh`.
 - The two `kumpel.md` files are the `/kumpel` command, one for each tool: [for opencode](../../operator/opencode/command/kumpel.md) and [for Claude](../../operator/claude/commands/kumpel.md).
 
-See also: *The skill's scripts* below, and [site.md](../operator-guide/site.md).
+See also: *The skill's scripts* below, and *Setting up an operator's machine* in site.md.
 
 ## The site file and its loader
 
-The site file holds a site's own values, the `SITE_*` keys, as `KEY=value` lines. The loader, [site.sh](../../operator/lib/site.sh), reads them as data and exports them for the scripts that source it. [site](../../operator/bin/site) is the command for the file.
+The site file holds a site's own values, the `SITE_*` keys, as `KEY=value` lines. The loader, `site.sh`, reads them as data and exports them for the scripts that source it. `site` is the command for the file.
 
     site_path                          -> prints the file's path
     site_load                          -> 0 | 1 | 2 | 3
@@ -54,7 +54,7 @@ See also: *The hosting client* below and *Status of the site scripts* in the *Re
 
 ## The hosting client
 
-The scripts talk to the hosting service through one small client, [hosting.sh](../../operator/lib/hosting.sh), so that the token is handled in one place. It is sourced after `site.sh`, and loads the site itself when no `SITE_` variable is set.
+The scripts talk to the hosting service through one small client, `hosting.sh`, so that the token is handled in one place. It is sourced after `site.sh`, and loads the site itself when no `SITE_` variable is set.
 
     hosting_token                      -> prints the token
     hosting_api METHOD PATH [BODY]     -> prints the body of a 2xx answer
@@ -76,7 +76,7 @@ See also: *The site file and its loader*.
 
 ## `job.sh`
 
-[job.sh](../../operator/job/job.sh) creates, runs and reads the factory's Cloud Run job from the site's values alone. It reaches gcloud only through `site_gcloud_with`.
+`job.sh` creates, runs and reads the factory's Cloud Run job from the site's values alone. It reaches gcloud only through `site_gcloud_with`.
 
     job.sh create [--dry-run]
     job.sh update [--dry-run]
@@ -101,7 +101,7 @@ See also: *The site file and its loader* and *The sanitiser*.
 
 ## The sanitiser
 
-The sanitiser strips the site's names and the tokens from text that leaves the machine, and proves a file clean. [sanitise](../../operator/bin/sanitise) filters standard input to standard output.
+The sanitiser strips the site's names and the tokens from text that leaves the machine, and proves a file clean. `sanitise` filters standard input to standard output.
 
     sanitise < raw > clean
     sanitise check FILE...
