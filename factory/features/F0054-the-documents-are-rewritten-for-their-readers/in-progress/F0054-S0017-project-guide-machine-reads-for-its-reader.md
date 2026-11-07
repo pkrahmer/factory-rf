@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 625
 comments_read: [6702881617]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:36:02.049118Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-07T05:36:02.049118Z'
   stage: docs-review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:36:39.377496Z'
+  stage: docs-review
+  run: 2272b7e2c5694d5b8b7da921bcd241a4
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -387,3 +389,13 @@ Expect: `1`
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes findings 1 and 2 of the last review against the code: who calls `project_image_settings` and where the image in use is chosen, and the full field list of `ImageBuild`, `warnings` included. Read each named function and model before writing its sentence.
 22. factory: started docs-review as vm.
+23. reviewer: Docs-review after the human's answer in entry 21. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. No documenter run came between entry 21 and this review, and the page has not changed since the round-3 review. The only commit since then is the merge of `origin/main` (add92190e), and it touches only `docs/runs/2026-11-05-f0052/log.md`. I checked the two findings of entry 19 against the code on the branch again. Both still hold, and the human's entry 21 asks for both to be fixed.
+
+    Findings:
+    1. docs/project-guide/machine.md:353, :361, :369, :721 and :724 are wrong about the image in use:
+       - What the page says: `project_image_settings` is "the one place where the image in use is chosen", and `run_instance` / `_ProjectImageStart` call it, with a `StageImageReport` for every different text.
+       - What the code does: `_ProjectImageStart._choose` calls `chosen_image` (src/factory/entry/run.py:267). In `src/factory`, no code calls `project_image_settings`; it is only in the export list at wiring.py:160. It is a wrapper that returns `chosen.settings` (wiring.py:468-469). `chosen_image(settings, git, images, stops, *, report=None) -> ChosenImage | None` makes the choice and returns the settings and the sizes, measured once (wiring.py:472-512). The report is passed only when a stage file exists or at the start (`told = report if has_stage_file or at_start else None`, run.py:265-266).
+       - Fix: add `chosen_image(...) -> ChosenImage | None` to the code block at :353. Name it at :361 as the place where the image is chosen, and at :369 and :721 as what `_ProjectImageStart._choose` calls. Describe `project_image_settings` as the wrapper that returns only the settings. At :724, say that the report goes with a stage file or at the start.
+    2. docs/project-guide/machine.md:357: the field list "`ImageBuild` (`passed`, `duration`, `output_tail`: the last 20 lines)" leaves out `warnings`. That field is a `NonNegativeInt`, default 0, counting the output lines that warn (src/factory/machine/application/images.py:24). `chosen_image` writes it into the `stage image: built ...` log line (wiring.py:505). Fix: add `warnings` to the list.
+
+    Earlier tests: none (the diff changes no test file).
