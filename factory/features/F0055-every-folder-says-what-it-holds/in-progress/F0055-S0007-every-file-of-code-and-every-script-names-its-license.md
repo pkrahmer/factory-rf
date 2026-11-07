@@ -1,5 +1,5 @@
 ---
-stage: review
+stage: docs
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T12:09:40.960507Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -73,6 +69,12 @@ journal:
   kind: started
   at: '2026-11-07T12:09:40.960507Z'
   stage: review
+- number: 12
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T12:10:46.925133Z'
+  stage: review
+  run: c1058f0ae7354e18b403021ae233ccf6
 ---
 
 # Every file of code and every script names its license
@@ -157,3 +159,15 @@ Expect: `0`
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
 11. factory: started review as vm.
+12. reviewer: no findings
+
+    What I checked:
+    - Group 1, acceptance criteria. Criterion 1: `test_every_file_in_scope_carries_the_license_header` reads the scope from `git ls-files` through `run_git`. I checked the branch myself: all 188 tracked `src/factory/*.py` files have the header as line 1, and the diff over `src/` is 188 one-line insertions at the top, nothing else. The 18 operator scripts get the line right after `#!/bin/sh`, or as line 1 in `operator/lib/hosting.sh`, `operator/lib/site.sh` and `operator/vm/Dockerfile`, which have no shebang. Criterion 2: one parametrized test with all the rows the criterion names, failing and passing, on files written under `tmp_path`. The check is `unlicensed(...) == [path]`, so a failure names the file. Criterion 3: one parametrized test covering `tests/`, `operator/template/`, a README, a `.json` without a shebang, a Dockerfile and a `*.sh` file without a shebang. Criterion 4: `test_every_operator_script_still_parses` picks `bash -n` or `sh -n` by shebang, uses `sh -n` for a `*.sh` file without one, and skips the Dockerfile. The coder's `make check` was green (journal 10). The schemas under `src/factory/contract/` are untouched and stay outside the scope (`in_scope` takes only `.py` under `src/factory/`).
+    - Group 2, architecture: no change under `src/` beyond a comment line. The guard sits in `tests/guards/` and starts its shells through `run_process`, as `tests/vm/test_vm_setup.py` does.
+    - Group 3, security: no secrets and no silencing markers. The shells are called with an argv list, not a string.
+    - Group 4, quality: the guard uses the shared `run_git` from `tests/support/git_support.py` and copies no existing helper. I ran `make duplicates`; it reports `duplicates: 6 new, 39 known, 4 gone`. Two of the "new" entries are the existing claude/opencode and hand_over/acceptance similar-code findings, listed again under a shifted snippet and the module order swapped, and the matching "gone" lines are their old entries. The four new dead-code findings (`readme_problems` in `src/factory/shared/domain/folder_readmes.py:131`, and three fields in `src/factory/watching/domain/cost_records.py:46-48`) are in code this diff touches only with the header, so they come from earlier stories, not from this one.
+    - Group 5, work item hygiene: the journal explains the main choice (scripts named, not found by a copied scope rule) and what was rejected. The Description matches what was built, and the docs criterion still says what the reader must know. One small slip: the Interface says "186 files today" but the branch holds 188. The coder noted this, and the guard reads its scope from git, so the count matters nowhere.
+    - Documents: the diff changes none.
+
+    Earlier tests:
+    - tests/vm/test_stage_image.py: changed under the human's leave in the Interface ("an earlier test whose only failure is the one added header line ... may be changed so far as that line requires"). Only the line index in `test_the_first_line_names_the_build_command_with_the_runtime` changes, from `[0]` to `[1]`, plus a comment explaining why. Its name and what it checks are unchanged, and the tester's entry 8 names it.
