@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs
+  started_at: '2026-11-07T15:00:09.870533Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -58,6 +62,11 @@ journal:
   at: '2026-11-07T15:00:04.673177Z'
   stage: review
   run: 783eae4bf42e4150b755db2b0fdc3c14
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-07T15:00:09.870533Z'
+  stage: docs
 ---
 
 # A listed folder README that is missing fails the guard
@@ -168,3 +177,4 @@ Expect: `missing-fails`
 
    Earlier tests:
    - `tests/guards/test_folder_readmes.py` (written by F0055-S0001) was changed under the human's leave of 2026-11-07, named in the story's Interface. Within that leave, the skip was dropped from `test_a_folder_readme_agrees_with_its_folder`, which keeps its name and checks the same agreement, and the module docstring was updated. Everything else in the file is added: the private helper, the README constants and the new criterion-1 test.
+10. factory: started docs as vm.
