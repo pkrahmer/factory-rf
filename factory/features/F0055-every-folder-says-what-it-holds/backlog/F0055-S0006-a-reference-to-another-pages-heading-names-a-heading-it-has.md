@@ -2,7 +2,7 @@
 
 ## Description
 
-The documents point the reader to a section of another page in one form: a heading in italics or quotes, then `in` or `of`, then a relative link to the page, for example `see *The two passes* in [machine.md](machine.md)`. The name check resolves the link to the file but not the heading, so a page that renames a heading leaves dangling references behind. After the rewrite, three of 156 such references pointed to headings that do not exist (the human, 2026-11-07). This story makes the document check resolve each such reference against the headings of the linked page. A reference to a heading the page does not have is a finding of the name check, so it blocks in a listed document and is reported in any other. References within one page, and links with a `#` anchor, stay as they are.
+The documents point the reader to a section of another page in one form: a heading in italics or quotes, then `in` or `of`, then a relative link to the page, for example `see *The two passes* in [machine.md](machine.md)`. The name check resolves the link to the file but not the heading, so a page that renames a heading leaves dangling references behind. After the rewrite, four such references pointed to headings that do not exist (the human, 2026-11-07, and F0054's acceptance): `docs/operator-guide/install.md:121` (*In a job* in `machine.md`, a bold paragraph under *The idle shutdown*), `docs/operator-guide/work-items.md:66` ("What a work item cost" in `records.md`, whose heading is *What a work item cost: `factory-bill`*), `docs/project-guide/machine.md:487` (*`StageFinisher.finish`* in `pipeline.md`, whose heading is *`StageFinisher.finish(aftermath)`*) and `docs/operator-guide/agent-runtime.md:407` ("The stage environment" under *Configuration* in `install.md`, a bold paragraph that now stands under *Reference*). This story makes the document check resolve each such reference against the headings of the linked page. A reference to a heading the page does not have is a finding of the name check, so it blocks in a listed document and is reported in any other. References within one page, and links with a `#` anchor, stay as they are.
 
 ## Interface
 
@@ -22,7 +22,7 @@ The documents point the reader to a section of another page in one form: a headi
   - A finding reads `<document>:<line>: <heading> is no heading of <target>`.
 - `factory.entry.check_documents`: the findings of `unresolved_headings` join the name check's findings, so they block in a listed document and are reported in any other.
 - Tests: `tests/shared/domain/test_heading_references.py` (new) and rows in the entry tests of the name check, on documents the tests write (`tests/support/minimal_documents_support.py`), never on the real documents. Adding rows to those earlier modules needs no further leave; no earlier row changes its expected result, and if one would, that is a question.
-- The real documents: any reference this check finds broken in a listed document is fixed in the docs stage of this story, so that `make documents` stays green.
+- The real documents: any reference this check finds broken in a listed document is fixed in the docs stage of this story, so that `make documents` stays green. A fix names the heading as the target page writes it, or names the paragraph and the heading it stands under; no heading is renamed.
 
 ## Acceptance criteria
 
