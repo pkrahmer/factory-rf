@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T10:39:23.980499Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -125,6 +129,11 @@ journal:
   at: '2026-11-07T10:39:18.811416Z'
   stage: doing
   run: 5bd98b7ee0744f90942490afe12bf924
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-07T10:39:23.980499Z'
+  stage: tests
 ---
 
 # The folders that have a README are listed and checked
@@ -340,3 +349,4 @@ Expect: `23 ['x: no README.md']`
     I changed no test and did not rewrite the Description. The reviewer's entry 19 had already added criterion 9 to it.
 
     Noticed but not touched: `folder_readmes` now imports `documents`, which imports pipeline-domain tables. That is allowed, since both are domain layers, but it makes the small module depend on a big one.
+22. factory: started tests as vm.
