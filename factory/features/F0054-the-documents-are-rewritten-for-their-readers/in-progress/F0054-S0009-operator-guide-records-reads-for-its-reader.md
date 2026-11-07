@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 617
 comments_read: [6700706147]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T02:00:54.881275Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -124,6 +128,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T02:00:52.322116Z'
+  stage: docs-review
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:00:54.881275Z'
   stage: docs-review
 ---
 
@@ -341,3 +350,4 @@ Expect: `1`
     Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files. This is round 3, the round cap of `docs-review`, so the factory asks the human rather than loop again.
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes the last review's finding as written, so that the Reference's list of a cost record's optional keys is complete against the code or says plainly which keys it lists.
+22. factory: started docs-review as vm.
