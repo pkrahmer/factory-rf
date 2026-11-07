@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 628
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T07:49:05.994376Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T07:49:01.169177Z'
   stage: intake
   run: 9e8091ff994c463899c59a082035015b
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T07:49:05.994376Z'
+  stage: docs-only
 ---
 
 # The project guide's index reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    - Docs criterion: criterion 7 asks for criteria 1 to 5 and for no change to `docs/decisions.md`. It names what the reader must know (the facts of the old file kept or moved to Reference, with working examples). It dictates no sentences.
    - Architecture: only documents change, so the layers in CLAUDE.md are untouched. The page being rewritten is the project guide's index, which CLAUDE.md names.
    - Scope: S0020 is listed in F0054's stories. It touches no `decisions.md`, `docs/runs/` or operator-playbook file, and it changes no behaviour.
+4. factory: started docs-only as vm.
