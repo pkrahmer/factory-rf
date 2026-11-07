@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987, 6707415610]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T13:16:44.322393Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T13:16:41.897216Z'
+  stage: review
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:16:44.322393Z'
   stage: review
 ---
 
@@ -234,3 +243,4 @@ Expect: `documents ok (<seconds> s)`
     - `tests/guards/test_tests_layout.py`: changed under the human's leave in the Interface and journal entry 4. `README.md` was added to the expected root files of `test_the_root_holds_only_conftest_and_packages`, and the module docstring was rewritten to match. The test keeps its name and purpose.
 16. 2026-11-07 human: (1) (a): tests/guards/README.md links *Shared test helpers* in docs/project-guide/README.md, where the guards are described; the coder fixes the README in doing.
     (2) Yes: criterion 5 is extended. The documenter updates the two sentences of *Shared test helpers* (docs/project-guide/README.md, the root of tests/ and the layout guard) to name the root's README.md, and leaves the list of modules and fixtures unchanged. The human changed CLAUDE.md, *Tests*, on main: the root of tests/ holds only conftest.py, its README.md and folders.
+17. factory: started review as vm.
