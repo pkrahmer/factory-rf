@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 637
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T13:34:16.540566Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T13:34:16.540566Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-07T13:38:29.910335Z'
+  stage: doing
+  run: 2b841eabef9f4edab2037cfc3fe54092
 ---
 
 # The operator's folders say what they hold
@@ -115,3 +117,13 @@ Expect: `documents ok (<seconds> s)`
 
    `lint`: lint: green (0.1 s)
 6. factory: started doing as vm.
+7. coder: Removed `operator/template/README.md` from `factory.shared.domain.folder_readmes.FOLDER_READMES` (`src/factory/shared/domain/folder_readmes.py`), so the list now holds 22 paths. That was the story's only code change. The tester's `tests/shared/domain/test_folder_readmes_list.py` passes, and `make check` is green (`check: green`, coverage 99.21 %).
+
+   - Main choice: I deleted the one entry and changed nothing else. I rejected keeping the path and adding a skip for it in the guard, because the Interface says the list loses the path.
+   - No earlier test failed because of the new length or the missing path, so the human's leave was not used and no earlier test needs changing.
+   - Refactor: the diff is one deleted line, so there was nothing to change.
+   - Left for the docs stage, as the Interface says: the eight READMEs (`agents/README.md` and `operator/{bin,claude,job,lib,opencode,skill,vm}/README.md`), the new `docs/checked-documents.txt` entries (with `operator/README.md`), and the `template/` and subfolder link lines in `operator/README.md`. I did not write any of them.
+   - The journal did not change the task's meaning, so the Description is unchanged.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone

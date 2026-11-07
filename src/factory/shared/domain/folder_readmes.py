@@ -18,7 +18,6 @@ FOLDER_READMES: Final[tuple[str, ...]] = (
     "operator/lib/README.md",
     "operator/opencode/README.md",
     "operator/skill/README.md",
-    "operator/template/README.md",
     "operator/vm/README.md",
     "security/README.md",
     "src/factory/README.md",
