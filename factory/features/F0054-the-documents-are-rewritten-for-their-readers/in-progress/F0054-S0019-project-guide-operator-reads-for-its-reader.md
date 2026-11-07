@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 4
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 627
-comments_read: []
+comments_read: [6704005122]
 handed_over: null
 claim: null
 journal:
@@ -120,6 +120,11 @@ journal:
   stage: docs-review
   run: 21fcd07255d64ba29bc86ec26c6858c4
   blocked: round_cap
+- number: 21
+  speaker: human
+  kind: comment
+  at: '2026-11-07T07:39:17.152867Z'
+  stage: docs-review
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -310,3 +315,4 @@ Expect: `1`
 
     This is round 3, the stage's `round_cap`. All four findings are link placements; no fact on the page is wrong.
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes findings 1 to 4 of the last review: each file is linked once, at its first mention, and written plain after that. Before it ends, it checks this for every linked file of the page by script (first mention linked, later ones plain), and its entry quotes the script's last output; the reviewer checks the rule by the same script.
