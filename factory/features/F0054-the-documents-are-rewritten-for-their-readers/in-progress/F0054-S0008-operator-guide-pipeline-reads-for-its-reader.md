@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:31:53.518222Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T01:31:48.510450Z'
   stage: docs-review
   run: 309152586ca84b47813dc26d52df0cd5
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:31:53.518222Z'
+  stage: docs-only
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -210,3 +219,4 @@ Expect: `1`
     - The tense mix in the l.178 table cell ("There was no path, and it prints the usage line"): no style rule covers it.
     - The inline `python -m factory.entry.check_story` at l.156: entry 7 already rejected it, and the reason still holds.
     - `attempts_cap` and `round_cap` at l.52, l.109 and l.122 are key names in code, not prose uses of the glossary words.
+12. factory: started docs-only as vm.
