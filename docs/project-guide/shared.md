@@ -128,9 +128,9 @@ Each finding has a key that holds no line number, so editing code above or below
 The baseline holds the accepted findings, one key per line. Blank lines and lines starting with `#` (after stripping) are skipped.
 
 - `--baseline <path>` is required.
-- `--write-baseline` writes the file instead of comparing. It writes the header line `# Accepted findings of make duplicates, one key per line.`, then the key of every finding (similar code first, then dead code, in input order, a key found twice written once). It prints `duplicates: baseline of <n> findings written to <path>`.
+- `--write-baseline` writes the file instead of comparing. It writes the header line `# Accepted findings of make duplicates, one key per line.`. Then it writes the key of every finding: similar code first, then dead code, in input order. A key found twice is written once. It prints `duplicates: baseline of <n> findings written to <path>`.
 - Review the file's diff before committing it: it is the list of what the human accepted.
-- The baseline accepts the process calls of the two agent runtimes and the fakes that only the tests use: `ManualClock` and `ManualWaiter` in [clock.py](../../src/factory/shared/adapters/clock.py), `FakeAgentRuntime` in [fake_agent_runtime.py](../../src/factory/agents/adapters/fake_agent_runtime.py) and `FakeHostingService` in [fake_hosting.py](../../src/factory/hosting/adapters/fake_hosting.py). A new finding there is a copy that the decision does not cover.
+- The baseline accepts the process calls of the two agent runtimes and the fakes that only the tests use. These are `ManualClock` and `ManualWaiter` in [clock.py](../../src/factory/shared/adapters/clock.py), `FakeAgentRuntime` in [fake_agent_runtime.py](../../src/factory/agents/adapters/fake_agent_runtime.py) and `FakeHostingService` in [fake_hosting.py](../../src/factory/hosting/adapters/fake_hosting.py). A new finding there is a copy that the decision does not cover.
 
 See also: *What the agent runtimes share lies in one module* in [decisions.md](../decisions.md).
 
@@ -204,14 +204,14 @@ After the settings lines the command runs the `console` blocks of every document
     ExampleRunner.run_document(document, examples, fixtures)
 
 - `examples(text)` of `documents.py` returns `Examples` with `runnable` and `skipped`. A runnable `Example` holds its line, its fixture and its `Command`s with their expected lines. A `Skipped` holds a line and a kind.
-- The spaces or tabs before a block's opening fence are removed from each of its lines before they are read, so a block indented under a numbered step reads as at column 0, with the same line numbers. A line indented less than the fence keeps what it has.
+- The spaces or tabs before a block's opening fence are removed from each of its lines before they are read. So a block indented under a numbered step reads as at column 0, with the same line numbers. A line indented less than the fence keeps what it has.
 - A `console` block with no `$ ` line is neither runnable nor skipped. Its fence line is in `without_command`.
 - The command turns each such line into the finding `<document>:<line>: the example has no command`, named `NO_COMMAND`.
 - It goes through the same path as the runner's findings. So it blocks in a listed document and is reported in any other.
 - A block marked `vm`, `github` or `model`, or with a command for which `runs_the_suite` holds, is skipped. A line for a skipped block reads `<document>:<line>: not run (<kind>)`.
 - `first_difference` is the match, with `...` and `<placeholder>`.
 - `Fixture.prepare(folder)` fills an empty folder and returns the extra environment. `ExampleRunner.run_document(document, examples, fixtures)` returns the document's findings.
-- `ProcessExampleRunner` of [document_examples.py](../../src/factory/shared/adapters/document_examples.py) runs each command through `run_process` as `env -i <variables> sh -c <command>`.
+- `ProcessExampleRunner` of `document_examples.py` runs each command through `run_process` as `env -i <variables> sh -c <command>`.
 - The fixed variables come last, so a fixture cannot replace `PATH`, `HOME`, `TZ` or `LANG`.
 - Its default limit is 60 seconds, and a test passes a shorter one.
 - The folder and the home are temporary and removed when `run_document` returns, also after a timeout.
@@ -293,4 +293,9 @@ Exact detail that the sections above summarise.
 - The suppression markers in `process.py`: `noqa: S404` and `nosec B404` on `import subprocess`, `noqa: S603` and `nosec B603` on the `subprocess.Popen(` line.
 - `PIPE_DRAIN` is `timedelta(seconds=5)`.
 - The settings table columns the check reads: `Name` or `Variable` first, `Default` for defaults, `Refusal` for the table under `The refusals`.
-- The types of the check: `Examples` (`runnable`, `skipped`, `without_command`), `Example`, `Command`, `Skipped` (line and kind), `GuideTable` (`heading`, `header`, `rows`), `SettingDoc` (`name`, `required`, `default`).
+- The types of the check:
+  - `Examples`: `runnable`, `skipped`, `without_command`.
+  - `Example` and `Command`.
+  - `Skipped`: line and kind.
+  - `GuideTable`: `heading`, `header`, `rows`.
+  - `SettingDoc`: `name`, `required`, `default`.

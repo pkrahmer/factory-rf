@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:17:02.075997Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T03:17:02.075997Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:19:40.108794Z'
+  stage: docs-only
+  run: 7c4ecd71c1744aeda43bcfc62b3cea00
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -366,3 +368,26 @@ Expect: `1`
 
     Not a finding: the usage lines at 103 and 143 (`uv run python -m factory.entry.check_duplicates ...` and `... check_documents [--root <checkout>]`) are signatures with placeholders. They follow the project guide's form for names and signatures in an indented block, as `style.md`'s *The take* example does, and they are not shown as examples to run. The three See also links to `decisions.md` (lines 95, 135 and 273) follow the form of one See also per section. `machine.md:443` "(since F0044-S0010)" was on `main` before this story.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the reviewer's four round-2 findings in `docs/project-guide/shared.md`. `make documents` ends with `documents ok (9.0 s)`, and none of its report lines names `shared.md`. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/project-guide/shared.md`: the fixes below. It is the only file I changed this round.
+
+    Findings:
+    1. Fixed. The indented-fence sentence is split after "before they are read"; the second sentence starts "So a block indented under a numbered step reads as at column 0, with the same line numbers."
+    2. Fixed. In the `--write-baseline` bullet, the key order is now sentences of its own: header line; similar code first, then dead code, in input order; a key found twice is written once. The baseline bullet ends its first sentence at "only the tests use", and "These are ..." lists the three fakes.
+    3. Fixed. The types of the check are a nested list with one type per bullet and its fields after a colon.
+    4. Fixed. `document_examples.py` in the `ProcessExampleRunner` bullet is plain now. It is linked once, at the top of the page.
+
+    Dropped on purpose: nothing.
+
+    Cross-read and found current: `docs/checked-documents.txt` (the line is there once), `docs/project-guide/style.md`.
+
+    Stale text I noticed and did not touch:
+    - `docs/project-guide/README.md` describes `shared.md` as covering only the process module, although the page also holds the duplicates report and the document check. The index is outside this story.
+    - The docstring of `tests/guards/test_wrapper_search.py` says "the three wrappers", while the set lists nine modules. It is code, so not mine to edit.
+    - `docs/project-guide/work.md:13` is reported by the name check ("factory/agents does not exist"). It is older than this story.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.7 s)
+    `documents`: documents ok (8.9 s)
