@@ -17,3 +17,4 @@ docs/project-guide/shared.md
 docs/project-guide/hosting.md
 docs/project-guide/work.md
 docs/project-guide/agents.md
+docs/project-guide/watching.md
