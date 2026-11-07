@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 630
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T09:25:27.213456Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T09:25:27.213456Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T09:25:42.661061Z'
+  stage: intake
+  run: 909f335fda7046d79c5bb6b009ebde27
 ---
 
 # The operator folder's README reads for its reader
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names `operator/README.md` and `docs/checked-documents.txt` (one line, `operator/README.md`) and states that no code, test or agent file changes. Both paths are ones the documenter may write, so the story takes the docs route.
+   - Criteria: all concern documents only. Criterion 1 is the reviewer's judgment against style.md. Criterion 2 is the reviewer's comparison of old and new file against the code. Criterion 3 is checked by the file being on the list and `make documents` printing `documents ok`. Criterion 4 is a link check. Criterion 5 is `make check`. The story states no code rules, so there is no failing side to cover.
+   - Smoke test: `grep -cx "operator/README.md" docs/checked-documents.txt` is runnable and its `Expect: 1` can be checked against the output. It runs no pytest.
+   - Docs criterion: criterion 6 points to criteria 1 to 4, which say what the document must satisfy (facts kept or moved to Reference, claims corrected, examples runnable or marked, links intact). It quotes no sentences to write. `docs/decisions.md` is named as unchanged.
+   - Architecture: only a document and the checked list change. No layer or module is touched.
+   - Scope: within F0054, where S0022 is listed and the story is one file. `operator/README.md` is not in the feature's "Out of scope" list, and the story changes no behaviour.
