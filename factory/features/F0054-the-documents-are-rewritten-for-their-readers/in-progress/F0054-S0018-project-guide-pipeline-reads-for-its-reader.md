@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230, 6703551254]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:49:53.481572Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -252,6 +248,12 @@ journal:
   kind: started
   at: '2026-11-07T06:49:53.481572Z'
   stage: docs-only
+- number: 44
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:54:07.826413Z'
+  stage: docs-only
+  run: d11e374f025f460eb6b1f96348b09374
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -777,3 +779,26 @@ Expect: `1`
     - The page has no *Reference* section, which criterion 2 allows.
     - This is the second time the factory has gone from the human's answer straight to docs-review without a documenter run in between (also entries 24 and 25). That looks like a factory routing issue for the human to look at.
 43. factory: started docs-only as vm.
+44. documenter: Round after the human's entry 40: the whole-page sentence-length pass the reviewer found missing.
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: every prose sentence the script flagged is split. Claims are kept. The dotted module name in parentheses beside a link to the same `.py` file is dropped, 27 times, since the link already names the file (the reviewer allowed this in entry 38). Semicolon lists inside parentheses became their own sentences. The same applies to `StopRow`, `RepositoryStop`/`HealthStatus`, the `InstanceSettings` fields, `container_env`, the fixture fields and the other lines of entries 38 and 42. No heading changed, so no link into the page is affected.
+    - Two meaning-neutral rewordings: the dataset/base sentence in `build_boundaries` now says that a ZFS instance also needs the dataset and a copy instance the base. The restore line says "restored from the stage-start commit" in place of "checked out whole". I did not re-read the code for them, since the splits repeat the old claims.
+
+    The script (a temp file in `/tmp/sl_scripts`; my command to delete it was denied, so the directory is left there): it skips fenced code, indented signature blocks, tables and headings. It replaces link targets and code spans with a single word. It counts sentences over 25 words, more than one parenthesis and nested parentheses. Last output, before I split line 405 (the output had 14 lines, 13 of them signature lines of indented code blocks, which the script reads as prose):
+    `405 | 29 | 0 | The agent's entry gains, after a blank line, one line C C: <last line of its output> C for ...`
+    The 13 indented signature lines are code, not prose. Line 405 is a false alarm of the script: its double-backtick spans hold single backticks, which the script mis-counts as words. Counted by eye the sentence was about 22 words, and I split it anyway ("`command_line` builds it." is now its own sentence). So the prose list is empty.
+
+    `make documents`: `documents ok (16.8 s)`. `tests/guards/test_project_guide_files.py` passes. I ran no `make check`, because the only file changed is a document.
+
+    Cross-read and found current: no heading changed, so the links into `pipeline.md` from the operator guide and the other project-guide files still hold.
+
+    Stale text seen, not mine to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - `make documents` lists three examples as not run: `docs/operator-guide/install.md:33`, `docs/operator-guide/records.md:53` and `docs/project-guide/pipeline.md:141` (vm).
+    - Entry 42 reports the factory twice routing from the human's answer straight to docs-review.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.5 s)
+    `documents`: documents ok (16.5 s)

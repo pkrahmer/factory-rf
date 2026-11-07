@@ -20,7 +20,7 @@ A claim says that one factory [instance](glossary.md) owns a stage of a work ite
 - It sets `state.claim` and appends one [journal](glossary.md) entry (speaker `factory`, kind `started`, text `started <stage> as <instance>.`, see `started_text`). Nothing else in the document changes.
 - It writes the work item at `boundaries.checkout / path` and commits with the subject `work item <id>: <stage> starts as <instance>`, then pushes `branch`. Any outcome other than `"pushed"` raises `PushFailed`.
 - A rejected or unreachable push is no claim: the remote is unchanged, and the caller starts no agent run. The local commit stays on the local branch. The next tick's restore brings the branch back to the remote. `InjectedKill` at `BEFORE_PUSH` is not caught.
-- The stage-start commit is the last commit before the agent run. It stages every change in the work tree, so whatever the caller left uncommitted is part of it; for a new branch that is the work item's opening. It is therefore the baseline for what the agent may write and for the take's refusal rule.
+- The stage-start commit is the last commit before the agent run. It stages every change in the work tree, so whatever the caller left uncommitted is part of it. For a new branch that is the work item's opening. It is therefore the baseline for what the agent may write and for the take's refusal rule.
 - `status(state)` returns a `ClaimStatus` ([lease.py](../../src/factory/pipeline/domain/lease.py), `factory.pipeline.domain.lease`): `"none"` (no claim), `"own"`, `"held"` or `"expired"`.
   - `"own"`: the claim's `instance` is the service's, whatever its age, so a restarted instance with the same name reruns its stage at once.
   - `"held"`: another instance's claim, lease still running.
@@ -38,7 +38,7 @@ See also: *The stage protocol* and *The tick*.
 
 ## The pipeline definition
 
-The project's [`factory/pipeline.yml`](../../factory/pipeline.yml) lists the stages, the roles that work in them and the [project commands](glossary.md) that check them. The reader turns its text into a `PipelineDefinition`, and the definition refuses itself when a rule across its keys is broken. The reader is `RuamelPipelineDefinitionReader.parse(text)` in [pipeline_yaml.py](../../src/factory/pipeline/adapters/pipeline_yaml.py) (`factory.pipeline.adapters.pipeline_yaml`), behind the `PipelineDefinitionReader` interface in [`factory.shared.application.files`](../../src/factory/shared/application/files.py) and `Boundaries.pipeline_reader`. The model is in [pipeline_definition.py](../../src/factory/pipeline/domain/pipeline_definition.py) (`factory.pipeline.domain.pipeline_definition`).
+The project's [`factory/pipeline.yml`](../../factory/pipeline.yml) lists the stages, the roles that work in them and the [project commands](glossary.md) that check them. The reader turns its text into a `PipelineDefinition`, and the definition refuses itself when a rule across its keys is broken. The reader is `RuamelPipelineDefinitionReader.parse(text)` in [pipeline_yaml.py](../../src/factory/pipeline/adapters/pipeline_yaml.py), behind the `PipelineDefinitionReader` interface in [`factory.shared.application.files`](../../src/factory/shared/application/files.py) and `Boundaries.pipeline_reader`. The model is in [pipeline_definition.py](../../src/factory/pipeline/domain/pipeline_definition.py).
 
     RuamelPipelineDefinitionReader().parse(text) -> PipelineDefinition
     PipelineDefinition.first_stage() -> str
@@ -82,13 +82,13 @@ A role has these fields:
 
 A project command has `time_limit`, 10 minutes. Every limit is a positive integer; stage, role and command names match `^[a-z][a-z0-9-]*$`.
 
-`ProjectCommandDefinition` has `time_limit` and `not_read`. `not_read` is a list of write-path patterns (`matches_any`) for the paths the command does not read, default `[]` (nothing left out). A pattern must be relative and non-empty. It holds no `..` segment and does not start with `~`. It holds no `{` or `}`, because a placeholder is expanded in write paths only. Otherwise the load fails with the last rule of the definition, one fault per pattern: `project command <name>: not_read <pattern> must be a path pattern inside the checkout`. `is_inside_checkout` lives in `factory.pipeline.domain.pipeline_definition`, and `write_paths` imports it. `KnownResults` passes the patterns to `Git.work_tree_id` as `left_out`. The tree that returns is part of the result's key.
+`ProjectCommandDefinition` has `time_limit` and `not_read`. `not_read` is a list of write-path patterns for the paths the command does not read. The patterns are matched with `matches_any`. The default is `[]`, which leaves nothing out. A pattern must be relative and non-empty. It holds no `..` segment and does not start with `~`. It holds no `{` or `}`, because a placeholder is expanded in write paths only. Otherwise the load fails with the last rule of the definition, one fault per pattern: `project command <name>: not_read <pattern> must be a path pattern inside the checkout`. `is_inside_checkout` lives in `factory.pipeline.domain.pipeline_definition`, and `write_paths` imports it. `KnownResults` passes the patterns to `Git.work_tree_id` as `left_out`. The tree that returns is part of the result's key.
 
 ### More than one route
 
 A definition may hold several routes to `done` (for example `intake.next = [tests, docs-only]`, a documents-only route `docs-only` → `docs-review` → `docs-approval`) and several stages with `approval: true`. Nothing in the code names a stage; three rules read the `next` lists.
 
-- A close at an [approval](glossary.md) stage sends the [story](glossary.md) to that stage's second `next` (`send_back_target`), so `docs-approval` with `next: [done, docs-only]` sends it back to `docs-only`, not to `doing`.
+- A close at an [approval](glossary.md) stage sends the [story](glossary.md) to that stage's second `next`, which is `send_back_target`. So `docs-approval` with `next: [done, docs-only]` sends it back to `docs-only`, not to `doing`.
 - The [round cap](glossary.md) of that close is the `round_cap` of the first capped stage whose `next[0]` is that approval stage (`send_back_cap`), here `docs-review`.
 - `is_before_approval` ([`factory.work.domain.acceptance`](../../src/factory/work/domain/acceptance.py)) follows the first `next` of each stage from the given one. The stage is before the approval when that chain reaches an approval stage. It is not when the stage is an approval stage. It is not either when the chain ends at a stage without `next` or comes back to a stage it has visited. The order of the stages in the file does not matter to it, so `docs-approval` may be listed before `acceptance`.
 - [`tests/pipeline/application/test_docs_route.py`](../../tests/pipeline/application/test_docs_route.py) walks such a definition through the fake world.
@@ -134,7 +134,7 @@ The faults, in the order of the rules (`<s>` a stage, `<t>` a stage name, `<r>` 
 | 11 | `stage <s>: has neither a role nor approval` |
 | 12 | `project command <name>: not_read <pattern> must be a path pattern inside the checkout` |
 
-Tests: [`tests/pipeline/adapters/test_pipeline_rules.py`](../../tests/pipeline/adapters/test_pipeline_rules.py) (through the reader, comparing `fault`) and [`tests/pipeline/application/test_pipeline_loading_rules.py`](../../tests/pipeline/application/test_pipeline_loading_rules.py) (each refusal is one reported stop).
+Tests: [`tests/pipeline/adapters/test_pipeline_rules.py`](../../tests/pipeline/adapters/test_pipeline_rules.py) (through the reader, comparing `fault`) and [`tests/pipeline/application/test_pipeline_loading_rules.py`](../../tests/pipeline/application/test_pipeline_loading_rules.py). The second file checks that each refusal is one reported stop.
 
 This example reads a small definition and prints its first stage, the default lease of its role and the default project commands. It needs the project's environment, so it is copied from a real run in the checkout on the factory's VM.
 
@@ -153,7 +153,7 @@ One class loads the definition for the whole factory and raises or clears the st
 
 - Only the loader raises and clears the stops `pipeline_definition_invalid` and `agent_definition_invalid`; no caller does. At `PIPELINE_REF` a refusal calls `StopService.raise_stop` before it raises, and a success calls `clear_stop` before it returns.
 - A refused agent file raises `RepositoryStop(reason="agent_definition_invalid", detail="<agent name>: <fault>")`. A definition that passes its own checks has already cleared `pipeline_definition_invalid`, so only the agent stop remains. Any `AgentDefinitionInvalid` raises it, not only an unapplied key.
-- A load at any other ref raises the same refusal but raises and clears no stop, so a read of a branch never changes the health status. `WritePathService` reads the definition at another commit and parses it directly with `pipeline_reader`, not through the loader.
+- A load at any other ref raises the same refusal. It raises and clears no stop, so a read of a branch never changes the health status. `WritePathService` reads the definition at another commit and parses it directly with `pipeline_reader`, not through the loader.
 - A `GitError` propagates and raises no stop. An `OSError` of the stop's writes propagates in place of `PipelineDefinitionInvalid`.
 - Tests: [`tests/pipeline/application/test_pipeline_loading.py`](../../tests/pipeline/application/test_pipeline_loading.py), with `human.push_file` and `checkout.fetch()` for other versions of the file and `install_agents(agent_home, roles)` in `tests/support/git_support.py` for the agent files.
 
@@ -161,14 +161,14 @@ See also: *The tick* and *The stop records*.
 
 ## The prompt and the request for a stage
 
-Before a stage's agent runs, the factory writes it a short prompt and an `AgentRunRequest`. `TaskComposer` in [task.py](../../src/factory/pipeline/application/task.py) (`factory.pipeline.application.task`) builds the request; the pure rules are in [prompts.py](../../src/factory/agents/domain/prompts.py) (`factory.agents.domain.prompts`).
+Before a stage's agent runs, the factory writes it a short prompt and an `AgentRunRequest`. `TaskComposer` in [task.py](../../src/factory/pipeline/application/task.py) builds the request; the pure rules are in [prompts.py](../../src/factory/agents/domain/prompts.py).
 
     TaskComposer(boundaries, definition, environment).compose(context) -> AgentRunRequest
     TaskComposer.agent(stage) -> AgentDefinition
     allowed_decisions(next_stages) -> list[str]
     compose_prompt(facts: PromptFacts) -> str
 
-The caller gives `TaskComposer` the `Boundaries`, the `PipelineDefinition` and the `environment`, and each call a `TaskContext` (work item, path, stage, document, branch, pull request, the form findings).
+The caller gives `TaskComposer` the `Boundaries`, the `PipelineDefinition` and the `environment`. Each call gets a `TaskContext`. It holds the work item, path, stage, document, branch, pull request and the form findings.
 
 ### The decisions
 
@@ -193,7 +193,7 @@ The caller gives `TaskComposer` the `Boundaries`, the `PipelineDefinition` and t
 
 ### The request
 
-- `compose` fills `AgentRunRequest` with the agent as given, the prompt, the decisions, `time_limit` (the role's minutes), `working_directory` (`boundaries.checkout`) and no operating-system user.
+- `compose` fills `AgentRunRequest` with the agent as given, the prompt, the decisions, `time_limit`, which is the role's minutes, and `working_directory`, which is `boundaries.checkout`. It sets no operating-system user.
 - `environment` is a copy of the mapping given to `TaskComposer`, passed on unchanged: nothing is added, removed or scrubbed here. The wiring supplies it, already scrubbed at its source (*The agent run's environment*).
 - `agent(stage)` reads the definition of the stage's role through `AgentDefinitionReader`. A stage without a role raises `ValueError` naming it; a missing file lets `AgentDefinitionMissing` through. A document without a state makes `compose` raise `WorkItemFormatError`.
 - The prompt is `compose_prompt(facts)`, except for an acceptance at the definition's `acceptance_stage`. That is the case `context.stage == definition.acceptance_stage` and `is_acceptance(context.work_item)`. There it is `acceptance_prompt(compose_prompt(facts), AcceptanceService(boundaries, definition).facts(feature_of(context.work_item)))`. The fact lines follow the usual prompt after an empty line. They are `Archived stories`, `Next free story number`, `Cost of the stories` and `Human interventions of the stories`. A story, an acceptance at another stage and a definition whose `acceptance_stage` is `None` get the unchanged prompt. The facts are computed by code at `origin/main`, not by the agent.
@@ -213,7 +213,7 @@ See also: *Starting a stage* and *The decision rules*.
 
 ## Opening a work item
 
-Before a stage is claimed, the work item must be on its branch with a pull request. `WorkItemOpening` in [opening.py](../../src/factory/hosting/application/opening.py) (`factory.hosting.application.opening`) does both, built with `Boundaries` and the `PipelineDefinition`.
+Before a stage is claimed, the work item must be on its branch with a pull request. `WorkItemOpening` in [opening.py](../../src/factory/hosting/application/opening.py) does both, built with `Boundaries` and the `PipelineDefinition`.
 
     WorkItemOpening(boundaries, definition).prepare(work_item, path) -> PreparedWorkItem
     WorkItemOpening.ensure_pull_request(work_item, document) -> int
@@ -223,7 +223,7 @@ Before a stage is claimed, the work item must be on its branch with a pull reque
 - When `prepare` returns, the checkout is on that branch with a clean work tree. It returns a frozen `PreparedWorkItem` (work item, branch, path, document, `branch_existed`, `merge_conflict`).
 - No `origin/<branch>`: the work item is new. The local branch is created at `origin/main` and the file is read from `origin/main`. An absent file raises `WorkItemFormatError` with `path` set. Only the body of the [backlog](glossary.md) file is used: whatever its own front matter says (`stage`, `attempts`, `blocked`, a `journal` list) is ignored. The state is `initial_state` of the definition's first stage. A body without a `## Journal` section gets an empty one at its end. Entries already in that section are left as they are. The form check reports the mismatch between the text and the one record of the state. Entry 1 (`human`, `created`, dated by the clock) is then appended by code.
 - `origin/<branch>` exists: the local branch is reset to `origin/<branch>`, whatever a local branch of that name held, then `origin/main` is merged in. On a conflict the wrapper has already aborted the merge: `merge_conflict` is `True`, the head is the remote branch's and the document is the branch's. The document is read from the work tree after the merge. Doing the merge here means the baseline of the take, taken at the stage-start commit, comes after every preparation step.
-- `ensure_pull_request` returns the first of these: the pull request numbered in `document.state.pull_request`, if it is open; the open pull request of the branch; a new draft titled `<id>: <title>` with the body as description. Only an open pull request is reused. A closed or merged one never is.
+- `ensure_pull_request` returns the first of three. One is the pull request numbered in `document.state.pull_request`, if it is open. Next is the open pull request of the branch. Last is a new draft titled `<id>: <title>` with the body as description. Only an open pull request is reused. A closed or merged one never is.
 - The title is looked up only when a draft is created, and a body without a title line then raises `WorkItemFormatError`. A `HostingServiceError` propagates. No file changes.
 
 Tests: [`tests/hosting/application/test_opening.py`](../../tests/hosting/application/test_opening.py).
@@ -234,7 +234,7 @@ See also: *Starting a stage*.
 
 Starting a stage means claiming the work item, finding its pull request and running the agent. The claim is pushed first, so no agent runs for a stage another instance holds.
 
-`StageLauncher` in [stage.py](../../src/factory/pipeline/application/stage.py) (`factory.pipeline.application.stage`) takes a `PreparedWorkItem` from `WorkItemOpening.prepare` and runs the stage's agent.
+`StageLauncher` in [stage.py](../../src/factory/pipeline/application/stage.py) takes a `PreparedWorkItem` from `WorkItemOpening.prepare` and runs the stage's agent.
 
     StageLauncher(boundaries, instance, definition, environment, *, stage_environment=None)
     StageLauncher.launch(prepared) -> LaunchedStage
@@ -251,7 +251,7 @@ Starting a stage means claiming the work item, finding its pull request and runn
 8. `TaskComposer.compose` builds the request (prompt, environment, allowed decisions).
 9. `stage_environment.prepare(stage_start.commit, branch, sync_time_limit=...)`, then `stage_environment.run_agent(request, run=PatientRuns(boundaries).run)`. The agent runs through `PatientRuns`, in the [stage environment](glossary.md) (see [machine.md](machine.md), *The stage environment*). The [cost record](glossary.md) is begun between the two and completed after the run. The sync limit is the `time_limit` of the definition's `sync` project command. Without one it is the default of a project command, 10 minutes. A `SnapshotError` or `ContainerError` from `prepare` ends the launch, after the claim and before any run.
 
-- No agent run precedes the pushed claim. When `run` is called, `origin/<branch>` already holds the stage-start commit with the claim and the journal record (`factory`, `started`); when step 4 fails, no run starts. The stage-start commit is the last commit before the run. For a branch that existed it is one commit above the old head, and the merge of `main` in `prepare` comes before it. For a new work item it is also the opening commit.
+- No agent run precedes the pushed claim. When `run` is called, `origin/<branch>` already holds the stage-start commit with the claim and the journal record `factory`, `started`. When step 4 fails, no run starts. The stage-start commit is the last commit before the run. For a branch that existed it is one commit above the old head, and the merge of `main` in `prepare` comes before it. For a new work item it is also the opening commit.
 - The stage-start commit does not change `pull_request`: it is `None` for a new work item and otherwise the number already recorded. The number of the pull request found or created in step 6 is in `StartedStage.pull_request` and in the prompt; the stage's next commit records it. No local record of the run is written; the claim's `started_at` says when the stage began.
 - `launch` returns a frozen `LaunchedStage` with three parts. `started` is a `StartedStage`: the work item, stage, branch, path, `stage_start`, `document`, `pull_request` and the form `findings` taken before the run. The other two are `request` and `result`.
 - A run that dies, reaches its `time_limit` or its budget is a result. `PushFailed`, `AgentDefinitionMissing` and `AgentRuntimeError` propagate unchanged; after an `AgentRuntimeError` the claim stays pushed.
@@ -259,7 +259,7 @@ Starting a stage means claiming the work item, finding its pull request and runn
 
 ### Waiting out the provider's limit
 
-`PatientRuns(boundaries).run(request)` in [provider_limits.py](../../src/factory/agents/application/provider_limits.py) (`factory.agents.application.provider_limits`) wraps `boundaries.agent_runtime.run` for the stage launch. A result that does not end `provider_limit` comes back as it is. After a `provider_limit` it loops:
+`PatientRuns(boundaries).run(request)` in [provider_limits.py](../../src/factory/agents/application/provider_limits.py) wraps `boundaries.agent_runtime.run` for the stage launch. A result that does not end `provider_limit` comes back as it is. After a `provider_limit` it loops:
 
 1. The budget left is the agent's `budget_usd` less the run's cost so far; at or below zero the run ends `budget`.
 2. The time left is the request's `time_limit` less the calls' durations (the waits do not count); at or below zero it ends `time_limit`.
@@ -280,9 +280,9 @@ See also: *After the agent run* and *Stalls*.
 
 ## Stalls
 
-A [stall](glossary.md) is the one way a stage ends without a result the factory can keep. It costs one attempt and is a value, never an exception. `StallService` in [stalls.py](../../src/factory/pipeline/application/stalls.py) (`factory.pipeline.application.stalls`) does it; the later steps (the branch, the decision, the form, a red check, a merge conflict) call it with their reason.
+A [stall](glossary.md) is the one way a stage ends without a result the factory can keep. It costs one attempt and is a value, never an exception. `StallService` in [stalls.py](../../src/factory/pipeline/application/stalls.py) does it. The later steps call it with their reason: the branch, the decision, the form, a red check and a merge conflict.
 
-`stall_reason_of` is in [decisions.py](../../src/factory/work/domain/decisions.py) (`factory.work.domain.decisions`), `stall_cause` and `stall_note` in [post_texts.py](../../src/factory/hosting/domain/post_texts.py) (`factory.hosting.domain.post_texts`).
+`stall_reason_of` is in [decisions.py](../../src/factory/work/domain/decisions.py). `stall_cause` and `stall_note` in [post_texts.py](../../src/factory/hosting/domain/post_texts.py).
 
     StallService(boundaries, instance, definition, stage_environment=None)
     StallService.stall(context, reason, detail="") -> StallResult
@@ -323,7 +323,7 @@ A stall puts a stage's allowed writes into the work tree, counts one attempt and
   - `commit` is the pushed head. `attempts`, `attempts_cap` and `pull_request` are at least 1.
   - `note` is the `PostOutcome`, and `take` is a `TakeReport` or `None`.
 
-Tests: [`tests/agents/domain/test_decisions.py`](../../tests/agents/domain/test_decisions.py), [`tests/work/domain/test_stall_texts.py`](../../tests/work/domain/test_stall_texts.py), [`tests/hosting/domain/test_stall_note_block.py`](../../tests/hosting/domain/test_stall_note_block.py), [`tests/pipeline/application/test_stalls.py`](../../tests/pipeline/application/test_stalls.py), [`tests/pipeline/application/test_stall_labels.py`](../../tests/pipeline/application/test_stall_labels.py). The last starts stages with `StageLauncher` and the fake agent runtime; its `SwitchingRuntime` (a subclass of `ObservingRuntime`) switches the checkout to another branch while it runs.
+Tests: [`tests/agents/domain/test_decisions.py`](../../tests/agents/domain/test_decisions.py), [`tests/work/domain/test_stall_texts.py`](../../tests/work/domain/test_stall_texts.py), [`tests/hosting/domain/test_stall_note_block.py`](../../tests/hosting/domain/test_stall_note_block.py), [`tests/pipeline/application/test_stalls.py`](../../tests/pipeline/application/test_stalls.py), [`tests/pipeline/application/test_stall_labels.py`](../../tests/pipeline/application/test_stall_labels.py). The last starts stages with `StageLauncher` and the fake agent runtime. Its `SwitchingRuntime` is a subclass of `ObservingRuntime`. It switches the checkout to another branch while it runs.
 
 See also: *After the agent run* and *The stage protocol*.
 
@@ -343,7 +343,7 @@ The factory believes what it observes, not what the agent reports. `AfterAgent` 
 
 What comes back is an `AgentAftermath` (frozen, no unknown keys): `started`, `request`, `result`, `decision`, `document`, `entry`, `take` and `form_findings`. The `document` is the work item after step 2, without the entry. The `take` is the `TakeReport`. The `form_findings` are all findings after the run. The stage's result commit (*The stage protocol*) appends the entry.
 
-Tests: [`tests/agents/domain/test_agent_entry.py`](../../tests/agents/domain/test_agent_entry.py), [`tests/pipeline/application/test_after_agent.py`](../../tests/pipeline/application/test_after_agent.py). The latter starts stages with `StageLauncher` and the fake agent runtime, whose `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
+Tests: [`tests/agents/domain/test_agent_entry.py`](../../tests/agents/domain/test_agent_entry.py), [`tests/pipeline/application/test_after_agent.py`](../../tests/pipeline/application/test_after_agent.py). The latter starts stages with `StageLauncher` and the fake agent runtime. Its `ScriptedRun.writes` tampers with the work item, writes outside the write paths and breaks the form.
 
 See also: *The take's rule* and *The decision rules*.
 
@@ -402,7 +402,7 @@ A stage runs in four steps: open the work item, launch the agent, check what it 
 1. `decide` on the state of `aftermath.document`, with the form findings after the run. A first stage whose agent fixed the last finding therefore moves forward instead of asking.
 2. Rule 6 only: each check of the stage's `checks`, in order, through `KnownResults.run` (machine.md, *Known results*). It runs `ProjectCommands.run` with the `time_limit` of the pipeline definition's project command, unless a passed result is known for the same key. The first check that is not green ends the stage as a stall `check_red` (rule 5). The later checks and all reports do not run. The stall detail is the command's name and the last `STALL_TAIL_LINES` (15) lines of its output, or all of it when it is shorter. The journal then holds the agent's entry, ending with the lines of the checks that were green, directly above the `factory` stall record. The stall costs one attempt and changes neither the stage nor `crashes`. The stall takes through the stage environment like any stall with a stage start. What the check wrote outside the write paths stays in its check container. The checks see the work tree after the take.
 3. Rule 6 only, once every check is green: each report of the stage's `reports`, in order. A report that fails holds nothing; a report is recorded, never enforced.
-4. The agent's entry gains, after a blank line, one line `` `<command>`: <last line of its output> `` (`command_line`) for each green check and each report. The lines come in the order the commands ran, for example `` `check`: 12 passed ``. A result taken instead of a run adds `` (not run again: passed on tree <12 characters> at <time>) ``. A result stopped at its time limit adds `` (stopped at its time limit after <s> s) ``. A stage with neither gets no such lines.
+4. The agent's entry gains, after a blank line, one line `` `<command>`: <last line of its output> `` for each green check and each report, and `command_line` builds it. The lines come in the order the commands ran, for example `` `check`: 12 passed ``. A result taken instead of a run adds `` (not run again: passed on tree <12 characters> at <time>) ``. A result stopped at its time limit adds `` (stopped at its time limit after <s> s) ``. A stage with neither gets no such lines.
 5. The entry is appended; when the move has a question (rules 1 and 4), a `factory` entry of kind `question` follows it.
 6. The new state takes `stage`, `blocked` and `round` from the move and `pull_request` from the started stage, and the claim is released. `crashes` is reset to 0 on rule 6, a forward move, and unchanged otherwise; `attempts`, `comments_read` and `handed_over` never change.
 7. The file is written, and everything in the work tree is committed in one commit. The commit is pushed through `push_with_retries` ([pushes.py](../../src/factory/hosting/application/pushes.py), `factory.hosting.application.pushes`). A server refusal (`[remote rejected]`) or an unreachable remote is pushed again after 5, 15 and 45 s. Those waits are `RETRY_WAITS`, waited through `boundaries.waiter`. Each wait follows the log line `push: retry <n> of 3 in <s> s: <reason>`. The commit and the command stay the same, with no force. Any other refusal, and the last failure, raises `PushFailed` with git's reason, and no label has been written.
@@ -410,14 +410,14 @@ A stage runs in four steps: open the work item, launch the agent, check what it 
 8. Last, `HostingService.set_labels(pull_request, labels_for(new_state))`. `labels_for` ([`factory.work.domain.labels`](../../src/factory/work/domain/labels.py)) gives `[LABEL_PREFIX + state.stage]`, for example `["stage:review"]`. Labels are a projection of the stage: they are written after the push and never read back. A `HostingServiceError` from this step propagates; the result commit stays pushed.
 
 - Rules 1, 2, 3, 4 and 7 run no check and no report.
-- A run adds exactly one commit of the factory's own on `origin/<branch>`: the result commit or the stall commit, directly above the stage-start commit, since the agent cannot commit. It holds the whole work tree, so a file a check creates is committed unless `.gitignore` covers it.
+- A run adds exactly one commit of the factory's own on `origin/<branch>`. It is the result commit or the stall commit, directly above the stage-start commit. The agent cannot commit. It holds the whole work tree, so a file a check creates is committed unless `.gitignore` covers it.
 - Tests: [`tests/work/domain/test_labels.py`](../../tests/work/domain/test_labels.py), [`tests/pipeline/application/test_stage_finish.py`](../../tests/pipeline/application/test_stage_finish.py), [`tests/pipeline/application/test_stage_run.py`](../../tests/pipeline/application/test_stage_run.py). The checks and reports are real `make` targets from a `Makefile` the tests push to `main`; the agent is `FakeAgentRuntime`, the hosting service its fake.
 
 See also: *The take's rule* and *The tick*.
 
 ## The take's rule
 
-After a run, the factory copies from the dataset into the work tree only what the role may write. `TakeService` in [take.py](../../src/factory/pipeline/application/take.py) (`factory.pipeline.application.take`) applies the rule; its steps are in machine.md, *The take*.
+After a run, the factory copies from the dataset into the work tree only what the role may write. `TakeService` in [take.py](../../src/factory/pipeline/application/take.py) applies the rule; its steps are in machine.md, *The take*.
 
     TakeService(boundaries, mount_point).take(stage_start, work_item_path, changed_paths) -> TakeReport
     is_refused(path, settings, work_item_path) -> bool
@@ -428,18 +428,18 @@ After a run, the factory copies from the dataset into the work tree only what th
 
 The rule is read at the stage-start commit, and applied to the paths the dataset changed. `is_refused` judges both cases below. A candidate is refused, and so left out and named in `TakeReport.left`, in two cases:
 
-- `refusal(path, settings)` ([`factory.agents.domain.write_paths`](../../src/factory/agents/domain/write_paths.py)) is not `None`: the path is outside the write paths of the stage or is protected (see [agents.md](agents.md) for the write paths). The settings come from `WritePathService.at`, that is from the pipeline definition at the stage-start commit. An agent that rewrites `factory/pipeline.yml` to widen its role widens nothing. An invalid rewrite does not make the take raise, and the work tree keeps its pipeline definition.
-- The path lies directly in an `in-progress` folder of a feature (`factory/features/<feature>/in-progress/<file>`) and is not the stage's own work item. This leaves out every other work item in progress, every cost-record file (`.costs.jsonl`), the stage's own included, and any other file there, whatever the write paths say. Nested files (`in-progress/sub/x`), other lifecycle folders and an `in-progress` folder outside `factory/features/` follow the write paths.
+- `refusal(path, settings)` ([`factory.agents.domain.write_paths`](../../src/factory/agents/domain/write_paths.py)) is not `None`. The path is then outside the write paths of the stage, or it is protected. [agents.md](agents.md) describes the write paths. The settings come from `WritePathService.at`, which reads the pipeline definition at the stage-start commit. An agent that rewrites `factory/pipeline.yml` to widen its role widens nothing. An invalid rewrite does not make the take raise, and the work tree keeps its pipeline definition.
+- The path lies directly in an `in-progress` folder of a feature (`factory/features/<feature>/in-progress/<file>`) and is not the stage's own work item. This leaves out every other work item in progress. It leaves out every cost-record file, the stage's own included, and any other file there, whatever the write paths say. A cost-record file is a `.costs.jsonl`. Nested files (`in-progress/sub/x`), other lifecycle folders and an `in-progress` folder outside `factory/features/` follow the write paths.
 
 A left-out path is never written to the work tree, so there is nothing to revert. The entry names the paths (`The factory left out changes outside the write paths: <paths>.`, see *After the agent run*).
 
 ### The work item
 
 - The stage's own work item is handled separately. Its state and journal are restored from the stage-start commit with `restore_state_and_journal`; the agent's edits to its sections stay. `TakeReport.restored_work_item` is true when that changed the file.
-- If the agent deleted the file or left front matter that cannot be read, the file is checked out whole from the stage-start commit with `Git.revert_paths`. Then `restored_work_item` is true, and the file is not in `left`.
-- A work item the role may not write at all is refused like any path: it is in `left`, the work tree keeps its copy, and `restored_work_item` is false.
+- If the agent deleted the file, or left front matter that cannot be read, the file is restored from the stage-start commit with `Git.revert_paths`. Then `restored_work_item` is true. The file is not in `left`.
+- A work item the role may not write at all is refused like any path. It is in `left`, the work tree keeps its copy, and `restored_work_item` is false.
 - The baseline is read first. When the stage-start commit does not hold the work item, or holds it unreadable, `take` raises `WorkItemFormatError` naming the path before it changes anything.
-- The work item's `.costs.jsonl` is refused by the in-progress rule, so the take never brings the agent's copy; the factory rewrites it from memory after the take ([watching.md](watching.md)).
+- The work item's `.costs.jsonl` is refused by the in-progress rule, so the take never brings the agent's copy. The factory rewrites it from memory after the take, as [watching.md](watching.md) describes.
 
 ### Limits
 
@@ -453,7 +453,7 @@ See also: *After the agent run*.
 
 ## The tick
 
-One pass of the factory looks at the remote, finds at most one event and lets a handler answer it. `Tick` in [tick.py](../../src/factory/pipeline/application/tick.py) (`factory.pipeline.application.tick`) is that pass.
+One pass of the factory looks at the remote, finds at most one event and lets a handler answer it. `Tick` in [tick.py](../../src/factory/pipeline/application/tick.py) is that pass.
 
     Tick(boundaries, instance, handlers, status=None, preflight=None).run(*, fetched=False) -> TickOutcome
     delete_stale_branches(boundaries) -> list[str]
@@ -463,7 +463,7 @@ The order is: disk check, fetch, load, restore, publish the stop records, prefli
 
 0. **Disk check** (`Tick._check_disk`), before the fetch. It reads `disk.free_bytes` of `settings.checkout.parent`, then of `settings.state_directory`. An `OSError` raises the machine stop `disk_low` at once, with the detail `cannot read the free space of <path>: <error>`. No later path is read, and the tick ends with `TickOutcome(stopped="disk_low")`. Otherwise `disk_low_detail(free, settings.min_free_gb)` ([`factory.machine.domain.disk`](../../src/factory/machine/domain/disk.py)) gives the detail of a stop, raised the same way, or `None`. With `None` the step calls `clear_stop("disk_low")`. `Tick._stop` takes a `scope`, `machine` here.
 1. **Fetch** (`Git.fetch`). `FetchFailed` raises the repository stop `fetch_failed` (detail: the error's text) and ends the tick; success clears it. With `run(fetched=True)` the tick skips this step, its raise and its clear of `fetch_failed`. The caller fetched just before and owns the stop. `factory-run` fetches once in an iteration (`_ProjectImageStart._follow_main`) and builds its tick with `fetched=True`. Every other caller (`fetched=False`, the default) fetches here.
-2. **Load** the pipeline definition with `PipelineLoader` from `origin/main`. `PipelineDefinitionInvalid` ends the tick with `TickOutcome(stopped="pipeline_definition_invalid")`, and `AgentDefinitionInvalid` with `stopped="agent_definition_invalid"`; the loader raised the stop and clears it on a later success, the tick does neither.
+2. **Load** the pipeline definition with `PipelineLoader` from `origin/main`. `PipelineDefinitionInvalid` ends the tick with `TickOutcome(stopped="pipeline_definition_invalid")`, and `AgentDefinitionInvalid` with `stopped="agent_definition_invalid"`. The loader raised the stop and clears it on a later success. The tick does neither.
 3. **Restore** the checkout: one line `discarded uncommitted changes: <path>, <path>` when there are changes, with the paths in the order of `Git.status()`. Then `reset_to("HEAD")`, `checkout("main", start_point="origin/main")`, and `delete_branch` for every `work-item/<id>` of an id that has `origin/work-item/<id>` or a story in `in-progress/` on `origin/main`. Other local branches stay. The restore removes no ignored path, and `status()` lists none. A `GitError` here raises the stop `checkout_restore_failed` and ends the tick; success clears it.
 4. **Publish the stop records** (`Tick._publish_stop_records`): `StopPublisher(boundaries).publish()` (see *The stop records*). A `GitError`, `PushFailed` or `OSError` writes `cannot publish the stop records: <error>` to the log and the tick goes on. It stands after the restore because the restore logs what a killed stage left behind (`discarded uncommitted changes: ...`) before the publisher's checkout could discard it. It stands before the preflight so that a stop raised by an earlier tick reaches `main` even when this tick's preflight stops. A tick that ends earlier (`disk_low`, `fetch_failed`, `pipeline_definition_invalid`, `agent_definition_invalid`, `checkout_restore_failed`) publishes nothing.
 5. **Preflight**, when a `Preflight` is given (`preflight=None` skips the step): `preflight.run()` raises and clears its own stops. A reason it returns ends the tick with `TickOutcome(stopped=<reason>)`, before the cleanup. See *The preflight in the tick*.
@@ -474,14 +474,14 @@ The order is: disk check, fetch, load, restore, publish the stop records, prefli
 - `run` returns `TickOutcome(stopped=..., event=..., dispatch=...)`: `stopped` is set and the others are `None` when the tick ended at a stop.
 - `WorkItemFormatError`, `ValueError` from the evaluation and a `GitError` outside the fetch and the restore are not caught; no stop exists for them. The tick keeps no local record of a run and no lock. `IdleHandler` does nothing and is the handler of `idle`.
 - Because the checkout is rebuilt every tick and no local state is read, a rejected push leaves no trace: the next tick judges the remote. The dispatcher's count of errors per event and remote state is the only memory, and it is in the `TickStatus`. A push to the work item's branch changes the remote state and so retries a capped event.
-- Every handler error, a `GitError` included, is counted as above, and each counted error writes one log line, `handler_error_line` of [`factory.pipeline.domain.tick_status`](../../src/factory/pipeline/domain/tick_status.py) (see stops.md, *An event that keeps failing*).
+- Every handler error, a `GitError` included, is counted as above. Each counted error writes one log line, which `handler_error_line` of [`factory.pipeline.domain.tick_status`](../../src/factory/pipeline/domain/tick_status.py) builds. The operator guide's stops page describes it under *An event that keeps failing*.
 - `HandlerFactory` is the type of the function the tick takes; the production factory is `handler_factory` (see *The handlers of the events*).
 
 ### The stale branch
 
-`delete_stale_branches(boundaries) -> list[str]` in [recovery.py](../../src/factory/pipeline/application/recovery.py) (`factory.pipeline.application.recovery`) deletes the remote branches that a kill or a refused deletion left behind for a story that is already in `backlog/` or `done/`.
+`delete_stale_branches(boundaries) -> list[str]` in [recovery.py](../../src/factory/pipeline/application/recovery.py) deletes remote branches. These are branches that a kill or a refused deletion left behind. Each belongs to a story that is already in `backlog/` or `done/`.
 
-- It lists the stories of `origin/main` with `RemoteWorkItems.list_stories` for `backlog`, `done` and `in-progress`. The stale ids are those of the first two that no `in-progress` story file shares (a shared id is the `duplicate` case, which the evaluation reports).
+- It lists the stories of `origin/main` with `RemoteWorkItems.list_stories` for `backlog`, `done` and `in-progress`. The stale ids are those of the first two that no `in-progress` story file shares. A shared id is the `duplicate` case, which the evaluation reports.
 - For each branch of `Git.remote_branches()` whose `work_item_of_branch` is a stale id, in the order of the names, it calls `Git.delete_remote_branch`.
 - Outcome `"pushed"` writes `deleted stale branch <name>: its story is back in the backlog` and adds the name to the result. The text is `its story is done` for `done/`, also for an id with story files in both `backlog/` and `done/`. Any other outcome writes `could not delete stale branch <name>: <outcome>` and goes on, to be tried on the next tick.
 - It reads only `origin/main` and the remote-tracking branches, makes no hosting call, and does not catch `GitError`. Because of it, a story started again after a discard that was killed starts with an empty bill.
@@ -508,7 +508,7 @@ See also: *The handlers of the events* and *Boundaries*.
 
 ## The handlers of the events
 
-A handler answers one kind of event. Every kind has one, and a handler that cannot do its work raises instead of returning quietly. `build_handlers` in [wiring.py](../../src/factory/entry/wiring.py) (`factory.entry.wiring`) is the one place that registers a handler; production code never builds a `Dispatcher` from a hand-written mapping.
+A handler answers one kind of event. Every kind has one, and a handler that cannot do its work raises instead of returning quietly. `build_handlers` in [wiring.py](../../src/factory/entry/wiring.py) is the one place that registers a handler; production code never builds a `Dispatcher` from a hand-written mapping.
 
     build_handlers(boundaries, definition, instance, environment) -> Mapping[EventKind, Handler]
     handler_factory(boundaries, instance, environment) -> HandlerFactory
@@ -533,7 +533,7 @@ A handler answers one kind of event. Every kind has one, and a handler that cann
 
 - The `closed` and `merged` splits are built once and shared. The instances registered for `closed` and `merged` are the very ones the `RunGate` holds. So an acceptance whose pull request was closed or merged while its stage was due never reaches the story's handlers.
 - With no `acceptance_stage` in the pipeline definition every handler still constructs; the acceptance handlers refuse the events they are given with `CannotHandle(kind, "no acceptance stage")`.
-- `handler_factory` returns the `HandlerFactory` the tick takes: a function of the loaded definition that calls `build_handlers`, so the handlers always hold the definition the tick has just loaded. `factory-run` builds the `Tick` with it.
+- `handler_factory` returns the `HandlerFactory` the tick takes. It is a function of the loaded definition that calls `build_handlers`, so the handlers always hold the definition the tick has just loaded. `factory-run` builds the `Tick` with it.
 - A new kind adds its handler in `build_handlers`; `test_every_kind_has_a_handler_and_acceptance_due_opens_the_acceptance` fails until it does. The dispatcher counts an event of a kind without a handler as an error (`UnhandledEvent: no handler for event kind <kind>`), never silence.
 
 ### A crash is discarded and the stage is rerun
@@ -547,7 +547,7 @@ A handler answers one kind of event. Every kind has one, and a handler that cann
    - a claim whose status is not the one the kind needs. `required_claim_status(kind)` in [`factory.pipeline.domain.evaluation`](../../src/factory/pipeline/domain/evaluation.py) is the inverse of `CLAIM_EVENTS`: `own` for `crash`, `expired` for `expired`. Any other kind raises `CannotHandle` with the event's kind.
 
    A crash is charged only to a claim this instance holds; another instance's claim is its lease's business.
-2. Discard: `WorkItemRecorder.check_out(branch)` resets the checkout to `HEAD`, then puts the local branch at `origin/<branch>`. Uncommitted and untracked files are gone. So are local commits that were never pushed, and the dead stage's cost records, which live in the work tree until the stage's result is pushed. The head it went back to is normally the stage-start commit. A commit the human pushed to the branch meanwhile is on the remote and stays.
+2. Discard: `WorkItemRecorder.check_out(branch)` resets the checkout to `HEAD`, then puts the local branch at `origin/<branch>`. Uncommitted and untracked files are gone. So are local commits that were never pushed. So are the dead stage's cost records, which live in the work tree until the stage's result is pushed. The head it went back to is normally the stage-start commit. A commit the human pushed to the branch meanwhile is on the remote and stays.
 3. Record: `crashed(state)` ([`factory.pipeline.domain.recovery`](../../src/factory/pipeline/domain/recovery.py)) raises `crashes` by one and nothing else. `ClaimService.release` clears the claim. One journal entry of speaker `factory` and kind `crash` is appended, with the text of `crash_entry_text(stage, crashes, head)`. `attempts` is not touched, because a crash is not a stall. For `expired` the entry has kind `expiry` and the text of `expiry_entry_text(stage, crashes, head)`. The state change is the same.
 4. Push: `WorkItemRecorder.record` writes the work item, makes one commit on top of the remote's head and pushes it. The subject is `work item <id>: crash of stage <stage> recorded` for a `crash` and `work item <id>: expiry of stage <stage> recorded` for an `expired`, where `<stage>` is the stage the work item was in. Any outcome but `pushed` raises `PushFailed`.
    4b. Note (`expired` only): after the push, `StopService.post` puts `expiry_note(crashes, definition.crash_cap)` on the pull request with the key `<id>:expiry:<the expiry entry's number>`. A draft is opened when there is none. Its number is then committed and pushed as `ask_crash_cap` does. A `HostingServiceError` propagates and the note is not posted again. A `crash` posts nothing.
@@ -570,7 +570,7 @@ A handler answers one kind of event. Every kind has one, and a handler that cann
 
 ### The pull request is read before every agent run
 
-A stage can be due for a work item whose pull request the human has meanwhile closed or merged. The human's act comes first. `RunGate(boundaries, run, closed, merged)` in [run_gate.py](../../src/factory/pipeline/application/handlers/run_gate.py) (`factory.pipeline.application.handlers.run_gate`) is the registered `run` handler and looks before the agent is started.
+A stage can be due for a work item whose pull request the human has meanwhile closed or merged. The human's act comes first. `RunGate(boundaries, run, closed, merged)` in [run_gate.py](../../src/factory/pipeline/application/handlers/run_gate.py) is the registered `run` handler and looks before the agent is started.
 
 - With no pull request in the work item's state (`target_of(event).pull_request` is `None`) it calls `run.handle(event)` unchanged and reads nothing.
 - Otherwise it calls `HostingService.get_pull_request` once, before any handler. It passes on the event copied with `pull_request` set to the view read.
@@ -583,7 +583,7 @@ A stage can be due for a work item whose pull request the human has meanwhile cl
 
 ### Running a stage
 
-- `RunHandler(boundaries, instance, definition, environment)` in [run.py](../../src/factory/pipeline/application/handlers/run.py) (`factory.pipeline.application.handlers.run`) turns a `run` event into one stage. It builds `StageRunner(boundaries, instance, definition, environment)` and calls `run(work_item.id, work_item.path)`.
+- `RunHandler(boundaries, instance, definition, environment)` in [run.py](../../src/factory/pipeline/application/handlers/run.py) turns a `run` event into one stage. It builds `StageRunner(boundaries, instance, definition, environment)` and calls `run(work_item.id, work_item.path)`.
 - Any other kind is a `ValueError`.
 - The `StageReport` is dropped, because a stall is already recorded by the stage.
 - Whatever `StageRunner.run` raises (a `HostingServiceError`, for example) propagates and is a counted error of the dispatcher.
@@ -591,7 +591,7 @@ A stage can be due for a work item whose pull request the human has meanwhile cl
 
 ### Asking the human
 
-`AskHandler(boundaries, definition)` in [questions.py](../../src/factory/pipeline/application/handlers/questions.py) (`factory.pipeline.application.handlers.questions`) handles `ask`. A question is recorded before it is posted, and every post carries `PostKey(work_item, <the blocked value>, str(<the question record's number>))`. The handler never checks whether it already posted: `HostingService.post_comment` treats a key the pull request holds as a no-op, so a repeat or a restart posts nothing twice.
+`AskHandler(boundaries, definition)` in [questions.py](../../src/factory/pipeline/application/handlers/questions.py) handles `ask`. A question is recorded before it is posted, and every post carries `PostKey(work_item, <the blocked value>, str(<the question record's number>))`. The handler never checks whether it already posted: `HostingService.post_comment` treats a key the pull request holds as a no-op, so a repeat or a restart posts nothing twice.
 
 - `handle` takes `target_of(event)` and `require_pull_request(target, "ask")` (no pull request: `CannotHandle`).
 - `blocked` set: the question is the latest `question` record (`last_record`), whatever records follow it. The human's comments are recorded after a question that waits to be posted. The text is `<speaker>: <entry_text>`. No commit is made. A `blocked` value with no `question` record is `CannotHandle`. This covers the agent's question, `round_cap`, `send_back` and `crash_cap`, which other code records.
@@ -603,12 +603,12 @@ A stage can be due for a work item whose pull request the human has meanwhile cl
 
 ### Recording the human's act
 
-A handler that answers an act of the human on a pull request first records the act in the work item's branch and pushes it. Only then does it post, reopen or check out anything else. If the factory dies after the push, the act is already in the journal, and the next tick does not repeat it. [recording.py](../../src/factory/pipeline/application/handlers/recording.py) (`factory.pipeline.application.handlers.recording`) holds what the handlers share:
+A handler that answers an act of the human on a pull request first records the act in the work item's branch and pushes it. Only then does it post, reopen or check out anything else. If the factory dies after the push, the act is already in the journal. The next tick does not repeat it. [recording.py](../../src/factory/pipeline/application/handlers/recording.py) holds what the handlers share:
 
 - `target_of(event)` returns `Target(snapshot, state, pull_request)` for the event's work item. It raises `CannotHandle` of the event's kind in two cases. An event with no work item gives `the event names no work item`. A work item whose document has no state gives `work item <id> has no state`. `require_pull_request(target, kind)` returns the pull request number. Without one it raises `CannotHandle` of `kind` with `work item <id> has no pull request`.
-- `commit_subject(work_item, text)` gives `work item <id>: <text>`. Every commit the factory makes on a work item's branch begins `work item <id>: `: a stage's start, its end, a stall, an acceptance's opening and the handlers' records. The one exception is the merge of `origin/main` into a reopened branch, which keeps git's own subject. A project's `make mutants` reads the prefix to find the modules a feature changed.
+- `commit_subject(work_item, text)` gives `work item <id>: <text>`. Every commit the factory makes on a work item's branch begins `work item <id>: `. That covers a stage's start, its end, a stall, an acceptance's opening and the handlers' records. The one exception is the merge of `origin/main` into a reopened branch, which keeps git's own subject. A project's `make mutants` reads the prefix to find the modules a feature changed.
 - `WorkItemRecorder(boundaries)` does the git work:
-  - `check_out(branch)` resets to `HEAD`, switches to the branch at `origin/<branch>` and resets to it, so whatever a killed handler left (uncommitted changes, untracked files, an unpushed commit) is gone. It does not fetch: the caller must have fetched, as the tick does.
+  - `check_out(branch)` resets to `HEAD`, switches to the branch at `origin/<branch>` and resets to it. Whatever a killed handler left is gone: uncommitted changes, untracked files and an unpushed commit. It does not fetch: the caller must have fetched, as the tick does.
   - `read` and `write` use the work item reader and writer on a path in the checkout.
   - `publish(branch, subject)` commits and pushes through `push_with_retries` (see *`StageFinisher.finish(aftermath)`*), and raises `PushFailed` with git's reason for any outcome but `pushed`.
   - `delete_branch(branch)` calls `Git.delete_remote_branch` (a branch already gone counts as `"pushed"`; any other outcome raises `PushFailed(branch, outcome)`) and then `Git.delete_branch`; the merged and closed handlers share it.
@@ -616,7 +616,7 @@ A handler that answers an act of the human on a pull request first records the a
 
 ### The merge archives the story
 
-`MergedHandler(boundaries)` in [merged.py](../../src/factory/pipeline/application/handlers/merged.py) (`factory.pipeline.application.handlers.merged`) handles `merged`; it is registered for `merged` and is also the merged handler of the run gate. It does what [the operator guide on work items](../operator-guide/work-items.md) says under *A merge archives the story*, in this order:
+`MergedHandler(boundaries)` in [merged.py](../../src/factory/pipeline/application/handlers/merged.py) handles `merged`; it is registered for `merged` and is also the merged handler of the run gate. It does what [the operator guide on work items](../operator-guide/work-items.md) says under *A merge archives the story*, in this order:
 
 1. `target_of(event)`, then `WorkItemRecorder.check_out(MAIN_BRANCH)`: it works on the remote's main, not on the work item's branch.
 2. It reads the story at `snapshot.path` and appends `NewEntry(FACTORY, "done", done_entry_text(bill(records)))`. The records are `cost_reader.read(cost_records_path(path))`; a missing file gives none. `done_entry_text(bill)` is in `factory.hosting.domain.post_texts`: `done (pull request merged); cost: ` and `cost_line(bill)`.
@@ -631,9 +631,9 @@ A handler that answers an act of the human on a pull request first records the a
 
 ### A close before the approval discards the story
 
-`ClosedHandler(boundaries, definition)` in [closed.py](../../src/factory/pipeline/application/handlers/closed.py) (`factory.pipeline.application.handlers.closed`) handles `closed`; it is registered for `closed` and is also the closed handler of the run gate. It does what the operator guide on work items says under *A close before the approval discards the story*:
+`ClosedHandler(boundaries, definition)` in [closed.py](../../src/factory/pipeline/application/handlers/closed.py) handles `closed`; it is registered for `closed` and is also the closed handler of the run gate. It does what the operator guide on work items says under *A close before the approval discards the story*:
 
-1. `target_of(event)`. When `definition.stages[stage].approval` is true the handler sends the story back instead (see *A close at the approval sends the story back*) and does not discard it.
+1. `target_of(event)`. When `definition.stages[stage].approval` is true, the handler sends the story back. It does not discard it. *A close at the approval sends the story back* describes that.
 2. `WorkItemRecorder.check_out(MAIN_BRANCH)`, then `Git.move` of the story to `destination_path(path, "backlog")`. The file is moved and not rewritten, so its text is main's, the human's.
 3. `publish(MAIN_BRANCH, commit_subject(id, "closed before the approval, back in the backlog"))`; a push that is not `pushed` raises `PushFailed` and the branch is kept.
 4. Only then `WorkItemRecorder.delete_branch(branch)`. The branch's cost records go with it, so a later start has an empty bill.
@@ -643,14 +643,14 @@ A handler that answers an act of the human on a pull request first records the a
 
 ### A close at the approval sends the story back
 
-`ClosedHandler._send_back(target)` handles a `closed` event at a stage whose `approval` is true. The operator guide on work items says what the operator sees under *A close at the approval sends the story back*. The rules are pure functions in [send_back.py](../../src/factory/work/domain/send_back.py) (`factory.work.domain.send_back`):
+`ClosedHandler._send_back(target)` handles a `closed` event at a stage whose `approval` is true. The operator guide on work items says what the operator sees under *A close at the approval sends the story back*. The rules are pure functions in [send_back.py](../../src/factory/work/domain/send_back.py):
 
 - `send_back_target(definition, approval)` is `next[1]` of the approval, or `None` when `next` has fewer than two stages. `None` is `CannotHandle("closed", ...)` before anything is written.
 - `send_back_cap(definition, approval)` is the `round_cap` of the first stage whose `next[0]` is the approval and that has a cap, or `None`.
 - `recorded_since_latest_result(document, kind)` is true when a record of `kind` is numbered after the latest `result` record (any record of the kind, when there is no result). `reason_given(document)` is that test for `comment`.
-- The reason is judged from records, never from text (see [work.md](work.md) on the journal): the human gave a reason when a `comment` record follows the latest `result`.
+- The reason is judged from records, never from text. [work.md](work.md) describes the journal. The human gave a reason when a `comment` record follows the latest `result`.
 
-The order is fixed, and each step that changes the work item is pushed on its own, so a kill leaves a state the next attempt finishes:
+The order is fixed. Each step that changes the work item is pushed on its own, so a kill leaves a state the next attempt finishes:
 
 1. Record the close, on the branch. `CommentCopier.unread` and `append` copy the unread comments. A `human` entry of kind `close` is added unless `recorded_since_latest_result(document, "close")` already holds. `handed_over` is cleared. The commit subject is `close recorded`. Nothing is committed when the document is unchanged.
 2. `HostingService.reopen`, then `set_draft(number, True)`.
@@ -662,7 +662,7 @@ The order is fixed, and each step that changes the work item is pushed on its ow
 
 ### A comment can end a wait
 
-`CommentHandler(boundaries)` in [comments.py](../../src/factory/pipeline/application/handlers/comments.py) (`factory.pipeline.application.handlers.comments`) handles `comment`. It takes `target_of(event)` and `require_pull_request(target, "comment")`, then copies with `CommentCopier.copy`:
+`CommentHandler(boundaries)` in [comments.py](../../src/factory/pipeline/application/handlers/comments.py) handles `comment`. It takes `target_of(event)` and `require_pull_request(target, "comment")`, then copies with `CommentCopier.copy`:
 
 - `blocked` unset: the comments are only copied.
 - `blocked` set: `copy` gets an `adjust` function, so the answer lands in the same commit as the copied comments. `adjust` finds the factory's post of the wait, the comment listed with `by_factory` and the key `PostKey(work_item, <the blocked value>, str(<number of the latest question record>))`. It applies `unblock` when a comment of this copy has a non-blank body and an id greater than the post's. With no such post (not posted yet, or only an earlier question's) or no such comment, the document is unchanged and the wait stays.
@@ -682,7 +682,7 @@ The order is fixed, and each step that changes the work item is pushed on its ow
 
 ### The hand-over at the approval
 
-`HandOverHandler(boundaries, definition)` in [hand_over.py](../../src/factory/pipeline/application/handlers/hand_over.py) (`factory.pipeline.application.handlers.hand_over`) handles `hand_over`. It takes `target_of(event)` and `require_pull_request`, checks out the branch and reads the work item. A stage that is not an approval is `CannotHandle("hand_over", ...)`. A work item whose `handed_over` already equals its stage returns at once. Otherwise, in this order:
+`HandOverHandler(boundaries, definition)` in [hand_over.py](../../src/factory/pipeline/application/handlers/hand_over.py) handles `hand_over`. It takes `target_of(event)` and `require_pull_request`, checks out the branch and reads the work item. A stage that is not an approval is `CannotHandle("hand_over", ...)`. A work item whose `handed_over` already equals its stage returns at once. Otherwise, in this order:
 
 1. `HostingService.set_description` with `hand_over_description(document, commits)` ([hand_over.py](../../src/factory/hosting/domain/hand_over.py), `factory.hosting.domain.hand_over`). The description holds these parts:
    - The sections Description and Acceptance criteria, from `section_text` of the body.
@@ -695,13 +695,13 @@ The order is fixed, and each step that changes the work item is pushed on its ow
 3. `post_comment` of `cost_table_post(cost_table(bills_by_stage(records)))`, read from the cost records file on the branch, with the key `PostKey(work_item, "cost_table", str(<number of the latest result record>))`, or `"0"` with no result.
 4. Record `handed_over = <stage>` with the subject `handed over at <stage>`.
 
-- The description is already in place when the hand-over runs: the stage that reached the approval wrote it between its result commit and its push (see `StageFinisher.finish`). Step 1 writes it again with the same text, since it reads the same document and commits. The hand-over stays the place that marks the pull request ready, posts the cost table and records `handed_over`. If the stage's own write failed, step 1 is the first write.
+- The description is already in place when the hand-over runs. The stage that reached the approval wrote it between its result commit and its push, as `StageFinisher.finish` shows. Step 1 writes it again with the same text, since it reads the same document and commits. The hand-over stays the place that marks the pull request ready, posts the cost table and records `handed_over`. If the stage's own write failed, step 1 is the first write.
 - The first three effects are safe to repeat, so a failure or a kill anywhere before the record is retried whole; the record comes last.
 - Tests: [`tests/pipeline/application/handlers/test_hand_over.py`](../../tests/pipeline/application/handlers/test_hand_over.py), [`tests/work/domain/test_hand_over.py`](../../tests/work/domain/test_hand_over.py).
 
 ### An illegal stage change is put back
 
-`RejectHandler(boundaries)` in [reject.py](../../src/factory/pipeline/application/handlers/reject.py) (`factory.pipeline.application.handlers.reject`) handles `reject`; it is registered for `reject`. It puts the stage back with a commit whose subject contains `moved back` (`MOVED_BACK_MARKER`, `factory.hosting.domain.post_texts`), and the journal gains a `move_back` entry. That entry is what exempts the correction from the move rule: the next evaluation sees a `StageChange` with `correction` true and does not reject it. The operator guide on work items says what the operator sees.
+`RejectHandler(boundaries)` in [reject.py](../../src/factory/pipeline/application/handlers/reject.py) handles `reject`; it is registered for `reject`. It puts the stage back with a commit whose subject contains `moved back` (`MOVED_BACK_MARKER`, `factory.hosting.domain.post_texts`), and the journal gains a `move_back` entry. That entry is what exempts the correction from the move rule: the next evaluation sees a `StageChange` with `correction` true and does not reject it. The operator guide on work items says what the operator sees.
 
 1. `target_of(event)`, then `WorkItemRecorder.check_out(snapshot.branch)`.
 2. The change is taken from the same source as the watcher's: `RemoteWorkItems(git, work_item_reader).last_stage_change(snapshot)`, the newest commit beyond `origin/main` that touched the work item's file, whatever later commits touched other files. `None` and a change that is itself a correction raise `CannotHandle("reject", ...)` before anything is posted or written. `None` means no change, a merge commit, or a parent without the file or with an unreadable one.
@@ -730,7 +730,7 @@ A stop is a fact about the factory that the operator must see: a standing condit
     StopService.post(stop: WorkItemStop) -> StopPosted
     StopPublisher(boundaries).publish() -> list[StopRecord]
 
-- [`factory.pipeline.domain.stops`](../../src/factory/pipeline/domain/stops.py) holds `RepositoryStop` (scope, reason, detail, `at`) and `HealthStatus` (`stops`, `healthy`). Both are frozen and refuse unknown fields.
+- [`factory.pipeline.domain.stops`](../../src/factory/pipeline/domain/stops.py) holds `RepositoryStop` and `HealthStatus`. A `RepositoryStop` has a scope, a reason, a detail and `at`. A `HealthStatus` has `stops` and `healthy`. Both are frozen and refuse unknown fields.
 - The rules are a blank detail, a scope against reason, a naive `at` and one stop per reason. They are in the formats of health.md (*The factory log and the health status file*) and are `ValidationError`s.
 - `at` is typed `UtcDatetime` and so is converted to UTC.
 
@@ -738,7 +738,7 @@ A stop is a fact about the factory that the operator must see: a standing condit
 
 The pipeline writes through four small interfaces: a clock, a factory log, a health status store and a disk-space reader. They are abstract, so tests replace them.
 
-`factory.watching.application.machine` holds the abstract `Clock` (`now()`, aware and UTC), `FactoryLog` (`line(text)`), `HealthStatusStore` (`read()`, `write(status)`) and `DiskSpace` (`free_bytes(path)`, `used_bytes(path)`).
+`factory.watching.application.machine` holds four abstract classes. `Clock` has `now()`, aware and UTC. `FactoryLog` has `line(text)`. `HealthStatusStore` has `read()` and `write(status)`. `DiskSpace` has `free_bytes(path)` and `used_bytes(path)`.
 
 - Their first implementations are `SystemClock` and `ManualClock(start)` in `factory.shared.adapters.clock`. `ManualClock` is for tests, has `advance(by)` and refuses a naive start with a `ValueError`. The others are `TimestampedFactoryLog(path, clock)` in [`factory.watching.adapters.factory_log`](../../src/factory/watching/adapters/factory_log.py), `JsonHealthStatusFile(path)` in [`factory.watching.adapters.health_file`](../../src/factory/watching/adapters/health_file.py) and `ShutilDiskSpace()` in [`factory.machine.adapters.disk_space`](../../src/factory/machine/adapters/disk_space.py).
 - `free_bytes` is `shutil.disk_usage(path).free`. `used_bytes` sums the regular files under a path without following links, and is 0 for a missing path. `Boundaries.disk` is `ShutilDiskSpace()` from `build_boundaries`.
@@ -754,7 +754,7 @@ Two console scripts sit on the stop records. `factory-health` tells a container'
 
 ### `StopService`
 
-`StopService(boundaries)` in [stops.py](../../src/factory/pipeline/application/stops.py) (`factory.pipeline.application.stops`) raises and clears the stops of the repository or the machine. Those never reach a pull request. `post(stop)` is the other kind. It puts a `WorkItemStop` on the work item's pull request and returns `StopPosted(pull_request, opened, outcome)`. The stop has `key`, `branch`, `title`, `pull_request` (or `None`) and `text`. `branch` equals `branch_name(key.work_item)`, and `branch`, `title` and `text` are not blank. See stops.md, *The stops of one work item*, and the decision log for the rules.
+`StopService(boundaries)` in [stops.py](../../src/factory/pipeline/application/stops.py) raises and clears the stops of the repository or the machine. Those never reach a pull request. `post(stop)` is the other kind. It puts a `WorkItemStop` on the work item's pull request and returns `StopPosted(pull_request, opened, outcome)`. The stop has `key`, `branch`, `title`, `pull_request` (or `None`) and `text`. `branch` equals `branch_name(key.work_item)`, and `branch`, `title` and `text` are not blank. See stops.md, *The stops of one work item*, and the decision log for the rules.
 
 - `raise_stop(stop)` writes the line `stop <scope> <reason>: <detail>` through `boundaries.log`. Then it writes the health status with the stop in it. A known reason is replaced where it stood, and a new one is appended. Each write is tried even if the other fails. The first `OSError` is raised afterwards, the log's when both fail.
 - `clear_stop(reason)` does nothing when the status holds no stop of that reason; otherwise it writes the status without it first and then the line `stop cleared <reason>`. So a failed health write leaves the stop in force and says nothing.
@@ -769,7 +769,7 @@ Every stop that is raised or cleared leaves a record, and the factory publishes 
 - `Boundaries.stop_records` is where `StopService` appends. It is a `RecordLog[StopRecord]`, and `build_boundaries` sets a `JsonLinesRecordLog` at `<state directory>/records/stops.jsonl`. `raise_stop` appends a `raised` record when the health status it read held no stop of that reason. It appends none when the status cannot be read, so the records stay paired with the status. `clear_stop` appends a `cleared` record with the standing stop's scope. Each append is tried after the log line and the status like the other two. Its `OSError` is raised last.
 - `StopPublisher(boundaries).publish()` pushes the local records that `origin/main`'s `STOP_RECORDS_FILE` ([`factory/stops.jsonl`](../../factory/stops.jsonl)) does not hold, compared as whole records, and returns them. It reads the file with `git.show_file`; a missing file is empty. With nothing to add it returns `[]` without a git operation. Otherwise it stands on `main` through `WorkItemRecorder.check_out`. It appends the missing records once each, in local order. It adds a newline when the file does not end in one, and lines that do not validate stay. It commits and pushes through `WorkItemRecorder.publish(MAIN_BRANCH, "stops recorded")`. It raises `GitError`, `PushFailed` or `OSError`; the local records stay, so the next call pushes them.
 - Tests: [`tests/pipeline/domain/test_stop_records.py`](../../tests/pipeline/domain/test_stop_records.py), [`tests/pipeline/application/test_stop_records_service.py`](../../tests/pipeline/application/test_stop_records_service.py), [`tests/pipeline/application/test_stop_publisher.py`](../../tests/pipeline/application/test_stop_publisher.py), [`tests/pipeline/application/test_tick_stop_records.py`](../../tests/pipeline/application/test_tick_stop_records.py), [`tests/entry/test_wiring_stop_records.py`](../../tests/entry/test_wiring_stop_records.py).
-- `STOP_TABLE` is in [`factory.pipeline.domain.stop_table`](../../src/factory/pipeline/domain/stop_table.py). It is a tuple of `StopRow`s, one per stop. Each row has its limits (`limits`), its `destination` (`health_status`, `pull_request` or `none`), its `reason` and the `test` that proves it. A row has a `reason` exactly when its destination is the health status. Each limit is the whole text `L` followed by ASCII digits, with nothing after it. `L7` is accepted. `L7x`, `L7 ` and `L7` followed by a newline are not, and neither is a digit outside ASCII. A refused row is a `pydantic.ValidationError`.
+- `STOP_TABLE` is in [`factory.pipeline.domain.stop_table`](../../src/factory/pipeline/domain/stop_table.py). It is a tuple of `StopRow`s, one per stop. Each row has its `limits`, its `reason` and the `test` that proves it. Its `destination` is `health_status`, `pull_request` or `none`. A row has a `reason` exactly when its destination is the health status. Each limit is the whole text `L` followed by ASCII digits, with nothing after it. `L7` is accepted. `L7x`, `L7 ` and `L7` followed by a newline are not, and neither is a digit outside ASCII. A refused row is a `pydantic.ValidationError`.
 
 See also: *The tick* and *The handlers of the events*.
 
@@ -777,7 +777,7 @@ See also: *The tick* and *The handlers of the events*.
 
 `Boundaries` collects the interfaces the services use, so a service never reaches for a tool itself. Wiring builds it once, and tests build it from fakes.
 
-`Boundaries` in [boundaries.py](../../src/factory/pipeline/application/boundaries.py) (`factory.pipeline.application.boundaries`) is the frozen dataclass of the interfaces that wiring hands to services. It is not a DTO. `build_boundaries` in `factory.entry.wiring` builds the concrete adapters.
+`Boundaries` in [boundaries.py](../../src/factory/pipeline/application/boundaries.py) is the frozen dataclass of the interfaces that wiring hands to services. It is not a DTO. `build_boundaries` in `factory.entry.wiring` builds the concrete adapters.
 
     Boundaries(*, git, hosting, agent_runtime, project_commands, work_item_reader, work_item_writer,
                cost_reader, cost_writer, pipeline_reader, agent_definitions, clock, log, health,
@@ -789,7 +789,7 @@ See also: *The tick* and *The handlers of the events*.
     git_options(settings) -> GitOptions
     CheckoutPreparer(git, settings).prepare() -> None
 
-- The fields are `git`, `hosting`, `agent_runtime`, `project_commands`, `work_item_reader`, `work_item_writer`, `cost_reader`, `cost_writer`, `pipeline_reader`, `agent_definitions`, `clock`, `log`, `health`, `checkout`, `settings`, `disk`, `disk_records`, `stop_records`, `waiter` and `result_records`. `snapshots` (a `Snapshots`) and `containers` (a `ContainerRuns`) follow them.
+- The fields are `git`, `hosting`, `agent_runtime`, `project_commands`, `work_item_reader`, `work_item_writer`, `cost_reader`, `cost_writer`, `pipeline_reader`, `agent_definitions`, `clock`, `log`, `health`, `checkout`, `settings`, `disk`, `disk_records`, `stop_records`, `waiter` and `result_records`. `snapshots` is a `Snapshots`. `containers` is a `ContainerRuns`. Both follow the fields above.
   - `checkout` is the checkout root, a `Path`.
   - `disk` is the `DiskSpace` of the disk check, see the tick's step 0. `disk_records` is the log of the disk records.
   - `stop_records` is the log of the stop records, see *Stop records*.
@@ -807,9 +807,9 @@ See also: *The tick* and *The handlers of the events*.
 - It takes keyword arguments only, so a positional call is a `TypeError`, and assigning to a field raises `FrozenInstanceError`. A story that needs another interface adds a field.
 - `snapshots` and `containers` hold the dataset's and the containers' interfaces. `stage_environment_of` gives the one `ContainerEnvironment` on them (see machine.md, *The container environment*).
 - `build_boundaries` fills `containers` with `PodmanRuns`, and `snapshots` with `ZfsSnapshots` or, when `settings.snapshots` is `copy`, `CopySnapshots(workspace, base)` (see machine.md, *The settings and the wiring*).
-- It refuses an instance without the dataset (ZFS), the base (copy), the workspace or the stage image before it builds anything. The error is a `SettingsInvalid` that names the variable.
+- It refuses an instance without the workspace or the stage image before it builds anything. A ZFS instance also needs the dataset, and a copy instance the base. The error is a `SettingsInvalid` that names the variable.
 - Its `project_commands` is `RecordingProjectCommands` around `ContainerMakeCommands` (see machine.md, *The checks*).
-- `Boundaries.settings` (`InstanceSettings`) is the one place the services read the instance's settings from (the image identity, the instance's name, the provider limit); `build_boundaries` fills it.
+- `Boundaries.settings` (`InstanceSettings`) is the one place the services read the instance's settings from. These are the image identity, the instance's name and the provider limit. `build_boundaries` fills it.
 - `build_boundaries` first builds the container adapters (the snapshots and `PodmanRuns`) and so raises their `SettingsInvalid` first. It then resolves the hosting service, so a URL with no `owner/name` fails with `SettingsInvalid` on `FACTORY_REPOSITORY_URL` before the other adapters exist. It uses `hosting` when given; tests pass `FakeHostingService`. Otherwise it uses `pygithub_service(repository_name(settings.repository_url), token)` from [`factory.hosting.adapters.pygithub_hosting`](../../src/factory/hosting/adapters/pygithub_hosting.py). That builds the PyGithub client lazily, with no network call.
 - It then builds the following, in this order:
   - One `SystemClock`, shared by the clock field and the log.
@@ -843,16 +843,16 @@ The pipeline reads the instance's settings through one model. This section lists
 
 - `repository_name(url)` uses one full-match regular expression for the three URL forms and drops a trailing `.git` and `/`.
 
-- `InstanceSettings` has the fields `agent_home`, `claude_executable`, `token_file`, `claude_login_file` (`FACTORY_CLAUDE_LOGIN_FILE`, `None` when blank) and `api_login_file` (`FACTORY_API_LOGIN_FILE`, named by `API_LOGIN_FILE_VARIABLE`, `None` when blank). The variables and defaults are in the settings table in [install.md](../operator-guide/install.md).
-- Two of the settings have no default: `FACTORY_CLAUDE_HOME` (`agent_home`) and, when `read_settings` is given a reader, `FACTORY_IMAGE_ID_FILE` (`image`) are required and absolute. `read_settings` refuses a missing, blank or relative value with `SettingsInvalid` naming the variable. The model refuses the same faults itself: `agent_home` has no default and, like `checkout` and `state_directory`, must be absolute (`is not an absolute path`).
-- `container_env` (`FACTORY_CONTAINER_ENV`) is checked name by name, in order, by `container_env_fault(names)` (`factory.shared.domain.settings`). Both the model and `read_settings` call it. It finds three faults: `holds <name>, which is not a variable name`, `holds <name>, which the factory sets itself` and `names <name> twice`. The second applies to a name in `RESERVED_CONTAINER_NAMES` or beginning with `RESERVED_CONTAINER_PREFIX`. The reading raises them as `SettingsInvalid` naming `FACTORY_CONTAINER_ENV`. A model built in code raises `ValidationError`.
+- `InstanceSettings` has the fields `agent_home`, `claude_executable`, `token_file`, `claude_login_file` and `api_login_file`. `claude_login_file` comes from `FACTORY_CLAUDE_LOGIN_FILE`. `api_login_file` comes from `FACTORY_API_LOGIN_FILE`, which `API_LOGIN_FILE_VARIABLE` names. Each is `None` when its variable is blank. The variables and defaults are in the settings table in [install.md](../operator-guide/install.md).
+- Two of the settings have no default: `FACTORY_CLAUDE_HOME` and `FACTORY_IMAGE_ID_FILE`. `FACTORY_CLAUDE_HOME` sets `agent_home`. `FACTORY_IMAGE_ID_FILE` sets `image` and counts only when `read_settings` is given a reader. Both are required and absolute. `read_settings` refuses a missing, blank or relative value with `SettingsInvalid` naming the variable. The model refuses the same faults itself: `agent_home` has no default and, like `checkout` and `state_directory`, must be absolute (`is not an absolute path`).
+- `container_env` comes from `FACTORY_CONTAINER_ENV`. `container_env_fault(names)` in `factory.shared.domain.settings` checks it name by name, in order. Both the model and `read_settings` call it. It finds three faults: `holds <name>, which is not a variable name`, `holds <name>, which the factory sets itself` and `names <name> twice`. The second applies to a name in `RESERVED_CONTAINER_NAMES` or beginning with `RESERVED_CONTAINER_PREFIX`. The reading raises them as `SettingsInvalid` naming `FACTORY_CONTAINER_ENV`. A model built in code raises `ValidationError`.
 
 ### Boundaries in tests
 
 Use the `boundaries` fixture in [`tests/conftest.py`](../../tests/conftest.py). It holds the real git wrapper, project commands, readers and writers. It holds `TimestampedFactoryLog` at `<tmp_path>/state/factory.log` and `JsonHealthStatusFile` at `<tmp_path>/state/health.json`. The hosting service and the agent runtime are fakes, and the `clock` fixture is the clock.
 
 - It also sets these fields:
-  - `snapshots` (a `FakeSnapshots`) and `containers` (a `FakeContainerRuns`), both over `<tmp_path>/workspace` through `fake_dataset`. So the fixture holds the fakes of the container environment.
+  - `snapshots` is a `FakeSnapshots` and `containers` is a `FakeContainerRuns`. Both run over `<tmp_path>/workspace` through `fake_dataset`. So the fixture holds the fakes of the container environment.
   - `machine` (`FakeMachineReadings()`).
   - `settings`, an `InstanceSettings` for `instance` `factory-1` with the state directory `<tmp_path>/state`.
   - `disk`, a `FakeDiskSpace` with ample room: `10**12` bytes free and 1 used in `<tmp_path>` and in the state directory.
@@ -866,7 +866,7 @@ See also: *The tick* and *The handlers of the events*.
 
 ## The idle shutdown
 
-A machine that has nothing to do can switch itself off. A job that has a standing machine stop can end its process. `IdleShutdown(limit, clock, power, log)` in [idle_shutdown.py](../../src/factory/pipeline/application/idle_shutdown.py) (`factory.pipeline.application.idle_shutdown`) powers the machine off after an idle stretch. The setting `FACTORY_IDLE_SHUTDOWN_MINUTES` turns it on. It is `InstanceSettings.idle_shutdown_minutes`, a `NonNegativeInt`, and `0` is off.
+A machine that has nothing to do can switch itself off. A job that has a standing machine stop can end its process. `IdleShutdown(limit, clock, power, log)` in [idle_shutdown.py](../../src/factory/pipeline/application/idle_shutdown.py) powers the machine off after an idle stretch. The setting `FACTORY_IDLE_SHUTDOWN_MINUTES` turns it on. It is `InstanceSettings.idle_shutdown_minutes`, a `NonNegativeInt`, and `0` is off.
 
     IdleShutdown(limit, clock, power, log).observe(outcome) -> None
     PowerOff.power_off() -> None
