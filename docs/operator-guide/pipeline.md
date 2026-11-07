@@ -207,7 +207,7 @@ Findings about the content follow the form check (`docs/project-guide/work.md`, 
 | `criterion numbered <n> where <m> is expected` | renumber the criteria 1, 2, 3 |
 | `the second-to-last criterion must contain "make check" and "green"`; `the last criterion must start with "docs:"` | make those the two closing criteria |
 | `the Smoke test has no code block`; `the code block opened at line <n> is not followed by an "Expect:" line` | give each block of the smoke test an `Expect:` line after it |
-| `journal entry numbered <n> where <m> is expected` | renumber the journal entries |
+| `journal entry numbered <n> where <m> is expected` | renumber the [journal](../project-guide/glossary.md) entries |
 | `a backlog story carries no front matter: <keys>`; `a backlog story carries no journal entries` | remove the front matter or the entries; the factory writes them when the story starts |
 | `the story has no state`; `the journal data lists <n> entries but the text shows <m>` | for a file with front matter in `in-progress` or `done`: the state is damaged, so restore the file from its work item's branch |
 | a reader fault such as `unknown key: <key>` or `front matter is not valid YAML` | fix the front matter; no form findings are given until it reads |

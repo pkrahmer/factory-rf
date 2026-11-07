@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:31:53.518222Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T01:31:53.518222Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:34:31.284162Z'
+  stage: docs-only
+  run: 40bb61f1efbe4196b0d212778881869b
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -220,3 +222,17 @@ Expect: `1`
     - The inline `python -m factory.entry.check_story` at l.156: entry 7 already rejected it, and the reason still holds.
     - `attempts_cap` and `round_cap` at l.52, l.109 and l.122 are key names in code, not prose uses of the glossary words.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: fixed the reviewer's one finding (entry 11) in `docs/operator-guide/pipeline.md`. `make documents` ends with `documents ok (13.0 s)`. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `docs/operator-guide/pipeline.md` l.210: "journal" in "renumber the journal entries" now links to `../project-guide/glossary.md`. It is the first prose use of the word. The other occurrences are in the same table or in a code block.
+
+    Cross-read and found current: the earlier cross-reads stand. `stops.md`, `health.md`, `records.md` and `README.md` link to headings I kept. I changed no heading.
+
+    Stale text I noticed and did not touch, because it is unrelated to this story: `docs/operator-guide/records.md` line 30 carries a long version history that style rule 1 forbids. That belongs to the story that rewrites that file.
+
+    No rejected options to name; this story adds nothing to `docs/decisions.md`.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (12.9 s)
