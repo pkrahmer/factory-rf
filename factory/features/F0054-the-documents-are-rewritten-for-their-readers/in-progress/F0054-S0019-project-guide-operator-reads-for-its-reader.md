@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 627
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T07:21:28.150490Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T07:21:28.150490Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T07:23:12.946917Z'
+  stage: docs-review
+  run: a833f90cfe6843a7a99cd7354135b7eb
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -113,3 +115,20 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (16.3 s)
 6. factory: started docs-review as vm.
+7. reviewer: I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. That diff changes `docs/project-guide/operator.md` and `docs/checked-documents.txt`. I checked the page against `operator/lib/site.sh`, `operator/lib/hosting.sh`, `operator/job/job.sh`, `operator/bin/sanitise`, `operator/skill/kumpel/scripts/comment.sh` and `reset-to-tag.sh`, the file lists of `operator/`, `tests/operator_scripts/` and `tests/support/`, and `docs/project-guide/style.md`.
+
+   What holds: every name, command, setting and rule of the old file is still in the new page or in its *Reference* (criterion 2). The only thing dropped on purpose is the history pointer to F0048's decision 22 and "the story that made it", which style rule 1 requires. The page names no feature or story id. The new claims hold in the code: `site_require` gives a bare name the `SITE_` prefix (site.sh:56-59), `job.sh` reaches gcloud only through `site_gcloud_with` (job.sh:28-33), the sanitiser's rules-file lookup matches sanitise:18-22, and `hosting_api_url` matches. The headings are unchanged, so no inbound link breaks. The list entry for criterion 3 is present.
+
+   1. docs/project-guide/operator.md:3, 7 and 127: criterion 1 is not met. The factory's own words are not linked to the glossary at their first use: "instance" and "stops" (line 3), "documenter", a role (line 7), "work-item" (line 127). The page has no link to glossary.md at all. Fix: link each at its first use to [glossary](glossary.md), as machine.md:3 does.
+   2. docs/project-guide/operator.md:8-19 (the layout block): criterion 4 is not met. Several files named in the block are linked nowhere on the page: `setup.sh`, `factory.service`, `git-credential-factory` and `Dockerfile` under `operator/vm/`, `operator/template/CLAUDE.md` and `Makefile`, `operator/skill/kumpel/SKILL.md`, `operator/opencode/command/kumpel.md` and `operator/claude/commands/kumpel.md`. Others are linked only in later sections, not at their first mention: `site.sh`, `hosting.sh`, `bin/site`, `sanitise` and `job.sh`. Fix: link the files of the block above it, as the Interface says.
+   3. docs/project-guide/operator.md:116-119 and 125: criterion 4 again. `comment.sh` and `reset-to-tag.sh` stand in a code block with no link above it, and `merge.sh` is linked nowhere. Fix: link the two scripts above the block and `merge.sh` at its mention.
+   4. docs/project-guide/operator.md:131-136: criterion 4 again. The four support modules in the code block (`operator_support.py`, `operator_job_support.py`, `operator_skill_support.py`, `site_check_support.py`) are not linked above it. Fix: link each to `../../tests/support/<name>`.
+   5. docs/project-guide/operator.md:154-164 (*Test modules by script*): criterion 4 again. Ten of the test modules named in the table are linked nowhere: `test_operator_site.py`, `test_operator_site_example.py`, `test_operator_site_check.py`, `test_operator_hosting.py`, `test_operator_job.py`, `test_operator_job_log.py`, `test_operator_sanitise.py`, `test_operator_skill_scripts.py`, `test_operator_merge_reset.py` and `test_operator_skill_name.py`. Fix: link each cell's module to `../../tests/operator_scripts/<name>`.
+   6. docs/project-guide/operator.md:127: the `reset-to-tag.sh` rule says it closes, deletes and moves `main`. The code does that only with `--yes`: without it, it only prints the plan. It also works only on the repository that is both `SITE_REPOSITORY` and `SITE_RESET_REPOSITORY` (operator/skill/kumpel/scripts/reset-to-tag.sh:2-5). The signature on line 119 shows `[--yes]` with no rule for it (style rules 8 to 10 of the Description). Fix: add those two rules.
+   7. docs/project-guide/operator.md:55, 75, 98, 114 and 129: the sections *The hosting client*, *`job.sh`*, *The sanitiser*, *The skill's scripts* and *Tests of the scripts* have no "See also". The Description and style.md's project-guide section ask for one. Fix: add one to each, linking the sections it depends on:
+      - the hosting client: *The site file and its loader*
+      - `job.sh`: the loader and *The sanitiser*
+      - the skill's scripts: *The hosting client*
+      - the tests: *Test modules by script*
+   8. docs/project-guide/operator.md:142: "the next section lists them" is imprecise. The next section is *Reference*, whose first subsection is *Status of the site scripts*; the list is in *Test modules by script*. Fix: name *Test modules by script* in the *Reference*.
+   9. docs/project-guide/README.md:36: the index's list of operator.md's sections stops at *Tests of the scripts* and leaves out the new *Reference*. The documenter's entry says this list still matches, but it no longer does. Fix: add *Reference* to the list.
