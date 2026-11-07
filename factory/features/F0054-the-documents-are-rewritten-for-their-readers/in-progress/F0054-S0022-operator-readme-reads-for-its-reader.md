@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T09:41:10.143568Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -91,6 +87,12 @@ journal:
   kind: started
   at: '2026-11-07T09:41:10.143568Z'
   stage: docs-only
+- number: 15
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T09:45:40.828324Z'
+  stage: docs-only
+  run: a7e35df3e23744f0ae2f7ac41920b199
 ---
 
 # The operator folder's README reads for its reader
@@ -239,3 +241,27 @@ Expect: `1`
 
     Open: the Interface line for `docs/checked-documents.txt` and the list part of criterion 3 still name the list line. Journal 6 dropped both, and the review rules let me rewrite only the Description, so I left them as they are.
 14. factory: started docs-only as vm.
+15. documenter: Round 1 fixes the reviewer's seven findings (journal 13). The only file changed is `operator/README.md`. `docs/checked-documents.txt` stays unchanged, as the human decided in journal 6.
+
+    1. Glossary links: story, feature, approval and pipeline definition are now linked at their first use. Stage is part of the "approval" link's sentence. I kept the merge-commit message literal in its code span and put the approval link in the sentence after it.
+    2. Long sentences: the two over-long sentences in the intro are split.
+    3. The intro now names the template of a new project.
+    4. `planning/operator-skill/DESIGN.md` is now a relative link. I wrote nothing in `planning/`.
+    5. Every row of the Files table now starts with `operator/`, and I dropped the sentence that explained the mixed paths.
+    6. Installing step 5 now has two separate `sh` blocks, one for `init` and one for `init <owner/name> <checkout>`. Each has its own lead line.
+    7. The Reference section *Settings file* is now *Settings*. A sentence above the tables says to change a switch with `/kumpel <switch> on|off` or with `settings.sh set <switch> on|off`. I checked both against `operator/claude/commands/kumpel.md` and `settings.sh`. The switch examples are now `/kumpel merge on` and so on. `KUMPEL_SETTINGS` has its own table, headed "The environment variable".
+
+    Checks: `make documents` ended `documents ok (58.2 s)` after my last edit. I did not run `make check`, because only a document changed. The one runnable `console` example, `sh operator/bin/site init`, is unchanged. It was run by hand in the first round and printed `site: wrote <tmp>/kumpel/site.env; edit it, then run: site check` with exit 0. This round did not touch that step.
+
+    Cross-read and found current:
+    - `docs/operator-guide/site.md` points to this file and to the heading *Installing*, which is kept.
+    - `docs/project-guide/operator.md` and `agents.md` link only the file.
+    - `docs/operator-guide/pipeline.md` names the file.
+
+    Stale text I saw and did not touch:
+    - `operator/skill/kumpel/SKILL.md` repeats "Second version, 2026-11-01" and "kumpel-factory v1.2 or later". That is the skill's own file, not a document I may write.
+    - The story's Interface line for `docs/checked-documents.txt` and the list part of criterion 3 still name the list line. Journal 6 dropped both, and I may not edit them.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (57.8 s)
