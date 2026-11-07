@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:36:17.961068Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T03:36:13.012019Z'
   stage: docs-review
   run: 81104c9d97c24ee9a181a634cc5c5aaf
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:36:17.961068Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -236,3 +245,4 @@ Expect: `1`
     - Line 279 gives `SettingsInvalid` when the settings are read from the environment and `ValidationError` from the model's own validator. Both are true (`settings.py:609`, `:233`).
 
     Open: nothing beyond the findings above.
+12. factory: started docs-only as vm.
