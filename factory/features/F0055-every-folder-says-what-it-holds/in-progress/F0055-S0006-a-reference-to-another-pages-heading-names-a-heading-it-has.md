@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T11:36:42.039894Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -97,6 +101,11 @@ journal:
   at: '2026-11-07T11:36:37.144745Z'
   stage: tests
   run: d293f9c974014d938e5a65530b49e376
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:36:42.039894Z'
+  stage: doing
 ---
 
 # A reference to another page's heading names a heading it has
@@ -265,3 +274,4 @@ Expect: `documents ok (<seconds> s)`
     Run: `uv run pytest -q tests/shared/domain/test_heading_references.py` passed all 20 tests, so the existing code already handles the new rows, as the coder said. `make lint` is green.
 
     `lint`: lint: green (0.2 s)
+17. factory: started doing as vm.
