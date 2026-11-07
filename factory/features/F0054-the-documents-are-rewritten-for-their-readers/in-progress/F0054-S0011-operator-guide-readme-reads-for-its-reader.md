@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 619
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T02:26:18.712083Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T02:26:18.712083Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T02:26:34.915531Z'
+  stage: intake
+  run: 28486f415358463cb254047a9233ada2
 ---
 
 # The operator guide's index reads for the operator
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: it changes only `docs/operator-guide/README.md` and `docs/checked-documents.txt`, both under `docs/*`, so the story takes the docs route. It names no code, test or agent file, and says that none changes. Links to changed headings are covered.
+   - Criteria: criteria 1 and 2 are judged by the reviewer against the style guide and the code, which is how the feature's decision 2 defines them for this route. Criterion 3 is checked by `make documents` printing `documents ok` and by the list entry. Criterion 4 is a link check. Criterion 5 is `make check`. The Interface's one-line list entry and its heading-link rule are covered by criteria 3 and 4. No rule here has a failing side that needs its own criterion.
+   - Smoke test: `grep -cx "docs/operator-guide/README.md" docs/checked-documents.txt` is runnable and has no pytest options. Its `Expect: 1` is checkable against the output.
+   - Docs criterion: it names what the reader must know (criteria 1 to 4), not sentences to write. It says `docs/decisions.md` gets no change.
+   - Architecture: it touches no code, so the layers are not affected. It leaves out the playbook, `decisions.md` and `docs/runs/`, which `CLAUDE.md` keeps for the human.
+   - Scope: it is S0011 of F0054 and matches the story list in `feature.md`. It is not in "Out of scope".
