@@ -1,7 +1,5 @@
 # A listed folder README that is missing fails the guard
 
-<!-- proposed by feature acceptance of 2026-11-07; refine before starting -->
-
 ## Description
 
 The guard over the folder READMEs skips a README on `FOLDER_READMES` that has no file, so that the stories that wrote the READMEs could turn it green group by group. Every README on the list now exists, but the skip stayed: deleting `src/factory/agents/README.md` or `security/README.md` leaves `make check` green, with the guard reporting the two skips. Only `make documents`, a check of the docs stages and not of `make check`, notices it (a listed path with no file). This story makes the guard fail on a listed README with no file, with the finding `<folder>: no README.md` that `readme_problems` already gives for a missing README. It changes no code under `src/`, no README and nothing the document check reads. `tests/guards/test_test_folder_readmes.py`, which pins that the three test-folder READMEs exist, becomes redundant with this guard; this story leaves it as it is (removing it would be the human's call).
@@ -17,7 +15,7 @@ def _listed_readme_problems(root: Path, path: str) -> list[str]
 - `_listed_readme_problems` reads `<root>/<path>`; a path with no file is read as `None`, so it gives `["<folder>: no README.md"]`, where `<folder>` is `path` without `/README.md`.
 - A README that exists gives what `readme_problems` gives for it, with the subfolders read by `_subfolders` from `<root>/<folder>`.
 - `test_a_folder_readme_agrees_with_its_folder` calls `_listed_readme_problems(ROOT, path)` for every path of `FOLDER_READMES`, asserts `[]`, and skips none. Its module docstring says that every listed folder README exists and agrees with its folder.
-- The leave (to be given by the human in `feature.md` when refining this story): the tester changes `tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder` and the module's docstring only so far as dropping the skip requires; the test keeps its name and checks the same agreement, and a listed README with no file now fails it. Any other earlier test whose only failure is this change may follow it.
+- The human's leave (2026-11-07): the tester changes `tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder` and the module's docstring only so far as dropping the skip requires; the test keeps its name and checks the same agreement, and a listed README with no file now fails it. Any other earlier test whose only failure is this change may follow it.
 - No change under `src/`, and no change to `FOLDER_READMES`.
 
 ## Acceptance criteria

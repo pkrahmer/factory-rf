@@ -6,4 +6,5 @@ The documents of kumpel-factory: the guide for operators, the guide for agents a
 - `project-guide/` The guide for agents and developers who change the code, an index and one file per area.
 - `runs/` The human's logs and reports of finished runs; no [stage](project-guide/glossary.md) writes them.
 
-Beside them, [decisions.md](decisions.md) holds the lasting decisions and what was rejected, and [operator-playbook.md](operator-playbook.md) is the playbook for the human, or a session acting for the human, who runs the factory.
+[decisions.md](decisions.md) holds the lasting decisions and what was rejected.
+[operator-playbook.md](operator-playbook.md) is the playbook for the human who runs the factory, or a session acting for them.
