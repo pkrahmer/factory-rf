@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T10:40:12.308493Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-07T10:40:12.308493Z'
   stage: doing
+- number: 25
+  speaker: coder
+  kind: result
+  at: '2026-11-07T10:44:43.532466Z'
+  stage: doing
+  run: 84a2478c1aaa439d91402f411c8479f0
 ---
 
 # The folders that have a README are listed and checked
@@ -381,3 +383,23 @@ Expect: `23 ['x: no README.md']`
 
     `lint`: lint: green (0.2 s)
 24. factory: started doing as vm.
+25. coder: Round 2, after the tester's criterion-9 rows (entry 23). I ran `make check` on the working tree as the tester left it, and it is green (`test: green (106.6 s)`, `check: green`). Every new row of `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule` passes against the code from rounds 1 and 2, so I changed no code.
+
+    What is built:
+    - `src/factory/shared/domain/folder_readmes.py`
+    - `src/factory/shared/domain/documents.py`: the public `relative_link_targets`, and the private `_is_relative_link_target` that `_link_name` shares.
+    - `src/factory/entry/check_documents.py`: `_named_documents` now also reads the folder READMEs and `operator/README.md`.
+    - `agents/agents/documenter.md`
+
+    Main decision: this round needed no code, so I made none. I rejected adding code or tests for the root-absolute link row beyond what the criteria name.
+
+    Refactor pass: I read the diff under `src/` again and found nothing to change.
+
+    Still open:
+    - The root-absolute link row (`[guide](/docs/operator-guide/README.md)` gives `links to no guide`) is in no criterion. The code already gives that result: `relative_link_targets` refuses targets that start with `/`. But no test pins it. Criterion 9 names only the `https://…` case. If the row is wanted, the reviewer or the human must add it to criterion 9, and then the tester writes it as one more row of the same test.
+    - Noticed but not touched, as in entry 21: `folder_readmes` imports the large `documents` module. Both are domain layers, so this is allowed.
+
+    `check`: check: green
+
+    `check`: check: green
+    `duplicates`: duplicates: 7 new, 39 known, 4 gone
