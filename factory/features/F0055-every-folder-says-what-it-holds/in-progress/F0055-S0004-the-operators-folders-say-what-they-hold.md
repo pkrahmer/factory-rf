@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: [6707675447]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-07T13:52:44.283307Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -126,6 +130,11 @@ journal:
   at: '2026-11-07T13:52:39.057627Z'
   stage: docs
   run: 6c3aba1bf6c84c3dbb080633619b92be
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:52:44.283307Z'
+  stage: smoke-test
 ---
 
 # The operator's folders say what they hold
@@ -324,3 +333,4 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (59.1 s)
+22. factory: started smoke-test as vm.
