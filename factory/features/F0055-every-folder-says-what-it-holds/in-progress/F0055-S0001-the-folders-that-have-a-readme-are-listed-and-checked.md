@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 632
-comments_read: []
+comments_read: [6705414222]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: a68300c45fd44c088e1cc80f13b0fc27
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-07T10:06:44.203580Z'
+  stage: intake
 ---
 
 # The folders that have a README are listed and checked
@@ -80,3 +85,8 @@ Expect: `23 ['x: no README.md']`
    4. Interface, `readme_problems`: "link line" and "opening" are not defined. For example, does a link line begin with `[` or `- [`, and is the opening the non-blank lines between the title and the first link or list line? Two coders could read them differently. Criterion 2 pins only some of the rows. Please state the form of a link line, for example "a line that contains a relative Markdown link and is not a subfolder line". I would choose that.
 
    The format check passed. Scope, architecture (domain constant in `shared`, wiring in `entry`) and the docs criterion (it names what the reader must know) are fine. The smoke test is runnable and its `Expect:` line is checkable. The count of 23 paths matches the list.
+4. 2026-11-07 human: Yes to all four, as you propose.
+   1. Add a row to criterion 5: with operator/README.md in the minimal documents, a missing module it names is a finding, reported while it is unlisted and blocking once listed. operator/README.md keeps its own form: the shape rules of readme_problems do not apply to it.
+   2. Add a criterion: a listed path of FOLDER_READMES with no file gives the same finding of checked_list_findings as today.
+   3. Add a criterion: the guard's subfolders leave out hidden folders and __pycache__, through a helper in the guard module with a parametrized test.
+   4. Definitions for readme_problems, to write into the Interface: the title is the first line, '# ' and a text. A subfolder line starts with '- ' and a backticked name ending in '/'. A link line is a line that contains a relative Markdown link and is not a subfolder line; it may start with '- '. The opening is the non-blank lines between the title and the first link line or subfolder line. Any other non-blank line after the first link line or subfolder line is 'no part of the form'.
