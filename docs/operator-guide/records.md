@@ -2,7 +2,7 @@
 
 A topic of the [operator guide](README.md).
 
-The factory writes records as it works: the state of each [work item](../project-guide/glossary.md), a [cost record](../project-guide/glossary.md) for each agent run and a record of each [stop](../project-guide/glossary.md) of the repository or the machine. This page tells you which records a program outside the factory may rely on, how to read what a work item cost with `factory-bill`, and how to see what the factory would do next with `factory-watch`. The exact fields and limits are in the *Reference* at the end.
+The factory writes records as it works: the state of each [work item](../project-guide/glossary.md), a [cost record](../project-guide/glossary.md) for each agent run and a record of each [stop](../project-guide/glossary.md) of the repository or the machine. The sections below cover the records a program outside the factory may rely on, `factory-bill` and `factory-watch`. The exact fields and limits are in the *Reference* at the end.
 
 - [The records contract](#the-records-contract)
 - [What a work item cost: `factory-bill`](#what-a-work-item-cost-factory-bill)
@@ -48,7 +48,7 @@ Every agent run writes a cost record beside its work item; it holds the run's du
 1. Fetch the remote, since the command does not: `git fetch`.
 2. Run `factory-bill` from a checkout of your project, with a work item id or without one.
 
-   This run took place on the factory's VM, in the checkout of this work item, after a fetch. Its numbers change with every run.
+   This run took place on the factory's VM, in a checkout of the factory's own repository, after `git fetch`, for one of its work items. Its numbers change with every run.
 
    ```console vm
    $ uv run factory-bill F0054-S0009
@@ -152,14 +152,14 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
   The rows are in id order, so an acceptance's row comes after its feature's stories and before the stories of a later feature. An acceptance's title is `Acceptance of <feature title>`, its folder `in-progress`, and its state is the one on its branch.
 - The claim of the instance that `factory-watch` runs as shows in one of two ways. While its lease runs, it shows as `event: idle:-  <work item> is held by <instance>`, because the instance may be running that stage. Once the lease has run out, it shows as `event: crash:<work item>`.
 
-  The tick itself still reruns its own claim at its first look after a restart, whatever the claim's age. A stage that waits for the model provider's usage limit to end holds its claim past its lease, so it shows as a [crash](../project-guide/glossary.md) here while it waits; the factory log's line of the wait tells the two apart. A live stage that uses every limit can show as a crash for up to about a minute past its lease. The board's rows are the same either way.
+  The tick itself still reruns its own claim at its first look after a restart, whatever the claim's age. A stage that waits for the model provider's usage limit to end holds its claim past its lease, so it shows as a [crash](../project-guide/glossary.md) here while it waits. The factory log's line of the wait tells the two apart. A live stage that uses every limit can show as a crash for up to about a minute past its lease. The board's rows are the same either way.
 - `factory-watch` ends with one of these exit statuses:
 
   | Exit status | Meaning |
   |---|---|
   | 0 | it printed the event and the board |
   | 1 | the pipeline definition on `origin/main` is invalid, or an agent file is refused. The fault goes to standard error as `factory-watch: <fault>`, or `factory-watch: agent <name>: <fault>` for an agent file. Standard output stays empty and no stop is raised. |
-  | 2 | an unknown option, or the environment is invalid, or the token file cannot be read. Standard error gets `factory-watch: settings invalid: <variable>: <fault>`, never a traceback, and standard output stays empty. |
+  | 2 | an unknown option: standard error gets the usage line and `factory-watch: error: unrecognized arguments: <option>`. Or the environment is invalid, or the token file cannot be read: standard error gets `factory-watch: settings invalid: <variable>: <fault>`, never a traceback. Standard output stays empty either way. |
 
   A repository whose `origin/main` does not resolve (a clone that never fetched) ends with a git error.
 
@@ -171,7 +171,7 @@ The optional keys of a cost record. `factory-bill` prints none of them; they are
 
 ### Cost record: refused tool calls
 
-A completed record in the cost file (`<work item>.costs.jsonl`) can carry two more keys: `denials`, the number of tool calls the agent runtime reported as refused in that run, and `denied_paths`, the files those calls named, each once, in the order reported. A third key, `login`, says which login the run's calls were handed: `subscription`, `none` or the value that names the API key; a runtime with no login file leaves it out. A run that got no reply (it died or ran past its time limit) has neither of those two keys. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them. `factory-bill` does not print these keys.
+A completed record in the cost file (`<work item>.costs.jsonl`) can carry two more keys. `denials` is the number of tool calls the agent runtime reported as refused in that run. `denied_paths` lists the files those calls named, each once, in the order reported. A third key, `login`, says which login the run's calls were handed: `subscription`, `none` or the value that names the API key; a runtime with no login file leaves it out. A run that got no reply (it died or ran past its time limit) has neither of those two keys. Only the tool calls the runtime reports as refused are counted. A refusal that is only text in a tool's output, such as a write the kernel refuses, is not in them.
 
 ### Cost record: the machine
 
@@ -214,7 +214,7 @@ A completed cost record can carry `tools`, the run's tool calls summed up withou
 | `tool` | The tool's name as the runtime gives it (`Bash`, `Read`, `Edit`, `bash`). A name that is longer than 64 characters or holds anything but letters, digits, `_`, `-`, `.` and `:` is counted under `other`, together with a tool really named `other`. |
 | `calls` | How many times the run called it. |
 | `failed` | How many of those calls failed: Claude Code's `tool_result` with `is_error`, opencode's tool state `error`. Never above `calls`. |
-| `seconds` | The seconds the calls took: Claude Code's `timestamp` of the `user` line that holds the call's `tool_result` minus that of the `assistant` line that holds its `tool_use`; other lines of the session file (`api-request-blob`, `attachment` and the like) are not read, and when an id appears on two lines of the right type the first one counts. opencode's `time.end` minus `time.start`. `null` when the runtime gave no times. |
+| `seconds` | The seconds the calls took: Claude Code's `timestamp` of the `user` line that holds the call's `tool_result` minus that of the `assistant` line that holds its `tool_use`. Other lines of the session file (`api-request-blob`, `attachment` and the like) are not read. When an id appears on two lines of the right type, the first one counts. For opencode it is the `time.end` minus `time.start`. The value is `null` when the runtime gave no times. |
 
 A call with no result counts as a call, not as failed, and adds no seconds. `[]` means the run made no tool call. `"tools": null` means the calls could not be read; the run does not fail for it.
 

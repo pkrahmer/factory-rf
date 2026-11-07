@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:55:18.375060Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T01:55:18.375060Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:58:04.501308Z'
+  stage: docs-only
+  run: ea1cd4c8bff54f5d9a434a9801464bd6
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -277,3 +279,22 @@ Expect: `1`
 
     Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files, as the documenter noted. The round cap of `docs-review` is 3, so one more round remains.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the reviewer's three round-2 findings in `docs/operator-guide/records.md`, the only file I changed. `make documents` printed `documents ok (13.5 s)`; the `console vm` block at line 53 is listed as not run (vm). I did not run `make check`, because I changed only a document.
+
+    1. Exit status 2 of `factory-watch`: the unknown option now has its own sentence in the row, with the usage line and `factory-watch: error: unrecognized arguments: <option>`. The `settings invalid: <variable>: <fault>` sentence stays for the environment and the token file only. Standard output stays empty either way.
+    2. The text above the bill example now says the run took place on the factory's VM, in a checkout of the factory's own repository, after `git fetch`, for one of its work items, and that its numbers change with every run.
+    3. Long sentences split:
+       - Introduction: the second sentence is now one short sentence naming the three topics.
+       - The wait for the usage limit: the clause after the semicolon is its own sentence.
+       - `denials` and `denied_paths`: one sentence each; the last sentence, "`factory-bill` does not print these keys", is removed because the Reference's first paragraph already says it.
+       - The `seconds` cell: three sentences (the Claude Code rule, the lines not read, the duplicate-id rule); the opencode rule now reads "For opencode it is the `time.end` minus `time.start`." and the `null` case is its own sentence.
+
+    I did not re-read the code this round. The wording changes keep the facts the reviewer verified against `watch.py` in round 2.
+
+    Cross-read and found current: `docs/checked-documents.txt` (it lists `docs/operator-guide/records.md`).
+
+    Stale text I saw and did not touch: `docs/decisions.md:1560` still lists `records.md` among ten topic files, which is history. `make documents` prints "does not exist" notes for paths in other documents, which this story does not touch.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (13.7 s)
