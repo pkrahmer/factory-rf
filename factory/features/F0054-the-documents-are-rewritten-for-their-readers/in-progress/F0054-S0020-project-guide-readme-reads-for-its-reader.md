@@ -1,11 +1,11 @@
 ---
 stage: docs-review
-blocked: round_cap
-round: 4
+blocked: null
+round: 0
 attempts: 0
 crashes: 0
 pull_request: 628
-comments_read: []
+comments_read: [6704529250]
 handed_over: null
 claim: null
 journal:
@@ -120,6 +120,11 @@ journal:
   stage: docs-review
   run: 07099eab8a9d467b97507c1651e439d0
   blocked: round_cap
+- number: 21
+  speaker: human
+  kind: comment
+  at: '2026-11-07T08:32:16.830387Z'
+  stage: docs-review
 ---
 
 # The project guide's index reads for the developer
@@ -443,3 +448,4 @@ Expect: `1`
     - The one-line descriptions of the `tests/support/` entries not named above, beyond their top-level names.
     - I did not run `make documents`. The documenter's run printed `documents ok`, and the factory runs it as the gate.
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
+21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes findings 1 to 5 of the last review, each read from the source. For findings 3 and 4 it checks completeness by script before it ends: every module of tests/support/ and every fixture defined in tests/conftest.py is named on the page, and its entry quotes the script's last output (an empty list of missing names). Where a count is not needed, the page names what is shared or checked instead of a number. The reviewer checks completeness by the same script.
