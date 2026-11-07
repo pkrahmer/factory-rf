@@ -168,3 +168,5 @@ Times are UTC. The plan: `night-plan.md`.
 - 07:17Z: F0054-S0018 PR #626 merged at docs-approval: the project guide's pipeline.md rewritten and listed, after the script-based last round. $13.56, 22 runs, two round caps: the dearest page, by its length and rule 2 by eye.
 - 07:17Z: F0054-S0019 (F0054-S0019-project-guide-operator-reads-for-its-reader) started.
 - 07:37Z: F0054-S0019 PR #627 hit the round cap (3) at docs-review ($2.51, 9 runs); the last findings are real but mechanical (a file linked twice, or first named without its link). One more round answered, with the rule checked by script.
+- 07:48Z: F0054-S0019 PR #627 merged at docs-approval: the project guide's operator.md rewritten and listed. $3.21, 12 runs, one round cap.
+- 07:48Z: F0054-S0020 (F0054-S0020-project-guide-readme-reads-for-its-reader) started.
