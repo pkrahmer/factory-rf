@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T14:00:08.086216Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -42,6 +46,11 @@ journal:
   at: '2026-11-07T14:00:02.882984Z'
   stage: intake
   run: 6b82ed978aba45938b9c82b14bf02a48
+- number: 7
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:00:08.086216Z'
+  stage: docs-only
 ---
 
 # The top folders say what they hold
@@ -101,3 +110,4 @@ Expect: `documents ok (<seconds> s)`
    - Docs criterion: criterion 8 now says what the reader must know (entry 4 answer 2) and dictates no sentences.
    - Architecture: nothing is changed in code. The files are READMEs on the folder list.
    - Scope: this is S0005 of F0055. `docs/runs/` is only named, not written, and the story is not in the feature's Out of scope. The Description did not change.
+7. factory: started docs-only as vm.
