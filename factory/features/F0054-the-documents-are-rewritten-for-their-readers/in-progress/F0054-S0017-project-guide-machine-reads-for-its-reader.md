@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 625
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:24:39.406649Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T05:24:39.406649Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:26:03.837065Z'
+  stage: docs-review
+  run: ac2049448324424db88634e5973c6c63
 ---
 
 # The project guide's page on the machine area reads for the developer
@@ -221,3 +223,29 @@ Expect: `1`
    `secrets`: secrets: green (1.1 s)
    `documents`: documents ok (16.2 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs-review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, then checked the new `docs/project-guide/machine.md` against the code on the branch and against `docs/project-guide/style.md`.
+
+    Last round's eleven findings, checked against the code:
+    - 1 to 7 are fixed and match the code:
+      - `MakeProjectCommands` has no `user` (make_commands.py:54-60).
+      - `PodmanRuns` takes `instance`, and the label `factory.instance=<instance>` follows `--rm` (podman_runs.py:75-123).
+      - `agent_working_directory` has one return value.
+      - `Boundaries.snapshots` and `Boundaries.containers` are required.
+      - `workspace_overlap_fault` returns `tuple[str, str] | None` (settings.py:288).
+      - `stage_environment_of` returns `StageEnvironment` (stage_environment.py:216).
+      - The `BASE_SNAPSHOT` wording is fixed.
+    - 8 is fixed in substance: `HOME`, `XDG_RUNTIME_DIR` and `PATH` are back, and the older subject form is named. Its new sentence is garbled (finding 1).
+    - 9 is fixed: the glossary links are added.
+    - 10 and 11 are fixed at the lines named. Other cases of the same rules remain (findings 2 to 5).
+
+    Also correct:
+    - The headings cited in other documents all exist: pipeline.md, shared.md, agents.md, hosting.md, operator-guide machine.md and install.md, decisions.md.
+    - `machine_extras` and `_container_items` match the item order and the metadata-block placement (wiring.py:740-768).
+    - The three one-line changes from entry 5 are unchanged and right.
+
+    Findings:
+    1. docs/project-guide/machine.md:493: "The pattern `FEATURE_MODULES` in the Makefile holds also matches the one-word opening of older subjects." is ungrammatical and unclear. The code (Makefile:117, `--grep='^(ticket|work item) ...'`) matches subjects that open with one other word in place of `work item`. Fix: rewrite it, for example "The pattern of `FEATURE_MODULES` in the Makefile also matches older subjects that open with one other word in place of `work item`."
+    2. Style rule 2 (a sentence of at most about 25 words, at most one parenthesis): these sentences are still too long: :358 (~30 words), :381 (~33), :412 (~35), :464 (~45), :588 (~33), :618 (~35) and :746 (~45 words, two parentheses). :730 (Reference, step 1 of `KnownResults.run`) holds four parentheses and one sentence of about 60 words. Fix: split each into one idea per sentence, with at most one parenthesis each.
+    3. Style, project-guide section order ("Then comes See also"): in *The fakes* the "Tests:" list (:96-103) comes after "See also" (:94), and in *Known results* "Tests:" (:484) comes after "See also" (:482). Fix: put "Tests:" before "See also" in both, as the other sections do.
+    4. Style, project-guide section order: two `##` sections end without "See also": *The copy snapshots* (:61-72) and *The container environment* (:188-249, which ends with its Tests list). Fix: add a "See also" line to each, for example *The snapshots* and *The fakes* for the first, and *The stage environment*, *The take* and *The checks* for the second.
+    5. Interface, "each module, file or page is linked once": these files are linked twice: take.py (:92 and :275), stage_environment.py (:155 and :194), make_commands.py (:304 and :400), wiring.py (:117 and :320), process.py (:83 and :748), tests/machine/application/test_interfaces.py (:101 and :184), and this repository's Makefile (:411 and :493). Fix: keep the first link and write the later mentions as plain names.
