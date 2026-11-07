@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T14:55:14.269133Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -36,6 +40,11 @@ journal:
   at: '2026-11-07T14:55:08.081227Z'
   stage: tests
   run: 1c224e6efbb64ff5928a4a34ad4cbbfe
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:55:14.269133Z'
+  stage: doing
 ---
 
 # A listed folder README that is missing fails the guard
@@ -115,3 +124,4 @@ Expect: `missing-fails`
    Left open for the coder: no change under `src/` is called for. The coder's `make check` is all that remains.
 
    `lint`: lint: green (0.2 s)
+6. factory: started doing as vm.
