@@ -1,4 +1,4 @@
-"""The old layer packages are gone: `src/factory` holds only the areas, `entry` and `contract`."""
+"""The old layer packages are gone: `src/factory` holds its init, README, areas, entry, contract."""
 
 import importlib.util
 from pathlib import Path
@@ -17,10 +17,10 @@ def test_no_test_folder_of_an_old_layer_is_left(layer: str) -> None:
     assert not (TESTS / layer).exists()
 
 
-def test_the_package_holds_only_its_init_the_areas_entry_and_contract() -> None:
+def test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract() -> None:
     entries = {path.name for path in SRC.iterdir() if path.name != "__pycache__"}
 
-    assert entries == {"__init__.py", *AREAS, "entry", "contract"}
+    assert entries == {"__init__.py", "README.md", *AREAS, "entry", "contract"}
 
 
 @pytest.mark.parametrize("layer", OLD_LAYERS)

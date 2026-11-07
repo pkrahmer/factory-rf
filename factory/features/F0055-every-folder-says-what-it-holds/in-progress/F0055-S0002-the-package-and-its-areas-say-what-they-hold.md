@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T12:36:20.614121Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -97,6 +93,12 @@ journal:
   kind: started
   at: '2026-11-07T12:36:20.614121Z'
   stage: tests
+- number: 16
+  speaker: tester
+  kind: result
+  at: '2026-11-07T12:38:50.612279Z'
+  stage: tests
+  run: bd83cfd6c625471d8b10795cf9d254ab
 ---
 
 # The package and its areas say what they hold
@@ -223,3 +225,28 @@ Expect: `documents ok (<seconds> s)`
     2. (a): the criterion's wording follows the guard and the style page, the form with no colon.
     No new test for criterion 3: the reviewer checks it.
 15. factory: started tests as vm.
+16. tester: I made the test change you gave leave for in journal 14, item 1, and rewrote the story to match. I wrote no new test, because you said the reviewer checks criterion 3.
+
+    Test changed (an earlier story's test, under your leave in journal 14, item 1):
+    - `tests/guards/test_old_layer_packages_removed.py`: the expected entries of `src/factory/` now include `"README.md"`. I renamed `test_the_package_holds_only_its_init_the_areas_entry_and_contract` to `test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract`. The module docstring now says the same (the package holds its init, README, areas, entry and contract), cut down so it fits ruff's 100-character limit. The test still does its job: it keeps old layer packages out of the package root.
+    - I found no other guard whose only failure is one of this story's READMEs. All of `tests/guards` passes, so nothing else changed under that leave.
+
+    Story text, with your answers in journal 14:
+    - Description and Interface: the "No code and no test changes" lines now name this one test change.
+    - Criterion 1: the subfolder line is written ``- `<name>/` <one sentence>.``, without the colon, to match the guard and the style page (item 2a).
+
+    Criterion → test:
+    - criterion 1: `tests/guards/test_folder_readmes.py`, the existing guard. It passes for all nine READMEs and skips none of them; the 14 skips are other stories' folders not written yet.
+    - criterion 2: the document check (`make documents`) and the existing `tests/guards/test_folder_readmes.py`. No new test.
+    - criterion 3: no test, as you decided in journal 14; the reviewer checks it.
+    - criterion 4: `make documents`, run by the docs stage. No test.
+    - criterion 5: `make check`, including `tests/guards/test_old_layer_packages_removed.py::test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract`.
+    - criterion 6: docs, no test.
+
+    Run: `uv run pytest -q tests/guards/test_old_layer_packages_removed.py tests/guards/test_folder_readmes.py` passes, with 14 skips (other stories' folders). The whole of `tests/guards` passes too. `make lint` is green. These tests are green, not red, because the documents already exist.
+
+    Files created: none. Files changed: `tests/guards/test_old_layer_packages_removed.py` and this work item's Description. Modules the test run could not import: none.
+
+    The factory left out changes outside the write paths: factory/features/F0055-every-folder-says-what-it-holds/in-progress/F0055-S0002-the-package-and-its-areas-say-what-they-hold.md.
+
+    `lint`: lint: green (0.2 s)
