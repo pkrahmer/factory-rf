@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 622
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:04:43.927542Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -87,6 +91,11 @@ journal:
   at: '2026-11-07T04:04:39.047762Z'
   stage: docs-review
   run: 3bc60657c3ae4cb08f23a223525744aa
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:04:43.927542Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the work area reads for the developer
@@ -267,3 +276,4 @@ Expect: `1`
     Findings:
     1. `docs/project-guide/work.md:508`: "A journal record's `at`, `stage` and `run` are left out of the file when unset. Every other key stays (`claim: null`)." The code contradicts this for a record. The writer dumps each record with `model_dump(exclude_none=True)` (`src/factory/work/adapters/work_item_markdown.py:175`), so an unset `blocked` and `reason` are left out too. Line 92 of the same page already says so ("leaves an unset field out"). Fix: say that every unset field of a journal record (`at`, `stage`, `run`, `blocked`, `reason`) is left out of the file, and that every key of the state itself stays (`claim: null`).
     2. `docs/project-guide/work.md:13`: the signature says `work_item_order(id) -> tuple`. The code returns `tuple[str, int, str]` (`src/factory/shared/domain/identifiers.py:81`). This is the same kind of loose type as round 0's finding 3. Fix: write `-> tuple[str, int, str]`.
+15. factory: started docs-only as vm.
