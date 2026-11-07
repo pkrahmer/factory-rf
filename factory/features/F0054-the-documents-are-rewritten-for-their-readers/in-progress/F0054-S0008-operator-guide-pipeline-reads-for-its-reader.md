@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T01:21:00.656623Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T01:20:55.732384Z'
   stage: intake
   run: 85aa48470a8a40dfbc7509742ac9debc
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T01:21:00.656623Z'
+  stage: docs-only
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -67,3 +76,4 @@ Expect: `1`
    Docs criterion: criterion 6 refers back to criteria 1 to 4, which say what the reader gets (a rewritten operator guide page that is accurate, complete and checked). It dictates no sentences.
    Architecture: documentation only, no code placement. It sits in the operator guide, where CLAUDE.md puts operator material. `docs/decisions.md` is left alone, as the feature requires.
    Scope: this is S0008 of F0054's list. It is one file, and it avoids the feature's Out of scope items (`decisions.md`, `docs/runs/`, the playbook).
+4. factory: started docs-only as vm.
