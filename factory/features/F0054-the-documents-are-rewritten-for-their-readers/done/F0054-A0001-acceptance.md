@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -20,8 +20,13 @@ journal:
   at: '2026-11-07T10:01:06.549460Z'
   stage: acceptance
   run: 98903ed23a974d879c7ed2f98b08801e
+- number: 3
+  speaker: factory
+  kind: done
+  at: '2026-11-07T10:03:00.024260Z'
+  stage: done
 stories: [F0054-S0001, F0054-S0002, F0054-S0003, F0054-S0004, F0054-S0005, F0054-S0006, F0054-S0007, F0054-S0008, F0054-S0009, F0054-S0010, F0054-S0011, F0054-S0012, F0054-S0013, F0054-S0014, F0054-S0015, F0054-S0016, F0054-S0017, F0054-S0018, F0054-S0019, F0054-S0020, F0054-S0021, F0054-S0022, F0054-S0023]
-outcome: null
+outcome: accepted
 ---
 
 # Acceptance of The documents are rewritten for their readers
@@ -191,3 +196,4 @@ The 23 stories cost 241 runs, 334.4 min, 2,563 turns and $96.69, about $4.20 per
    6 Decisions for the human: 13 listed: the 4 in `feature.md`, the answers from the story journals (unrun `sh` blocks, round cap 3, the standing word for the night, `operator/README.md` left to F0055) and one sentence dropped without a decision-log line (S0015). No earlier test was changed; S0023 only added rows, under the leave in its Interface.
    7 Slow checks: there is nothing beyond `make check` and `make documents`. The slowest tests are the five 10 s time-limit tests. Free disk space fell by 4.0 GB (21.6 to 17.6 GB), but the recorded paths grew by only 0.1 GB; the feature does not explain the other 3.9 GB, so the operator should look.
    8 Cost: 241 runs, 334.4 min, $96.69 in all, about $4.20 per story. S0018 stands out at $13.56 and 22 runs, from style rounds past the cap. The human answered 15 questions (4 asked by agents, 11 at a round cap) and waited 0.7 h; S0001 needed the human most, with three answers.
+3. factory: done (pull request merged); cost: 1 runs, 7.5 min, 33 turns, 94122 tokens in (1788097 more from cache), 23058 out, $1.57
