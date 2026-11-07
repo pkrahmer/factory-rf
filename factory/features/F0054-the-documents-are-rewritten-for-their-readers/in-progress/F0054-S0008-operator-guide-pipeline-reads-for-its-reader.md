@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:26:05.034788Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T01:26:05.034788Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:27:49.784131Z'
+  stage: docs-review
+  run: 9f403fbcea604dd4bea6612e03f45e55
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -121,3 +123,29 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (13.0 s)
 6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/pipeline.md` and `docs/checked-documents.txt`. I read it against the work item, `docs/project-guide/style.md`, `docs/project-guide/glossary.md`, `src/factory/pipeline/domain/pipeline_definition.py`, `src/factory/agents/domain/write_paths.py`, `src/factory/pipeline/application/stage.py` and `src/factory/machine/application/stage_environment.py`.
+
+   The facts are true of the code:
+   - the reserved names `human`, `factory` and `question`
+   - checks and reports must name project commands
+   - `acceptance_stage` needs a stage with a role
+   - the defaults 60/40/10/2/2
+   - `round_cap` defaults to none
+   - `next` defaults to empty
+   - an approval stage has no role
+   - `write_paths` may not be empty
+   - the protected paths match `PROTECTED_PATHS`
+   - `sync` falls back to 10 minutes
+   - the lease example adds up (40+10+10+10=70>60)
+
+   Criterion 2 holds. Every name, setting and rule of the old file is still in the new text or in *Reference*. The one row dropped on purpose (`sync` in the `project_commands` default) is named in entry 5 and is covered by the `sync` bullet. The links from `health.md` and `records.md` to "The pipeline definition" and the other kept headings still resolve. `docs/checked-documents.txt` lists the file, and the factory's `make documents` was `documents ok`.
+
+   Findings:
+   1. `docs/operator-guide/pipeline.md`, several lines: glossary words are not linked at their first use, which breaks criterion 1 and style rule 3. The words are "story" l.3, "stops" l.33, "write paths" l.41, "approval stage" and "rounds" l.50, "stalls" l.109, "crashes" l.110, "acceptance" l.111, "claim" l.130, "work item" l.141, "stage environment" l.146, and "feature" and "backlog" l.150. Fix: link each at its first use to `../project-guide/glossary.md`, as l.7 and l.30–31 already do.
+   2. `docs/operator-guide/pipeline.md` l.155: step 2 shows `factory-check-story factory/features/F0001-example/backlog/F0001-S0001-example-story.md` as an indented code block. It is neither a runnable `console` example nor marked for the VM, GitHub or a model, which the Description requires. Fix: put the commands of the example at l.161–171 under the steps as indented `console` blocks (create the story, then run the check, with its output). Or drop the bare block and point step 2 at the runnable example.
+   3. `docs/operator-guide/pipeline.md` l.181, exit status row 2: one sentence of about 35 words with two parentheses breaks style rule 2 (about 25 words, at most one parenthesis). Fix: split it into one sentence per cause: no path (it prints the usage line); `factory/story-form.md` unreadable; a missing or non-UTF-8 file, which prints `cannot read <path>: <reason>`.
+
+   Rejected as findings:
+   - `python -m factory.entry.check_story` (l.159) names a module, but it is a command the operator runs, and criterion 2 keeps it.
+   - The sync bullet's "the container that prepares the tools after a checkout" matches `_SYNC_SCRIPT`, which runs the checkout and then `make sync`.
+   - The l.86 sentence is about 27 words, which is within "about 25".
