@@ -1,17 +1,13 @@
 ---
 stage: intake
-blocked: null
+blocked: question
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 638
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T13:57:33.075344Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,13 @@ journal:
   kind: started
   at: '2026-11-07T13:57:33.075344Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: question
+  at: '2026-11-07T13:57:54.282307Z'
+  stage: intake
+  run: c9cccc5f2a584650a680f57c2223c858
+  blocked: question
 ---
 
 # The top folders say what they hold
@@ -59,3 +62,12 @@ Expect: `documents ok (<seconds> s)`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: Questions (the format check passed, no findings):
+
+   1. The Interface states behaviours that no criterion covers. (a) `docs/README.md` names the four documents and who reads which (operator guide, project guide, decision log, operator playbook) and names `runs/` as the human's. (b) `security/README.md` says what the baselines and the semgrep rules are for and links to `CLAUDE.md`, *Checks*. (c) The root `README.md` lists the top folders, one line each, with a link to its README where one exists. Criterion 1 only covers shape (opening sentence, a link, subfolder lines) and criterion 2 only that names and links exist. Two documenters could satisfy both and still leave out (a), (b) or (c). Proposal: add a criterion per item. For (a), `docs/README.md` names the operator guide, the project guide, the decision log and the operator playbook, and says `docs/runs/` is the human's. For (b), `security/README.md` says what the baselines and the semgrep rules are for and links to `CLAUDE.md`. For (c), the root `README.md` lists every top folder (`agents/`, `demo/`, `docs/`, `factory/`, `operator/`, `planning/`, `security/`, `src/`, `tests/`) and links to each README that exists. Please confirm the exact set of top folders for (c). I would choose the list above.
+
+   2. The docs criterion (5) names only files. It does not say what the reader must know afterwards. Proposal: a newcomer who opens `docs/` or `security/` on GitHub knows which document to read for which need, and who owns `docs/runs/`. They also know what the baselines and the semgrep rules in `security/` are for, and that the root README's folder list points them to each folder's README. Please confirm or reword.
+
+   3. The root `README.md` is a docs-route path the documenter may write, but the Interface does not say where the folder list goes or how it relates to any existing folder list in it. Is it a new section, or does it replace an existing one?
+
+   The rest checks out. The smoke test runs the document check, which exists. The Interface changes only paths on the documenter's write paths (`docs/*`, `README.md`, `security/README.md`). `docs/README.md` and `security/README.md` are already on the folder list in `folder_readmes.py`. `docs/` has three subfolders (`operator-guide/`, `project-guide/`, `runs/`) and `security/` has one (`semgrep/`). The scope fits the feature, and the story is not in "Out of scope" because `docs/runs/` is only named in the README, not written.
