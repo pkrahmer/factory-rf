@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T06:33:25.994447Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -185,6 +181,12 @@ journal:
   kind: started
   at: '2026-11-07T06:33:25.994447Z'
   stage: docs-only
+- number: 32
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T06:37:39.428424Z'
+  stage: docs-only
+  run: 1224ee6215524234af99d19a9d0c88b8
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -576,3 +578,26 @@ Expect: `1`
     - The page has no *Reference* section, which criterion 2 allows.
     - If the human would rather accept the remaining sentences of 26 to 39 words than run another round, saying so in a comment closes finding 1. Nothing else is open.
 31. factory: started docs-only as vm.
+32. documenter: Round 2, after the reviewer's finding 1 of entry 30 (long sentences and parentheses in `docs/project-guide/pipeline.md`).
+
+    Files changed:
+    - `docs/project-guide/pipeline.md`: I split the long sentences the reviewer named and the other prose sentences my script flagged as longer than about 28 words. Examples are the stall steps, the take and restore step, the lease rule, the guards of the crash handler, the unblock rule, the stop table, the settings and environment bullets, the fixture list and the idle shutdown bullets. I also turned some run-on lists into short bullet lists: the `StallResult` fields, the crash guards, and the `boundaries` fixture fields. I added no claim. The only wording I changed in meaning is small: in the `StallResult` bullet "the last three at least 1" now names the three fields, and I re-ordered a few clauses. No heading changed, so no link into the file is affected.
+
+    How I measured: I wrote a script in a temp directory (since removed with the stage). It counts sentences over 28 to 30 words, more than one parenthesis outside backticks and link targets, and a nested parenthesis. It flagged 82 places at the start of this round. About 38 remain. The remaining ones have no sentence over 31 words except those I listed below, and nearly all are short sentences with two parentheses where those are part of a function signature or a module path, such as `(factory.x.y)` after a name. I did not split signature-and-path lines because splitting would separate a name from its module. The sentence at line 355 is a code block line, not prose.
+
+    Where the work stays open: the long sentences are not all gone. A few of 26 to 31 words remain (for example near lines 283, 431, 608, 753 and 772), and the script still flags about 38 lines for two parentheses, mostly a signature followed by a module path. The reviewer may call these finding 1 closed or ask for another round; the human can also accept them in a comment.
+
+    I did not re-read code for this round, since the rewrites are splits of sentences that earlier reviews had checked against the code.
+
+    `make documents`: `documents ok (16.2 s)`. I ran no `make check`, because every changed file is a document.
+
+    Cross-read and found current: the links into this file from the operator guide and the other project-guide files; no heading changed in this round.
+
+    Stale text seen, not mine to fix:
+    - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8.
+    - The page has no *Reference* section, which criterion 2 allows.
+    - `docs/project-guide/README.md` and `README.md:28` name paths that do not exist; `make documents` lists them as not checked yet.
+
+    `check`: check: green
+    `secrets`: secrets: green (1.4 s)
+    `documents`: documents ok (16.2 s)
