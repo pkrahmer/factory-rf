@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 1
@@ -137,6 +137,11 @@ journal:
   at: '2026-11-07T13:54:06.802733Z'
   stage: smoke-test
   run: 9c0f103ee8be4c1ba525d3544f9dbe99
+- number: 24
+  speaker: factory
+  kind: done
+  at: '2026-11-07T13:55:59.239444Z'
+  stage: approval
 ---
 
 # The operator's folders say what they hold
@@ -356,3 +361,4 @@ Expect: `documents ok (<seconds> s)`
     Findings: none.
 
     Open: `docs/decisions.md:1653` still says "the 23 paths". The human chose to keep it that way (entry 12), so this is not a finding.
+24. factory: done (pull request merged); cost: 10 runs, 10.7 min, 52 turns, 185141 tokens in (952628 more from cache), 17928 out, $1.69
