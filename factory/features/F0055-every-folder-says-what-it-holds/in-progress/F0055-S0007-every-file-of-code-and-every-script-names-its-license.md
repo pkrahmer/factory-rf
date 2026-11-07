@@ -1,5 +1,5 @@
 ---
-stage: smoke-test
+stage: approval
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim:
-  instance: vm
-  stage: smoke-test
-  started_at: '2026-11-07T12:15:32.582014Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-07T12:15:32.582014Z'
   stage: smoke-test
+- number: 16
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T12:15:55.680477Z'
+  stage: smoke-test
+  run: 1af0b351f79c44e8bd6ba8a588c7e15a
 ---
 
 # Every file of code and every script names its license
@@ -211,3 +213,18 @@ Expect: `0`
     `secrets`: secrets: green (3.7 s)
     `documents`: documents ok (58.3 s)
 15. factory: started smoke-test as vm.
+16. smoke-tester: Smoke test run from the repository root, exactly as written. There was one command.
+
+    Command 1:
+    ```bash
+    git ls-files 'src/factory/*.py' | xargs -I{} head -1 {} | grep -vcx '# SPDX-License-Identifier: Apache-2.0'
+    ```
+    Output:
+    ```
+    0
+    ```
+    Met its `Expect:` line (`0`). The pipeline's exit status was 1. That is how `grep -c` exits when it selects no lines, and here no first line differs from the header, so it is not an error. To put the count in context I also ran `git ls-files 'src/factory/*.py' | wc -l` once, which printed `188`. That is two more than the "186 files today" in the Interface, presumably modules added since the description was written. All 188 have the header on their first line.
+
+    Against the acceptance criteria: this command checks only part of criterion 1, the `src/factory/` side. It contradicts no criterion. It does not cover the operator scripts, the guard's failing rows (2), the scope rows (3), the `bash -n`/`sh -n` check (4), `make check` (5) or the docs (6). The factory's checks and the tests cover those, not this smoke test.
+
+    Findings: none.
