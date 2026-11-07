@@ -87,6 +87,13 @@ def _at_line_limit(extra_links: int) -> str:
 
 
 FREE_PROSE = "This line says more than the form allows."
+GUIDE_LINK = "[the guide](../docs/README.md)"
+LONG_LINK_LINE_5 = f"{FOLDER}: line 5 is a long link line"
+
+
+def _link_line(words: int) -> str:
+    # The link's markdown counts as two words, as written.
+    return f"{GUIDE_LINK} {_words(words - 2)}"
 
 
 @pytest.mark.parametrize(
@@ -193,6 +200,48 @@ FREE_PROSE = "This line says more than the form allows."
             f"{FOLDER}: links to no guide",
             1,
             id="only-link-root-absolute",
+        ),
+        pytest.param(
+            _readme(opening=(f"One sentence, see {GUIDE_LINK}. Two sentences.",)),
+            f"{FOLDER}: the opening is longer than two sentences",
+            0,
+            id="opening-of-two-sentences-with-a-link",
+        ),
+        pytest.param(
+            _readme(opening=(f"One sentence. Two sentences. Three, see {GUIDE_LINK}.",)),
+            f"{FOLDER}: the opening is longer than two sentences",
+            1,
+            id="opening-of-three-sentences-with-a-link",
+        ),
+        pytest.param(
+            _readme(links=(_link_line(25),)),
+            LONG_LINK_LINE_5,
+            0,
+            id="link-line-of-25-words",
+        ),
+        pytest.param(
+            _readme(links=(_link_line(26),)),
+            LONG_LINK_LINE_5,
+            1,
+            id="link-line-of-26-words",
+        ),
+        pytest.param(
+            _readme(links=(f"{GUIDE_LINK} says one thing. It says another.",)),
+            LONG_LINK_LINE_5,
+            1,
+            id="link-line-of-two-sentences",
+        ),
+        pytest.param(
+            _readme(extra=(_link_line(25),)),
+            f"{FOLDER}: line 9 is a long link line",
+            0,
+            id="link-line-of-25-words-after-the-list",
+        ),
+        pytest.param(
+            _readme(extra=(_link_line(26),)),
+            f"{FOLDER}: line 9 is a long link line",
+            1,
+            id="link-line-of-26-words-after-the-list",
         ),
     ],
 )
