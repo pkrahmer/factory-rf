@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496, 6705813023]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T10:47:51.748206Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -179,6 +175,12 @@ journal:
   kind: started
   at: '2026-11-07T10:47:51.748206Z'
   stage: review
+- number: 31
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T10:48:47.228398Z'
+  stage: review
+  run: ebb23baa384040a2b7887eb56d45c329
 ---
 
 # The folders that have a README are listed and checked
@@ -462,3 +464,22 @@ Expect: `23 ['x: no README.md']`
 28. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 29. 2026-11-07 human: One more round, by the human's standing word. Both findings of the last review are real and small: the tester adds the row of criterion 10 (a README whose only link is root-absolute gives 'links to no guide'), and the coder removes the docstring of _Reading, keeping a why-comment if needed. The reviewer's two notes may be done in the same round under the standing leave (_run moved to tests/support/check_documents_support.py, the private helper's docstring removed), but they are not required. Nothing else changes.
 30. factory: started review as vm.
+31. reviewer: Review, round 0 (the human's entry 29 restarted the count). I read the work item, the diff stat and the whole diff outside `factory/`: `src/factory/shared/domain/folder_readmes.py`, `src/factory/shared/domain/documents.py`, `src/factory/entry/check_documents.py`, `agents/agents/documenter.md` and the four new test files. The code and tests are the same as in the round-2 review (entry 27). After the human's answer the factory sent the work item straight back to review, so neither change the human asked for in entry 29 has been made yet.
+
+    Findings:
+    1. `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule`: criterion 10 has no test. There is no row for a README whose only link is root-absolute (`[guide](/docs/operator-guide/README.md)`), which should give `links to no guide`. The code handles it: `relative_link_targets` refuses a `/` target (`src/factory/shared/domain/documents.py:499-502`). Fix: the tester adds this row to the same test, as entry 29 says.
+    2. `src/factory/shared/domain/folder_readmes.py:50` (`_Reading`): the private class has a docstring. CLAUDE.md *Docs* says "none on private names". Fix: the coder removes the docstring, and keeps a why-comment for the one-pass record if one is needed (entry 29).
+
+    Checked and found sound:
+    - Group 1: criteria 1 to 9 each have a test that checks what the criterion names. Both sides of every stated limit are tested: an opening of 2 and 3 sentences, a subfolder line of 25 and 26 words and of two sentences, the line limit at 12 and 13. The failing sides are there too: no README, an unnamed subfolder, a missing subfolder, a line without a sentence, a first line that is a heading or prose, `~~~` and indented fences, a link that is only a web address, and a listed README that does not exist (criterion 7). The journal shows `make check` green after the coder (entry 25).
+    - Group 2: `folder_readmes` is a pure domain module in `shared`. It reuses `sections` (fences) and `documents` (relative links), and the wiring stays in `entry`.
+    - Group 3: no markers that silence a check, no secrets, and no shell or SQL built from strings.
+    - Group 4: apart from finding 2, names, public docstrings and why-comments are fine. No second copy of the link or fence reading is left. `_link_name` keeps its old behaviour through `_is_relative_link_target`.
+    - Group 5: the Description matches what was built, including the `operator/README.md` sentence corrected in entry 27. The journal gives the main decisions and what was rejected: one pass, no title means no opening, the shared link helper. The docs criterion (12) still fits.
+    - Documents: the diff changes no `README.md`, nothing under `docs/` and no `operator/README.md`.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
+
+    Notes (the human made them optional in entry 29, so they do not send the work item back):
+    - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) is a copy of `_run` in `tests/entry/test_check_documents_checked_files.py:50`. Under the standing leave it can move to `tests/support/check_documents_support.py`.
+    - `tests/guards/test_folder_readmes.py:16` (`_subfolders`): a private test helper with a docstring.
