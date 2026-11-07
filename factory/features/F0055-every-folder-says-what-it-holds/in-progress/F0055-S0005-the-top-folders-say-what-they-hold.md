@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T14:00:08.086216Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-07T14:00:08.086216Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:05:49.297825Z'
+  stage: docs-only
+  run: 153b93e798aa49fdafbbc504c38cae14
 ---
 
 # The top folders say what they hold
@@ -111,3 +113,21 @@ Expect: `documents ok (<seconds> s)`
    - Architecture: nothing is changed in code. The files are READMEs on the folder list.
    - Scope: this is S0005 of F0055. `docs/runs/` is only named, not written, and the story is not in the feature's Out of scope. The Description did not change.
 7. factory: started docs-only as vm.
+8. documenter: Files changed:
+   - `docs/README.md` (new): opening sentence, a link to the project guide, one line each for `operator-guide/`, `project-guide/` and `runs/`. It names `decisions.md` and `operator-playbook.md` and says `runs/` is the human's.
+   - `security/README.md` (new): says the semgrep rules serve `make sast` and `duplicates-baseline.txt` serves `make duplicates`. It links `CLAUDE.md`, *Checks*, and has one line for `semgrep/`. The baseline text is in the opening because the form allows no other prose; my first draft had an extra paragraph and the guard failed on it ("line 7 is no part of the form").
+   - `README.md`: new section `## The folders` between `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form, with links to the READMEs that exist (agents, demo, docs, operator, planning, security, src/factory, tests). `factory/`, `planning/` and `session-logs/` are marked as the human's. `## Where to read next` is untouched, and its existing `agents/` line also stays.
+   - `docs/checked-documents.txt`: added `docs/README.md` and `security/README.md`.
+
+   Checks: `make documents` ends with `documents ok (58.8 s)`. `uv run pytest -q tests/guards/test_folder_readmes.py` passes, so the guard is green for both new folders. I did not run `make check`, because I changed only documents. I changed no tests and no code.
+
+   Cross-read and found current: the root `README.md` and `docs/project-guide/style.md` (*Folder READMEs*), against the code of `folder_readmes.py`, the `Makefile` targets `sast` and `duplicates`, and the contents of `security/`.
+
+   Open or noted:
+   - `session-logs/` does not exist on this branch. `.gitignore` excludes it, as "Local copies of the session transcripts (the human, 2026-10-15)". The root line is written without a link. The name check did not flag it.
+   - Stale text, not touched because it is unrelated to this story: the `agents/` line in `## Where to read next` of the root README now duplicates the new `## The folders` line. Criterion 6 says to leave `## Where to read next` unchanged, so I left it.
+   - `docs/decisions.md` is untouched, as the docs criterion says.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.3 s)
+   `documents`: documents ok (60.1 s)

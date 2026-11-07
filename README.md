@@ -32,6 +32,19 @@ To run a factory [instance](docs/project-guide/glossary.md) you need a prepared 
 - [demo/README.md](demo/README.md): the demos the factory ships, one folder each.
 - `agents/`: the agent files the factory ships (`agents/agents/<role>.md` and `agents/settings.json`), written in Claude Code's format and read by both runtimes. The stage image copies them to `/etc/factory/agents`.
 
+## The folders
+
+- `agents/` The agent files the factory ships, one per role, with their settings; see [its README](agents/README.md).
+- `demo/` The demo projects the factory builds from an empty repository; see [its README](demo/README.md).
+- `docs/` The operator guide, the project guide, the decision log and the playbook; see [its README](docs/README.md).
+- `factory/` The human's: the pipeline definition, the forms and the features with their stories that this factory builds.
+- `operator/` What an operator runs next to an instance: the skill, the scripts and the VM setup; see [its README](operator/README.md).
+- `planning/` The human's working files, which no stage reads or writes; see [its README](planning/README.md).
+- `security/` The semgrep rules and the accepted duplicate findings; see [its README](security/README.md).
+- `session-logs/` The human's local copies of session transcripts, kept out of git.
+- `src/` The `factory` package, ordered by area; see [its README](src/factory/README.md).
+- `tests/` The pytest suite, mirroring the package; see [its README](tests/README.md).
+
 ## Reference
 
 ### Console commands
