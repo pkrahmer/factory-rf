@@ -1,17 +1,13 @@
 ---
-stage: review
+stage: doing
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T10:26:19.111509Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -90,6 +86,12 @@ journal:
   kind: started
   at: '2026-11-07T10:26:19.111509Z'
   stage: review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T10:28:03.801780Z'
+  stage: review
+  run: 21ae9eb163824f228f437efcce7fe4c7
 ---
 
 # The folders that have a README are listed and checked
@@ -234,3 +236,18 @@ Expect: `23 ['x: no README.md']`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 39 known, 4 gone
 14. factory: started review as vm.
+15. reviewer: Review, round 0. I read the work item, the diff (`src/factory/shared/domain/folder_readmes.py`, `src/factory/entry/check_documents.py`, `agents/agents/documenter.md`, the four new test files) and the new findings of `make duplicates`, which I ran.
+
+    Findings:
+    1. `src/factory/shared/domain/folder_readmes.py:98-102` (`_read`): the loop starts at line 2 and never looks at line 1. A README whose first line is `## Something` or prose, or that has no `# <title>` at all, gives no finding. The Interface defines the title as the first line, `# ` and a text, and says a heading line other than that title gives `<folder>: has a section`, and a line that is neither the title, the opening, a link line, a list line nor blank gives `line <n> is no part of the form`. Fix: check line 1. A heading that is not `# <text>` gives `has a section`, and a line 1 that is no heading gives `line 1 is no part of the form`. Story gap as well: criterion 2 has no row for a first line that is not the title. The fix needs a code change, so I add no criterion myself: the coder should ask for a row "a first line that is not `# <title>`" (or the human adds it), and the tester writes it.
+    2. `src/factory/shared/domain/folder_readmes.py:40,76-80` (`_FENCE`, the `in_fence` toggle): this is a second, narrower copy of the fence reading in `factory.shared.domain.sections` (`opening_fence`, `code_blocks`, `lines_outside_blocks`, used by `documents.py`). It sees only ```` ``` ```` at column 0. A `~~~` fence, or an indented one, gives no `has a code block`, and inside the opening its lines may give no finding at all, which goes against the Interface's "a fenced code block". Fix: find the fenced lines with `sections.code_blocks` / `lines_outside_blocks` (or `opening_fence`) and drop the private toggle.
+
+    Checked and found sound:
+    - Group 1: criteria 1 to 8 each have a test that tests what the criterion says. The boundary rows are there: opening of 2 and 3 sentences, subfolder line of 25 and 26 words and of two sentences, line limit 12 and 13. The journal shows `make check` green after the coder (entry 13).
+    - Group 2: the layering holds (pure domain module in `shared`, wiring in `entry`). `_named_documents` lists no document twice, because `docs/README.md` lies outside the two guide folders it reads with `rglob`.
+    - Group 3: no silencing markers, no secrets, no shell built from strings.
+    - `make duplicates`: its one new finding in this diff is `readme_problems` flagged as unused. That is expected, since its caller is the guard under `tests/`, as the Interface designs.
+    - Group 5: the Description, the journal (the one-pass design, with per-rule regexes rejected) and the docs criterion match what was built.
+    - The diff changes no document under `README.md`, `docs/` or `operator/README.md`.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
