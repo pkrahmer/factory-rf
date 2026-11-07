@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T09:04:41.685516Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T09:04:41.685516Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:05:59.316225Z'
+  stage: docs-review
+  run: 10f598d540054a12a6e0ffefa8e42593
 ---
 
 # The README reads for a newcomer
@@ -172,3 +174,17 @@ Expect: `1`
    `secrets`: secrets: green (0.3 s)
    `documents`: documents ok (58.2 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I checked the README against the code on the branch (`src/factory/hosting/application/opening.py`, `src/factory/pipeline/application/stage.py`, `src/factory/shared/domain/documents.py`), against `docs/project-guide/glossary.md`, `docs/project-guide/style.md`, the headings of `docs/operator-guide/machine.md` and `cloud-run.md`, and against the old README on `main`. All five round-0 findings are fixed: the `console` block with `check: green`, the glossary links above *Reference*, *Setting up an operator's machine*, the history pointer, and the split check sentence. `docs/checked-documents.txt` gains `README.md`. The `make documents` result in entry 9 is the documenter's; I did not run it.
+
+    Findings:
+    1. README.md:3: "Then it opens a pull request" is not what the code does. The draft pull request opens when the story's first stage starts (`src/factory/hosting/application/opening.py:109`, `draft=True`, reached from `src/factory/pipeline/application/stage.py:173`), before any agent runs. Fix: say that each story gets a draft pull request when its work starts, and that you approve it or send it back when the agents are done.
+    2. README.md:53: the check described here is only half the code. `documents.py:422` refuses a missing section *Kill points* or *Fault-injection paths*. But `_project_guide_rows` (`src/factory/shared/domain/documents.py:345-358`) also refuses each kill point case and each fault-injection path that has no table row. The new text drops that second half, which the old text covered ("leaves a … kill point or fault-injection path unnamed"). The sentence also runs about 35 words with a chain of "or" (style rule 2). Fix: split it in two. One sentence for the missing document and its words. One for a stop without its table row, and a case or path without its row in the project guide's *Kill points* or *Fault-injection paths*.
+    3. README.md:9-14 (Try it): the old file listed what `make check` runs ("lint, types, layers, sast, secrets, licenses, tests", old README.md:9). Neither the new text nor *Reference* has it, and the documenter's entries do not name it as dropped on purpose (criterion 2). Fix: add that list to the sentence above the block, or to *Reference*.
+    4. README.md:17 and :67: the old file named the section *On Cloud Run* in `cloud-run.md` (old README.md:28; the heading exists at `docs/operator-guide/cloud-run.md:5`). The new text links only the file and drops the name without saying so (criterion 2). The same goes for "one folder each" on the demos (old :38, new :34). Fix: name *On Cloud Run* beside the link, and keep "one folder each".
+    5. README.md:3, :39, :41-42: these factory words are not linked at their first use in the file (style rule 3, criterion 1):
+       - "stories" at :3: its first use is the first sentence, and the link sits on the second use.
+       - "tick" at :39 (`factory-run` row).
+       - "work item" at :41 (`factory-bill` row).
+       Fix: move the "stories" link to the first sentence, and link "tick" and "work item" to `docs/project-guide/glossary.md`.
+
+    Earlier tests: none. The diff changes no test file.
