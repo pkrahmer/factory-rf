@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T05:49:03.443475Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T05:48:58.672149Z'
   stage: intake
   run: 0adfeb41fe064d398392476350541833
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T05:49:03.443475Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    - Docs criterion: criterion 7 says what the reader must know (criteria 1 to 5, meaning the page is true to the code and complete). It quotes no sentences.
    - Architecture: the story only touches a project-guide page, which is a document the documenter may write. No code, test or agent file changes.
    - Scope: S0018 is listed in F0054's stories, and it changes nothing listed in "Out of scope" (`decisions.md`, `docs/runs/`, the playbook).
+4. factory: started docs-only as vm.
