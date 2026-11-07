@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T14:06:50.747586Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-07T14:06:45.786591Z'
   stage: docs-review
   run: 40189e18bd5e4a6f8dfa2f262d09a538
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-07T14:06:50.747586Z'
+  stage: docs-only
 ---
 
 # The top folders say what they hold
@@ -151,3 +160,4 @@ Expect: `documents ok (<seconds> s)`
     3. `docs/README.md:7` ("no stage reads or writes them"): `CLAUDE.md`, *The human's files*, says only that no stage edits `docs/runs/` and that it is outside every write path. Nothing keeps a stage from reading it; `not_read` in `factory/pipeline.yml` is about what `make check` reads, not what agents read. Fix: "no stage writes them", as `CLAUDE.md` says.
 
     Checked and found true: the root `## The folders` section sits between `## Where to read next` (unchanged) and `## Reference`. It has ten lines in the subfolder-line form, and links to the six READMEs that exist (`src/` links to `src/factory/README.md`; `src/` itself has no README). It names `factory/`, `planning/` and `session-logs/` as the human's, and `session-logs/` is ignored in `.gitignore:15-16`. `docs/README.md` names all four documents and has a line for each of the three subfolders. `security/README.md` matches the `sast` and `duplicates` targets and links `CLAUDE.md`, *Checks*. `docs/checked-documents.txt` gains both paths. The trailing link sentence of `docs/README.md` passes the guard (`_read_line` takes any line with a link) and serves criterion 8; I left it as it is.
+11. factory: started docs-only as vm.
