@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 628
 comments_read: [6704529250]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T08:33:12.767331Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -145,6 +141,12 @@ journal:
   kind: started
   at: '2026-11-07T08:33:12.767331Z'
   stage: docs-only
+- number: 25
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T08:38:13.211381Z'
+  stage: docs-only
+  run: e674dd394c8b4a0c8e81186c77be5618
 ---
 
 # The project guide's index reads for the developer
@@ -492,3 +494,29 @@ Expect: `1`
 
     Not checked: I did not run `make documents`; the factory runs it as the gate.
 24. factory: started docs-only as vm.
+25. documenter: Round 5 of the docs route. The human's entry 21 asked for findings 1 to 5 of the last review to be fixed, each read from the source. It also asked for a completeness check by script, with the script's last output quoted.
+
+    Changed file: `docs/project-guide/README.md` (the only one). Findings 1 to 5, each read from the source:
+    1. `assert_taken_and_pushed` (`tests/support/container_support.py:337-343`): the "five assertions" claim is replaced by what it checks and no count. It checks that the pushed commit holds `INSIDE` and not `NOTES`, that the journal names `NOTES`, that the log has one timing line, and that the checkout is clean.
+    2. `in_order` and `lines_with`: the "three text modules" claim is replaced by the importers, without a count. `in_order` is imported by the `tests/vm/test_vm_setup_*.py` modules and by `tests/operator_scripts/test_operator_merge_reset.py`. `lines_with` is imported by `test_vm_setup_idle_shutdown.py`, `test_vm_setup_text.py` and `tests/vm/test_vm_job_start_image.py`.
+    3. The 11 modules of `tests/support/` that the page lacked now have an entry, each read from its source: `claude_stand_in`, `container_runtime_support`, `guide_files_support`, `machine_readings_support`, `opencode_stand_in`, `push_retry_support`, `pygithub_stand_ins`, `remote_outage_support`, `sized_images`, `tool_use_support` and `transcript_support`. The two stand-ins for `claude` and `opencode` share one entry that points to `agents.md`, and `pygithub_stand_ins` points to `hosting.md`; I checked that both pages name them. The lead-in sentence "Every module of `tests/support/`, and the two conftests" is reworded to say what the list holds, and the new sentence is true by the script below.
+    4. Every fixture of `tests/conftest.py` is now named. The old 28 names are kept, and about 25 are added (`without_agent_login`, `code`, `token`, `workspace`, `fake`, `probe_settings`, `image_file`, `environment`, `run_environment`, `sudo_stand_in`, `failed_after_claim`, `podman_recorder`, `podman`, `runs`, `dataset`, `holder_file`, `restored_signals`, `secret_file`, `login_file`, `environ`, `instance_settings`, `on_the_manual_clock`, `result_case`, `operator` and `installed`). I wrote each from its docstring and body.
+    5. The conftest entry is now a nested list, one fixture or one closely tied pair per item, under these groups: every test, doubles and time, git, paths and settings, stand-in programs, processes and signals, the factory on those, the recovery proof and runtime tests. I added the two groups "stand-in programs" and "processes and signals", because the added fixtures fit none of the old groups.
+
+    Completeness script, as the human asked (the reviewer's version, run on the final page). For every `tests/support/*.py` module except `__init__`, it greps the stem in the page. For every `@pytest.fixture` function of `tests/conftest.py`, it looks for `` `name` `` in the page. Its last output, for both parts:
+    ```
+    MODS
+    FIX
+    END
+    ```
+    Both lists are empty: no module and no fixture is missing from the page.
+
+    `make documents` ended with `documents ok (59.3 s)`. Its report lines (`README.md:28 factory/stage.Containerfile does not exist` and the "not run" examples) are not from this page. They sit in other documents, and `README.md:28` was not touched by this story and is not mine to fix.
+
+    Cross-read and found current in earlier rounds: the rest of `docs/project-guide/README.md` and the links to its headings. I did not change anything else.
+
+    Not used: I made no skill call. Nothing is stale beyond the report line named above.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.6 s)
+    `documents`: documents ok (58.0 s)
