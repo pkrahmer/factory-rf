@@ -59,7 +59,7 @@ That is `stop <scope> <reason>: <detail>`, after the stamp. `scope` is `reposito
 
 ### The stop records on main
 
-Every raise and every clear of a stop of the repository or the machine is also a record (see "The stop records" in [health.md](health.md)). Each tick, right after it restored the checkout and before the preflight, pushes the records that `origin/main` does not hold to `factory/stops.jsonl` on `main`, as a commit with the subject `stops recorded`. The records carry the event, scope, reason, time and instance, without the detail, which stays in the factory log.
+Every raise and every clear of a stop of the repository or the machine is also a record (see "The stop records" in [health.md](health.md)). Each tick restores the checkout, and right after that, before the preflight, it pushes the records that `origin/main` does not hold. They go to `factory/stops.jsonl` on `main`, as a commit with the subject `stops recorded`. The records carry the event, scope, reason, time and instance, without the detail, which stays in the factory log.
 
 1. Pull `main` before you push to it. The factory pushes `main` after a stop event as well as after an archive. If you push first, the factory's push is refused and succeeds on the next tick. If the factory pushes first, yours is refused until you pull.
 
@@ -85,7 +85,7 @@ Every raise and every clear of a stop of the repository or the machine is also a
 - If the work item's branch already has an open pull request, the factory posts on that one. A pull request you closed or merged is not reused for a new one. But when the work item's state records a pull request number, the stop is posted there even if you have since closed it.
 - A restart never repeats a stop. The key identifies the stop: if the factory died after posting and before recording it, the next attempt finds the key on the pull request and posts nothing. The same key with another text is still a repeat; a different kind or number is a new stop and a new comment.
 - The posting writes no state. In particular the factory does not record the number of a pull request it opened for an error report; a later stop finds that pull request by its branch.
-- Two files with one id are both read: the second is read from `origin/main` as a started story, because the id's branch holds only the first file. So the duplicate is reported on the first work item's pull request and does not end the tick.
+- Two files with one id are both read. The second is read from `origin/main` as a started story, because the id's branch holds only the first file. So the duplicate is reported on the first work item's pull request and does not end the tick.
 
 ## What a stage run shows
 
@@ -116,7 +116,7 @@ If the push of the result commit fails, no label is written. If the hosting serv
 Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the next tick.
 ```
 
-**It means** a stall: a stage ended without a result the factory can keep. A stall costs one attempt of the work item and is never a [crash](../project-guide/glossary.md). The factory keeps what the agent wrote inside the stage's write paths. The take does not copy the rest from the dataset. The factory releases the claim and pushes one commit with a `stall` entry in the journal. Only then does it post the note and write the pull request's `stage:` label for the stalled stage, so a work item whose first stage stalls has its label too. The note's key is `<work item>:stall:<n>`, where `n` is the number of the stall entry.
+**It means** a stall: a stage ended without a result the factory can keep. A stall costs one attempt of the work item and is never a [crash](../project-guide/glossary.md). The factory keeps what the agent wrote inside the stage's write paths. The take does not copy the rest from the [dataset](../project-guide/glossary.md). The factory releases the claim and pushes one commit with a `stall` entry in the journal. Only then does it post the note. It also writes the pull request's `stage:` label for the stalled stage, so a work item whose first stage stalls has its label too. The note's key is `<work item>:stall:<n>`, where `n` is the number of the stall entry.
 
 **You do** nothing while the note says "Retrying on the next tick.": the next tick runs the stage again from what the stall kept. The note says so only while `n` is below `m`.
 
@@ -129,7 +129,7 @@ Stalled (attempt 1 of 2): the agent run died without a result. Retrying on the n
 
 ## A stall by a red check
 
-**You see** a stall note with the cause `a check is red after the stage`, the check's name after a colon, and below the sentence, in a code block, the last 15 lines of the check's output (all of them when it printed fewer). The block keeps GitHub from rendering the output as Markdown.
+**You see** a stall note with the cause `a check is red after the stage` and the check's name after a colon. Below the sentence, a code block holds the last 15 lines of the check's output, or all of them when it printed fewer. The block keeps GitHub from rendering the output as Markdown.
 
 ````text
 Stalled (attempt 1 of 2): a check is red after the stage: `check`. Retrying on the next tick.
@@ -144,12 +144,13 @@ make: *** [Makefile:6: check] Error 1
 
 **You do:**
 
-1. Below the attempts cap, nothing: the next tick runs the stage again, and the agent sees the journal.
-2. At the cap, read the 15 lines and run the target yourself (`make check`) on the work item's branch.
-3. Fix what is wrong: the code, the target, or a tool missing on the machine.
-4. Answer on the pull request. The factory has asked, so the attempts-cap question described under "The factory's own questions" is there, and your comment answers it.
+Below the attempts cap there is nothing to do: the next tick runs the stage again, and the agent sees the journal. At the cap:
 
-Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move. Every report that ran adds one line `` `<command>`: <last line of its output> `` to the agent's entry, passed or failed; the line has the same form either way, so only its last line shows whether the report passed. A report stopped at its time limit is the exception: its line ends with the stop note (see "What a stage run shows"). A failing report holds nothing and stops nothing.
+1. Read the 15 lines and run the target yourself (`make check`) on the work item's branch.
+2. Fix what is wrong: the code, the target, or a tool missing on the machine.
+3. Answer on the pull request. The factory has asked, so the attempts-cap question described under "The factory's own questions" is there, and your comment answers it.
+
+Reports (the stage's `reports`) run after all checks are green. They are recorded and never hold a move. Every report that ran adds one line `` `<command>`: <last line of its output> `` to the agent's entry, passed or failed. The line has the same form either way, so only its last line shows whether the report passed. A report stopped at its time limit is the exception: its line ends with the stop note (see "What a stage run shows"). A failing report holds nothing and stops nothing.
 
 The result commit of every stage holds the whole work tree. Make sure the project's `.gitignore` covers whatever its checks create (build output, caches, coverage files); otherwise the factory commits it.
 
@@ -202,8 +203,8 @@ A comment answers a question when it was written after the factory posted that q
 Three things in a reviewer's entry are not findings in the usual sense. Read them at the approval.
 
 - **Notes.** From round 1 on, a point that is only about the quality of a test file the story adds (a copied helper, a name, a duplicate test) goes under `Notes:` after the findings, one line each with its location. The notes do not send the story back. The first review, at round 0, still sends such a point back. A point on a criterion, the architecture, security or `src/` is a finding at every round.
-- **An added criterion.** When the diff builds a behaviour that no criterion names and pinning it needs no code, the reviewer writes the criterion into the story itself and names it in its entry as `criterion <n> added: it needs its test`. The coder changes no code and the tester writes the test. That is a send-back like any other and counts a round, so the round cap may still ask you afterwards.
-- **A corrected description.** When a story's Description has gone stale against what it built, and the human's answers, the Interface or the criteria settle what it should say, the reviewer rewrites the stale sentences itself. Its entry names each correction as `description corrected: <what it said> -> <what it says now>`, one line each. That is not a send-back and counts no round. A Description the code contradicts with nothing to settle it still comes back as a finding or a question.
+- **An added criterion.** The diff may build a behaviour that no criterion names, where pinning it needs no code. The reviewer then writes the criterion into the story itself. It names the criterion in its entry as `criterion <n> added: it needs its test`. The coder changes no code and the tester writes the test. That is a send-back like any other and counts a round, so the round cap may still ask you afterwards.
+- **A corrected description.** A story's Description may have gone stale against what it built. If the human's answers, the Interface or the criteria settle what it should say, the reviewer rewrites the stale sentences itself. Its entry names each correction as `description corrected: <what it said> -> <what it says now>`, one line each. That is not a send-back and counts no round. A Description the code contradicts with nothing to settle it still comes back as a finding or a question.
 
 ## The stop `pipeline_definition_invalid`
 
@@ -268,7 +269,7 @@ Four repository stops, and the machine stop `disk_low`, end a tick before it loo
 
 **You see** `fetch_failed` in the health status, with git's message as the detail. An expired or revoked token shows this way, and nothing is lost: the next tick after a successful fetch carries on.
 
-**It means** `factory-run` fetches once in an iteration, before the tick, and the tick does not fetch again. That fetch compares the project's stage file on `origin/main` with the one in use, and it raises the same stop: scope `repository`, git's message as its detail, and no tick runs in that iteration. The image, its identity and its `PATH` stay as they were. Any other git error in that fetch is not this stop: the iteration fails with an `iteration failed` line in the log.
+**It means** `factory-run` fetches once in an iteration, before the tick, and the tick does not fetch again. That fetch compares the project's stage file on `origin/main` with the one in use. When it fails, it raises the same stop: scope `repository`, git's message as its detail. No tick runs in that iteration. The image, its identity and its `PATH` stay as they were. Any other git error in that fetch is not this stop: the iteration fails with an `iteration failed` line in the log.
 
 **You do** fix the network, the address or the credentials. The next fetch that passes clears the stop and compares the stage file as usual.
 
@@ -280,7 +281,7 @@ Four repository stops, and the machine stop `disk_low`, end a tick before it loo
 
 **You do** remove the path git's message names, as `factory` (`sudo -iu factory`) or, when `factory` cannot remove it, as root. The next tick runs the restore again and clears the stop once it succeeds.
 
-The restore throws away every uncommitted change and every untracked file that no ignore rule matches, and deletes the local branches of the work items, so that a stage starts from the remote's branch. When it throws changes away it writes one line to the log, `discarded uncommitted changes: <path>, <path>`. Ignored paths (`.venv`, the caches) stay. Do not keep anything in the factory's checkout.
+The restore throws away every uncommitted change and every untracked file that no ignore rule matches. It also deletes the local branches of the work items, so that a stage starts from the remote's branch. When it throws changes away it writes one line to the log, `discarded uncommitted changes: <path>, <path>`. Ignored paths (`.venv`, the caches) stay. Do not keep anything in the factory's checkout.
 
 ### A work item file that cannot be read
 
@@ -290,7 +291,7 @@ This is not a stop. The tick ends with an error that names the file's path. It d
 
 **You see** the machine stop `disk_low`, and the tick ends; nothing is fetched or written after it. The detail names each short directory with its free space, the work directory first. A free space that cannot be read is the same stop, with the detail `cannot read the free space of <path>: <error>`, and no later path is read.
 
-**It means** that at the start of every tick, before the fetch, the factory read the free space of the work directory (the checkout's parent) and of the state directory, and one has less than `FACTORY_MIN_FREE_GB` (exactly the minimum is enough). The preflight runs inside the tick, so this one check covers it.
+**It means** that at the start of every tick, before the fetch, the factory read the free space of the work directory and of the state directory. The work directory is the checkout's parent. The stop stands when one has less than `FACTORY_MIN_FREE_GB`; exactly the minimum is enough. The preflight runs inside the tick, so this one check covers it.
 
 **You do** make room on the file system the detail names. The first tick that finds enough room clears the stop.
 
@@ -322,7 +323,7 @@ This is not a stop. The tick ends with an error that names the file's path. It d
 - A success clears the event's count.
 - The counts are kept in memory only. After a restart they begin at zero, so the event is tried up to three more times; the report is not posted twice.
 - If the work item's branch is not on the remote, no pull request can be opened for the report and no later tick would change that. The report is then one line in the factory log, `error cap reached on <event>: <last error>`, written once; so is the report of an event that belongs to no work item.
-- If the report cannot be posted for another reason (the hosting service is down, or git fails in the factory's checkout while the report resolves the branch), the factory tries to post it again on the next tick, without counting that as an error.
+- A report can fail to post for another reason. The hosting service may be down, or git may fail in the factory's checkout while the report resolves the branch. The factory then tries to post it again on the next tick, without counting an error.
 
 Every counted error also writes one line to the factory log, so that the first two errors, which post nothing, can be read:
 
@@ -334,7 +335,7 @@ The line reads `handler error <event key> <n> of <cap>: <exception type>: <text>
 
 ### A refused push is tried again
 
-The push of a stage's result and the push of a change the factory records (a crash, an expiry, the hand-over's record, the archive of a merge) are tried again when the remote may take them after a wait. Only two failures count: a refusal by the server (git's `[remote rejected]` on the refused ref's line, for example `Internal Server Error`) and a remote that cannot be reached.
+The factory tries a push again after a wait when the remote may take it then. This holds for the push of a stage's result and for the push of a change the factory records. Those changes are a crash, an expiry, the hand-over's record and the archive of a merge. Only two failures count: a refusal by the server (git's `[remote rejected]` on the refused ref's line, for example `Internal Server Error`) and a remote that cannot be reached.
 
 - The factory waits 5 s and pushes again, then 15 s, then 45 s. Each wait writes `push: retry <n> of 3 in <s> s: <reason>` to the factory log.
 - The push is the same command each time, on the same commit: no force, no rebase, no new commit.

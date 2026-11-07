@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:15:24.966962Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T01:15:24.966962Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:18:18.022203Z'
+  stage: docs-only
+  run: ec2ed89b54804fe9ae213a41d8a44518
 ---
 
 # The operator guide's the stops reads for the operator
@@ -231,3 +233,25 @@ Expect: `1`
     7. `docs/operator-guide/stops.md:88,119,152,205,206`: each has a sentence of about 28 to 33 words (rule 2). They are: "Two files with one id are both read: ...", "Only then does it post the note and write ... label too.", "Every report that ran adds one line ...; the line has the same form ...", "When the diff builds a behaviour ..." and "When a story's Description has gone stale ...". Fix: split each at its semicolon, colon or "and", one idea each.
     8. `docs/operator-guide/stops.md:147-150`: the numbered steps are not one action each, as the operator guide's style asks. Step 1 ("Below the attempts cap, nothing") is a case, not an action. It is also an alternative to steps 2 to 4, not a step before them. Fix: say first, as a sentence, that below the cap there is nothing to do. Then number only the steps at the cap: read the 15 lines and run `make check` on the branch, fix the cause, answer on the pull request.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: fixed the reviewer's eight findings in `docs/operator-guide/stops.md`, the only file I changed. `docs/checked-documents.txt` already has its line. `make documents` ends `documents ok (11.8 s)`. I changed only documents, so I did not run `make check`.
+
+    1. "dataset" in the stall section is now linked to the glossary.
+    2. The disk sentence is split into three: when the factory reads the free space, what the work directory is, and when the stop stands (exactly the minimum is enough). The parentheses are gone.
+    3. The red-check **You see** is split into two sentences: the cause and the check's name, then the code block with the last 15 lines.
+    4. The sentence about a report that cannot be posted is rewritten: it names the two causes in a sentence of their own, and the retry follows in the next one.
+    5. The sentence on retried pushes is split. It first says which pushes are tried again, then lists the recorded changes, then names the two failures that count.
+    6. The sentences on the stop records, the stall note's label, the stage-file fetch and the restore are each split into two, one idea each.
+    7. The sentences on two files with one id, the report line, the added criterion and the corrected description are split at their semicolon, colon or "and".
+    8. The red-check **You do** now says in a sentence that below the attempts cap there is nothing to do. It numbers only the three steps at the cap: read the 15 lines and run `make check` on the branch, fix the cause, answer on the pull request.
+
+    Code claims: this round I rewrote wording only and changed no fact. I checked no claim against the code beyond what rounds 0 and 1 covered.
+
+    Cross-read: no heading that another file links to changed, and `make documents` resolves the names.
+
+    Stale text I noticed and did not touch: `docs/decisions.md:1560` mentions *Replaced in v1.2* in the operator guide index, which this story does not cover.
+
+    No findings for the coder.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (12.0 s)
