@@ -334,7 +334,7 @@ Otherwise the result is a `StageChange`. Its `correction` is true only when the 
 | `transcript` | a `TranscriptRef(path, sha256)`: the kept transcript, a relative `.gz` path inside the transcript folder and the SHA-256 of the file |
 | `tools` | a list of `ToolUse(tool, calls, failed, seconds)`, one for each tool, sorted by name; `failed` is at most `calls`; `[]` for a run without a call; `None` when the calls could not be read |
 | `machine` | `MachineMeasures`, see below |
-| `login` | the `Login` of the run's result (`api_key`, `subscription` or `none`), copied by `complete`; `None` when the runtime has no login file |
+| `login` | the `Login` of the run's result (an API key, a subscription or none), copied by `complete`; `None` when the runtime has no login file |
 
 - A `started` record has none of the measures from `duration_seconds` on, `denials`, `denied_paths`, `login`, `machine`, `transcript` and `tools`; the first one found raises `a started record has no <field>` (`a started record has no login`).
 - A `completed` record without `duration_seconds` or `end_reason` raises `a completed record needs <field>`.

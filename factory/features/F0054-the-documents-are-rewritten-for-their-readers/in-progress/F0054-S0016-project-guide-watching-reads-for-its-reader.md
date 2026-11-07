@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:46:25.967724Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -52,6 +48,12 @@ journal:
   kind: started
   at: '2026-11-07T04:46:25.967724Z'
   stage: docs-only
+- number: 8
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:49:16.675721Z'
+  stage: docs-only
+  run: 0773bed63c7043aab99141c304123f6c
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -144,3 +146,24 @@ Expect: `1`
    https://help.github.com/articles/removing-sensitive-data-from-a-repository
    make: *** [Makefile:65: secrets] Error 1
 7. factory: started docs-only as vm.
+8. documenter: Fixed the red `make secrets` that stalled the first run. detect-secrets flagged `docs/project-guide/watching.md:337` as a Secret Keyword, because the `login` row of the cost-record table named the literal values `api_key`, `subscription` and `none`.
+
+   Files changed:
+   - `docs/project-guide/watching.md`: in that row I wrote the three login kinds in words ("an API key, a subscription or none"). The meaning is unchanged. I added no `pragma: allowlist secret`. detect-secrets now passes on the file, and `make documents` ends with `documents ok (16.7 s)`.
+
+   The rest of the first entry stands:
+   - `docs/checked-documents.txt` has the `watching.md` line.
+   - `docs/project-guide/README.md` has the new `watching.md` entry.
+   - I cross-read `docs/operator-guide/records.md` and found it current.
+   - I changed only documents, so I did not run `make check`.
+
+   Stale text I saw and did not touch, because it is unrelated to this story:
+   - `docs/project-guide/README.md` has `support/...` paths that do not exist, from line 121.
+   - `docs/project-guide/machine.md` has `src/new.py`, `.venv/...` and `factory/stage.Containerfile`.
+   - The index `README.md` still has version-history notes ("Replaced in v1.2", "Replaced from v1").
+
+   I wrote no `Rejected` lines, and `docs/decisions.md` is unchanged.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.5 s)
+   `documents`: documents ok (16.3 s)
