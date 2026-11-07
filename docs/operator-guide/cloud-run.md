@@ -126,7 +126,7 @@ How an execution ends:
 
 The next execution starts at the schedule, or when you run `sh operator/job/job.sh execute`.
 
-#### A free model
+### A free model
 
 When the model costs nothing, a price of 0 makes `budget_usd` inert. The time limit of the stage is then the only bound on a run.
 
@@ -136,14 +136,16 @@ When the model costs nothing, a price of 0 makes `budget_usd` inert. The time li
 
 These commands run on your own machine, with the site file in place and `gcloud` logged in:
 
-```sh
-sh operator/job/job.sh create [--dry-run]
-sh operator/job/job.sh update [--dry-run]
-sh operator/job/job.sh execute
-sh operator/job/job.sh delete [--yes]
-sh operator/job/job.sh log [N] [--execution NAME] [--quiet]
-sh operator/job/job.sh status
-```
+| Command | What it does |
+| --- | --- |
+| `create [--dry-run]` | Creates the job. |
+| `update [--dry-run]` | Updates the job. |
+| `execute` | Starts an execution. |
+| `delete [--yes]` | Deletes the job. |
+| `log [N] [--execution NAME] [--quiet]` | Prints the last lines of an execution. |
+| `status` | Shows the job's executions and the stop line. |
+
+Run each as `sh operator/job/job.sh <command>` on your own machine.
 
 A wrong call (an unknown command or option) prints the usage line, which names every command, on standard error and exits 2:
 
@@ -218,14 +220,9 @@ The text of `operator/vm/job-start.sh` is taken from `SITE_CODE_REF` of the repo
 
 Cloud Logging is how you see a job. It has three habits that cost time. It arrives one to two minutes late. A failed query looks like an empty log unless the error is shown. The factory's lines are mixed with the package manager's. Two commands of `job.sh` deal with that.
 
-```sh
-sh operator/job/job.sh log [N] [--execution NAME] [--quiet]
-sh operator/job/job.sh status
-```
-
 Both need `SITE_PROJECT`, `SITE_REGION` and `SITE_JOB`, and pass `--impersonate-service-account` when `SITE_IMPERSONATE` is set. Both show a failing `gcloud` instead of swallowing it: `job: gcloud <what> failed: <first line of its standard error>` on standard error, and status 1.
 
-`log` and `status` pass what they print through `operator/bin/sanitise` (see *Sanitising what leaves the machine* in [site.md](site.md)), so the site's names and tokens are replaced. Without a rules file the built-in rules apply, and the sanitiser's warning appears once on standard error.
+`log` passes every line it prints through `operator/bin/sanitise`, and `status` passes the stop line it prints (see *Sanitising what leaves the machine* in [site.md](site.md)), so the site's names and tokens are replaced. Without a rules file the built-in rules apply, and the sanitiser's warning appears once on standard error.
 
 #### `log`
 

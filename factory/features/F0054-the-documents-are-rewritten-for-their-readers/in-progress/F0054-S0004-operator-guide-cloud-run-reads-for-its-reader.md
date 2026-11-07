@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 612
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T00:09:17.543979Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T00:09:17.543979Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T00:11:53.674224Z'
+  stage: docs-only
+  run: 8404cf02407d4b5c9a3e59db2983a3fe
 ---
 
 # The operator guide's on cloud run reads for the operator
@@ -188,3 +190,14 @@ Expect: `1`
     2. `docs/operator-guide/cloud-run.md:139-146` and `:221-224`: these `sh` blocks hold usage synopses with `[--dry-run]`, `[N]` and `NAME`, not bare commands. They also stand under no numbered step. style.md *Examples that are not run* allows an `sh` block only for bare commands under their numbered step. The second block repeats two lines of the first, and the usage `console` example at :150-153 already shows the full grammar. Fix: replace the block at :139-146 with a table of `Command` and `What it does` (create, update, execute, delete, log, status, each with its options), and drop the block at :221-224.
     3. `docs/operator-guide/cloud-run.md:129`: *A free model* is now a `####` subsection of *Starts, restarts and the end of an execution*, but it is about model prices, not starts. On `main` it was a section of its own (`###`), and nothing links to it. Fix: make it `###` again, so it is a sibling of the other sections.
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's three findings in `docs/operator-guide/cloud-run.md`, the only file I changed. `make documents` ends with `documents ok (5.7 s)`. I did not run `make check`, because I changed only documents.
+
+    1. Sanitiser sentence (:228 in the reviewer's numbering): it now says `log` passes every line it prints through `operator/bin/sanitise`, and `status` passes the stop line it prints. This matches the reviewer's reading of `job.sh:382,384,444,451`; I did not read those lines again.
+    2. The two `sh` synopsis blocks are gone. The first is replaced by a `Command` / `What it does` table with the six commands and their options, followed by a line saying to run each as `sh operator/job/job.sh <command>` on your own machine. The second block, in *Watching the job*, is dropped. The usage `console` example still shows the full grammar.
+    3. *A free model* is a `###` section again, a sibling of the other sections.
+
+    Cross-read: nothing beyond the earlier rounds. Stale text I did not touch: the same as before, namely the old-layout line in `docs/decisions.md` and `docs/runs/`, which belongs to the human.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (5.9 s)
