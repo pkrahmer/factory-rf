@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 616
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:34:36.585936Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T01:34:36.585936Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:35:11.697712Z'
+  stage: docs-review
+  run: 484393ad34f84265979d9f3efd9ce841
 ---
 
 # The operator guide's the pipeline definition reads for the operator
@@ -246,3 +248,21 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (12.9 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 of the docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/operator-guide/pipeline.md` and `docs/checked-documents.txt`.
+
+    The finding from entry 11 is fixed. "journal" at l.210 now links to `../project-guide/glossary.md`. It is the first prose use: the earlier "journal" at l.161 is inside the `printf` of the console example, and the ones at l.211 and l.212 are quoted finding messages.
+
+    Glossary words: I checked every term in `docs/project-guide/glossary.md` against its first use in the file. Each one is linked at its first prose use, or its first use is in a title, YAML, a code block or a key name. "take" at l.129 is the verb ("may take"), not the glossary term.
+
+    Facts:
+    - I checked the finding messages in the tables at l.196 to l.213 against `src/factory/work/domain/story_form.py`. They match: no title line, numbered `<n>` where `<m>` is expected, the second-to-last criterion, the Expect line, the directory of the feature, the missing feature file, front matter and journal entries in a backlog story, no state, and the journal data count.
+    - The `not a work item location` text matches `story_form.py:38`.
+    - The facts that entries 7 and 11 verified are unchanged: reserved names, defaults, the lease sum, `PROTECTED_PATHS`, `sync`, the exit statuses and the usage line.
+
+    Criteria 1 to 4 hold:
+    - The file follows the style page and has no feature or story IDs in its prose.
+    - Every name, setting and rule of the old text is kept or is in *Reference*. The one deliberate drop is the `sync` row, named in entry 5 and covered at l.146.
+    - The file is on `docs/checked-documents.txt`, and the documenter's `make documents` was `documents ok`.
+    - The headings that other files link to are kept.
+
+    no findings
