@@ -1,5 +1,5 @@
 ---
-stage: docs
+stage: smoke-test
 blocked: null
 round: 0
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 635
 comments_read: [6706893353, 6707004049]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs
-  started_at: '2026-11-07T12:44:48.800944Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -130,6 +126,12 @@ journal:
   kind: started
   at: '2026-11-07T12:44:48.800944Z'
   stage: docs
+- number: 22
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T12:47:04.283822Z'
+  stage: docs
+  run: c8204203dd114e66a8ac3b9a4c859177
 ---
 
 # The package and its areas say what they hold
@@ -322,3 +324,16 @@ Expect: `documents ok (<seconds> s)`
     Earlier tests:
     - `tests/guards/test_old_layer_packages_removed.py`: changed under the human's leave, journal 14, item 1. It adds `"README.md"` to the expected set and renames the test to `test_the_package_holds_only_its_init_its_readme_the_areas_entry_and_contract`, and the module docstring says the same. Nothing goes beyond that leave.
 21. factory: started docs as vm.
+22. documenter: I changed no file this round. The nine folder READMEs (`src/factory/README.md` and `src/factory/{agents,entry,hosting,machine,pipeline,shared,watching,work}/README.md`) and their nine lines in `docs/checked-documents.txt` were written in the docs-only round and stand as they are. They are the files of the Interface, so no further documentation was needed.
+
+    I read `src/factory/README.md` against the docs criterion. It links to *The code's layout*, names all seven areas, `entry/` and `contract/`, and says `contract/` is generated and never edited by hand. I ran `make documents` and it ends with `documents ok (60.0 s)`. It listed two examples as "not run (vm)", in `docs/operator-guide/records.md:53` and `docs/project-guide/pipeline.md:141`. Neither is touched by this story.
+
+    Cross-read and found current: `docs/project-guide/README.md` (*The code's layout*, *The files*) and `docs/project-guide/style.md` (*Folder READMEs*). The story text now has the subfolder line without the colon, matching the guard and the style page. No guide page names a folder README, so none needed a link.
+
+    I did not run `make check`, since I changed no file. I wrote no "Why" or "Rejected" line in `docs/decisions.md`.
+
+    Stale text I noticed and did not touch: none.
+
+    `check`: check: green (not run again: passed on tree a6da0967867a at 2026-11-07T12:41:12Z)
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (59.0 s)
