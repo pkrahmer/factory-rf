@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 621
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T03:39:56.549564Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T03:39:56.549564Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:42:33.313943Z'
+  stage: docs-only
+  run: 8760cb5c507745f0b9b8d630c8b8cbf4
 ---
 
 # The project guide's page on the hosting area reads for the developer
@@ -312,3 +314,27 @@ Expect: `1`
 
     Open: nothing beyond the finding above.
 16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the reviewer's one finding in `docs/project-guide/hosting.md`. `make documents` ends with `documents ok (9.0 s)`. I did not run `make check`, because the only file I changed is a document.
+
+    Files changed:
+    - `docs/project-guide/hosting.md` is the only file. `docs/checked-documents.txt` stays as it was.
+
+    How the finding was handled:
+    1. In *Deleting and merging branches*, the "Who uses them" sentence no longer ties every deletion to a merge or a discard. It now says three things:
+       - After a merge or a discard, the merge and discard handlers delete the work item's branch from the remote and the checkout.
+       - At every tick, the restore of the checkout deletes the local branch of each work item that has a remote branch or is in progress, so a rejected push is not kept.
+       - The recovery's stale-branch cleanup deletes the remote branches of stories that are back in the backlog or done.
+
+       I checked the first two against `Tick._restore_checkout` in `src/factory/pipeline/application/tick.py` (lines 189-200). I took the cleanup from the reviewer's citation of `recovery.py:235-253` and did not read that code myself.
+    2. The opening paragraph of that section no longer says "The tick and the recovery delete the branches". It now says they delete branches at other times too, and points to the "Who uses them" sentence.
+
+    Cross-read: `docs/project-guide/README.md` and `docs/project-guide/machine.md` still agree with the page, because no heading changed.
+
+    Not touched, not mine to fix:
+    - The hosting area's files `application/opening.py`, `application/pushes.py`, `domain/hand_over.py`, `domain/post_texts.py`, `adapters/checkout_fixture.py` and `adapters/instance_fixture.py` are not described on this page. The old page did not describe them either.
+    - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder although it looks like a machine-area test.
+    - I wrote no "Rejected" line in `docs/decisions.md`; the story names none and that file is out of scope.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (9.3 s)

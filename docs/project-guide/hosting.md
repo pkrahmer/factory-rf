@@ -153,7 +153,7 @@ Push never forces. It runs `git push --porcelain --set-upstream origin refs/head
 
 ### Deleting and merging branches
 
-A merge or a discard of a [work item](glossary.md) removes its branch from the remote and from the checkout. The tick and the recovery delete the branches. Preparing a stage merges the main branch into the work item's branch. Both return a value for the outcomes a caller must decide on, and raise `GitError` for the rest.
+A merge or a discard of a [work item](glossary.md) removes its branch from the remote and from the checkout. The tick and the recovery delete branches at other times too, as *Who uses them* below says. Preparing a stage merges the main branch into the work item's branch. Both return a value for the outcomes a caller must decide on, and raise `GitError` for the rest.
 
     GitCli.delete_remote_branch(branch) -> PushOutcome
     GitCli.delete_branch(branch) -> None
@@ -178,7 +178,7 @@ A merge or a discard of a [work item](glossary.md) removes its branch from the r
 - An unknown `ref`, and any other refusal that leaves no merge in progress (for example local changes the merge would overwrite), is a `GitError` and changes nothing.
 - `delete_branch` deletes the local branch even when it is not merged. The checked-out branch is a `GitError` and stays. A branch that does not exist is no error and changes nothing.
 
-Who uses them: preparing a stage merges the main branch into a work item's branch. After a merge or a discard, the tick deletes the local work item branches when it restores the checkout, and the recovery deletes the stale remote branches of stories that are back in the backlog or done.
+Who uses them: preparing a stage merges the main branch into a work item's branch. After a merge or a discard, the merge and discard handlers delete the work item's branch from the remote and the checkout. At every tick, the restore of the checkout deletes the local branch of each work item that has a remote branch or is in progress, so a rejected push is not kept. The stale-branch cleanup of the recovery deletes the remote branches of stories that are back in the backlog or done.
 
 ### Restoring the checkout
 
