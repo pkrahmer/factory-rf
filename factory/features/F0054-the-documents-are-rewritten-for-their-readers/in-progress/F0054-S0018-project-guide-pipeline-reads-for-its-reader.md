@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T06:28:17.568534Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -154,6 +158,11 @@ journal:
   at: '2026-11-07T06:28:12.369374Z'
   stage: docs-review
   run: 20ce2a5b1e424929a1fbc8fb29f3279a
+- number: 27
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:28:17.568534Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -476,3 +485,4 @@ Expect: `1`
     Open, not this stage's to fix:
     - The Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. The human has to decide which rules are meant.
     - The page has no *Reference* section. Criterion 2 allows that.
+27. factory: started docs-only as vm.
