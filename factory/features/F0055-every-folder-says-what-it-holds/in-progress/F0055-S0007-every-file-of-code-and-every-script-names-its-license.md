@@ -1,5 +1,5 @@
 ---
-stage: tests
+stage: doing
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim:
-  instance: vm
-  stage: tests
-  started_at: '2026-11-07T11:59:58.674977Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -51,6 +47,12 @@ journal:
   kind: started
   at: '2026-11-07T11:59:58.674977Z'
   stage: tests
+- number: 8
+  speaker: tester
+  kind: result
+  at: '2026-11-07T12:04:59.487917Z'
+  stage: tests
+  run: c7b363cb206347039870f4cf14bbb03b
 ---
 
 # Every file of code and every script names its license
@@ -107,3 +109,20 @@ Expect: `0`
    - Architecture: the guard sits in `tests/guards/` as the project's layout requires. The only code change is a comment line, so there is no layer or wrapper concern. The generated schemas are untouched.
    - Scope: S0007 is listed in the feature's Scope and in decisions 7 to 9. The tests, `operator/template/`, `demo/`, the documents and the agent files are excluded as the feature says. The route is `tests` because the Interface changes `src/` and `operator/` files, which the documenter may not write.
 7. factory: started tests as vm.
+8. tester: Wrote the guard and its tests. The guard's own scope and placement rules are test code in the new guard module, so the tests of criteria 2 and 3 already pass. The test of criterion 1 and the changed earlier test fail for the right reason: the headers are not there yet.
+
+   - criterion 1: tests/guards/test_license_headers.py::test_every_file_in_scope_carries_the_license_header
+   - criterion 2: tests/guards/test_license_headers.py::test_the_guard_names_a_file_without_the_header_in_its_place (rows that fail: module-without, module-header-after-docstring, module-header-after-another-line, header-before-shebang, dockerfile-without, sh-file-without; rows that pass: module-header-first, header-after-shebang, sh-file-header-first, dockerfile-header-first)
+   - criterion 3: tests/guards/test_license_headers.py::test_the_scope_holds_package_modules_and_operator_scripts_only (outside: test-module, template-script, readme, json-without-shebang; inside: dockerfile, sh-file-without-shebang)
+   - criterion 4: tests/guards/test_license_headers.py::test_every_operator_script_still_parses (`bash -n` for `#!/bin/bash` and `#!/usr/bin/env bash`; `sh -n` for sh shebangs and for `*.sh` files without a shebang; no check for the Dockerfile)
+   - criteria 5 and 6: no test (`make check` and the docs).
+
+   Files created: tests/guards/test_license_headers.py. It reads the tracked files with `run_git(ROOT, "ls-files")` from tests/support/git_support.py, and runs the shells through `run_process`.
+
+   Earlier test changed under the human's leave in the Interface: tests/vm/test_stage_image.py::test_the_first_line_names_the_build_command_with_the_runtime. It now reads `splitlines()[1]`, the line right after the license header in operator/vm/Dockerfile, instead of `[0]`. Its name and what it checks are unchanged. To find which earlier tests the header breaks, I added the headers in a throwaway copy of the repository, ran tests/operator_scripts, tests/vm, tests/guards and tests/machine, then the rest of the suite. That test (both of its rows) was the only failure.
+
+   One interpretation, within criterion 2's header-before-shebang row: a file starting with the header and then `#!` counts as a script for the scope (the scope looks at the line after a leading header), and it fails the guard. Without this, a script whose shebang was pushed down by the header would drop out of the scope by itself.
+
+   My one run (`uv run pytest -q tests/guards/test_license_headers.py tests/vm/test_stage_image.py`) left three failures, all wrong results: the criterion 1 guard (the headers are missing) and both rows of the stage image test (line 2 is not yet the build command). All the modules imported. `make lint` is green.
+
+   `lint`: lint: green (0.1 s)
