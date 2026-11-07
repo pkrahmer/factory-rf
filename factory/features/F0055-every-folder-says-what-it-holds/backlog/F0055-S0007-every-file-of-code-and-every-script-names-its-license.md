@@ -21,7 +21,7 @@ The factory is licensed under the Apache License 2.0 (the human changed `LICENSE
 3. A file under `tests/` and one under `operator/template/` are outside the guard's scope (rows of one test).
 4. Every script still runs: `sh -n` on each `*.sh` script and `bash -n` on each `#!/bin/bash` script in the scope exits 0 (one test).
 5. `make check` stays green.
-6. docs: `README.md`: the reader learns that the factory is licensed under the Apache License 2.0, with a link to `LICENSE` and `NOTICE`. `docs/project-guide/README.md`: the guard among the guards, and that a new module or script carries the header. `docs/decisions.md`: one entry for the feature's decisions 1 to 3, with the rejected option of a copyright line in every file.
+6. docs: `README.md`: the reader learns that the factory is licensed under the Apache License 2.0, with a link to `LICENSE` and `NOTICE`. `docs/project-guide/README.md`: the guard among the guards, and that a new module or script carries the header. `docs/decisions.md`: one entry for feature decisions 7 to 9, with the rejected option of a copyright line in every file.
 
 ## Smoke test
 
