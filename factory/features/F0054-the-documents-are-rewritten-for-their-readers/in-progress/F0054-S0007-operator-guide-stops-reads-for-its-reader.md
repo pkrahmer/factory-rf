@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 615
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T01:13:54.617208Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -67,6 +63,12 @@ journal:
   kind: started
   at: '2026-11-07T01:13:54.617208Z'
   stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T01:15:19.954591Z'
+  stage: docs-review
+  run: 197b6e36946d4f3b99cb92a35ea7bf7c
 ---
 
 # The operator guide's the stops reads for the operator
@@ -195,3 +197,27 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (12.0 s)
 10. factory: started docs-review as vm.
+11. reviewer: Round 1 review. I read `git diff main...HEAD -- README.md docs operator/README.md` (`docs/operator-guide/stops.md` and `docs/checked-documents.txt`), the work item, `docs/project-guide/style.md` and the glossary. I checked the round-0 fixes against the code.
+
+    The ten round-0 findings are fixed, and the code bears them out:
+    - Line 176 matches `attempts_cap_question` (`src/factory/hosting/domain/post_texts.py:104`) and the stall text.
+    - Line 171 points to "The crash cap" (`work-items.md:234`).
+    - Line 39 uses a real git message.
+    - The events list at line 410 matches `EventKind` (`src/factory/pipeline/domain/events.py:12`), with `run` covered as "the events of a stage run".
+    - `STOP_TABLE` and `CannotHandle` are gone.
+    - "dispatcher", "evaluation" and "`ask` handler" are gone.
+    - "The preflight in the tick" and "Stops that cannot be done" now have **You see** / **It means** / **You do**.
+
+    Every heading that other files cite exists: `work-items.md` (217, 234, 249, 140, 88), `health.md`, `install.md`, `machine.md` and `agent-runtime.md`. The `checked-documents.txt` line is there.
+
+    Named as dropped on purpose under criterion 2, as a result of round-0 finding 7: the old line 109 "the evaluation makes the event `ask` with the detail `attempts cap`" and the old line 239 "The tick calls the dispatcher once per pass". Both are internal wording, and the new text says what the factory does. No finding.
+
+    Findings:
+    1. `docs/operator-guide/stops.md:119`: "dataset" is a glossary word and appears here for the first time without a link (style rule 3). It came in with the restored sentence "The take does not copy the rest from the dataset." Fix: link it to `../project-guide/glossary.md`, or say "from the agent's copy of the repository".
+    2. `docs/operator-guide/stops.md:293`: one sentence of about 42 words with two parentheses ("(the checkout's parent)" and "(exactly the minimum is enough)"). This breaks style rule 2. Fix: split it, for example "At the start of every tick, before the fetch, the factory reads the free space of the work directory and of the state directory. The work directory is the checkout's parent. The stop stands when one has less than `FACTORY_MIN_FREE_GB`; exactly the minimum is enough."
+    3. `docs/operator-guide/stops.md:132`: the **You see** sentence runs about 42 words and holds a parenthesis (rule 2). Fix: one sentence for the cause and the check's name, one for the code block with the last 15 lines.
+    4. `docs/operator-guide/stops.md:325`: the sentence runs about 43 words, with a long parenthesis (rule 2). Fix: give the two causes their own sentence ("The hosting service may be down, or git may fail in the checkout while the report resolves the branch.").
+    5. `docs/operator-guide/stops.md:337`: the sentence runs about 40 words, with a parenthesis that lists four items (rule 2). Fix: say first which pushes are tried again, then list the recorded changes in a second sentence.
+    6. `docs/operator-guide/stops.md:62,271,283`: each has a sentence of 33 to 35 words (rule 2): "Each tick, right after it restored the checkout ...", "That fetch compares the project's stage file ... and no tick runs in that iteration" and "The restore throws away every uncommitted change ...". Fix: split each into two sentences, one idea each.
+    7. `docs/operator-guide/stops.md:88,119,152,205,206`: each has a sentence of about 28 to 33 words (rule 2). They are: "Two files with one id are both read: ...", "Only then does it post the note and write ... label too.", "Every report that ran adds one line ...; the line has the same form ...", "When the diff builds a behaviour ..." and "When a story's Description has gone stale ...". Fix: split each at its semicolon, colon or "and", one idea each.
+    8. `docs/operator-guide/stops.md:147-150`: the numbered steps are not one action each, as the operator guide's style asks. Step 1 ("Below the attempts cap, nothing") is a case, not an action. It is also an alternative to steps 2 to 4, not a step before them. Fix: say first, as a sentence, that below the cap there is nothing to do. Then number only the steps at the cap: read the 15 lines and run `make check` on the branch, fix the cause, answer on the pull request.
