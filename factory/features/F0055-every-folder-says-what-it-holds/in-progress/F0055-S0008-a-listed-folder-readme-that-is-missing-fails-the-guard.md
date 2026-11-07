@@ -1,5 +1,5 @@
 ---
-stage: doing
+stage: review
 blocked: null
 round: 0
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 640
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: doing
-  started_at: '2026-11-07T14:55:14.269133Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T14:55:14.269133Z'
   stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-07T14:59:26.801759Z'
+  stage: doing
+  run: 0296d9a54f3946eeb3a2f1c5d48602b1
 ---
 
 # A listed folder README that is missing fails the guard
@@ -125,3 +127,12 @@ Expect: `missing-fails`
 
    `lint`: lint: green (0.2 s)
 6. factory: started doing as vm.
+7. coder: No code change. The story's whole Interface sits in a test module, and the tester already built it there: `_listed_readme_problems` and the unskipped `test_a_folder_readme_agrees_with_its_folder` are in `tests/guards/test_folder_readmes.py`. The Interface rules out any change under `src/` or to `FOLDER_READMES`, so I had nothing to implement, and the working tree is unchanged.
+
+   - Checked: `make check` ends with `check: green` (test: green, coverage 99.22 %). `uv run pytest -rs tests/guards/test_folder_readmes.py` ends with `31 passed` and no skips, which is what the first smoke test expects.
+   - Main choice: hand forward with an empty diff. The alternative I rejected was adding a helper under `src/factory/shared/domain/folder_readmes.py` (a function that reads a listed README). The Interface forbids changes under `src/`, and that would duplicate the test helper.
+   - Refactor step: no diff of mine to read, so nothing to change.
+   - Noticed, not touched: the Description already says `tests/guards/test_test_folder_readmes.py` is now redundant with this guard. Removing it is the human's call. The journal did not change the task's meaning, so `## Description` stays as it is.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
