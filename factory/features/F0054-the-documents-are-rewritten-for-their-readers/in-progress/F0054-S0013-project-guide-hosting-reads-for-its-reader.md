@@ -1,3 +1,30 @@
+---
+stage: intake
+blocked: null
+round: 0
+attempts: 0
+crashes: 0
+pull_request: null
+comments_read: []
+handed_over: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T03:23:23.556207Z'
+  lease_duration: 60
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T03:23:23.549037Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:23:23.556207Z'
+  stage: intake
+---
+
 # The project guide's page on the hosting area reads for the developer
 
 ## Description
@@ -30,3 +57,6 @@ grep -cx "docs/project-guide/hosting.md" docs/checked-documents.txt
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
