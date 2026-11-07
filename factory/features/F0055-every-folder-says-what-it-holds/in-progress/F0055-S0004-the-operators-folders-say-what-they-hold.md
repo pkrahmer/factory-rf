@@ -1,3 +1,144 @@
+---
+stage: approval
+blocked: null
+round: 1
+attempts: 1
+crashes: 0
+pull_request: 637
+comments_read: [6707675447]
+handed_over: approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T13:33:16.297508Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:33:16.304504Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T13:33:41.984501Z'
+  stage: intake
+  run: 93060367fc564c0bb881aa6e36fcae59
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:33:46.646940Z'
+  stage: tests
+- number: 5
+  speaker: tester
+  kind: result
+  at: '2026-11-07T13:34:11.461903Z'
+  stage: tests
+  run: 196f4835ebe74815bfcf2852c16850e5
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:34:16.540566Z'
+  stage: doing
+- number: 7
+  speaker: coder
+  kind: result
+  at: '2026-11-07T13:38:29.910335Z'
+  stage: doing
+  run: 2b841eabef9f4edab2037cfc3fe54092
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:38:35.455575Z'
+  stage: review
+- number: 9
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T13:39:15.614954Z'
+  stage: review
+  run: 98bfd562db5d4183b6db2bb1f1c06ebc
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:39:20.386346Z'
+  stage: doing
+- number: 11
+  speaker: coder
+  kind: question
+  at: '2026-11-07T13:39:40.439799Z'
+  stage: doing
+  run: e958306d40914ea186a126247f661a2c
+  blocked: question
+- number: 12
+  speaker: human
+  kind: comment
+  at: '2026-11-07T13:41:27.140871Z'
+  stage: doing
+- number: 13
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:41:29.525121Z'
+  stage: doing
+- number: 14
+  speaker: coder
+  kind: result
+  at: '2026-11-07T13:43:36.867408Z'
+  stage: doing
+  run: dcca117d5c2c44e5b7468ae1d48eda60
+- number: 15
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:43:42.333212Z'
+  stage: review
+- number: 16
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T13:44:12.149654Z'
+  stage: review
+  run: 7f45b9c1d7ba42f18cedf61adb6ef8f8
+- number: 17
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:44:17.078397Z'
+  stage: docs
+- number: 18
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T13:48:08.695544Z'
+  stage: docs
+  run: 4204eca921364b3ab075e87beed6fc47
+- number: 19
+  speaker: factory
+  kind: stall
+  at: '2026-11-07T13:48:09.194785Z'
+  stage: docs
+  run: 4204eca921364b3ab075e87beed6fc47
+  reason: check_red
+- number: 20
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:48:16.742494Z'
+  stage: docs
+- number: 21
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T13:52:39.057627Z'
+  stage: docs
+  run: 6c3aba1bf6c84c3dbb080633619b92be
+- number: 22
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:52:44.283307Z'
+  stage: smoke-test
+- number: 23
+  speaker: smoke-tester
+  kind: result
+  at: '2026-11-07T13:54:06.802733Z'
+  stage: smoke-test
+  run: 9c0f103ee8be4c1ba525d3544f9dbe99
+---
+
 # The operator's folders say what they hold
 
 ## Description
@@ -38,3 +179,180 @@ uv run python -m factory.entry.check_documents | tail -1
 Expect: `documents ok (<seconds> s)`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: names eight concrete README paths, each with the guide page it links to (for example `operator/vm/` to `machine.md`, `operator/job/` to `cloud-run.md`). The one code change is named: `factory.shared.domain.folder_readmes.FOLDER_READMES` loses `operator/template/README.md`, which I confirmed is in the list now. The `operator/README.md` line for `template/` is specified. The leave for earlier guards is bounded and has to be named in the entry.
+   - Criteria: each is testable. 1 is the guard's shape check per README, with the subfolder line format. 2 and 3 are the document check. 4 is one test of the list's length (22) and of the removed path. 5 is the usual `make check`. The failing side of the list rule is covered by "not `operator/template/README.md`". Behaviours in the Interface that only the docs stage can show (the `template/` line text, each subfolder line linking its README) sit under criterion 6, which names them. They fall under the document check and the reviewer, as the Interface says.
+   - Smoke test: `uv run python -m factory.entry.check_documents | tail -1` is runnable and has no pytest `-q` problem. Its `Expect:` line gives the `documents ok (<seconds> s)` pattern, which the output can be checked against.
+   - Docs criterion: criterion 6 names the files and what must be true of them (each subfolder line links to its README; `docs/decisions.md` none). It dictates no sentences.
+   - Architecture: the folders `operator/bin`, `claude`, `job`, `lib`, `opencode`, `skill`, `template` and `vm` exist, and `agents/` holds `agents/` and `settings.json`. The operator guide pages the story names exist, and `docs/project-guide/agents.md` is on the checked list. The one code change stays in the shared domain constant.
+   - Scope: this is S0004 of F0055 and matches the feature's story list and decision 11. It stays out of the feature's out-of-scope folders (`agents/agents/`, `operator/skill/kumpel/`, `operator/template/factory/`, the commands folders). The route is `tests`, because the story changes the code constant.
+4. factory: started tests as vm.
+5. tester: Wrote one test, for criterion 4, the story's only code change. As the Interface says, no test needs one of this story's READMEs to exist or to be listed.
+
+   - criterion 1: no new test. The existing guard `tests/guards/test_folder_readmes.py::test_a_folder_readme_agrees_with_its_folder` covers it. It is parametrized over `FOLDER_READMES` and skips a README that does not exist yet. Criterion 1 is met when the docs stage writes the READMEs and the guard skips none of them.
+   - criterion 2: no test. The document check (`make documents`) and the reviewer cover it, as the Interface says.
+   - criterion 3: no test. It is the docs stage's check `make documents`.
+   - criterion 4: `tests/shared/domain/test_folder_readmes_list.py::test_the_folder_readme_list_leaves_out_the_template_folder`. It checks in one assertion that the list holds exactly 22 paths and not `operator/template/README.md`.
+   - criterion 5: `make check`, the coder's.
+   - criterion 6: docs stage.
+
+   Files created: `tests/shared/domain/test_folder_readmes_list.py`. No earlier test changed.
+
+   Test run: `uv run pytest -q tests/shared/domain/test_folder_readmes_list.py` fails with an AssertionError for the right reason: the list still has 23 entries, `operator/template/README.md` among them. Every module imported; nothing failed to import. `make lint`: green.
+
+   Open: no earlier test checks the list's length or the template path, so I found none that the human's leave would need to change.
+
+   `lint`: lint: green (0.1 s)
+6. factory: started doing as vm.
+7. coder: Removed `operator/template/README.md` from `factory.shared.domain.folder_readmes.FOLDER_READMES` (`src/factory/shared/domain/folder_readmes.py`), so the list now holds 22 paths. That was the story's only code change. The tester's `tests/shared/domain/test_folder_readmes_list.py` passes, and `make check` is green (`check: green`, coverage 99.21 %).
+
+   - Main choice: I deleted the one entry and changed nothing else. I rejected keeping the path and adding a skip for it in the guard, because the Interface says the list loses the path.
+   - No earlier test failed because of the new length or the missing path, so the human's leave was not used and no earlier test needs changing.
+   - Refactor: the diff is one deleted line, so there was nothing to change.
+   - Left for the docs stage, as the Interface says: the eight READMEs (`agents/README.md` and `operator/{bin,claude,job,lib,opencode,skill,vm}/README.md`), the new `docs/checked-documents.txt` entries (with `operator/README.md`), and the `template/` and subfolder link lines in `operator/README.md`. I did not write any of them.
+   - The journal did not change the task's meaning, so the Description is unchanged.
+
+   `check`: check: green
+   `duplicates`: duplicates: 6 new, 39 known, 4 gone
+8. factory: started review as vm.
+9. reviewer: Reviewed `git diff main...HEAD -- . ':!factory'` (one line deleted in `src/factory/shared/domain/folder_readmes.py`, one new test module `tests/shared/domain/test_folder_readmes_list.py`) against the work item.
+
+   - Group 1, acceptance criteria: criterion 4 has its test, `test_the_folder_readme_list_leaves_out_the_template_folder`. It pins the length (22) and the removed path in one assertion, which covers the failing side the Interface names. The tuple now holds 22 entries without `operator/template/README.md`. Criteria 1 to 3 and 6 belong to the docs stage and the guard, as the Interface says. The guard `tests/guards/test_folder_readmes.py` already skips a README that does not exist yet and checks each one that does. The coder's `make check` was green (journal entry 7).
+   - Group 2, architecture: the change stays in the shared domain constant. No new imports and no wiring.
+   - Group 3, security: nothing relevant. No markers, no secrets.
+   - Group 4, quality: the module docstring is present, and the names say what they are. `make duplicates` reports 6 new findings, but they cannot come from this diff, which only deletes a line of `src/`.
+   - Group 5, work item hygiene: the journal explains the choice (delete the entry rather than add a guard skip), and the Description matches what was built. The docs criterion misses one document, see finding 1.
+
+   Findings:
+   1. `factory/features/F0055-every-folder-says-what-it-holds/in-progress/F0055-S0004-the-operators-folders-say-what-they-hold.md`, criterion 6, against `docs/project-guide/shared.md:207`.
+      - What is wrong: `shared.md:207` says `FOLDER_READMES` lists "every folder README of the repository, 23 in all". After this story the list holds 22, and `operator/template/` on purpose has no README. Criterion 6 does not name `shared.md`, so the documenter, who writes from that criterion, will leave the project guide wrong. The document check does not catch a count.
+      - Fix: add to criterion 6 something like "`docs/project-guide/shared.md`: `FOLDER_READMES` lists 22 paths, and `operator/template/` carries none because an operator copies that folder into a new project".
+      - Related: `docs/decisions.md:1653` also says "the 23 paths". The criterion's "`docs/decisions.md`: none" came from the human, so it stays as is unless the human says otherwise.
+
+   Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
+10. factory: started doing as vm.
+11. coder: Round 1: I could not address the reviewer's one finding (entry 9), so I changed nothing.
+
+    The finding asks that criterion 6 also name `docs/project-guide/shared.md`. Line 207 of that page says `FOLDER_READMES` lists "every folder README of the repository, 23 in all". After this story the list holds 22, because `operator/template/` deliberately has no README. The fix belongs in the work item's `## Description`, but the coder's write paths in the pipeline definition do not include `{work_item}`; they are `src/*`, `agents/*` and the `operator/*` folders. `shared.md` is the documenter's file, so I cannot correct the page myself either. The code is unchanged since entry 7: one entry removed from `src/factory/shared/domain/folder_readmes.py`, and `make check` was green then.
+
+    The options I see:
+    1. You add to criterion 6 something like: "`docs/project-guide/shared.md`: `FOLDER_READMES` lists 22 paths, and `operator/template/` carries none because an operator copies that folder into a new project." Then I send the item on to review with no code change.
+    2. You let the item go on as it is and leave the fix to the docs stage. The documenter writes from criterion 6, so it would likely miss `shared.md` unless a journal entry names it.
+    3. You also decide on `docs/decisions.md:1653` ("the 23 paths"). Criterion 6 now says "`docs/decisions.md`: none", and that came from you.
+
+    I would choose option 1. On `decisions.md`, I would keep the entry as it is, because a decision log records what was decided at the time.
+
+    Noticed but not touched: `make duplicates` reported 6 new findings in the last run. They cannot come from this story's one deleted line.
+12. 2026-11-07 human: Option 1, and decisions.md stays as it is. Criterion 6 also names docs/project-guide/shared.md: FOLDER_READMES lists 22 paths, and operator/template/ carries none, because an operator copies that folder into a new project. The documenter fixes that sentence at the docs stage. The coder sends the item on to review with no code change; the reviewer reads this answer as part of criterion 6.
+13. factory: started doing as vm.
+14. coder: Round 1: following the human's answer (entry 12), I am sending the item on to review with no code change.
+
+    - The answer: option 1. Criterion 6 now also names `docs/project-guide/shared.md`, which should say that `FOLDER_READMES` lists 22 paths and that `operator/template/` carries no README, because an operator copies that folder into a new project. The documenter fixes that sentence at the docs stage. `docs/decisions.md` stays as it is.
+    - Description: I did not rewrite it. The coder's write paths do not include the work item, so the added part of criterion 6 lives in journal entry 12. The reviewer and the documenter read it there.
+    - Code: unchanged since entry 7. One entry is removed from `src/factory/shared/domain/folder_readmes.py`, and the list now holds 22 paths. The working tree is clean.
+    - Refactor: nothing to change.
+    - `make check`: green again on this run (`check: green`, coverage 99.21 %).
+
+    Noticed but not touched: the earlier `make duplicates` run reported 6 new findings. They cannot come from this story's one deleted line.
+
+    `check`: check: green (not run again: passed on tree b97df92e9a1b at 2026-11-07T13:36:30Z)
+    `duplicates`: duplicates: 6 new, 39 known, 4 gone
+15. factory: started review as vm.
+16. reviewer: Round 1 review. I reviewed `git diff main...HEAD -- . ':!factory'` against the work item and the human's answer in entry 12. The diff has two changes: one line deleted from `src/factory/shared/domain/folder_readmes.py`, and the new test module `tests/shared/domain/test_folder_readmes_list.py`.
+
+    - **Group 1, acceptance criteria:** pass.
+      - Criterion 4: `FOLDER_READMES` now holds 22 paths, and `operator/template/README.md` is not among them; I read the tuple on the branch. `test_the_folder_readme_list_leaves_out_the_template_folder` checks both the length and the missing path in one assertion, and that also covers the failing side the Interface names.
+      - Criteria 1 to 3 and 6 belong to the docs stage, as the Interface says. The guard `tests/guards/test_folder_readmes.py:42` skips a README that does not exist yet and checks each one that does. `test_every_listed_readme_is_a_readme_of_a_folder_that_exists` still holds for the shorter list.
+      - `operator/template/README.md` is no longer named anywhere in `src`, `tests`, `docs/checked-documents.txt` or `operator/README.md`, except in the new test.
+      - The coder's `make check` was green (entries 7 and 14).
+    - **Group 2, architecture:** pass. The change stays in a shared domain constant, with no new import and no wiring.
+    - **Group 3, security:** pass. No secrets and no silencing markers.
+    - **Group 4, quality:** pass. The module docstring is present and the names say what they are. The 6 new `make duplicates` findings cannot come from a deleted tuple line.
+    - **Group 5, work item hygiene:** pass.
+      - The journal gives the main choice: delete the entry, rather than keep it and skip it in the guard.
+      - The Description matches what was built.
+      - The finding from round 0 (`docs/project-guide/shared.md:207` still says "23 in all") is settled by the human's answer in entry 12. Criterion 6 also names `shared.md`, which should say that `FOLDER_READMES` lists 22 paths and that `operator/template/` carries no README because an operator copies that folder into a new project. `docs/decisions.md` stays as it is.
+      - I did not write that addition into the text of criterion 6: the human said the reviewer reads entry 12 as part of criterion 6, and my role lets me correct only the Description. The documenter must read entry 12 together with criterion 6.
+    - **Documents:** the diff changes no document.
+
+    no findings
+
+    Earlier tests: none. `git diff --name-status main...HEAD` shows only the added test module under `tests/`; no test file that `main` already holds was changed, renamed or deleted.
+17. factory: started docs as vm.
+18. documenter: Wrote the eight folder READMEs, listed them and `operator/README.md` for the document check, and fixed the one stale count in the project guide. `make documents` ends with `documents ok (59.6 s)`. I ran `uv run pytest -q tests/guards/test_folder_readmes.py`, and it passes. It skips only `docs/README.md` and `security/README.md`, which are other stories' READMEs. None of this story's eight is skipped. I did not run `make check`, because I changed only documents.
+
+    Files changed:
+    - `agents/README.md`: new. Says what the shipped agent files and settings are, links `docs/project-guide/agents.md`, and has the line for `agents/`.
+    - `operator/bin/README.md`, `operator/job/README.md`, `operator/lib/README.md`, `operator/vm/README.md`: new. Each has one opening sentence and a link to the operator guide page that explains the folder: `site.md` for `bin/` and `lib/`, `cloud-run.md` for `job/`, `machine.md` for `vm/`. None of the four has subfolders.
+    - `operator/claude/README.md`, `operator/opencode/README.md`, `operator/skill/README.md`: new. Each links `site.md` and names its one subfolder (`commands/`, `command/`, `kumpel/`). The skill README also links `operator/README.md`.
+    - `operator/README.md`: added a short section, "What the folders hold", before "Where to read next". It has one line per subfolder, each linking its README. The `template/` line says it is the start of a new project, copied into it, and carries no README of its own.
+    - `docs/checked-documents.txt`: added the eight new paths and `operator/README.md`. The document check finds nothing in `operator/README.md`, so no further fix was needed there.
+    - `docs/project-guide/shared.md` (the sentence at line 207): "23 in all" is now "22 in all", and it says `operator/template/` carries none because an operator copies that folder into a new project. This follows the human's answer in journal entry 12.
+
+    Cross-read and found current: `docs/project-guide/style.md` (*Folder READMEs*, which is the form I followed) and `docs/project-guide/agents.md`. `docs/operator-guide/site.md` is linked from several READMEs; its page exists and the link check passes. I read `src/factory/shared/domain/folder_readmes.py` and the folder contents for the names. I checked `operator/lib/site.sh` and `operator/job/job.sh` for their header comments.
+
+    Stale text noticed and not touched: `docs/decisions.md:1653` still says "the 23 paths". The human said it stays as it is, because the decision log records what was decided at the time.
+
+    I set aside no project skill. I did not rewrite the Description, which is not mine; the added part of criterion 6 stands in journal entry 12.
+19. factory: Stage docs stalled (attempt 1 of 2): a check is red after the stage: `check`
+    src/factory/watching/application/transcripts.py         61      2     10      0    97%   92-93
+    src/factory/watching/domain/board.py                    55      0      4      1    98%   78->76
+    src/factory/watching/domain/machine.py                  52      3     18      5    89%   45->43, 48, 60, 78->76, 80
+    src/factory/watching/domain/transcripts.py              10      2      0      0    80%   21-22
+    src/factory/work/application/acceptance_reading.py     132      1     46      1    99%   240
+    src/factory/work/application/work_items.py              90      2     24      2    96%   134, 170
+    src/factory/work/domain/acceptance.py                  195      1     52      1    99%   368
+    ------------------------------------------------------------------------------------------------
+    TOTAL                                                11354     55   2296     53    99%
+
+    158 files skipped due to complete coverage.
+    Required test coverage of 90.0% reached. Total coverage: 99.21%
+    ======================================================================================= short test summary info ========================================================================================
+    FAILED tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/] - AssertionError: assert ['operator/README.md'] == []
+    make: *** [Makefile:89: test] Error 1
+20. factory: started docs as vm.
+21. documenter: Round 1 fix for the red `check` after my first docs run (entry 19). The failing test was `tests/guards/test_root_operator_folders_removed.py::test_no_file_names_the_old_root_path[template/]`, with `AssertionError: assert ['operator/README.md'] == []`. My new line in `operator/README.md` named the folder as a bare `template/`, which the guard reads as the old root folder.
+
+    Files changed:
+    - `operator/README.md`: the `template/` line now names the folder as `operator/template/`. The text is otherwise unchanged. The `operator/template/` line still says it is the start of a new project, copied into it, and carries no README of its own. The other seven folder lines are unchanged.
+
+    Checks I ran after the edit:
+    - `uv run pytest -q tests/guards/test_root_operator_folders_removed.py tests/guards/test_folder_readmes.py` passes.
+    - `make documents` ends with `documents ok (60.7 s)`.
+    - I did not run `make check`, because I changed only a document. The factory runs it after this stage.
+
+    The files from the first docs run (entry 18) are unchanged: the eight new READMEs, `docs/checked-documents.txt` and the sentence in `docs/project-guide/shared.md`.
+
+    Cross-read and found current: the same documents as in entry 18.
+
+    Stale text noticed and not touched: `docs/decisions.md:1653` still says "the 23 paths". The human said it stays as it is, because the decision log records what was decided at the time.
+
+    I set aside no project skill.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (59.1 s)
+22. factory: started smoke-test as vm.
+23. smoke-tester: Smoke test, round 1. I ran the one command under `## Smoke test` from the repository root, exactly as written, and fixed nothing.
+
+    Command 1: `uv run python -m factory.entry.check_documents | tail -1`
+    ```
+    Bytecode compiled 4164 files in 62ms
+    documents ok (59.4 s)
+    ```
+    (exit 0; the first line is uv's own output.) Met `Expect: documents ok (<seconds> s)`.
+
+    I read the acceptance criteria once more against the tree. Nothing contradicts them:
+    - Criterion 1: all eight READMEs of the Interface exist. Each opens with one sentence on what its folder holds and links to a guide page: `machine.md` for `vm/`, `cloud-run.md` for `job/`, `site.md` for `bin/`, `lib/`, `claude/`, `opencode/` and `skill/`, and `docs/project-guide/agents.md` for `agents/`. Each subfolder is named in a line of the form ``- `<name>/` <sentence>.`` with no colon: `agents/`, `commands/`, `command/` and `kumpel/`. None of the READMEs lists files. `uv run pytest -q tests/guards/test_folder_readmes.py tests/shared/domain/test_folder_readmes_list.py -rs` passes. It skips only `docs/README.md` and `security/README.md`, which belong to other stories; it skips none of this story's eight.
+    - Criterion 2: each of the eight paths and `operator/README.md` are on `docs/checked-documents.txt`, and the document check above finds nothing.
+    - Criterion 3: met by command 1.
+    - Criterion 4: `tests/shared/domain/test_folder_readmes_list.py` passes.
+    - Criterion 5: I did not run `make check` again here. The factory reported it green after the docs stage (entry 21).
+    - Criterion 6: in the "What the folders hold" section of `operator/README.md`, each subfolder line links to its README. The `operator/template/` line says the folder carries no README of its own.
+
+    Findings: none.
+
+    Open: `docs/decisions.md:1653` still says "the 23 paths". The human chose to keep it that way (entry 12), so this is not a finding.
