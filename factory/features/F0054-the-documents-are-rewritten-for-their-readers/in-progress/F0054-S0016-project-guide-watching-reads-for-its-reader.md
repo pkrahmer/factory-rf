@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 2
 attempts: 1
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T05:02:12.812493Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -107,6 +103,12 @@ journal:
   kind: started
   at: '2026-11-07T05:02:12.812493Z'
   stage: docs-review
+- number: 18
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T05:02:40.561542Z'
+  stage: docs-review
+  run: 4706b693382d41028f4e547f8d80d6e3
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -318,3 +320,15 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (16.8 s)
 17. factory: started docs-review as vm.
+18. reviewer: Round 2 docs review. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`, and checked the documenter's fixes for the four findings of entry 14 against the code on the branch:
+
+    1. Each page is now linked once. `pipeline.md` is linked only at `watching.md:3`, and every later mention (l.9, 27, 44, 89, 176, 273, 277) is plain. `work.md` is linked only at l.27, and l.123 and l.129 are plain.
+    2. `watching.md:251` now says that `bill.py` imports no adapter itself and reaches the adapters through `build_bill_service`. The code agrees: `src/factory/entry/bill.py:9` imports `build_bill_service` from `factory.entry.wiring` (defined at `wiring.py:648`), and the module's other imports are domain and application names only.
+    3. `watching.md:228` now reads "the contents of the dataset", in place of the `work` volume that no code has.
+    4. `watching.md:101` now reads "It fetches nothing and writes no file. On success it returns 0.", which agrees with l.99 (it writes the event and the board) and l.102 (it returns 1 on a definition fault).
+
+    I read the rest of the page again for anything new since round 1 and found nothing. The findings of entry 10 are still fixed, as entry 14 found. Criteria 1 to 5 are met. `docs/checked-documents.txt` holds the line once, and the factory's last run after the documenter shows `documents ok`, `secrets: green` and `check: green` (entry 16).
+
+    no findings
+
+    Smoke test: `grep -cx "docs/project-guide/watching.md" docs/checked-documents.txt` holds by reading the file: the line is there once. I did not run it.
