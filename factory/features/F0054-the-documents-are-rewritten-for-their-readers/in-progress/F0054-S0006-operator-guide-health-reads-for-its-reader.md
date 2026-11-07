@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 614
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T00:55:38.030197Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T00:55:33.251016Z'
   stage: docs-review
   run: ca58f79675884ba9854373d302f221ba
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T00:55:38.030197Z'
+  stage: docs-only
 ---
 
 # The operator guide's the preflight, the health check and the log reads for the operator
@@ -213,3 +222,4 @@ Expect: `1`
     1. `docs/operator-guide/health.md:107, 126, 133, 208`: the glossary word "base" is still not linked anywhere (round-0 finding 10). Entry 9's reason, that its only first uses are inside code, is wrong: line 107 ("the workspace and the base are directories"), line 126 ("the base moves"), line 133 ("the dataset has no base") and line 208 ("the move of its base") are prose. This breaks style rule 3 and criterion 1. Fix: link "base" to `../project-guide/glossary.md` at its first prose use, line 107.
     2. `docs/operator-guide/health.md:93`: the sentence "The extras are `token-file`, … `metadata-block` (under the profile `job` only), `opencode` (under opencode only) and `agent-run-probe`." holds two parentheses (style rule 2). Fix: list the extras without the parentheses and add a sentence of its own: "`metadata-block` runs only under the profile `job`, and `opencode` only under opencode."
     3. `docs/operator-guide/health.md:75`: the round-0 fix names the source path `src/factory/entry/health.py`. The operator-guide rule says "Name no module or class. Name a source path only if the operator edits or runs that file". Fix: "A line for a stop has this format; `factory-health` prints it:", without the source path and without "no example here produced it".
+12. factory: started docs-only as vm.
