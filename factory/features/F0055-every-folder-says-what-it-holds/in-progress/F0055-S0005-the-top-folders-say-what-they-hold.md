@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 1
+round: 2
 attempts: 0
 crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T14:11:19.553967Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -84,6 +80,12 @@ journal:
   kind: started
   at: '2026-11-07T14:11:19.553967Z'
   stage: docs-review
+- number: 14
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:11:57.848833Z'
+  stage: docs-review
+  run: 364612c3987241758f48cc622788e116
 ---
 
 # The top folders say what they hold
@@ -190,3 +192,15 @@ Expect: `documents ok (<seconds> s)`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (59.7 s)
 13. factory: started docs-review as vm.
+14. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`. I also read `security/README.md`, because criteria 1, 2 and 5 name it. I checked the facts against `planning/README.md`, `agents/README.md`, `demo/README.md`, `operator/README.md`, `src/factory/README.md`, the contents of `docs/` and `security/`, and the glossary. I checked the writing against `docs/project-guide/style.md`: *Rules for all documents*, *Folder READMEs* and *The README*.
+
+    Findings:
+    1. `README.md:40`, the `factory/` line of `## The folders`: "pipeline definition" is a glossary word (`docs/project-guide/glossary.md:18`), and this line is its first use in the root README. It has no link, which breaks rule 3 of *Rules for all documents* in `style.md`. Every other glossary word in this README is linked at its first use (stories, feature, instance, stops, tick, work item, stage, dataset). Fix: link it, e.g. "the [pipeline definition](docs/project-guide/glossary.md), the forms and ...".
+
+    Checked and found true:
+    - The round-0 findings are fixed. `security/README.md:3` no longer says "vendored". The `runs/` line in `docs/README.md:7` reads "logs and reports of finished runs; no stage writes them", which matches `CLAUDE.md`, *The human's files*.
+    - The `planning/` line ("no stage reads or writes") matches `planning/README.md:3`, the human's own file.
+    - `docs/README.md` names the four documents and says `runs/` is the human's (criterion 4).
+    - `security/README.md` names the semgrep rules and the duplicates baseline and links to `CLAUDE.md`, *Checks* (criterion 5).
+    - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form and links to the eight READMEs that exist. It names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6).
+    - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
