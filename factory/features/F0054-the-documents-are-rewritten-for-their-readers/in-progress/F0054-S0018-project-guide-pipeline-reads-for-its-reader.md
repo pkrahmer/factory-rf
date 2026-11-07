@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: [6703344230]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-review
+  started_at: '2026-11-07T06:27:30.030805Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -142,6 +146,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T06:27:27.590800Z'
+  stage: docs-review
+- number: 25
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:27:30.030805Z'
   stage: docs-review
 ---
 
@@ -454,3 +463,4 @@ Expect: `1`
     - The page has no *Reference* section. Criterion 2 allows that.
 23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 24. 2026-11-07 human: One more round, by the human's standing word for tonight (no stop at a round cap while the findings are real). The documenter fixes findings 1 to 3 of the last review: the build order as the code has it, the condition back on `healthy`, and every sentence over about 25 words or with more than one parenthesis split. Before it ends, it checks the sentence lengths of the changed lines by script and reads each function whose order or condition it states.
+25. factory: started docs-review as vm.
