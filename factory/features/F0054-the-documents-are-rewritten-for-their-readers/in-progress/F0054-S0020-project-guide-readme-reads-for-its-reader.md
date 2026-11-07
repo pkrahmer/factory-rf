@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 628
 comments_read: [6704529250]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T08:38:18.183430Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-07T08:38:18.183430Z'
   stage: docs-review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T08:39:24.756482Z'
+  stage: docs-review
+  run: 0e87b9930a744c4f912f2e5bf3ac826f
 ---
 
 # The project guide's index reads for the developer
@@ -530,3 +532,27 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (58.0 s)
 26. factory: started docs-review as vm.
+27. reviewer: Docs review after the documenter's round in entry 25. I read `git diff main...HEAD -- README.md docs operator/README.md`. It changes two files: `docs/project-guide/README.md` (rewritten) and `docs/checked-documents.txt` (one line added). I read the round's changes word by word (`git diff bdb45b083 HEAD`) against the code and `docs/project-guide/style.md`. The `docs/runs/2026-11-05-f0052/log.md` change in that range came in from `main` (76bd3de17) and is not part of the branch diff.
+
+    The five findings of entries 19 and 23 are fixed:
+    1. `assert_taken_and_pushed` now says what it checks and gives no count. This matches `tests/support/container_support.py:337-343`.
+    2. The `vm_support` entry now names the modules that import `in_order` and `lines_with`, with no count. The importers match the ones entry 23 found.
+    3. The 11 missing `tests/support/` modules each have an entry. I checked each entry's names against its source: `write_stand_in`, `Step`, `read_calls`, `write_opencode`, `step_start`, `step_finish`, `make_workspace` through `run_folders`, `lines_outside_fences`, `index_problems`, `searched_files`, `FakeMachineReadings`, `UNREAD`, `PushCase`, `open_push_case`, `result_push`, `record_push`, `RecordingGit`, `RETRY`, `RemoteOutage.go_away`/`come_back`, `move_remote_away`, `fetch_failed`, `SizedImages`, `sized_by_tag`, `BASE_BYTES`, `PROJECT_BYTES`, `Call`, `claude_lines`, `opencode_lines`, `transcript_of` and `sha256_of`.
+       - `agents.md` names the two runtime stand-ins, and `hosting.md` names `pygithub_stand_ins`.
+       - `result_case` does use `push_retry_support` (`tests/conftest.py:71`).
+    4. All 53 fixtures in `tests/conftest.py` are named. I compared each item with the fixture's docstring and body, for example `installed`, which installs the coder's agent file (`tests/conftest.py:349`), plus `on_the_manual_clock` and `dataset`. Each description is true.
+    5. The conftest entry is now a nested list, one fixture or one closely tied pair per item, under its groups.
+
+    Completeness check by script, as entry 21 asks (the same check entry 23 used):
+    - For every `tests/support/*.py` stem except `__init__`, it greps the stem in the page.
+    - For every `@pytest.fixture` function of `tests/conftest.py`, it greps `` `name` `` in the page.
+
+    Its output on the branch is `MODS`, `FIX`, `END`. Both lists of missing names are empty. The new lead-in at line 100 says the page names every module and every fixture, which the script bears out. It also says the modules after the conftests are ones no earlier list holds; no `tests/support/` module is listed twice.
+
+    Style: the new items have at most one parenthesis each, use plain paths from the repository root, and link each module once.
+
+    Criterion 2 still holds. The only names dropped on purpose are the per-area package names, now one `factory.<area>.<layer>` block, and `factory.adapters.landlock`, which does not exist.
+
+    No findings.
+
+    Not checked: I did not run `make documents`. The documenter's run printed `documents ok`, and the factory runs it as the gate.
