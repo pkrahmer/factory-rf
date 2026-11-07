@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 627
 comments_read: [6704005122]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T07:39:19.928007Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-07T07:39:19.928007Z'
   stage: docs-review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T07:40:02.937829Z'
+  stage: docs-review
+  run: 0ac368b789a84b76af49b27caea4b106
 ---
 
 # The project guide's page on the operator's scripts reads for the developer
@@ -326,3 +328,15 @@ Expect: `1`
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes findings 1 to 4 of the last review: each file is linked once, at its first mention, and written plain after that. Before it ends, it checks this for every linked file of the page by script (first mention linked, later ones plain), and its entry quotes the script's last output; the reviewer checks the rule by the same script.
 22. factory: started docs-review as vm.
+23. reviewer: Docs review after the human's answer in entry 21. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes `docs/project-guide/operator.md`, `docs/project-guide/README.md` and `docs/checked-documents.txt`.
+
+    No documenter run came between entry 21 and this review. The factory went straight from the human's answer to docs-review (entry 22), and the page is the same as in round 3, so findings 1 to 4 of entry 19 are all still open. The human asked for the link rule to be checked by a script. My role does not let me write code, even scratch code, so I did not write that script. Instead I read every link on the page against every mention of its file. The documenter's run in the next round should include the script and quote its output, as entry 21 asks.
+
+    What holds: the index lists *Reference*, `docs/checked-documents.txt` holds the page, and criterion 2 still holds. These files are linked once, at their first mention, and plain afterwards: `glossary.md` (a different word each time), `site.env.example`, `site.md`, `site.sh`, `hosting.sh`, `sanitise`, `job.sh`, `operator/README.md`, the VM and template files, `SKILL.md`, the two `kumpel.md` files, the six skill scripts linked on line 24, `decisions.md`, the four support modules and the table-only test modules.
+
+    Findings (link rule from entry 21: each file is linked once, at its first mention, and plain after that):
+    1. docs/project-guide/operator.md:92: `job-start.sh` is linked a second time, after its first link on line 22. Fix: write line 92's mention as plain `job-start.sh`.
+    2. docs/project-guide/operator.md:174: `test_operator_skill_signature.py` and `test_operator_texts.py` are linked again in the table, after their first links on line 132. Fix: write both names plain in the table cell.
+    3. docs/project-guide/operator.md:176: `test_operator_python_isolation.py` is linked again in the table, after its first link on line 128. Fix: write it plain in the table.
+    4. docs/project-guide/operator.md:24: `comment.sh`, `merge.sh` and `reset-to-tag.sh` are first named here without links, and are linked only later (lines 122 and 131). Fix: link all three on line 24, write the mentions on lines 122 and 131 plain, and drop "such as …" from line 122's sentence.
+    5. docs/project-guide/operator.md:3: the command `site` (`operator/bin/site`) is first mentioned here in "the checks of `site check`", but its link comes only on line 7. This is the same rule as finding 4, and a script run under entry 21 would catch it. Fix: link `site` at line 3, for example "the checks of [`site check`](../../operator/bin/site)", and write line 7's `site` plain. Or reword line 3 so that line 7 really is the first mention.
