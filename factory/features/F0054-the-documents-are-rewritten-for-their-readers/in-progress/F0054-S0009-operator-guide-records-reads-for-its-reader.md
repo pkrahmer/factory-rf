@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 617
 comments_read: [6700706147]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T02:01:27.493149Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -136,6 +140,11 @@ journal:
   at: '2026-11-07T02:01:22.063008Z'
   stage: docs-review
   run: 8fd71676ec9946d3be417a2a3bd6d786
+- number: 24
+  speaker: factory
+  kind: started
+  at: '2026-11-07T02:01:27.493149Z'
+  stage: docs-only
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -363,3 +372,4 @@ Expect: `1`
     1. `docs/operator-guide/records.md:170` (criterion 2, and a sentence the code contradicts): "The optional keys of a cost record." presents the Reference's list (`denials`, `denied_paths`, `login`, `machine`, `tools`) as complete. `CostRecord` in `src/factory/watching/domain/cost_records.py:131` also has the optional `transcript` (`TranscriptRef`, docstring at line 107: "names the run's kept transcript; it is `None` when none was kept"). Many other fields of `CostRecord` are optional too (lines 121-128), so the sentence is not true of those either. No line of the page names `transcript` as a key since the version list was dropped. Fix, as the human asked in journal 21: make the introduction say which keys it lists, for example "Some optional keys of a cost record: …". Also add one sentence for `transcript`: "`transcript` names the run's kept transcript; it is explained under *Transcripts* in [health.md](health.md#transcripts)." That heading exists at `health.md:338`.
 
     Open, not mine to fix: `docs/decisions.md:1560` still lists `records.md` among ten topic files.
+24. factory: started docs-only as vm.
