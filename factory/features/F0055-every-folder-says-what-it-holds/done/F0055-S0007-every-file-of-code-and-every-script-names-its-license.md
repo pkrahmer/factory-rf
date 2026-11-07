@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 0
 attempts: 0
@@ -97,6 +97,11 @@ journal:
   at: '2026-11-07T12:15:55.680477Z'
   stage: smoke-test
   run: 1af0b351f79c44e8bd6ba8a588c7e15a
+- number: 17
+  speaker: factory
+  kind: done
+  at: '2026-11-07T12:19:49.454936Z'
+  stage: approval
 ---
 
 # Every file of code and every script names its license
@@ -228,3 +233,4 @@ Expect: `0`
     Against the acceptance criteria: this command checks only part of criterion 1, the `src/factory/` side. It contradicts no criterion. It does not cover the operator scripts, the guard's failing rows (2), the scope rows (3), the `bash -n`/`sh -n` check (4), `make check` (5) or the docs (6). The factory's checks and the tests cover those, not this smoke test.
 
     Findings: none.
+17. factory: done (pull request merged); cost: 7 runs, 10.7 min, 57 turns, 154484 tokens in (1365188 more from cache), 23396 out, $1.69
