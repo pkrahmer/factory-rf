@@ -1,17 +1,13 @@
 ---
 stage: review
-blocked: null
-round: 2
+blocked: round_cap
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 632
 comments_read: [6705414222, 6705474496]
 handed_over: null
-claim:
-  instance: vm
-  stage: review
-  started_at: '2026-11-07T10:44:48.248914Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,13 +152,26 @@ journal:
   kind: started
   at: '2026-11-07T10:44:48.248914Z'
   stage: review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T10:46:02.888660Z'
+  stage: review
+  run: 9696eb1530e54ff29e299d5f3f8e641c
+- number: 28
+  speaker: factory
+  kind: question
+  at: '2026-11-07T10:46:02.888660Z'
+  stage: review
+  run: 9696eb1530e54ff29e299d5f3f8e641c
+  blocked: round_cap
 ---
 
 # The folders that have a README are listed and checked
 
 ## Description
 
-The repository is to give every folder a reader would ask about a short `README.md` (feature decision 1). This story builds what keeps those READMEs true; the READMEs themselves come in the later stories. It adds one constant that lists every folder that must have a README, a guard over that list, and the document check's reading of those READMEs, so that they can be put on `docs/checked-documents.txt` and their names and links are checked like the guides'. It also teaches the documenter that it may write them. A README that is on the list but does not exist yet is no finding of the document check; the guard reports it, and the guard is written so that the later stories can turn it green one group at a time. Nothing else the check reads or prints changes.
+The repository is to give every folder a reader would ask about a short `README.md` (feature decision 1). This story builds what keeps those READMEs true; the READMEs themselves come in the later stories. It adds one constant that lists every folder that must have a README, a guard over that list, and the document check's reading of those READMEs, so that they can be put on `docs/checked-documents.txt` and their names and links are checked like the guides'. It also teaches the documenter that it may write them. A README that is on the list but does not exist yet is no finding of the document check; the guard reports it, and the guard is written so that the later stories can turn it green one group at a time. The check also reads `operator/README.md`, which keeps its own form and is not on the list. Nothing else the check reads or prints changes.
 
 ## Interface
 
@@ -193,8 +202,9 @@ The repository is to give every folder a reader would ask about a short `README.
 7. A listed path of `FOLDER_READMES` with no file gives the same finding of `checked_list_findings` as today.
 8. The guard's subfolder reading leaves out hidden folders and `__pycache__`, through a helper in the guard module, with a parametrized test.
 9. The shape rules hold from the first line and for every fence, as more rows of the test of criterion 2: a first line that is a heading other than `# <title>` (`## A`) gives `has a section`; a first line of prose gives `line 1 is no part of the form`; a `~~~` fence and a fence indented by spaces each give `has a code block`; a README whose only link is a web address (`https://…`) gives `links to no guide`.
-10. `make check` stays green.
-11. docs: `docs/project-guide/shared.md`, the document check: the reader learns which READMEs the check reads and where their list lives. `docs/project-guide/README.md`: the guard of the folder READMEs among the guards. `docs/project-guide/style.md`, a new section *Folder READMEs*: the form of a folder README and its limits (feature decisions 2 and 6), and that anything needing explanation belongs in the guide page the README links to. `docs/decisions.md`: one entry for feature decisions 1 to 3, with the rejected option: a README in every folder, which would cost about 25 more files that all say the same.
+10. A README whose only link is root-absolute (`[guide](/docs/operator-guide/README.md)`) gives `links to no guide`, as one more row of the test of criterion 2: the README form and the document check decide "relative link" the same way.
+11. `make check` stays green.
+12. docs: `docs/project-guide/shared.md`, the document check: the reader learns which READMEs the check reads and where their list lives. `docs/project-guide/README.md`: the guard of the folder READMEs among the guards. `docs/project-guide/style.md`, a new section *Folder READMEs*: the form of a folder README and its limits (feature decisions 2 and 6), and that anything needing explanation belongs in the guide page the README links to. `docs/decisions.md`: one entry for feature decisions 1 to 3, with the rejected option: a README in every folder, which would cost about 25 more files that all say the same.
 
 ## Smoke test
 
@@ -413,3 +423,26 @@ Expect: `23 ['x: no README.md']`
     `check`: check: green
     `duplicates`: duplicates: 7 new, 39 known, 4 gone
 26. factory: started review as vm.
+27. reviewer: Review, round 2. I read the work item and the whole diff outside `factory/`: `src/factory/shared/domain/folder_readmes.py`, `src/factory/shared/domain/documents.py` (`relative_link_targets`, `_is_relative_link_target`), `src/factory/entry/check_documents.py`, `agents/agents/documenter.md` and the four new test files. Both round-1 findings are fixed in the code. The five rows of criterion 9 are in `tests/shared/domain/test_folder_readmes.py::test_a_readme_out_of_its_form_gives_one_line_per_rule`.
+
+    Findings:
+    1. criterion 10 added: it needs its test. Round 2 built a behaviour that no criterion names: `relative_link_targets` refuses a target that starts with `/`, so a README whose only link is root-absolute (`[guide](/docs/operator-guide/README.md)`) gives `links to no guide`. Pinning it needs no change under `src/`. The test is one more row of the criterion-2 test. The two closing criteria are now 11 (`make check`) and 12 (docs).
+    2. `src/factory/shared/domain/folder_readmes.py:50` (`_Reading`): the private class has a docstring. CLAUDE.md *Docs* says docstrings go on public classes and functions only, "none on private names". Fix: remove the docstring. If the reason for the one-pass record is worth keeping, keep it as a comment that says why.
+
+    description corrected: "...one group at a time. Nothing else the check reads or prints changes." -> "...one group at a time. The check also reads `operator/README.md`, which keeps its own form and is not on the list. Nothing else the check reads or prints changes." (Interface, `factory.entry.check_documents`, and the human's entry 4, answer 1).
+
+    What I checked and found sound:
+    - Group 1: criteria 1 to 9 each have a test, and each test checks what its criterion names. Both sides of every limit are tested: an opening of 2 and of 3 sentences, a subfolder line of 25 and of 26 words, the line limit at 12 and at 13. The failing sides are there too: no README, an unnamed subfolder, a missing subfolder, a line without a sentence, the first-line rows, `~~~` and indented fences, a link that is only a web address. The journal shows `make check` green after the coder (entry 25).
+    - Group 2: `folder_readmes` is a pure domain module that reuses `sections` and `documents`, and the wiring is in `entry`. Domain-to-domain imports are allowed.
+    - Group 3: no markers that silence a check, no secrets, no shell or SQL built from strings.
+    - Group 4: apart from finding 2, the names, the public docstrings and the why-comments are fine. The duplicate link reading is gone: `_link_name` and `readme_problems` now share `_is_relative_link_target`.
+    - Group 5: the journal gives the main decisions (one pass; a missing title means no opening; the shared link helper) and what was rejected. The docs criterion still fits.
+    - `docs/README.md` does not exist on the branch, so the guard skips all 23 paths, as criterion 4 says.
+    - The diff changes no document under `README.md`, `docs/` or `operator/README.md`.
+
+    Earlier tests: none. Every test file in the diff is new (status `A`).
+
+    Notes:
+    - `tests/entry/test_check_documents_folder_readmes.py:30` (`_run`) copies `_run` from `tests/entry/test_check_documents_checked_files.py:50`. Under the standing leave it could move to `tests/support/check_documents_support.py`.
+    - `tests/guards/test_folder_readmes.py:16` (`_subfolders`): a docstring on a private test helper.
+28. factory: This work item has now been sent back 3 times, more than 2. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
