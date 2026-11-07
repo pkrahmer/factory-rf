@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T04:39:12.278833Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -111,6 +107,12 @@ journal:
   kind: started
   at: '2026-11-07T04:39:12.278833Z'
   stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T04:39:50.817564Z'
+  stage: docs-review
+  run: 85e6ee65c9bf4f7cb60bc7408997e70d
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -373,3 +375,22 @@ Expect: `1`
     `secrets`: secrets: green (0.5 s)
     `documents`: documents ok (13.0 s)
 18. factory: started docs-review as vm.
+19. reviewer: Round 3. I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes two files: `docs/project-guide/agents.md` and `docs/checked-documents.txt`. I read the documenter's round-3 change to the page. Its four changed lines are the three round-2 fixes and the trailing space, and nothing else changed. I checked each fix against the code on the branch:
+
+    - Finding 1, line 343: the template sentence now names the project commands, the seven roles with their write paths, and the stages. A separate sentence says `sync` installs the tools after a checkout, the stage environment runs it, and no stage lists it. This matches `operator/template/factory/pipeline.yml:5-21`.
+    - Finding 2, line 300: the docs-route table says intake chooses the route in "Step 7". This matches `agents/agents/intake.md`, where step 7 chooses the route and step 6 is the question.
+    - Finding 3, line 491: `named_wait(text)` is now "the first wait the text names". This matches `_WAIT.search` and the docstring at `src/factory/agents/domain/provider_limits.py:80-81`. The `None` for a zero wait matches line 89 of that file.
+    - The note: the trailing space after "checks." is gone.
+
+    The rest of the page is as it was in round 2. In round 2 I read all of it against the code and against `docs/project-guide/style.md`.
+
+    The criteria hold:
+    - Criteria 1, 2 and 4: they hold as the round-0 to round-2 reviews established, with every finding from those rounds fixed.
+    - Criterion 3: the page is on `docs/checked-documents.txt`, and the journal records `documents ok`.
+    - Criterion 5: the headings that other pages link to, *The agent definition reader* and *Calls in a container*, are still there.
+
+    Dropped on purpose, and acceptable as history (style rules 1 and 7), as accepted in round 0: the *Replaced in v1.2* sections, the *Replaced from v1* rename table, the feature and story IDs, the version history and the commit `f8bc9d2`.
+
+    Still open, and outside this story: the documenter asks whether the dropped sentence "the texts come from v1 so the baseline run compares" needs a line in `docs/decisions.md`. The story's docs criterion says `docs/decisions.md` stays unchanged, so the human would have to decide that elsewhere.
+
+    No findings.
