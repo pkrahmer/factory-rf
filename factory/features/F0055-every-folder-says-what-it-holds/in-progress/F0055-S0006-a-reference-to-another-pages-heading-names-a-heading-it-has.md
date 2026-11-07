@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T11:34:22.322716Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -64,6 +68,11 @@ journal:
   at: '2026-11-07T11:34:17.106602Z'
   stage: doing
   run: 5cd4b0d1dbaf4084ae2b9eda7e191642
+- number: 11
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:34:22.322716Z'
+  stage: review
 ---
 
 # A reference to another page's heading names a heading it has
@@ -185,3 +194,4 @@ Expect: `documents ok (<seconds> s)`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+11. factory: started review as vm.
