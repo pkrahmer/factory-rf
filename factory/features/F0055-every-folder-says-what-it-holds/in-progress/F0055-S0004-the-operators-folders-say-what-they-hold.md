@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 637
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: tests
+  started_at: '2026-11-07T13:33:46.646940Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T13:33:41.984501Z'
   stage: intake
   run: 93060367fc564c0bb881aa6e36fcae59
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:33:46.646940Z'
+  stage: tests
 ---
 
 # The operator's folders say what they hold
@@ -77,3 +86,4 @@ Expect: `documents ok (<seconds> s)`
    - Docs criterion: criterion 6 names the files and what must be true of them (each subfolder line links to its README; `docs/decisions.md` none). It dictates no sentences.
    - Architecture: the folders `operator/bin`, `claude`, `job`, `lib`, `opencode`, `skill`, `template` and `vm` exist, and `agents/` holds `agents/` and `settings.json`. The operator guide pages the story names exist, and `docs/project-guide/agents.md` is on the checked list. The one code change stays in the shared domain constant.
    - Scope: this is S0004 of F0055 and matches the feature's story list and decision 11. It stays out of the feature's out-of-scope folders (`agents/agents/`, `operator/skill/kumpel/`, `operator/template/factory/`, the commands folders). The route is `tests`, because the story changes the code constant.
+4. factory: started tests as vm.
