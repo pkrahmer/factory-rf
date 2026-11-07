@@ -24,7 +24,7 @@ The Markdown body of a work item, the text of the [journal](../project-guide/glo
 
 The schemas are JSON Schema files (draft 2020-12) in `src/factory/contract/`, named `<schema>.schema.json`. They are generated from the models that validate each record and are never written by hand. A [story](../project-guide/glossary.md) that changes one of those models regenerates them in the same change; `make check` fails when a committed file differs from what the models give. The files are package data, so they ship in the wheel, and a reader in another repository can fetch them from `main`.
 
-To write the schemas into a folder, run the command below. It prints how many schemas it wrote. Run as `uv run python -m factory.entry.contract` from a checkout, without a folder, it rewrites `src/factory/contract/`, the folder the committed schemas are in.
+To write the schemas into a folder, run the command below. It prints how many schemas it wrote. Without a folder, the command rewrites `src/factory/contract/`, where the committed schemas are; run it as `uv run python -m factory.entry.contract` from a checkout.
 
 ```console
 $ python -m factory.entry.contract "$PWD/schemas"
@@ -33,7 +33,7 @@ contract: 5 schemas written
 
 With two or more arguments the command prints `usage: python -m factory.entry.contract [<folder>]` to standard error, writes nothing and exits with status 2.
 
-**Where a work item's records are.** While the work item is in progress they are on its branch `work-item/<id>`: the factory writes the front matter and the cost file there at every [stage](../project-guide/glossary.md). From the merge on they are on `main`, moved to `done/` by the archive commit. A work item in `in-progress/` on `main` without a merge shows only the state it had at its start.
+**Where a work item's records are.** While the work item is in progress they are on its branch `work-item/<id>`: the factory writes the front matter and the cost file there at every [stage](../project-guide/glossary.md). From the merge on they are on `main`, moved to `done/` by the commit the factory makes after the merge. A work item in `in-progress/` on `main` without a merge shows only the state it had at its start.
 
 **The approval.** A work item enters the [approval](../project-guide/glossary.md) with its last `result` record in the journal. No record marks the entry, so a reader takes the approval's start from that record's `at` and its end from the `done` record's `at`.
 
@@ -46,12 +46,21 @@ With two or more arguments the command prints `usage: python -m factory.entry.co
 Every agent run writes a cost record beside its work item; it holds the run's duration, the time the model took, the turns, the tokens and the cost. `factory-bill` adds the records up and prints the bill. To read a bill:
 
 1. Fetch the remote, since the command does not: `git fetch`.
-2. Run `factory-bill` from a checkout of your project. It reads your project's remote, so no run can be shown here.
+2. Run `factory-bill` from a checkout of your project, with a work item id or without one.
 
-```sh
-uv run factory-bill <work item id>
-uv run factory-bill
-```
+   This run took place on the factory's VM, in the checkout of this work item, after a fetch. Its numbers change with every run.
+
+   ```console vm
+   $ uv run factory-bill F0054-S0009
+   | stage | runs | min | model min | turns | in | cached | out | USD |
+   | :-- | --: | --: | --: | --: | --: | --: | --: | --: |
+   | intake | 1 | 0.2 | 0.2 | 5 | 13471 | 53043 | 1053 | 0.07 |
+   | docs-only | 2 | 2.8 | 1.6 | 20 | 59106 | 509625 | 10172 | 0.39 |
+   | docs-review | 2 | 3.0 | 3.0 | 23 | 93185 | 785048 | 16349 | 1.23 |
+   | **total** | 5 | 6.0 | 4.7 | 48 | 165762 | 1347716 | 27574 | 1.69 |
+
+   Cost: 5 runs, 6.0 min, 48 turns, 165762 tokens in (1347716 more from cache), 27574 out, $1.69
+   ```
 
 With an id it prints the cost table, an empty line and `Cost: <line>`. With no argument it does that for every work item in flight, each block headed by its id and separated from the next by an empty line. A work item in flight is one that has a branch `work-item/<id>` on the remote.
 
@@ -114,7 +123,7 @@ A run whose cost the runtime did not report (a run that died, or one the time li
 
 ## Looking at the remote: `factory-watch`
 
-`factory-watch` is the window on what the factory would do next. It evaluates once, as a [tick](../project-guide/glossary.md) would after its fetch, except that it judges its own [instance](../project-guide/glossary.md)'s [claim](../project-guide/glossary.md) by the [lease](../project-guide/glossary.md), since a tick never looks while its own stage runs. It prints two things: the event of that evaluation, and the board. It has no options; `--help` shows its usage.
+`factory-watch` is the window on what the factory would do next. It evaluates once, as a [tick](../project-guide/glossary.md) would after its fetch. It judges its own [instance](../project-guide/glossary.md)'s [claim](../project-guide/glossary.md) by the [lease](../project-guide/glossary.md), because a tick never looks while its own stage runs. It prints two things: the event of that evaluation, and the board. It has no options; `--help` shows its usage.
 
 It reads the remote-tracking refs as the last tick left them. It fetches nothing, so after a push to the remote the output stays the same until a tick has fetched. It writes nothing: no file in the checkout, nothing to the remote or the hosting service, no health status entry, no log line. It loads the pipeline definition at the head commit of `origin/main` and raises or clears no stop. The one hosting-service read it makes is the one an idle tick makes: the pull request (and its comments) of a waiting work item.
 
@@ -128,11 +137,22 @@ F0001-S0001  Domain model  in-progress  stage=tests  blocked=-  claim=factory-1 
 ```
 
 - The first line is `event: <key>`, followed by two spaces and the detail when the event has one.
-- A [feature](../project-guide/glossary.md) row counts the story files in `backlog`, `in-progress` and `done`; `.gitkeep`, `feature.md` and files that are not work item names do not count, and a feature with no story file has no row. The title is the first `# ` title of the feature's `feature.md` on `origin/main`, else the directory's name. `acceptance` is the feature's [acceptance](../project-guide/glossary.md) status (`incomplete`, `due`, `in_flight`, `merged_unrecorded`, `accepted` or `refused`; see "When a feature acceptance is due" in [work-items.md](work-items.md)), or `-` when the pipeline definition has no `acceptance_stage`.
-- A work item row exists for each story in `in-progress/` and for each running acceptance. A running acceptance is one that is opened, waiting with a question or at its approval, or merged with the merge not yet recorded. Each row has these columns: its title (the first `# ` title of the body, else the id), its stage, what it waits for (`blocked`), the instance holding its claim, since when (`running_since`, the claim's start in UTC) and its pull request. An absent value is `-`. The rows are in id order, so an acceptance's row comes after its feature's stories and before the stories of a later feature. An acceptance's title is `Acceptance of <feature title>`, its folder `in-progress`, and its state is the one on its branch.
-- A claim of the instance `factory-watch` runs as shows in one of two ways. While its lease runs, it shows as `event: idle:-  <work item> is held by <instance>`, because the instance may be running that stage. Once the lease has run out, it shows as `event: crash:<work item>`.
+- A [feature](../project-guide/glossary.md) row counts the story files in `backlog`, `in-progress` and `done`. `.gitkeep`, `feature.md` and files that are not work item names do not count. A feature with no story file has no row. The title is the first `# ` title of the feature's `feature.md` on `origin/main`, else the directory's name. `acceptance` is the feature's [acceptance](../project-guide/glossary.md) status, or `-` when the pipeline definition has no `acceptance_stage`. The status is one of `incomplete`, `due`, `in_flight`, `merged_unrecorded`, `accepted` or `refused`. "When a feature acceptance is due" in [work-items.md](work-items.md) explains them.
+- A work item row exists for each story in `in-progress/` and for each running acceptance. A running acceptance is one that is opened, waiting with a question or at its approval, or merged with the merge not yet recorded. A row has the columns below. An absent value is `-`.
 
-  The tick itself still reruns its own claim at its first look after a restart, whatever the claim's age. A stage that waits out a provider limit holds its claim past its lease, so it shows as a [crash](../project-guide/glossary.md) here while it waits; the factory log's line of the wait tells the two apart. A live stage that uses every limit can show as a crash for up to about a minute past its lease. The board's rows are the same either way.
+  | Column | Meaning |
+  |---|---|
+  | title | the first `# ` title of the body, else the id |
+  | `stage` | the work item's stage |
+  | `blocked` | what the work item waits for |
+  | `claim` | the instance holding the claim |
+  | `running_since` | the claim's start, in UTC |
+  | `pull_request` | the pull request's number |
+
+  The rows are in id order, so an acceptance's row comes after its feature's stories and before the stories of a later feature. An acceptance's title is `Acceptance of <feature title>`, its folder `in-progress`, and its state is the one on its branch.
+- The claim of the instance that `factory-watch` runs as shows in one of two ways. While its lease runs, it shows as `event: idle:-  <work item> is held by <instance>`, because the instance may be running that stage. Once the lease has run out, it shows as `event: crash:<work item>`.
+
+  The tick itself still reruns its own claim at its first look after a restart, whatever the claim's age. A stage that waits for the model provider's usage limit to end holds its claim past its lease, so it shows as a [crash](../project-guide/glossary.md) here while it waits; the factory log's line of the wait tells the two apart. A live stage that uses every limit can show as a crash for up to about a minute past its lease. The board's rows are the same either way.
 - `factory-watch` ends with one of these exit statuses:
 
   | Exit status | Meaning |

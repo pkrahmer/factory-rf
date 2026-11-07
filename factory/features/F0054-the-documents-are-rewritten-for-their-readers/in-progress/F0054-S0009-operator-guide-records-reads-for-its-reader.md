@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 617
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T01:50:50.324621Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -78,6 +74,12 @@ journal:
   kind: started
   at: '2026-11-07T01:50:50.324621Z'
   stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T01:53:49.736818Z'
+  stage: docs-only
+  run: 74c1af9baf704ce9b5602bc535b645b2
 ---
 
 # The operator guide's the records, the bill and the watch reads for the operator
@@ -211,3 +213,21 @@ Expect: `1`
     7. `docs/operator-guide/records.md:36` (style rule 3): "moved to `done/` by the archive commit" uses a private word without explaining it. Fix: "moved to `done/` by the commit the factory makes after the merge".
     8. `docs/operator-guide/records.md:27`: "Run as `uv run python -m factory.entry.contract` from a checkout, without a folder, it rewrites `src/factory/contract/`, …" is a dangling sentence with two stacked conditions. The code it describes is `CONTRACT_FOLDER` in `contract.py:9`. Fix: "Without a folder, the command rewrites `src/factory/contract/`, where the committed schemas are; run it as `uv run python -m factory.entry.contract` from a checkout."
 12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's eight findings in `docs/operator-guide/records.md`, the only file I changed. `make documents` printed `documents ok (13.7 s)`, and the new block is listed as `records.md:53: not run (vm)`. I did not run `make check`, because I changed only a document.
+
+    1. The `sh` block is now a `console vm` block, indented under step 2. I removed the false sentence. The text names where the run took place: the factory's VM, in this work item's own checkout, after a fetch. The output is copied from my real run of `uv run factory-bill F0054-S0009`, and the text says the numbers change with every run. The run's output also had an empty line before `Cost:`, which I kept.
+    2. The row columns of the work item board are now a table (column, meaning).
+    3. I split the feature row sentence into three. I put the `acceptance` status values in their own sentence and the link to `work-items.md` in another.
+    4. The claim bullet now begins "The claim of the instance that `factory-watch` runs as".
+    5. The `factory-watch` introduction is now two sentences.
+    6. "Provider limit" is now "the model provider's usage limit".
+    7. "Archive commit" is now "the commit the factory makes after the merge".
+    8. The contract command sentence now reads "Without a folder, the command rewrites `src/factory/contract/`, where the committed schemas are; run it as `uv run python -m factory.entry.contract` from a checkout."
+
+    Cross-read and found current: the `factory-bill` exit table against my run, and the `factory-watch` links to `work-items.md` and the glossary.
+
+    Stale text I saw and did not touch: `docs/decisions.md:1560` still lists `records.md` among ten topic files, which is history. `make documents` prints "does not exist" notes for paths in other documents, which this story does not touch.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (13.4 s)
