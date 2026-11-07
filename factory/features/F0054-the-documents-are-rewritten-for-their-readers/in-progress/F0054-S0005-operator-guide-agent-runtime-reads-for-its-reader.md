@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 613
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T00:22:20.214089Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -45,6 +41,12 @@ journal:
   kind: started
   at: '2026-11-07T00:22:20.214089Z'
   stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T00:24:36.894446Z'
+  stage: docs-review
+  run: 474f380b2ffc4ab292ac49e18ca3c213
 ---
 
 # The operator guide's the agent runtime reads for the operator
@@ -129,3 +131,36 @@ Expect: `1`
    `secrets`: secrets: green (0.4 s)
    `documents`: documents ok (7.7 s)
 6. factory: started docs-review as vm.
+7. reviewer: Docs review of `docs/operator-guide/agent-runtime.md` against the old text on `main`, the code and `docs/project-guide/style.md`. Criterion 3 holds: the file is on `docs/checked-documents.txt` and the journal reports `documents ok`. Criterion 4 holds: no link in `README.md`, `docs/`, `agents/` or `operator/README.md` points to a removed heading. I checked the removed headings "The agent in a container", "The agent run's `PATH` and `HOME`" and "An opencode run's budget". Criteria 1 and 2 have these findings:
+
+   1. `docs/operator-guide/agent-runtime.md:45` and `:86-88`: login route 3 and *Without a login file* say a manual `claude` login run as `factory` on the VM works. The code does not bear this out. Nothing mounts or copies a host login into the agent's home: `HOME` is `WORK_HOME = "/work/home"` (`src/factory/machine/domain/containers.py:15`) on the dataset, which the rollback clears before every stage. Line 11 and line 189 of the same file say exactly that. Fix: remove the manual-login route. Say that with neither file the call has no login and the shell reports `none`, and point to the token file.
+   2. `docs/operator-guide/agent-runtime.md:120`: "A run whose text matches no provider rule ends `died`" also covers a run that completed. The code ends a run `died` only when it exits non-zero, gives no reply or an error reply, and no limit, budget or time limit applies (`src/factory/agents/adapters/claude_runtime.py:226-241`, `src/factory/agents/adapters/opencode_runtime.py:477-490`). Fix: name those conditions, as the old text did.
+   3. `docs/operator-guide/agent-runtime.md:275`: "That token is at most the token's life less ten minutes old" is wrong. The refresher rewrites the file at least every ten minutes, so a run starts with a token at most ten minutes old. That token stays valid for at least its life less ten minutes, which is fifty minutes for a one-hour token. Fix: say that.
+   4. `docs/operator-guide/agent-runtime.md:362`: the *Reference* table gives `FACTORY_OPENCODE`'s default as `none`. The code's default is `opencode` (`src/factory/shared/domain/settings.py:91,161`), and `install.md:79` also says `opencode`. Fix: write `opencode`.
+   5. `docs/operator-guide/agent-runtime.md:199`: `<agent home>/.cache/opencode` uses the placeholder that lines 281 and 397 use for the installed agents' folder (`FACTORY_CLAUDE_HOME`). The cache is in the agent's `HOME`, `/work/home`, and its two sibling paths in the same sentence have no prefix. Fix: name all three under the agent's home in one form, for example "in the agent's home `/work/home`: `.local/share/opencode`, …".
+   6. `docs/operator-guide/agent-runtime.md:16`: the old text's rule that the factory takes the first word of `claude --version` (example `2.1.289`) was dropped without being named as dropped (criterion 2). The rule still holds in `src/factory/agents/adapters/agent_launch.py:335` and `src/factory/machine/domain/preflight.py:50`, and the operator needs it to set `FACTORY_CLAUDE_VERSION`. Fix: restore it, in the text or in *Reference*.
+   7. `docs/operator-guide/agent-runtime.md:183-187`: the task *Running on opencode* has no step to set `FACTORY_AGENT_RUNTIME=opencode` or to restart the instance. Style: a task is numbered steps, each one action. Fix: add both as steps.
+   8. Inline commands at `docs/operator-guide/agent-runtime.md:59,61,64,70,195,258` (`claude setup-token`, `install -m 0600 -o factory -g factory`, `Set-Content …`, `opencode models anthropic`, `python -m factory.entry.refresh_token`) are neither runnable examples nor marked blocks. That breaks the Description ("every command the file shows is a runnable example or is marked") and style.md *Examples that are not run*. Fix: put each under its numbered step in an `sh` block of bare commands, with a line saying where it runs. Or remove the command from the prose where it is only mentioned.
+   9. Criterion 1 / style rule 3: these glossary words are not linked at their first use:
+      - role (`:14`)
+      - claim (`:16`)
+      - project command (`:50`)
+      - journal and cost record (`:77`, `:80`)
+      - work item (`:107`)
+      - tick and attempts cap (`:169`)
+      - lease (`:178`)
+      - crash (`:179`)
+      - stop (`:297`)
+      - story and feature (`:334`)
+      - round (`:341`)
+
+      Fix: link each to `../project-guide/glossary.md` at its first use.
+   10. `docs/operator-guide/agent-runtime.md:322`: "The setting `FACTORY_CLAUDE_HOME` keeps its name" only makes sense to a reader who knows the history of a rename (style rules 1 and 7). Fix: remove it, or say plainly that the setting names the shipped agents' folder for both runtimes.
+   11. `docs/operator-guide/agent-runtime.md:171-174`: "You do one of these" introduces two alternatives as numbered steps, which reads as a sequence. Fix: make them bullets, or write them as one sentence with "or".
+   12. `docs/operator-guide/agent-runtime.md:378`: "The wiring gives the runtime this chain" has nothing for "this chain" to refer to, and "the wiring" is a word of the code. Fix: say what install.md's "The stage environment" sets (the container environment the runs use), or keep only the pointer.
+
+   Dropped on purpose, checked and accepted:
+   - the `planning/cloud-sandbox/` pointer (the path does not exist);
+   - the F0043 and F0044 notes;
+   - "This repository's own build stays on the subscription";
+   - `limit_wait` (an internal field that is not in the records contract).
