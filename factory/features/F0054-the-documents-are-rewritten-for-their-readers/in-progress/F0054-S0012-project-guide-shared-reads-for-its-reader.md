@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 2
+round: 3
 attempts: 0
 crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T03:15:06.898561Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -89,6 +85,12 @@ journal:
   kind: started
   at: '2026-11-07T03:15:06.898561Z'
   stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:16:56.777824Z'
+  stage: docs-review
+  run: 45c02375a97348b6a02d3d1e5bb002ba
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -333,3 +335,24 @@ Expect: `1`
     `secrets`: secrets: green (0.6 s)
     `documents`: documents ok (9.0 s)
 14. factory: started docs-review as vm.
+15. reviewer: Round 2 review of `git diff main...HEAD -- README.md docs operator/README.md`. The diff changes `docs/project-guide/shared.md`, `docs/project-guide/machine.md` (lines 443 and 446) and `docs/checked-documents.txt`.
+
+    I read the new page in full. I checked each of the five round-1 findings against the round-1 text (commit `24f2d71e8`). I also checked the module claims against the code:
+    - `opencode_runtime.py:750-751` uses `run_streaming` and `run_process`.
+    - `podman_runs.py:64,170` uses `run_or_raise` for queries and `run_process` for a run.
+    - `zfs_snapshots.py:154` and `power_off.py:28` use `run_or_raise` only.
+    - `src/factory/shared/adapters/document_examples.py` and `src/factory/shared/application/document_examples.py` both exist.
+
+    What holds:
+    - Round-1 findings 1 to 4 are fixed. "stage" and "pipeline definition" link to the glossary. `pipeline.yml` is linked. The `document_examples.py` link of the interfaces now stands above *The examples* block (line 199). The parentheses named in round 1 are gone.
+    - Of the long sentences named in round 1 (finding 5), every one is split except the one under finding 1 below.
+    - `docs/checked-documents.txt` holds the line once. The two `machine.md` references point to *Reading output and killing a group*, which exists. The link from `style.md` to *How the check is tested* still resolves.
+
+    Findings:
+
+    1. `docs/project-guide/shared.md:207`: round 1 named this sentence (then line 192, about 37 words), and it is still not split: "The spaces or tabs before a block's opening fence are removed ... with the same line numbers." This breaks style rule 2. Fix: split it after "before they are read", for example "So a block indented under a numbered step reads as at column 0, with the same line numbers."
+    2. `docs/project-guide/shared.md:131,133`: two more sentences are longer than about 25 words (style rule 2). Line 131 runs to about 35 words, from "It writes the header line" to the end of the parenthesis. Line 133 runs to about 31 words, from "The baseline accepts ... in fake_hosting.py". Fix: at 131, make the key order a sentence of its own. At 133, end the first sentence at "only the tests use" and list the three fakes in a second sentence or as sub-bullets.
+    3. `docs/project-guide/shared.md:296`: one sentence holds four parentheses: `Examples (...)`, `Skipped (line and kind)`, `GuideTable (...)` and `SettingDoc (...)`. Style rule 2 allows at most one per sentence. Fix: make it a nested list with one type per bullet and its fields after a colon.
+    4. `docs/project-guide/shared.md:214`: `src/factory/shared/adapters/document_examples.py` is linked a second time. It is already linked at line 19. The Interface says each file the page names is linked once. Fix: write `document_examples.py` plain at line 214, or name it as "the adapter module" without a link.
+
+    Not a finding: the usage lines at 103 and 143 (`uv run python -m factory.entry.check_duplicates ...` and `... check_documents [--root <checkout>]`) are signatures with placeholders. They follow the project guide's form for names and signatures in an indented block, as `style.md`'s *The take* example does, and they are not shown as examples to run. The three See also links to `decisions.md` (lines 95, 135 and 273) follow the form of one See also per section. `machine.md:443` "(since F0044-S0010)" was on `main` before this story.
