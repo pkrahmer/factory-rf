@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 624
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T04:42:40.791112Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -25,6 +29,11 @@ journal:
   at: '2026-11-07T04:42:35.772262Z'
   stage: intake
   run: cf42321b42c046cba894ac90b7a56096
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T04:42:40.791112Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the watching area reads for the developer
@@ -69,3 +78,4 @@ Expect: `1`
    Docs criterion: criterion 7 asks for criteria 1 to 5, which say what the reader must know (facts from the code, nothing dropped, names linked). It dictates no sentences.
    Architecture: documentation only. It leaves the code layers alone and fits the project guide's structure.
    Scope: it is S0016 of F0054 (the project guide's watching page). The feature's out-of-scope files (`decisions.md`, runs, playbook) are untouched. The criteria are the story's own list.
+4. factory: started docs-only as vm.
