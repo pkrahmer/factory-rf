@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 634
 comments_read: [6706635920]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: intake
+  started_at: '2026-11-07T11:59:36.195542Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -30,6 +34,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T11:59:33.905227Z'
+  stage: intake
+- number: 5
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:59:36.195542Z'
   stage: intake
 ---
 
@@ -78,3 +87,4 @@ Expect: `0`
    1. Add the rows: a non-script file under operator/ (a README.md, a .json without a shebang) is outside the scope; a Dockerfile and a *.sh file without a shebang are inside it and fail without the header on their first line, naming the file.
    2. Add the rows: a Python module whose header is on line 2 (after a docstring or another line) fails; a script with a shebang passes with the header on the line after it; a script without a shebang takes the header on its first line.
    3. Criterion 4 checks by shebang: a bash shebang (#!/bin/bash or #!/usr/bin/env bash) with bash -n, an sh shebang and a *.sh file without a shebang with sh -n. A Dockerfile is not syntax-checked.
+5. factory: started intake as vm.
