@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -247,6 +247,11 @@ journal:
   at: '2026-11-07T11:04:06.306711Z'
   stage: smoke-test
   run: 84c3e9f81adc41c6bc10aaed74188fbb
+- number: 44
+  speaker: factory
+  kind: done
+  at: '2026-11-07T11:08:00.215424Z'
+  stage: approval
 ---
 
 # The folders that have a README are listed and checked
@@ -670,3 +675,4 @@ Expect: `23 ['x: no README.md']`
     The smoke test does not reach the other criteria: the shape rules, the guard, the document check reading the READMEs, the documenter's text and the docs. I did not judge them here. They belong to the tests and to the gates of the earlier stages.
 
     Findings: none.
+44. factory: done (pull request merged); cost: 19 runs, 38.6 min, 175 turns, 551579 tokens in (4564873 more from cache), 76711 out, $6.48
