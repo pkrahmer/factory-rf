@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: review
+  started_at: '2026-11-07T13:11:50.177574Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -81,6 +85,11 @@ journal:
   at: '2026-11-07T13:11:45.051599Z'
   stage: doing
   run: 0ef0e8bb853847a2afda9d7f81202afd
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:11:50.177574Z'
+  stage: review
 ---
 
 # The tests say how they are laid out
@@ -196,3 +205,4 @@ Expect: `documents ok (<seconds> s)`
 
     `check`: check: green
     `duplicates`: duplicates: 6 new, 39 known, 4 gone
+14. factory: started review as vm.
