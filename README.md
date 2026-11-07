@@ -37,7 +37,7 @@ To run a factory [instance](docs/project-guide/glossary.md) you need a prepared 
 - `agents/` The agent files the factory ships, one per role, with their settings; see [its README](agents/README.md).
 - `demo/` The demo projects the factory builds from an empty repository; see [its README](demo/README.md).
 - `docs/` The operator guide, the project guide, the decision log and the playbook; see [its README](docs/README.md).
-- `factory/` The human's: the pipeline definition, the forms and the features with their stories that this factory builds.
+- `factory/` The human's: the [pipeline definition](docs/project-guide/glossary.md), the forms and the features with their stories that this factory builds.
 - `operator/` What an operator runs next to an instance: the skill, the scripts and the VM setup; see [its README](operator/README.md).
 - `planning/` The human's working files, which no stage reads or writes; see [its README](planning/README.md).
 - `security/` The semgrep rules and the accepted duplicate findings; see [its README](security/README.md).

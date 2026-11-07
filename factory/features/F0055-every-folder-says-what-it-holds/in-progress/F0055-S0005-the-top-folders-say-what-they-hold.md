@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 2
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 638
 comments_read: [6707873070]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T14:12:02.844826Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -95,6 +91,12 @@ journal:
   kind: started
   at: '2026-11-07T14:12:02.844826Z'
   stage: docs-only
+- number: 16
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T14:17:25.974922Z'
+  stage: docs-only
+  run: 285a5495a5564b49b871196842923b53
 ---
 
 # The top folders say what they hold
@@ -214,3 +216,19 @@ Expect: `documents ok (<seconds> s)`
     - `## The folders` sits between an unchanged `## Where to read next` and `## Reference`. It has ten lines in the subfolder-line form and links to the eight READMEs that exist. It names `factory/`, `planning/` and `session-logs/` as the human's (criterion 6).
     - `docs/checked-documents.txt` gains both paths. The documenter's last run ended `documents ok`.
 15. factory: started docs-only as vm.
+16. documenter: Fixed the reviewer's one finding (round 2) and nothing else.
+
+    Files changed:
+    - `README.md`: the `factory/` line of `## The folders` now links "pipeline definition" to `docs/project-guide/glossary.md` at its first use in the root README, as rule 3 of *Rules for all documents* in `style.md` asks. (My first edit hit the wrong line and changed nothing; I checked and applied it to line 40.)
+
+    `make documents` ends with `documents ok (58.3 s)`. I changed only a document, so I did not run `make check`; the factory runs it after this stage.
+
+    Cross-read and found current: `docs/README.md`, `security/README.md` and the rest of `## The folders`, which the reviewer already checked.
+
+    Open or noted, not mine to fix:
+    - `session-logs/` does not exist on this branch (`.gitignore` excludes it), so its root line has no link.
+    - The `agents/` line in `## Where to read next` duplicates its line in `## The folders`. Criterion 6 says to leave `## Where to read next` unchanged.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.3 s)
+    `documents`: documents ok (58.9 s)
