@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 619
 comments_read: [6701199398]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T02:46:54.533364Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -134,6 +130,12 @@ journal:
   kind: started
   at: '2026-11-07T02:46:54.533364Z'
   stage: docs-review
+- number: 23
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T02:47:31.743321Z'
+  stage: docs-review
+  run: a600d88e306e4403aa16b84db75ebf1f
 ---
 
 # The operator guide's index reads for the operator
@@ -299,3 +301,12 @@ Expect: `1`
 20. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 21. 2026-11-07 human: One more round, by the human's standing word for tonight. The documenter fixes findings 1 and 2 of the last review: each glossary word is linked at its first use in the file, also in the file table and the two sections named, and only there. Before it ends, it lists the glossary words the page uses and checks each first use by script.
 22. factory: started docs-review as vm.
+23. reviewer: Round 0 after the human's answer (entry 21). I reviewed `git diff main...HEAD -- README.md docs operator/README.md` against the code on the branch, `docs/project-guide/style.md` and `docs/project-guide/glossary.md`.
+
+    No documenter run came between the human's answer (entry 21) and this review (entry 22). The last commit that changed `docs/operator-guide/README.md` is 62973866a, the round-3 documenter commit. So the file is as entry 19 reviewed it, and both findings of entry 19 are still open. The human's answer asks the documenter to fix them, so I send the work item to `docs-only`.
+
+    These still hold: the facts checked in earlier rounds (the settings in bullet 1 against `src/factory/shared/domain/settings.py:165-169`, the container boundary, the take's journal line, `tool_paths`, the relative links, `factory-watch`). The `README.md:28` link fix and the `docs/checked-documents.txt` line also hold. The list of things dropped on purpose in entry 5 stays accepted under criterion 2.
+
+    Findings:
+    1. `docs/operator-guide/README.md` lines 5, 27 and 35: three glossary words are linked later than their first use (style rule 3, criterion 1). "dataset" is first used at line 5 ("one ZFS dataset") but linked at line 40. "pipeline definition" is first used at line 27 (the `pipeline.md` row) but linked at line 44. "stage environment" is first used at line 35 but linked at line 39. Fix: put each link `../project-guide/glossary.md` at the first use and make the later use plain.
+    2. `docs/operator-guide/README.md` lines 26, 27, 28, 29 and 43: these glossary words are never linked. In the table: "stalls" (26), "story" (27), "work item" (28), and "feature", "acceptance", "approval", "lease" and "claims" (29). At line 43: "role", "write paths" and "journal". Fix: link each one to `../project-guide/glossary.md` at its first use in the file, and only there. As entry 21 asks, list the glossary words the page uses and check each first use by script before ending.
