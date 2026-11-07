@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 633
 comments_read: [6706186597]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: smoke-test
+  started_at: '2026-11-07T11:48:29.500227Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -130,6 +134,11 @@ journal:
   at: '2026-11-07T11:48:24.493162Z'
   stage: docs
   run: f7b6277a12e54c7a996921263a2a3d54
+- number: 23
+  speaker: factory
+  kind: started
+  at: '2026-11-07T11:48:29.500227Z'
+  stage: smoke-test
 ---
 
 # A reference to another page's heading names a heading it has
@@ -375,3 +384,4 @@ Expect: `documents ok (<seconds> s)`
     `check`: check: green
     `secrets`: secrets: green (1.2 s)
     `documents`: documents ok (57.6 s)
+23. factory: started smoke-test as vm.
