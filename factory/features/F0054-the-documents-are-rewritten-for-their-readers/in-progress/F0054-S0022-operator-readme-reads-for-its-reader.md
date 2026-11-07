@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 630
 comments_read: [6705071034]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:41:10.143568Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -82,6 +86,11 @@ journal:
   at: '2026-11-07T09:41:05.115798Z'
   stage: docs-review
   run: b4dbd49596eb48a0aeb7fbb3b209493a
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:41:10.143568Z'
+  stage: docs-only
 ---
 
 # The operator folder's README reads for its reader
@@ -229,3 +238,4 @@ Expect: `1`
     Description corrected: "When the file passes the checks, its path is added to `docs/checked-documents.txt`, so the checks block it from now on." -> "`docs/checked-documents.txt` stays unchanged: the check does not read `operator/README.md` yet, so its runnable examples are run by hand, and adding its path to the list is left to F0055 (the human, journal 6)."
 
     Open: the Interface line for `docs/checked-documents.txt` and the list part of criterion 3 still name the list line. Journal 6 dropped both, and the review rules let me rewrite only the Description, so I left them as they are.
+14. factory: started docs-only as vm.
