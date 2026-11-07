@@ -1,161 +1,235 @@
 # Processes and this repository's checks
 
-This file covers the one module that starts processes and the commands behind this repository's checks; read the index, `README.md`, first.
+This file covers the one module that starts processes and the commands behind this repository's checks. Read the index, [README.md](README.md), first. The rest of the area `shared` is described where it is used.
 
 ## Starting a process
 
-`subprocess` is imported, and a process started, in `factory.shared.adapters.process` only (R5). Eight modules import it, as `tests/guards/test_wrapper_search.py` lists them. The git wrapper (`git_cli`), the make class (`make_commands`), the `claude -p` runtime (`claude_runtime`) and the tests' container fake (`fake_containers`) reach their tool through `run_process(request) -> ProcessResult`; the opencode runtime (`opencode_runtime`) through `run_process` and, for a run it watches line by line, `run_streaming`; the Podman wrapper (`podman_runs`) through `run_process` for a container run and `run_or_raise` for its queries; the ZFS wrapper (`zfs_snapshots`) and the power-off (`power_off`) through `run_or_raise` only. No other module calls a command-line tool.
+Every command-line tool the factory runs is started in one module, [process.py](../../src/factory/shared/adapters/process.py) (`factory.shared.adapters.process`). It runs a program without a shell, in its own process group, with a time limit, and it kills the group when the limit passes. A wrapper such as the git wrapper never calls `subprocess` itself.
 
-`ProcessRequest` (frozen, unknown keys forbidden) holds:
+    run_process(request: ProcessRequest) -> ProcessResult
+    run_streaming(request: ProcessRequest, on_line: Callable[[Stream, str], bool]) -> ProcessResult
+    run_or_raise(argv, *, time_limit, fault, cwd=ROOT, accepted=(0,)) -> ProcessResult
 
-- `argv`: the program and its arguments, at least one element, passed as given. There is never a shell, so `$HOME; echo x` reaches the child as that text.
-- `cwd`: the working directory.
-- `env`: `None` lets the child inherit the current environment; a mapping is the child's whole environment, nothing is added.
-- `time_limit`: `None` for no limit, otherwise greater than zero (a zero or negative value is a `ValidationError`).
-- `merge_stderr`: the child's stderr goes into the same pipe as its stdout, in the order written, and `ProcessResult.stderr` is empty.
+- Only `process.py` imports `subprocess`. Nine other modules import `process.py`, as [test_wrapper_search.py](../../tests/guards/test_wrapper_search.py) lists them.
+- The git wrapper (`git_cli`), the make class (`make_commands`), the `claude -p` runtime (`claude_runtime`), the tests' container fake (`fake_containers`) and the example runner of the document check (`document_examples`) use `run_process`.
+- The opencode runtime (`opencode_runtime`) uses `run_process` and, for a run it watches line by line, `run_streaming`.
+- The Podman wrapper (`podman_runs`) uses `run_process` for a container run and `run_or_raise` for its queries.
+- The ZFS wrapper (`zfs_snapshots`) and the power-off (`power_off`) use `run_or_raise` only.
+- `ProcessRequest` holds `argv`, `cwd`, `env`, `time_limit` and `merge_stderr`; it is frozen and forbids unknown keys.
+- `argv` has at least one element and is passed as given. There is never a shell, so `$HOME; echo x` reaches the child as that text.
+- `env=None` lets the child inherit the environment. A mapping is the child's whole environment, and nothing is added.
+- `time_limit` is `None` or greater than zero. A zero or negative value is a `ValidationError`.
+- The child runs in its own session, so it leads its own process group, and its stdin is closed.
+- At the `time_limit` the group is killed. `run_process` returns `exit_status=None`, `timed_out=True` and the output written so far.
+- A child that ends in time gives its real exit status and `timed_out=False`. A non-zero status is returned, not raised.
+- A failure to start, such as `FileNotFoundError`, is an `OSError` that `run_process` does not catch. The wrapper above decides what it means.
 
-The child runs in its own session (so it leads its own process group), with stdin closed. At the `time_limit` the child's process group is killed with SIGKILL (below, *Killing a process group*), so what the command started in that group ends too, and `run_process` returns with `exit_status=None`, `timed_out=True` and the output written so far (it reads once more after the kill, for at most `PIPE_DRAIN`; see *Reading after the child's end*). A child that ends in time gives its real exit status and `timed_out=False`; a non-zero status is returned, not raised. Output is decoded as UTF-8 with undecodable bytes replaced. A failure to start, such as `FileNotFoundError`, is an `OSError` and is not caught: the wrapper above decides what it means.
+The call looks like this:
 
-`ProcessResult` also has `stopped` (default `False`): true when `run_streaming` was stopped by its callback. The fields are `exit_status`, `stdout`, `stderr`, `timed_out`, `duration` and `stopped`; a call that closes a pipe still open after the drain (below) says so in no field.
+    result = run_process(ProcessRequest(argv=["git", "status"], cwd=repo, time_limit=timedelta(seconds=30)))
 
-`run_or_raise(argv, *, time_limit, fault, cwd=ROOT, accepted=(0,)) -> ProcessResult` is the block that a wrapper of a short command repeats, written once. It runs `ProcessRequest(argv=argv, cwd=cwd, env=None, time_limit=time_limit, merge_stderr=True)` through `run_process` and returns the result. `ROOT` is `Path("/")`, the default `cwd`: these commands read no file from their working directory. `fault` is the wrapper's own error, called with one detail string; the helper raises what it returns:
+### Reading output and killing a group
+
+Output is read until both pipes close. A process that left the group and keeps a pipe open must not hold the call, so the read is bounded after the child's end.
+
+- `PIPE_DRAIN` is five seconds. It is read at each call, so a test sets it with `monkeypatch.setattr`.
+- Once the child has ended on its own, both functions read on until both pipes close or `PIPE_DRAIN` has passed. If the pipes did not close, they close them and return the child's own exit status with `timed_out=False`, `stopped=False` and every byte read.
+- A time limit that falls before the child's end, or during the drain, is a `timed_out` call. After that kill `run_process` reads what is left for at most `PIPE_DRAIN`. The bound holds also for a request without `time_limit`.
+- The kill is `os.killpg(process.pid, signal.SIGKILL)`. A group already gone (`ProcessLookupError`) is no error, and a `PermissionError` propagates.
+- The kill reads no process table and does not wait for the group's processes to end. The child is not yet reaped, so its id, which is the group's, cannot belong to an unrelated process meanwhile.
+- A descendant that takes a process group or a session of its own (`setpgid`, `setsid`, GNU `timeout` without `--foreground`) is not killed. In a container it ends with the container.
+- A line that such a holder writes later than `PIPE_DRAIN` after the child's end is lost to the result.
+
+No agent code runs on the host: every agent call and every project command runs in a container, which ends whole with its call. What the factory starts on the host is git, `zfs` and `podman`, so a group is enough.
+
+### run_streaming
+
+`run_streaming` is for a runtime that must act on a run's output as it comes. It starts the child as `run_process` does and calls `on_line(stream, line)` for every line of standard output (`"stdout"`) and standard error (`"stderr"`).
+
+- A line comes without its line feed, decoded as UTF-8 with replacement. With `merge_stderr` every line is `"stdout"`.
+- A last line without a line feed is passed when its stream ends, not when the drain runs out.
+- The calls come one at a time from the calling thread, from a selector loop.
+- A line reaches the callback once and whole, however many reads it takes. `stdout` and `stderr` of the result hold the whole output.
+- `on_line` returns `True` to stop. The group is killed at once, no further line is passed, and the result has `stopped=True`, `exit_status=None` and `timed_out=False`.
+- A stop on a last line without a line feed ends the call at once, also while the other stream is still open.
+- At the `time_limit` the group is killed as in `run_process`, also when the child closed both streams and kept running. No line read after the kill is passed.
+- When `on_line` raises, the group is killed and the exception propagates.
+- The result holds what was read up to the end, the stop or the kill. Unlike `run_process`, nothing is read after a kill.
+- A child that ends by itself gives its exit status after `on_line` has had every line.
+
+### run_or_raise
+
+`run_or_raise` is the block that a wrapper of a short command repeats, written once. It runs `ProcessRequest(argv=argv, cwd=cwd, env=None, time_limit=time_limit, merge_stderr=True)` and returns the result. `fault` is the wrapper's own error, called with one detail string. The helper raises what it returns.
 
 - A program that cannot start (`OSError`) raises `fault(str(error))`, chained from the `OSError`.
 - A call that reached `time_limit` raises `fault(no_end_detail(time_limit))`.
-- An exit status not in `accepted` raises `fault(failure_detail(result.stdout, result.exit_status))`; `accepted=None` returns every exit status.
+- An exit status not in `accepted` raises `fault(failure_detail(result.stdout, result.exit_status))`. `accepted=None` returns every exit status.
+- `ROOT` is `Path("/")`, the default `cwd`: these commands read no file from their working directory.
+- `ZfsSnapshots._execute` passes `SnapshotError` with the command as first argument, and the caller's `accepted`.
+- `SystemctlPowerOff.power_off` passes `PowerOffError`. It prefixes `cannot start <sudo>: ` to the detail when the cause is an `OSError`.
+- `PodmanRuns._query` passes `ContainerError` with the command, the workspace as `cwd` and `accepted=None`.
+- `PodmanRuns.run` keeps its own `ProcessRequest`, because it passes the launch's environment. It uses `cwd=ROOT`.
+- A wrapper that needs more builds its own request and calls `run_process`.
 
-The users: `ZfsSnapshots._execute` (`fault` is `SnapshotError` with the command as first argument, `accepted` the caller's), `SystemctlPowerOff.power_off` (`PowerOffError`; it prefixes `cannot start <sudo>: ` to the detail when the cause is an `OSError`) and `PodmanRuns._query` (`ContainerError` with the command, `cwd` the workspace, `accepted=None`). `PodmanRuns.run` keeps its own `ProcessRequest`, because it passes the launch's environment; it uses `cwd=ROOT`. A wrapper that needs more than this builds its own request and calls `run_process`. Tests: `tests/shared/adapters/test_run_or_raise.py`.
+### The boundary and its tests
 
-`run_streaming(request, on_line) -> ProcessResult` is for a runtime that must act on a run's output as it comes (the opencode runtime's budget and provider limit, from F0020-S0004), where `run_process` hands the output over only when the process has ended. It starts the child exactly as `run_process` does (both go through the private `_start`, which holds the module's one `subprocess.Popen(` line) and calls `on_line(stream, line)` for every line of standard output (`"stdout"`) and standard error (`"stderr"`) while the child runs. A line comes without its line feed, decoded as UTF-8 with replacement; a last line without a line feed is passed when its stream ends (not when the drain below runs out; the bytes stay in `stdout`). With `merge_stderr` every line is `"stdout"`. The calls come one at a time from the calling thread, from a selector loop, not from reader threads. A line reaches the callback once and whole however many reads it takes to arrive (a line longer than one 64 KiB read, or one split by a pause), and `stdout` and `stderr` hold the whole output.
+[test_process_search.py](../../tests/guards/test_process_search.py) keeps the boundary.
 
-- `on_line` returns `True` to stop: the child's process group is killed at once (*Killing a process group*), no further line is passed (also not one already read in the same chunk), and the result has `stopped=True`, `exit_status=None`, `timed_out=False`. The same holds when `on_line` stops on a last line without a line feed, passed when its stream closes: the call stops at once, also while the other stream is still open.
-- At the `time_limit` the process group is killed as in `run_process` (`timed_out=True`, `stopped=False`, `exit_status=None`), also when the child closed both its streams and kept running. No line read after the kill is passed.
-- When `on_line` raises, the process group is killed and the exception propagates.
-- `stdout` and `stderr` of the result hold what was read up to the end, the stop or the kill (unlike `run_process`, nothing is read after a kill). A child that ends by itself gives its exit status after `on_line` has had every line.
+- Only `process.py` imports `subprocess`.
+- `shell=True`, `os.system`, `os.popen`, `os.exec*`, `os.spawn*`, `os.posix_spawn*` and `asyncio.create_subprocess_*` are used nowhere under `src/factory`.
+- The only suppression markers there are the four in `process.py`: the two for the import of `subprocess` and the two on the `subprocess.Popen(` line (the rule numbers are in the file). Do not write those marker words in a comment or docstring in `src/factory`.
+- The tests run real child processes (Python one-liners through `sys.executable`) in `tmp_path`. Nothing is faked.
+- A test whose child must act before its time limit ends it (write a record or a pid file, print a line, finish a first call) takes `ROOMY_LIMIT` (10 s) and `ROOMY_BOUND_SECONDS` (25, for an elapsed-time bound) from [time_limits.py](../../tests/support/time_limits.py). The stand-ins the limit must end wait longer than the bound, so a missed kill fails. A child that need not start to be killed may keep a shorter limit.
 
-**Killing a process group.** The same kill, `_kill_session` in `factory.shared.adapters.process`, runs at the `time_limit`, at a stop by `on_line` and when `on_line` raises. It sends SIGKILL to the child's process group, `os.killpg(process.pid, signal.SIGKILL)`; a group already gone (`ProcessLookupError`) is no error. It reads no process table and does not wait for the group's processes to end, so a grandchild may still be ending for a moment after the call returns. The child is not reaped yet, so its id, which is the group's, cannot belong to an unrelated process meanwhile.
-
-- Why a group is enough: no agent code runs on the host (every agent call and every project command runs in a container, which ends whole with its call), and what the factory starts there is git, `zfs` and `podman`. Decision: *The process group is killed*, in `docs/decisions.md`.
-- A descendant that takes a process group or a session of its own (`setpgid`, `setsid`, GNU `timeout` without `--foreground`) is not killed.
-- A `PermissionError` (another user's process) propagates.
-
-Tests: `tests/shared/adapters/test_process_session.py`.
-
-Tests: `tests/shared/adapters/test_process_streaming.py` and `tests/shared/adapters/test_process_streaming_reads.py` (long and split lines), `tests/shared/adapters/test_process_streaming_last_line.py` (a stop on a last line without a line feed); the helpers `python_argv`, `is_gone` and the callback `Recorder` are in `tests/support/process_support.py`.
-
-A test whose child must act before its time limit ends it (write a record or a pid file, print a line, finish a first call) takes `ROOMY_LIMIT` (10 s) and `ROOMY_BOUND_SECONDS` (25, for an elapsed-time bound) from `tests/support/time_limits.py`. The stand-ins the limit must end wait longer than the bound, so a missed kill fails. A child that need not start to be killed may keep a shorter limit.
-
-```python
-result = run_process(ProcessRequest(argv=["git", "status"], cwd=repo, time_limit=timedelta(seconds=30)))
-```
-
-**Reading after the child's end.** `PIPE_DRAIN` (`timedelta(seconds=5)`, read at each call, so a test sets it with `monkeypatch.setattr`) bounds how long a call waits for a pipe that stays open. Both functions read in steps of at most 0.05 s and check in between whether the child has ended. They check with `os.waitid(..., WNOWAIT)`, which does not reap the child, so a kill at the time limit during the drain still signals a process group that is the child's. Once the child has ended on its own, they read on until both pipes close or `PIPE_DRAIN` has passed, whichever comes first. If the pipes closed, the result is as it always was. If not, they stop reading, close the pipes and return the child's own exit status with `timed_out=False`, `stopped=False` and every byte read; `run_streaming` has passed every complete line to `on_line`.
-
-The time limit counts as before: one that falls before the child's end or during the drain is a `timed_out` call. After that kill `run_process` reads what is left for at most `PIPE_DRAIN` and closes the pipes. The bound holds also for a request without `time_limit`.
-
-Known limits: a process that left the process group (by `setpgid` or `setsid`) and keeps a pipe open holds the call for at most `PIPE_DRAIN` after the child's end or the kill, no longer until it ends. This module does not kill it, and nothing ends it after the call as another user; in a container it ends with the container. A line a holder writes later than `PIPE_DRAIN` after the child's end is lost to the result. Reason: `docs/decisions.md`, *A call stops reading five seconds after its own process ended*. Tests: `tests/shared/adapters/test_process_drain.py`.
-
-`tests/guards/test_process_search.py` keeps the boundary: only `process.py` imports `subprocess`; `shell=True`, `os.system`, `os.popen`, `os.exec*`, `os.spawn*`, `os.posix_spawn*` and `asyncio.create_subprocess_*` are used nowhere under `src/factory`; and the only suppression markers there are the four in `process.py` (`noqa: S404` and `nosec B404` on `import subprocess`, `noqa: S603` and `nosec B603` on the `subprocess.Popen(` line). Do not write those marker words in a comment or docstring in `src/factory`. Why: see `docs/decisions.md`. Tests run real child processes (Python one-liners through `sys.executable`) in `tmp_path`; nothing is faked.
+See also: *A command stopped at its time limit loses every process of its session* and *A call stops reading five seconds after its own process ended* in [decisions.md](../decisions.md).
 
 ## The duplicates report
 
-`make duplicates` prints what the reviewer would otherwise have to spot by eye: blocks of similar code and dead code that no one accepted. It runs pylint (only its duplicate-code messages, R0801, as JSON) and vulture (text), and hands both outputs to `python -m factory.entry.check_duplicates <pylint-json> <vulture-text> --baseline security/duplicates-baseline.txt`. The target and the pipeline step that calls it are added by a later change of the housekeeping feature; the command and the rules below exist now, and pylint and vulture are development dependencies.
+`make duplicates` prints what the reviewer would otherwise have to spot by eye: blocks of similar code and dead code that no one accepted. It runs pylint (only its duplicate-code messages, R0801, as JSON) and vulture (text). It hands both outputs to the command, which compares the findings with a baseline of accepted ones. The report is a record for the reviewer, not a gate.
 
-The rules are pure functions in `factory.shared.domain.duplicates` (`similar_code_findings`, `dead_code_findings`, `read_baseline`, `compare`, `report_lines`); the command only reads the files, prints and returns the exit status.
+    uv run python -m factory.entry.check_duplicates <pylint-json> <vulture-text> --baseline security/duplicates-baseline.txt
 
-The command reads its three files through `factory.entry.inputs.read_input`, which raises `UnreadableInput` for a file that is missing or not UTF-8; the command turns that into status 2 like a parse fault.
+The command is [check_duplicates.py](../../src/factory/entry/check_duplicates.py). The rules are pure functions in [duplicates.py](../../src/factory/shared/domain/duplicates.py): `similar_code_findings`, `dead_code_findings`, `read_baseline`, `compare` and `report_lines`. The command only reads the files, prints and returns the exit status.
 
-### The keys
+- The command reads its three files through `read_input` of [inputs.py](../../src/factory/entry/inputs.py). `read_input` raises `UnreadableInput` for a file that is missing or not UTF-8, and the command turns that into status 2, like a parse fault.
+- The pipeline runs the report after the coder and writes its last line into the coder's journal entry, whatever the exit status. `make check` does not run it.
+- A pylint text or message that is not in the expected form, and a vulture line out of form, is refused with a `ValueError`. The command turns it into status 2, so a change in a tool's output stops the report and is not hidden.
+- The output is, in this order: `new <key> at <where>: <message>` for each finding whose key is not in the baseline, `gone <key>` for each baseline key that no finding has any more, and the last line `duplicates: <n> new, <k> known, <g> gone`.
+- The exit status is 0 when nothing is new (gone keys alone do not change it), 1 when something is new, and 2 when a file or the baseline cannot be read or a text cannot be parsed. Then one line `check-duplicates: <reason>` goes to standard error.
+- Without `--baseline` argparse refuses with status 2.
 
-Each finding has a key that holds no line number, so editing code above or below a finding does not make it new:
+### The keys and the baseline
 
-- similar code: `similar-code <modules>: <first code line>`. The modules are those the message names, sorted, unique and joined by `, `; the first code line is the first non-blank line after the message's `==<module>:[<start>:<end>]` lines, stripped. Example: `similar-code factory.hosting.domain.git, factory.pipeline.domain.stops: @field_validator("at")`.
-- dead code: `dead-code <path>: <message>`, from a vulture line `<path>:<line>: <message> (<n>% confidence)` (with an optional `, <m> lines` before the parenthesis). Example: `dead-code src/factory/x.py: unused function 'helper'`.
+Each finding has a key that holds no line number, so editing code above or below a finding does not make it new. The line numbers stay in the finding's `where`, which the report prints.
 
-The line numbers stay in the finding's `where`, which the report prints. A pylint text or a message that is not in the expected form (not a JSON array, a `duplicate-code` object without a string message, a message without a module line, a malformed `==` line or no code line), and a vulture line out of form, is refused with a `ValueError`; the command turns it into status 2, so a change in a tool's output stops the report and is not hidden.
+- Similar code: `similar-code <modules>: <first code line>`. The modules are those the message names, sorted, unique and joined by `, `. The first code line is the first non-blank line after the message's `==<module>:[<start>:<end>]` lines, stripped. Example: `similar-code factory.hosting.domain.git, factory.pipeline.domain.stops: @field_validator("at")`.
+- Dead code: `dead-code <path>: <message>`, from a vulture line `<path>:<line>: <message> (<n>% confidence)`, with an optional `, <m> lines` before the parenthesis. Example: `dead-code src/factory/x.py: unused function 'helper'`.
+- A pylint message is refused when it is not a JSON array, when a `duplicate-code` object has no string message, or when a message has no module line, a malformed `==` line or no code line.
 
-### The baseline
+[duplicates-baseline.txt](../../security/duplicates-baseline.txt) holds the accepted findings, one key per line. Blank lines and lines starting with `#` (after stripping) are skipped.
 
-`security/duplicates-baseline.txt` holds the accepted findings, one key per line; blank lines and lines starting with `#` (after stripping) are skipped. `--baseline <path>` is required. `--write-baseline` writes the file instead of comparing: the header line `# Accepted findings of make duplicates, one key per line.`, then the key of every finding (similar code first, then dead code, in input order, a key found twice written once), and prints `duplicates: baseline of <n> findings written to <path>`. Review the file's diff before committing it: it is the list of what the human accepted.
+- `--baseline <path>` is required.
+- `--write-baseline` writes the file instead of comparing. It writes the header line `# Accepted findings of make duplicates, one key per line.`, then the key of every finding (similar code first, then dead code, in input order, a key found twice written once). It prints `duplicates: baseline of <n> findings written to <path>`.
+- Review the file's diff before committing it: it is the list of what the human accepted.
+- The baseline accepts the process calls of the two agent runtimes and the fakes that only the tests use: `ManualClock` and `ManualWaiter` in `factory.shared.adapters.clock`, `FakeAgentRuntime` in `factory.agents.adapters.fake_agent_runtime` and `FakeHostingService` in `factory.hosting.adapters.fake_hosting`. A new finding there is a copy that the decision does not cover.
 
-The baseline accepts the process calls of the two agent runtimes (decision log, *What the agent runtimes share lies in one module*) and the fakes that only the tests use (`ManualClock` and `ManualWaiter` in `factory.shared.adapters.clock`, `FakeAgentRuntime` in `factory.agents.adapters.fake_agent_runtime`, `FakeHostingService` in `factory.hosting.adapters.fake_hosting`), so a new finding there is a copy that the decision does not cover.
-
-### The output and the exit status
-
-The command prints, in this order:
-
-- `new <key> at <where>: <message>` for each finding whose key is not in the baseline;
-- `gone <key>` for each baseline key that no finding has any more (remove it from the baseline);
-- the last line `duplicates: <n> new, <k> known, <g> gone`.
-
-The exit status is 0 when nothing is new (gone keys alone do not change it), 1 when something is new, and 2 when an input file or the baseline cannot be read or a text cannot be parsed; then one line `check-duplicates: <reason>` goes to standard error. Without `--baseline` argparse refuses with status 2.
-
-This repository's pipeline runs the report after the coder and writes its last line into the coder's journal entry, whatever the exit status: the report is a record for the reviewer, not a gate, and `make check` does not run it.
+See also: *What the agent runtimes share lies in one module* in [decisions.md](../decisions.md).
 
 ## The document check
 
-`uv run python -m factory.entry.check_documents` reads the four documents (the operator guide is its index `docs/operator-guide/README.md` and ten topic files, listed in `OPERATOR_GUIDE_FILES`; a missing one is reported as `docs/operator-guide/<file>: missing`) and the other files of this guide, and prints one finding per line and exits 1, or, when nothing blocks, ends with `documents ok (<seconds> s)`. The rule is the pure function `factory.shared.domain.documents.check_documents`; the command only reads the files (`--root` names another checkout). It requires:
+`make documents` runs the document check. It reads the README and the two guides, prints one finding per line and exits 1, or, when nothing blocks, ends with `documents ok (<seconds> s)`. It is a check of the docs stage, not of `make check`: a missing row or an old word is found where the documents are written, before the human sees the pull request. Red holds the work item at the docs stage.
 
-- the operator guide's sections *Install* and *Configuration* in `docs/operator-guide/install.md` and *The stops* in `docs/operator-guide/stops.md`, with a table row for each row of `STOP_TABLE` that holds the stop's id in backticks and its destination in words;
-- the guide's index, `docs/project-guide/README.md`, with its sections *Kill points* and *Fault-injection paths*, with a table row for each case of `KILL_POINT_CASES` and each path of `FAULT_PATHS`, each with its id or test name in backticks;
-- none of the phrases of `REPLACED_PHRASES` and none of the v1 words of `GLOSSARY_FORBIDDEN` outside a `## Replaced from v1` section; the decision log is exempt from both lists.
+    uv run python -m factory.entry.check_documents [--root <checkout>]
 
-The command also reads every other `.md` file directly in `docs/project-guide/` (`factory.shared.domain.documents.is_guide_file` says which: not the index, no subfolder, no other extension) and checks it for the phrases and the v1 words only, so that a section moved out of the index does not leave the check. Its findings follow those of the four documents, in path order. A folder, a file in a subfolder and a missing folder add nothing.
+The command is [check_documents.py](../../src/factory/entry/check_documents.py) and only reads files. The rules are pure functions in [documents.py](../../src/factory/shared/domain/documents.py), above all `check_documents`. A story that adds a row to `STOP_TABLE`, `KILL_POINT_CASES` or `FAULT_PATHS`, changes one of the four documents or changes a file of the guide runs the check and ends with `documents ok`.
 
-### The examples
+- The four documents are the README, the operator guide, the project guide and the decision log. The operator guide is its index `docs/operator-guide/README.md` and ten topic files, listed in `OPERATOR_GUIDE_FILES`. A missing one is reported as `docs/operator-guide/<file>: missing`.
+- The operator guide must have the sections *Install* and *Configuration* in `docs/operator-guide/install.md` and *The stops* in `docs/operator-guide/stops.md`. The last has a table row for each row of `STOP_TABLE`, holding the stop's id in backticks and its destination in words.
+- The guide's index, `docs/project-guide/README.md`, must have the sections *Kill points* and *Fault-injection paths*. Each has a table row for each case of `KILL_POINT_CASES` and each path of `FAULT_PATHS`, with its id or test name in backticks.
+- None of the phrases of `REPLACED_PHRASES` and none of the v1 words of `GLOSSARY_FORBIDDEN` may stand outside a `## Replaced from v1` section. The decision log is exempt from both lists.
+- Every other `.md` file directly in `docs/project-guide/` is read too, for the phrases and the v1 words only, so that a section moved out of the index does not leave the check. `is_guide_file` says which files: not the index, none in a subfolder, no other extension. Its findings follow those of the four documents, in path order. A folder, a file in a subfolder and a missing folder add nothing.
+- The pipeline runs it through `make documents` as a check of the docs stage. `make check` does not run it.
 
-After the settings lines the command runs the `console` blocks of every document it reads for names (the README and the files of both guides). How to write one is in [style.md](style.md), *Runnable examples*; this section is the machinery.
+### The checked documents and the report
 
-- `factory.shared.domain.documents.examples(text)` returns `Examples` with `runnable` (each `Example`: its line, its fixture and its `Command`s with their expected lines) and `skipped` (`Skipped`: line and kind). The spaces or tabs before a block's opening fence are removed from each of its lines before they are read, so a block indented under a numbered step reads as at column 0, with the same line numbers; a line indented less than the fence keeps what it has. A `console` block with no `$ ` line is neither runnable nor skipped: its fence line is in `without_command`, and `factory.entry.check_documents` turns each into the finding `<document>:<line>: the example has no command` (`NO_COMMAND`), which goes through the same path as the runner's findings, so it blocks in a listed document and is reported in any other. A block marked `vm`, `github` or `model`, or with a command for which `runs_the_suite` holds, is skipped; `first_difference` is the match, with `...` and `<placeholder>`.
-- `factory.shared.application.document_examples` holds the two interfaces: `Fixture.prepare(folder)` fills an empty folder and returns the extra environment, and `ExampleRunner.run_document(document, examples, fixtures)` returns the document's findings.
-- `factory.shared.adapters.document_examples.ProcessExampleRunner` runs each command through `run_process` as `env -i <variables> sh -c <command>`. The fixed variables come last, so a fixture cannot replace `PATH`, `HOME`, `TZ` or `LANG`. Its default limit is 60 seconds; a test passes a shorter one. The folder and the home are temporary and removed when `run_document` returns, also after a timeout.
-- `factory.hosting.adapters.checkout_fixture.CheckoutFixture` is the fixture `checkout`: it exports the tracked files of the checked commit through `GitCli.export`. It raises `FixtureError` outside a git repository; the runner then gives one finding, `fixture <name> could not be prepared`, at the block's line and runs none of the document's commands on that fixture.
-- `factory.hosting.adapters.instance_fixture.InstanceFixture(git)` is the fixture `instance`. `prepare(folder)` makes the bare remote `<folder>/remote.git` with `GitCli.clone_bare`, a healthy health file in `<folder>/state` (named by `HEALTH_FILE_NAME` in `factory.watching.adapters.health_file`, the name `factory-health` reads), the image id file and the empty agent home, workspace and copy base, and writes `<folder>/factory.env`, one `NAME=value` line for each variable it returns. The name `INSTANCE_FIXTURE` is in `factory.shared.domain.documents`. A `GitError` becomes a `FixtureError`, as for `checkout`.
-- `factory.entry.check_documents` wires the runner and the two fixtures. Its output is described under *The checked documents and the report*. A line for a skipped block reads `<document>:<line>: not run (<kind>)`.
+[checked-documents.txt](../checked-documents.txt) lists the documents whose findings of the name, settings and example checks fail the command. A document is added to the list when it has been rewritten. The list is complete when every document is on it.
+
+- One path per line. `#` starts a comment, and blank lines are skipped. `read_checked_documents(text)` reads it. A missing file is an empty list.
+- A listed path that does not exist, or that is not a document the check reads (`docs/decisions.md`, for example), is one blocking finding.
+- `split_findings` makes the split from the document each finding carries.
+
+The output has three parts, in this order:
+
+1. One line per blocking finding: the checks of the four documents for every document, and the name, settings and example checks for the listed ones.
+2. The heading `Report (not checked yet):`, the other findings of those checks, then the `not run` lines of skipped examples. The heading is left out when there is nothing to report. A `not run` line never blocks, also for a listed document.
+3. When nothing blocks, the last line `documents ok (<seconds> s)`. Otherwise there is no such line and the exit status is 1.
 
 ### The name check
 
-The command prints one line per name a document writes that does not exist, as `<document>:<line>: <name> does not exist`. Whether such a line blocks depends on the document: see *The checked documents and the report*. `uv run python -m factory.entry.check_documents | grep -c "does not exist"` counts them.
+The command prints one line per name a document writes that does not exist, as `<document>:<line>: <name> does not exist`. Whether such a line blocks depends on the document. `uv run python -m factory.entry.check_documents | grep -c "does not exist"` counts them.
 
-It reads `README.md` and every `.md` file under `docs/operator-guide/` and `docs/project-guide/`; `docs/decisions.md` and `docs/runs/` are not read. The pure functions are `named_references` (finds the names, with their lines) and `unresolved` (turns the refused ones into findings) in `factory.shared.domain.documents`; the command gives them the checkout's top-level entries and the real test of existence. Three kinds of reference are found:
+It reads `README.md` and every `.md` file under `docs/operator-guide/` and `docs/project-guide/`. `docs/decisions.md` and `docs/runs/` are not read. The pure functions are `named_references`, which finds the names with their lines, and `unresolved`, which turns the refused ones into findings. The command gives them the checkout's top-level entries and the real test of existence. Three kinds of reference are found:
 
-- **A module or attribute:** a backticked dotted name that starts with `factory.`. A name that ends in `.env`, `.service`, `.yml`, `.yaml`, `.json`, `.jsonl`, `.toml`, `.md`, `.txt` or `.log` is a file name (`factory.env`, `factory.log`, `factory.records.jsonl`) and is not checked. It exists when `importlib` imports the longest leading part that is a module and the rest are attributes of it in turn (`factory.shared.domain.documents.named_references` is checked that way). Other dotted names, such as `os.path`, are not checked.
-- **A repository path:** a backticked text that contains `/` and no `$` (a text with `$` is a shell expression and is skipped as a whole). In a pytest node id (a test file, then `::`, then the test name) only the path before `::` is read. The text has no whitespace, does not start with `/` or `~` and has no `:` before its first `/` (so a web address, `https://host/x`, and a scp-style git address, `git@github.com:owner/project.git`, are no path; a `:` after the first `/` changes nothing), and either starts with a top-level entry of the checkout or ends in a file name with an extension (so a path whose first folder was renamed is still checked). `origin/main` is not a path. It exists when it resolves to something inside the checkout.
+- **A module or attribute:** a backticked dotted name that starts with `factory.`. It exists when `importlib` imports the longest leading part that is a module and the rest are attributes of it in turn. Other dotted names, such as `os.path`, are not checked.
+- A name that ends in `.env`, `.service`, `.yml`, `.yaml`, `.json`, `.jsonl`, `.toml`, `.md`, `.txt` or `.log` is a file name (`factory.env`, `factory.log`, `factory.records.jsonl`) and is not checked.
+- **A repository path:** a backticked text that contains `/` and no `$`. A text with `$` is a shell expression and is skipped as a whole. In a pytest node id (a test file, then `::`, then the test name) only the path before `::` is read.
+- The text has no whitespace, does not start with `/` or `~`, and has no `:` before its first `/`. So a web address (`https://host/x`) and a scp-style git address (`git@github.com:owner/project.git`) are no path; a `:` after the first `/` changes nothing.
+- It must either start with a top-level entry of the checkout or end in a file name with an extension, so a path whose first folder was renamed is still checked. `origin/main` is not a path. It exists when it resolves to something inside the checkout.
 - **A link:** the target of a relative Markdown link, read from the document's own folder (`../` included) with any `#fragment` left off. A web address, a `mailto:` address, an absolute path and a link to a heading alone (`#...`) are not checked.
 
 Never checked, whatever the kind: a placeholder in angle brackets (`<instance>`), a glob (`*`), an absolute path such as one under `/srv` or `/etc`, anything inside a fenced code block, and a section headed `## Replaced from v1` or `## Replaced in v1.2` up to the next `##` heading. A name after that heading is checked again.
 
-### The checked documents and the report
+### The examples
 
-`docs/checked-documents.txt` lists the documents whose findings of the name, settings and example checks fail the command: one path per line, `#` starts a comment, blank lines are skipped. `factory.shared.domain.documents.read_checked_documents(text)` reads it. A missing file is an empty list. A listed path that does not exist, or that is not a document the check reads (`docs/decisions.md`, for example), is one blocking finding.
+After the settings lines the command runs the `console` blocks of every document it reads for names. How to write one is in [style.md](style.md), *Runnable examples*. This section is the machinery.
 
-The output has three parts, in this order:
-
-1. One line per blocking finding: today's checks (a missing stop row, a missing section, an old word) for every document, and the new checks for the listed ones.
-2. The heading `Report (not checked yet):` and the other findings of the new checks, then the `not run` lines of skipped examples. The heading is left out when there is nothing to report. A `not run` line never blocks, also for a listed document.
-3. When nothing blocks, the last line `documents ok (<seconds> s)`. Otherwise there is no such line and the exit status is 1.
-
-`split_findings` makes the split from the document each finding carries. A document is added to the list when it has been rewritten; the list is complete when every document is on it.
-
-### How the check is tested
-
-The tests of the check never read the repository's documents or its `docs/checked-documents.txt`, and they run no example of the real documents. `make check` therefore does not grow with the documents, and a rewrite of a document breaks no test. The real documents are checked by `make documents` alone, which runs in every docs stage.
-
-A test starts from `minimal_documents(root)` of `tests/support/minimal_documents_support.py` (the fixture `minimal` of `tests/conftest.py` calls it for `tmp_path / "root"`). That writes a git repository in one commit with the smallest documents the check accepts: the README, the operator guide's index and every file of `OPERATOR_GUIDE_FILES`, the project guide's index and one page for each area, and an empty `docs/checked-documents.txt`. It builds them with `clean_texts()` of `tests/support/document_texts.py`, which reads `STOP_TABLE`, `KILL_POINT_CASES`, `FAULT_PATHS` and `SETTINGS` from the modules that define them each time it is called, so the documents follow the code's tables and a test can extend a table with `monkeypatch`. On them `main(["--root", str(root)])` prints `documents ok (<seconds> s)` alone. They hold no runnable example.
-
-A test adds what its rule needs and nothing more. `add_and_commit(root, {path: text})` writes the files and commits them, and leaves `git status --porcelain` empty; it commits only when the work tree changed. `append_block` of `tests/support/check_documents_support.py` adds a block to a document, `write_checked_list(root, paths)` writes the list of checked documents (it commits only a change, so writing the list that is already there is no error), and `drop_settings_row` removes a settings row.
-
-`tests/guards/test_document_tests_write_their_documents.py` fails when a module under `tests/entry/` that imports `factory.entry.check_documents` names `operator_support.ROOT`, `tracked_files`, `documents_copy_support` or the path `docs/checked-documents.txt`.
+- `examples(text)` of `documents.py` returns `Examples` with `runnable` and `skipped`. A runnable `Example` holds its line, its fixture and its `Command`s with their expected lines. A `Skipped` holds a line and a kind.
+- The spaces or tabs before a block's opening fence are removed from each of its lines before they are read, so a block indented under a numbered step reads as at column 0, with the same line numbers. A line indented less than the fence keeps what it has.
+- A `console` block with no `$ ` line is neither runnable nor skipped. Its fence line is in `without_command`, and the command turns each into the finding `<document>:<line>: the example has no command` (`NO_COMMAND`). It goes through the same path as the runner's findings, so it blocks in a listed document and is reported in any other.
+- A block marked `vm`, `github` or `model`, or with a command for which `runs_the_suite` holds, is skipped. A line for a skipped block reads `<document>:<line>: not run (<kind>)`.
+- `first_difference` is the match, with `...` and `<placeholder>`.
+- [document_examples.py](../../src/factory/shared/application/document_examples.py) holds the two interfaces. `Fixture.prepare(folder)` fills an empty folder and returns the extra environment. `ExampleRunner.run_document(document, examples, fixtures)` returns the document's findings.
+- `ProcessExampleRunner` of [document_examples.py](../../src/factory/shared/adapters/document_examples.py) runs each command through `run_process` as `env -i <variables> sh -c <command>`. The fixed variables come last, so a fixture cannot replace `PATH`, `HOME`, `TZ` or `LANG`. Its default limit is 60 seconds, and a test passes a shorter one. The folder and the home are temporary and removed when `run_document` returns, also after a timeout.
+- `CheckoutFixture` of [checkout_fixture.py](../../src/factory/hosting/adapters/checkout_fixture.py) is the fixture `checkout`. It exports the tracked files of the checked commit through `GitCli.export`. It raises `FixtureError` outside a git repository. The runner then gives one finding, `fixture <name> could not be prepared`, at the block's line and runs none of the document's commands on that fixture.
+- `InstanceFixture(git)` of [instance_fixture.py](../../src/factory/hosting/adapters/instance_fixture.py) is the fixture `instance`. Its name `INSTANCE_FIXTURE` is in `documents.py`. `prepare(folder)` does this:
+  - It makes the bare remote `<folder>/remote.git` with `GitCli.clone_bare`.
+  - It writes a healthy health file in `<folder>/state`, named by `HEALTH_FILE_NAME` in [health_file.py](../../src/factory/watching/adapters/health_file.py), the name `factory-health` reads.
+  - It makes the image id file and the empty agent home, workspace and copy base.
+  - It writes `<folder>/factory.env`, one `NAME=value` line for each variable it returns.
+  - A `GitError` becomes a `FixtureError`, as for `checkout`.
+- `check_documents.py` wires the runner and the two fixtures.
 
 ### The settings check
 
-The settings code is the one source of the instance's settings. `factory.shared.domain.settings.SETTINGS` is a tuple of `SettingDoc` (frozen: `name`, `required`, `default`), one row for each variable `read_settings` reads, `FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included. `required` is `yes`, `no` or a condition such as `with zfs`; it is kept for whoever writes the guide and is never compared. `default` is `None` where the code has none; the other defaults are built from the module's own constants, so the table cannot drift from what `read_settings` applies. A story that makes `read_settings` read another variable adds its row: `tests/shared/domain/test_settings_table.py` calls `read_settings` with a mapping that records every key looked up and compares those keys with the names in `SETTINGS`.
+The settings code is the one source of the instance's settings. `factory.shared.domain.settings.SETTINGS`, in [settings.py](../../src/factory/shared/domain/settings.py), is a tuple of `SettingDoc` with one row for each variable `read_settings` reads, `FACTORY_DATASET` and `FACTORY_STAGE_IMAGE` included. The command compares it with the operator guide.
 
-The command reads the section *Configuration* of `docs/operator-guide/install.md` with `guide_tables(text, section)`, which returns the tables of the section and its subsections as `GuideTable` (`heading` is the nearest heading above the table, then `header` and `rows`), and prints two kinds of finding after the name findings, each line prefixed with the guide's path. Like the name and example findings they follow the list of the checked documents: in a listed `docs/operator-guide/install.md` they block the command (exit status 1), in an unlisted one they are only reported after the heading.
+    SettingDoc(name, required, default)    # frozen
+    guide_tables(text, section) -> list[GuideTable]
+    settings_findings(guide_tables, SETTINGS)
+    refusal_findings(guide_tables, settings_source)
 
-- `settings_findings(guide_tables, SETTINGS)`: only a table whose first column is `Name` or `Variable` counts; any other table is ignored. A setting the code reads and no such table names, and a name that no setting has, are one finding each. A default is compared only in a table with a `Default` column, against `SettingDoc.default`, the cell read as the name cell is: its first backticked text if it has one, the whole cell otherwise (a finding quotes the cell as written) (`None` against an empty cell or `none`); without that column only names are compared. When no table counts (for example the first column is `Setting`, or the table sits under another heading of the section) and `SETTINGS` is not empty, the one finding is `no settings table (first column Name or Variable) in Configuration`, so the check says that it cannot compare instead of passing silently; with an empty `SETTINGS` there is no finding. A missing `install.md` or a missing *Configuration* section adds no settings finding: `check_documents` skips both settings checks there, and the operator guide's own finding stands.
-- `refusal_findings(guide_tables, settings_source)`: only a table under the heading `The refusals` whose first column is `Refusal` counts. A refusal is the backticked text of its first cell; its `<placeholder>`s are cut out, the whitespace and colons at both ends of each remaining piece are removed (so `<variable>: <fault>` looks up the fault alone), and each piece of three characters or more must occur in `settings_source`, which the command takes from the source file of `factory.shared.domain.settings`. A text no source holds is one finding.
+- `required` is `yes`, `no` or a condition such as `with zfs`. It is kept for whoever writes the guide and is never compared.
+- `default` is `None` where the code has none. The other defaults are built from the module's own constants, so the table cannot drift from what `read_settings` applies.
+- A story that makes `read_settings` read another variable adds its row. [test_settings_table.py](../../tests/shared/domain/test_settings_table.py) calls `read_settings` with a mapping that records every key looked up and compares those keys with the names in `SETTINGS`.
+- The command reads the section *Configuration* of `docs/operator-guide/install.md` with `guide_tables`. It returns the tables of the section and its subsections as `GuideTable` (`heading` is the nearest heading above the table, then `header` and `rows`).
+- Both finding functions are pure, and each line is prefixed with the guide's path. Like the name and example findings, they follow the list of checked documents: in a listed `docs/operator-guide/install.md` they block the command (exit status 1), and in an unlisted one they are only reported after the heading.
+- `settings_findings` counts only a table whose first column is `Name` or `Variable`. Any other table is ignored.
+- A setting the code reads and no such table names, and a name that no setting has, are one finding each.
+- A default is compared only in a table with a `Default` column, against `SettingDoc.default`. The cell is read as the name cell is: its first backticked text if it has one, the whole cell otherwise, and a finding quotes the cell as written. `None` matches an empty cell or `none`. Without that column only names are compared.
+- When no table counts and `SETTINGS` is not empty, the one finding is `no settings table (first column Name or Variable) in Configuration`. So the check says that it cannot compare instead of passing silently. With an empty `SETTINGS` there is no finding.
+- A missing `install.md` or a missing *Configuration* section adds no settings finding. `check_documents` skips both settings checks there, and the operator guide's own finding stands.
+- `refusal_findings` counts only a table under the heading `The refusals` whose first column is `Refusal`. A refusal is the backticked text of its first cell.
+- Its `<placeholder>`s are cut out, and the whitespace and colons at both ends of each remaining piece are removed, so `<variable>: <fault>` looks up the fault alone.
+- Each piece of three characters or more must occur in `settings_source`, which the command takes from the source file of `factory.shared.domain.settings`. A text no source holds is one finding.
+- The operator guide has no `Default` column and no refusal table, so it gives no settings finding.
 
-Today's operator guide has no `Default` column and no refusal table, so it gives no settings finding. Both functions are pure; the command does the reading.
+### How the check is tested
 
-This repository's pipeline definition (`factory/pipeline.yml`) runs it as a check of the docs stage through `make documents`, so a missing row or a v1 word is found where the four documents are written, before the human sees the pull request; red holds the work item at the docs stage. `make check` does not run it (the decision log, *The four documents are checked by a command*, and its 2026-10-17 entry for the docs stage). A story that adds a row to `STOP_TABLE`, `KILL_POINT_CASES` or `FAULT_PATHS`, changes one of the four documents or changes a file of the guide, runs the check and ends with `documents ok`.
+The tests of the check never read the repository's documents or its `docs/checked-documents.txt`, and they run no example of the real documents. So `make check` does not grow with the documents, and a rewrite of a document breaks no test. The real documents are checked by `make documents` alone, which runs in every docs stage.
+
+A test starts from `minimal_documents(root)` of [minimal_documents_support.py](../../tests/support/minimal_documents_support.py). The fixture `minimal` of `tests/conftest.py` calls it for `tmp_path / "root"`.
+
+- It writes a git repository in one commit with the smallest documents the check accepts: the README, the operator guide's index and every file of `OPERATOR_GUIDE_FILES`, the project guide's index and one page for each area, and an empty `docs/checked-documents.txt`.
+- It builds them with `clean_texts()` of [document_texts.py](../../tests/support/document_texts.py). That reads `STOP_TABLE`, `KILL_POINT_CASES`, `FAULT_PATHS` and `SETTINGS` from the modules that define them each time it is called. So the documents follow the code's tables, and a test can extend a table with `monkeypatch`.
+- On them `main(["--root", str(root)])` prints `documents ok (<seconds> s)` alone. They hold no runnable example.
+- A test adds what its rule needs and nothing more.
+- `add_and_commit(root, {path: text})` writes the files and commits them, and leaves `git status --porcelain` empty. It commits only when the work tree changed.
+- `append_block`, `write_checked_list(root, paths)` and `drop_settings_row` of [check_documents_support.py](../../tests/support/check_documents_support.py) add a block to a document, write the list of checked documents and remove a settings row. `write_checked_list` commits only a change, so writing the list that is already there is no error.
+- [test_document_tests_write_their_documents.py](../../tests/guards/test_document_tests_write_their_documents.py) fails when a module under `tests/entry/` that imports `factory.entry.check_documents` names `operator_support.ROOT`, `tracked_files`, `documents_copy_support` or the path `docs/checked-documents.txt`.
+
+See also: *The four documents are checked by a command, outside `make check`; v1's words live in one section* in [decisions.md](../decisions.md).
+
+## Reference
+
+Exact detail that the sections above summarise.
+
+- `ProcessResult` fields: `exit_status`, `stdout`, `stderr`, `timed_out`, `duration` and `stopped` (default `False`). `stopped` is true when `run_streaming` was stopped by its callback. A call that closes a pipe still open after the drain says so in no field.
+- `ProcessRequest.merge_stderr`: the child's stderr goes into the same pipe as its stdout, in the order written, and `ProcessResult.stderr` is empty.
+- Output is decoded as UTF-8 with undecodable bytes replaced.
+- Both functions read in steps of at most 0.05 s and check in between whether the child has ended. They check with `os.waitid(..., WNOWAIT)`, which does not reap the child, so a kill at the time limit during the drain still signals a process group that is the child's.
+- `run_process` and `run_streaming` both start the child through the private `_start`, which holds the module's one `subprocess.Popen(` line. Both kill through the private `_kill_session`, at the time limit, at a stop by `on_line` and when `on_line` raises.
+- Tests of the process module: [test_process_session.py](../../tests/shared/adapters/test_process_session.py) (the kill), [test_process_streaming.py](../../tests/shared/adapters/test_process_streaming.py), [test_process_streaming_reads.py](../../tests/shared/adapters/test_process_streaming_reads.py) (long and split lines), [test_process_streaming_last_line.py](../../tests/shared/adapters/test_process_streaming_last_line.py) (a stop on a last line without a line feed), [test_process_drain.py](../../tests/shared/adapters/test_process_drain.py) and [test_run_or_raise.py](../../tests/shared/adapters/test_run_or_raise.py). The helpers `python_argv`, `is_gone` and the callback `Recorder` are in [process_support.py](../../tests/support/process_support.py).
+- The suppression markers in `process.py`: `noqa: S404` and `nosec B404` on `import subprocess`, `noqa: S603` and `nosec B603` on the `subprocess.Popen(` line.
+- `PIPE_DRAIN` is `timedelta(seconds=5)`.
+- The settings table columns the check reads: `Name` or `Variable` first, `Default` for defaults, `Refusal` for the table under `The refusals`.
+- The types of the check: `Examples` (`runnable`, `skipped`, `without_command`), `Example`, `Command`, `Skipped` (line and kind), `GuideTable` (`heading`, `header`, `rows`), `SettingDoc` (`name`, `required`, `default`).
