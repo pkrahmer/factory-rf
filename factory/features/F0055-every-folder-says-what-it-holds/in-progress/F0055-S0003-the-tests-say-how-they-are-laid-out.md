@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T13:01:31.482798Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -53,6 +57,11 @@ journal:
   at: '2026-11-07T13:01:26.419269Z'
   stage: tests
   run: dc58e30d11574fc58d5f328e36a3614e
+- number: 9
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:01:31.482798Z'
+  stage: doing
 ---
 
 # The tests say how they are laid out
@@ -126,3 +135,4 @@ Expect: `documents ok (<seconds> s)`
    Open for the next stages: the three READMEs and the `docs/checked-documents.txt` lines are inside the documenter's write paths, not the coder's. So the coder has no code to write, and these tests turn green only after the docs stage. The story should pass through doing with no code change.
 
    `lint`: lint: green (0.2 s)
+9. factory: started doing as vm.
