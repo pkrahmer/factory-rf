@@ -13,3 +13,4 @@ docs/operator-guide/pipeline.md
 docs/operator-guide/records.md
 docs/operator-guide/work-items.md
 docs/operator-guide/README.md
+docs/project-guide/shared.md
