@@ -1,17 +1,13 @@
 ---
-stage: docs-review
+stage: docs-only
 blocked: null
-round: 0
+round: 1
 attempts: 0
 crashes: 0
 pull_request: 638
 comments_read: [6707873070, 6708142009]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T14:25:15.157526Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -151,6 +147,12 @@ journal:
   kind: started
   at: '2026-11-07T14:25:15.157526Z'
   stage: docs-review
+- number: 26
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T14:25:45.145089Z'
+  stage: docs-review
+  run: 2f46ca67f39f4b04b0a608ad668f2357
 ---
 
 # The top folders say what they hold
@@ -335,3 +337,20 @@ Expect: `documents ok (<seconds> s)`
 23. factory: This work item has now been sent back 4 times, more than 3. What should happen? Answer with a comment, which starts the count of rounds over; close the pull request to discard the work item.
 24. 2026-11-07 human: One more round. Both findings are real and mechanical: the documenter links 'role' and 'stage' at their first prose use in README.md as the reviewer proposes. Before it ends, it checks by script every glossary word of docs/project-guide/glossary.md against README.md, docs/README.md and security/README.md (first prose use outside code spans is a link), and quotes the script's empty output in its entry. The reviewer checks with the same script and raises nothing else of this kind.
 25. factory: started docs-review as vm.
+26. reviewer: Reviewed the work item and `git diff main...HEAD -- README.md docs operator/README.md`, plus `security/README.md`, which is new on the branch and named by criteria 1, 2 and 5. After the human's answer (entry 24), the factory started docs-review directly (entry 25). No documenter ran in between, so the branch still holds the text that round 4 reviewed (last content commit b74c45995). The two findings the human confirmed are still open.
+
+    Findings:
+    1. `README.md:37`, the `agents/` line of `## The folders`: "one per role" is still the first prose use of the glossary word "role" (`docs/project-guide/glossary.md`, **role**), and it has no link. This breaks rule 3 of *Rules for all documents* in `docs/project-guide/style.md`. Fix, as the human's entry 24 says: "one per [role](docs/project-guide/glossary.md)".
+    2. `README.md:42`, the `planning/` line: "which no stage reads or writes" uses the glossary word "stage" before its only link, at `README.md:82`. Line 33's "stage image" is older than this story and outside the diff. Fix, as entry 24 says: "no [stage](docs/project-guide/glossary.md) reads or writes".
+
+    How I checked: the human's entry 24 asks the documenter to check by script and asks the reviewer to use the same script. No documenter has run since then, so no such script exists yet. My role lets me write no code, so I checked with `grep` instead: I compared every glossary term against the new lines of `README.md`, `docs/README.md` and `security/README.md`. Following entry 24, I raise nothing else of this kind. I found nothing beyond the two findings above:
+    - `docs/README.md` links "stops" (line 5) and "stage" (line 7).
+    - `security/README.md` uses no glossary word.
+    - In the root section, "instance", "feature", "story" and "pipeline definition" are linked at or before their first use.
+
+    For the documenter, as entry 24 asks: after the two fixes, run the glossary-link check by script over all three files and quote its empty output in your entry.
+
+    Still true from earlier rounds:
+    - Criteria 4, 5 and 6 are met.
+    - `docs/checked-documents.txt` gains both paths.
+    - The last documenter run ended `documents ok`.
