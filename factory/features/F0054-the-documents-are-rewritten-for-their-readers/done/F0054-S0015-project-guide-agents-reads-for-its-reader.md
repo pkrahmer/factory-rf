@@ -1,5 +1,5 @@
 ---
-stage: docs-approval
+stage: done
 blocked: null
 round: 3
 attempts: 0
@@ -113,6 +113,11 @@ journal:
   at: '2026-11-07T04:39:50.817564Z'
   stage: docs-review
   run: 85e6ee65c9bf4f7cb60bc7408997e70d
+- number: 20
+  speaker: factory
+  kind: done
+  at: '2026-11-07T04:41:42.587120Z'
+  stage: docs-approval
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -394,3 +399,4 @@ Expect: `1`
     Still open, and outside this story: the documenter asks whether the dropped sentence "the texts come from v1 so the baseline run compares" needs a line in `docs/decisions.md`. The story's docs criterion says `docs/decisions.md` stays unchanged, so the human would have to decide that elsewhere.
 
     No findings.
+20. factory: done (pull request merged); cost: 9 runs, 17.4 min, 125 turns, 499726 tokens in (5747371 more from cache), 106879 out, $5.27
