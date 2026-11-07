@@ -297,7 +297,7 @@ A story whose Interface changes only paths the documenter may write (`README.md`
 
 | Agent | In the stage | What it does |
 | --- | --- | --- |
-| `intake` | `intake` | Step 6: chooses `docs-only` when every path the Interface changes is one of the three above; otherwise `tests`. |
+| `intake` | `intake` | Step 7: chooses `docs-only` when every path the Interface changes is one of the three above; otherwise `tests`. |
 | `documenter` | `docs-only` | Its `### docs-only` subsection replaces steps 1 to 6 of its Stage. It writes the whole change the docs criterion asks for, runs `make documents` and ends with `docs-review`. Back from the reviewer, it fixes exactly the numbered findings and ends with `docs-review` again. |
 | `reviewer` | `docs-review` | Its `### docs-review` subsection replaces the Role's scope, its checklist and its decisions, and steps 1 to 3 of the Stage. It reads the work item and `git diff main...HEAD -- README.md docs operator/README.md`, judges the facts against the code and the criteria and the writing against [style.md](style.md), and ends with `docs-approval` or with `docs-only` and numbered findings. |
 
@@ -340,9 +340,9 @@ These rules do not change the other stages, the allowed decisions or the opencod
   - The smoke test's `next` is `approval`, `doing`, `docs` (`round_cap` 3).
   - `docs` is a rework like `doing`, counted against the cap by `decide`, for a finding that is only a slip in a document. R12 in every agent names it (`smoke-test → docs`).
   - The smoke tester's *Stage* steps 5 and 6 choose between `docs` and `doing`. The documenter's step 1 says what to do on a `docs` round. [test_claude_agent_texts_docs_slip.py](../../tests/agent_files/test_claude_agent_texts_docs_slip.py) pins the texts.
-  - It holds the four project commands `check`, `lint`, `test` and `sync` with their `time_limit`s. `sync` installs the tools after a checkout; the [stage environment](glossary.md) runs it and no stage lists it, the seven roles with their [write paths](glossary.md), and the stages.
+  - It holds the four project commands `check`, `lint`, `test` and `sync` with their `time_limit`s, the seven roles with their [write paths](glossary.md), and the stages. `sync` installs the tools after a checkout; the [stage environment](glossary.md) runs it, and no stage lists it.
   - The coder's write path is `src/*` only; a project that keeps code elsewhere changes it.
-- [CLAUDE.md](../../operator/template/CLAUDE.md), the starting rules file of a Python project. It has placeholders in angle brackets for the project's own architecture, test framework and checks. 
+- [CLAUDE.md](../../operator/template/CLAUDE.md), the starting rules file of a Python project. It has placeholders in angle brackets for the project's own architecture, test framework and checks.
   - It carries the Python lessons: the `mypy --strict` traps in tests, low-entropy hexadecimal test values, and the time-limit lesson that a test which waits for a time limit gives the process it starts room to start.
   - It gives the standing leave to move a shared test helper.
   - A helper, constant or fixture that a new test would copy from another story's test module may be moved to one shared place under `tests/`. So may one that an earlier module still holds as a copy.
@@ -488,7 +488,7 @@ A reply that is an error whose `result` holds the provider limit, or, when no re
 **The provider limit.** `ClaudeCodeRuntime(..., provider_limit=None)` takes a `ProviderLimit` ([provider_limits.py](../../src/factory/agents/domain/provider_limits.py)). Its fields are `status` (100 to 599, default `DEFAULT_LIMIT_STATUS` 428), `message` (a regular expression that must compile), `cooldown` and `ceiling`. `None` is the default limit. `build_boundaries` passes `settings.provider_limit`. It reads the fields from `FACTORY_PROVIDER_LIMIT_STATUS`, `FACTORY_PROVIDER_LIMIT_MESSAGE`, `FACTORY_PROVIDER_LIMIT_COOLDOWN_MINUTES` and `FACTORY_PROVIDER_LIMIT_CEILING_MINUTES`, and `SettingsInvalid` names the variable.
 
 - `limit_in_text(text, limit)` is true when the status stands in the text as a whole number or `message` searches it (`re.search`).
-- `named_wait(text)` is the earliest wait the text names (`in|after <n> <unit>`, unit `s`/`sec`/`second(s)`, `m`/`min`/`minute(s)`, `h`/`hour(s)` or none for seconds, or `retry-after[:] <n>` seconds, `<n>` of one to six digits), `None` for none or zero.
+- `named_wait(text)` is the first wait the text names (`in|after <n> <unit>`, unit `s`/`sec`/`second(s)`, `m`/`min`/`minute(s)`, `h`/`hour(s)` or none for seconds, or `retry-after[:] <n>` seconds, `<n>` of one to six digits), `None` for none or zero.
 - A call ends `provider_limit` only when it did not reach its time limit and was not stopped by its budget, and the limit is in the error reply's `result` (never in `structured_output`) or, with no parsable reply, in a line of standard error.
 - The result keeps the reply's measures, as a `died` one does, and its `limit_wait` is `named_wait` of that text. A budget-stop resume that ends `provider_limit` makes the run `provider_limit` with both calls' measures.
 - `StallReason` has `provider_limit` too; its sentence is `the provider's spend limit lasted past the waiting ceiling`. `PatientRuns` (see *PatientRuns* in `pipeline.md`) waits the limit out and resumes the run, until the waits reach the ceiling. Only a run that still ends `provider_limit` at the ceiling is a stall.

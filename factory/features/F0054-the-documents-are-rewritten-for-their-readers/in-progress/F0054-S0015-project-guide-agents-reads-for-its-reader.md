@@ -1,5 +1,5 @@
 ---
-stage: docs-only
+stage: docs-review
 blocked: null
 round: 3
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 623
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-only
-  started_at: '2026-11-07T04:36:19.031417Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -100,6 +96,12 @@ journal:
   kind: started
   at: '2026-11-07T04:36:19.031417Z'
   stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T04:39:06.886426Z'
+  stage: docs-only
+  run: 5de26ce22cb144a6a82663f5506a2a20
 ---
 
 # The project guide's page on the agents area reads for the developer
@@ -342,3 +344,22 @@ Expect: `1`
 
     Notes (not findings): line 345 ends with a trailing space after "checks.".
 16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the three round-2 findings. All edits are in `docs/project-guide/agents.md`. I did not touch `docs/checked-documents.txt`, which already holds the page's line. `make documents` ends with `documents ok (13.2 s)`. I did not run `make check`, because the only file I changed is a document.
+
+    How I handled each finding:
+    1. Template section (line 343): I split the broken sentence in two. The first now reads "It holds the four project commands `check`, `lint`, `test` and `sync` with their `time_limit`s, the seven roles with their write paths, and the stages." The second reads "`sync` installs the tools after a checkout; the stage environment runs it, and no stage lists it."
+    2. Docs-route table (line 300): intake chooses `docs-only` in "Step 7", not "Step 6".
+    3. Provider limits (line 491): `named_wait(text)` is now "the first wait the text names", which matches the code's docstring.
+
+    I also removed the trailing space after "checks." on line 345, which the reviewer noted.
+
+    Cross-read: the headings other pages link to (*The agent definition reader*, *Calls in a container*) are unchanged. I added no links.
+
+    Stale text I noticed and did not touch, because it is unrelated to this story:
+    - `make documents` still reports "does not exist" findings in `docs/project-guide/README.md` and `docs/project-guide/machine.md`. Those files are not yet on the checked list.
+    - I did not re-read the Reference sections line by line against `claude_runtime.py` and `opencode_runtime.py`. The reviewer spot-checked them in round 2 and found them matching.
+    - I wrote nothing in `docs/decisions.md`, so the old sentence that the texts come from v1 so the baseline run compares still has no line in the decision log. The reviewer may decide whether it needs one.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.5 s)
+    `documents`: documents ok (13.0 s)
