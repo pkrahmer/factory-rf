@@ -1,5 +1,5 @@
 ---
-stage: approval
+stage: done
 blocked: null
 round: 1
 attempts: 0
@@ -153,6 +153,11 @@ journal:
   at: '2026-11-07T13:29:46.173991Z'
   stage: smoke-test
   run: 737a13c074aa4e20bfb1c27d60a946c1
+- number: 27
+  speaker: factory
+  kind: done
+  at: '2026-11-07T13:31:37.404734Z'
+  stage: approval
 ---
 
 # The tests say how they are laid out
@@ -395,3 +400,4 @@ Expect: `documents ok (<seconds> s)`
     - Criterion 5 (docs): in `docs/project-guide/README.md`, *Shared test helpers*, line 63 ("The root of `tests/` holds `conftest.py`, its `README.md` and folders") and line 72 (what the layout guard fails on) both name the root's `README.md`.
 
     Findings: none. I fixed nothing and left the working tree unchanged.
+27. factory: done (pull request merged); cost: 11 runs, 18.9 min, 84 turns, 244987 tokens in (1809519 more from cache), 28385 out, $2.59
