@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 629
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T09:06:05.300865Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   at: '2026-11-07T09:05:59.316225Z'
   stage: docs-review
   run: 10f598d540054a12a6e0ffefa8e42593
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T09:06:05.300865Z'
+  stage: docs-only
 ---
 
 # The README reads for a newcomer
@@ -188,3 +197,4 @@ Expect: `1`
        Fix: move the "stories" link to the first sentence, and link "tick" and "work item" to `docs/project-guide/glossary.md`.
 
     Earlier tests: none. The diff changes no test file.
+12. factory: started docs-only as vm.
