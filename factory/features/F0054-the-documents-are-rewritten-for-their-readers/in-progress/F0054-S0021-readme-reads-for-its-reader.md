@@ -1,17 +1,13 @@
 ---
-stage: intake
+stage: docs-only
 blocked: null
 round: 0
 attempts: 0
 crashes: 0
-pull_request: null
+pull_request: 629
 comments_read: []
 handed_over: null
-claim:
-  instance: vm
-  stage: intake
-  started_at: '2026-11-07T08:52:56.852774Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -23,6 +19,12 @@ journal:
   kind: started
   at: '2026-11-07T08:52:56.852774Z'
   stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T08:53:14.015007Z'
+  stage: intake
+  run: 2ef7ecf4ac59493d923e2804b97ca887
 ---
 
 # The README reads for a newcomer
@@ -58,3 +60,10 @@ Expect: `1`
 
 1. 2026-11-07 human: created.
 2. factory: started intake as vm.
+3. intake: accepted
+   - Interface: it names concrete paths only: `README.md`, `docs/checked-documents.txt` (one line, `README.md`), links from other documents, and "no code, test or agent file changes". Every path is one the documenter may write, so the docs route fits.
+   - Criteria: criteria 1 to 4 are judged by the reviewer or checked by `make documents` and a link check, which is the docs route's form. The Interface rule "a section another file links to keeps its heading, or the link changes with it" has its own criterion (4). The failing side, a dropped fact or a broken link, is covered by criteria 2 and 4. The Description's rule that every shown command is runnable or marked for the VM, GitHub or a model falls under criterion 3 ("runnable examples pass") and criterion 1 (style).
+   - Smoke test: `grep -cx "README.md" docs/checked-documents.txt` is runnable and `Expect: 1` is checkable. It doesn't run pytest.
+   - Docs criterion: criterion 6 refers to criteria 1 to 4 for what the reader must know and dictates no sentences. `docs/decisions.md` is marked "none".
+   - Architecture: it is a documents-only change, with no layer or module touched.
+   - Scope: the story is S0021 in `feature.md`'s list and within its scope. It touches none of the out-of-scope files (`docs/decisions.md`, `docs/runs/`, `docs/operator-playbook.md`).
