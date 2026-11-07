@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 626
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T06:19:02.503945Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -109,6 +113,11 @@ journal:
   at: '2026-11-07T06:18:57.320125Z'
   stage: docs-review
   run: 8c2a5102f19449d68212244c3d8b8a43
+- number: 19
+  speaker: factory
+  kind: started
+  at: '2026-11-07T06:19:02.503945Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the pipeline area reads for the developer
@@ -349,3 +358,4 @@ Expect: `1`
        - Fix: split each into sentences of about 25 words with at most one parenthesis, then go through the rest of the page the same way.
 
     Open, not this stage's to fix: the Description cites "style rules 8 to 10", but `docs/project-guide/style.md` has rules 1 to 8. Neither the journal nor the criteria say which rules are meant, so this is left for the human. The page has no *Reference* section, which criterion 2 allows.
+19. factory: started docs-only as vm.
