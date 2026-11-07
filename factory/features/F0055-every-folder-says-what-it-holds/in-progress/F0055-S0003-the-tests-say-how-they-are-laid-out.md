@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 636
 comments_read: [6707209251, 6707304987]
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: doing
+  started_at: '2026-11-07T13:06:00.155966Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -69,6 +73,11 @@ journal:
   speaker: human
   kind: comment
   at: '2026-11-07T13:05:57.651319Z'
+  stage: doing
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T13:06:00.155966Z'
   stage: doing
 ---
 
@@ -162,3 +171,4 @@ Expect: `documents ok (<seconds> s)`
 
     Noticed, not touched: the tester's changes in `tests/guards/test_test_folder_readmes.py` and `tests/guards/test_tests_layout.py` look right for the criteria. I made no change to the working tree.
 11. 2026-11-07 human: (b). The human changed factory/pipeline.yml on main: for this story only, the coder may write tests/README.md, tests/support/README.md, tests/guards/README.md and docs/checked-documents.txt. Write the three READMEs from the code and docstrings in the form of style.md, *Folder READMEs* (and the Interface: tests/support/README.md and tests/guards/README.md are pointers to the guide's sections and list no modules), add the three lines to the checked list, and run make check and make documents before you end. The docs stage reviews the wording.
+12. factory: started doing as vm.
