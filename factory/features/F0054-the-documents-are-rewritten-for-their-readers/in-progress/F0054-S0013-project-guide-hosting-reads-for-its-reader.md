@@ -1,3 +1,120 @@
+---
+stage: docs-approval
+blocked: null
+round: 3
+attempts: 0
+crashes: 0
+pull_request: 621
+comments_read: []
+handed_over: docs-approval
+claim: null
+journal:
+- number: 1
+  speaker: human
+  kind: created
+  at: '2026-11-07T03:23:23.549037Z'
+  stage: intake
+- number: 2
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:23:23.556207Z'
+  stage: intake
+- number: 3
+  speaker: intake
+  kind: result
+  at: '2026-11-07T03:23:38.463034Z'
+  stage: intake
+  run: a5f213ccc4ed4c88af53b22d7be4159e
+- number: 4
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:23:43.483206Z'
+  stage: docs-only
+- number: 5
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:28:36.065310Z'
+  stage: docs-only
+  run: 27a3b569fba84cff8f595a60a194dd4a
+- number: 6
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:28:41.225101Z'
+  stage: docs-review
+- number: 7
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:30:57.845939Z'
+  stage: docs-review
+  run: c82a7f044efa49f78ae1255cd806a8d3
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:31:02.573025Z'
+  stage: docs-only
+- number: 9
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:34:29.172775Z'
+  stage: docs-only
+  run: 340a2ed5def1488782bc45aa845b3185
+- number: 10
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:34:34.264381Z'
+  stage: docs-review
+- number: 11
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:36:13.012019Z'
+  stage: docs-review
+  run: 81104c9d97c24ee9a181a634cc5c5aaf
+- number: 12
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:36:17.961068Z'
+  stage: docs-only
+- number: 13
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:38:55.370366Z'
+  stage: docs-only
+  run: 764af9f6881d46f2abc0ef48bc9e1416
+- number: 14
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:39:00.372322Z'
+  stage: docs-review
+- number: 15
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:39:51.420523Z'
+  stage: docs-review
+  run: f2a9e257f33943f286124168660bb89f
+- number: 16
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:39:56.549564Z'
+  stage: docs-only
+- number: 17
+  speaker: documenter
+  kind: result
+  at: '2026-11-07T03:42:33.313943Z'
+  stage: docs-only
+  run: 8760cb5c507745f0b9b8d630c8b8cbf4
+- number: 18
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:42:38.175888Z'
+  stage: docs-review
+- number: 19
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T03:43:26.180893Z'
+  stage: docs-review
+  run: f086de0f79bf41b6b10a1ab69d7b4ed3
+---
+
 # The project guide's page on the hosting area reads for the developer
 
 ## Description
@@ -30,3 +147,224 @@ grep -cx "docs/project-guide/hosting.md" docs/checked-documents.txt
 Expect: `1`
 
 ## Journal
+
+1. 2026-11-07 human: created.
+2. factory: started intake as vm.
+3. intake: accepted
+   Interface: names concrete paths only (`docs/project-guide/hosting.md`, `docs/checked-documents.txt`); it states no code signatures and changes no code, test or agent file. Every path is one the documenter may write, so the route is docs-only.
+   Criteria: 1 to 5 are checkable by the reviewer or by `make documents` (style, old-versus-new facts, the checked list, links, no dangling headings). Criterion 6 is `make check`. The Interface's behaviours (link once at first mention, the one-line checked list, changed headings relinked) are covered by criteria 4, 3 and 5. No rule states a failing side that needs its own criterion; broken links and unresolved names are the failing side of criteria 3 and 4.
+   Smoke test: `grep -cx "docs/project-guide/hosting.md" docs/checked-documents.txt` is runnable, and `Expect: 1` can be checked against its output.
+   Docs criterion: criterion 7 points to criteria 1 to 5 (what the reader must know: the hosting area's names, rules and commands, true to the code). It dictates no sentences.
+   Architecture: the story touches only documents, so the code's layering is not involved. It stays on the project guide's hosting page, which matches CLAUDE.md's docs layout.
+   Scope: it is S0013 of F0054, one file rewritten and added to the checked list. It touches nothing in the feature's Out of scope (`decisions.md` is explicitly "none").
+4. factory: started docs-only as vm.
+5. documenter: Rewrote the hosting page of the project guide for its reader and put it on the checked list. `make documents` ends with `documents ok (8.9 s)`, and no finding names `hosting.md`. I did not run `make check`: both files I changed are documents.
+
+   Files changed:
+   - `docs/project-guide/hosting.md`: rewritten in the style of `docs/project-guide/style.md`.
+     - Each section now opens with the idea, then a block of names and signatures, then one rule per bullet, then See also.
+     - Each file the page names is linked once, at its first mention (`hosting.py`, `pygithub_hosting.py`, `fake_hosting.py`, `paths.py`, `wiring.py`, `git.py` in the application and domain layers, `git_cli.py`, and the tests and support modules). Names inside code blocks stay plain.
+     - The glossary words `stage`, `journal`, `tick`, `work item` and `take` are linked at first use.
+     - The detail the sections above only summarise is in a new `## Reference` at the end. It holds the options of `GitCli`, the credential helper's comparison, the 22 git operations, the result models, what `push_reason` leaves out, what `check_branch_name` refuses, and where `check_git_argument` applies.
+     - The headings `The hosting service`, `The git wrapper`, `The PyGithub client`, `The fake`, `Data`, `The marker and the post key`, `Deleting and merging branches`, `Restoring the checkout` and `Which part uses which operation` are kept. The text before the old `Deleting and merging branches` heading is split into `Pushing`, plus new `The argument and branch rules`, `Identity and isolation` and `Testing with real git` sections. Other documents name only the page and its `The git wrapper` section, so no link or reference needed changing.
+   - `docs/checked-documents.txt`: added the line `docs/project-guide/hosting.md`.
+
+   Corrections against the code:
+   - The old text said "twenty-one operations" of `Git`. The interface has 22 (`last_push_output` was described outside the table), and `tests/hosting/application/test_git_interface.py` says twenty-two. The page now says 22 and lists `last_push_output` in the table.
+   - The old text said `factory.entry.wiring` builds the service with `pygithub_service`. That function is defined in `pygithub_hosting.py`, and `wiring.py` only calls it. The page now says so.
+   - The old `GitOptions` table put the `FACTORY_CHECKOUT` and `FACTORY_STATE` settings inside the `identity` row. They now stand in the Reference as their own paragraph, with their `SettingsInvalid` behaviour.
+   - `git_environment()` in `wiring.py` also sets `core.hooksPath` to the null device and `core.fsmonitor` to `false`. The old text named only the credential helper. Both are now stated.
+   - Removed the sentence "A real call is first seen by the baseline run". I could find nothing in the code or the tests that bears it out.
+   - The old example `docs/a.txt` is now an indented-free fenced `text` block with `a/b.txt`, because a backticked `docs/a.txt` would make the name check look for a file that does not exist.
+
+   Nothing else was dropped. Every other name, command, setting and rule of the old file is in the new one or in its Reference. Facts I could not spot-check in the code are carried over unchanged:
+   - The detailed claims about `work_tree_id`, `status` and `log`.
+   - The `last_push_output` behaviour.
+   - The test layout of `tests/conftest.py` and the `human` fixture's `merge` methods.
+
+   The claims I did check against the code and found current:
+   - The ten hosting operations and their signatures.
+   - The `PyGithubHostingService` behaviour.
+   - The retry settings.
+   - The `PullRequestView`, `PullRequestComment` and `PostKey` models, with `render_post` and `parse_post_key`.
+   - The fake's operations.
+   - The environment keys and `IGNORE_GROUP`, the `switch --force-create` and `clean` commands, and the `check-ignore` call in `git_cli.py`.
+
+   I cross-read `docs/project-guide/README.md` (its index line for `hosting.md`) and `docs/project-guide/machine.md` (its reference to `hosting.md`). Both are still true.
+
+   Not touched, not mine to fix:
+   - The area `hosting` also holds `application/opening.py` and `application/pushes.py`, `domain/hand_over.py` and `domain/post_texts.py`, and the adapters `checkout_fixture.py` and `instance_fixture.py`. The old page did not describe them and the story's scope was to rewrite the old page's facts, so I did not add them. A later story could cover them.
+   - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder although it looks like a machine-area test.
+   - I added no "Rejected" line to the two `docs/decisions.md` pointers; the story names none, and the decision log is out of scope (`none`).
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (8.9 s)
+6. factory: started docs-review as vm.
+7. reviewer: Reviewed `git diff main...HEAD -- README.md docs operator/README.md`, which covers `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I checked it against the old page on `main`, against the code on the branch and against `docs/project-guide/style.md`.
+
+   What holds:
+   - Every heading of the old page is kept, and no other document links to a heading that changed (criterion 5).
+   - The checked-list line is added (criterion 3).
+   - The corrections the documenter names are borne out by the code: 22 abstract operations in `src/factory/hosting/application/git.py`, `pygithub_service` defined in `pygithub_hosting.py:169`, and `core.hooksPath`/`core.fsmonitor` in `wiring.py:207-223`.
+   - The environment order matches `git_cli.py:472-489`.
+
+   Findings:
+   1. `docs/project-guide/hosting.md:30` and `:129`: `wiring.py` is linked twice, but the Interface says each file the page names is linked once. Fix: keep the link at line 30 and write the name plain at line 129.
+   2. `docs/project-guide/hosting.md`: three pages are linked three times each, against the same Interface rule. `pipeline.md` is linked at lines 26, 111 and 133, `machine.md` at 133, 239 and 274, and `../decisions.md` at 111, 219 and 230. Fix: link each at its first mention or in one See also, and write the later mentions plain.
+   3. `docs/project-guide/hosting.md:131`: the page names the repository files `operator/vm/git-credential-factory` and `operator/vm/setup.sh` without a link. Both files exist. Fix: link each by a relative link (`../../operator/vm/...`) at its first mention.
+   4. `docs/project-guide/hosting.md`: glossary words are used without a link at their first use (criterion 1, style rule 3). They are: instance (line 129), stall and crash (195), project command (236), dataset (239), claim (244), pipeline definition, feature and story (250), backlog (256), stage environment (274) and write paths (304). Fix: link each to `glossary.md` at its first use.
+   5. `docs/project-guide/hosting.md:274`: the old page named the `InstanceSettings` fields `checkout` and `state_directory` that `FACTORY_CHECKOUT` and `FACTORY_STATE` fill (`src/factory/shared/domain/settings.py:192-193`). The new page drops them and does not name this as a deliberate removal (criterion 2). "The model's validator" now follows "The models are frozen" about `GitOptions`, so it reads as the validator of `GitOptions`. Fix: name `InstanceSettings.checkout` and `InstanceSettings.state_directory` as the fields, and their model as the one whose validator refuses a relative path.
+   6. `docs/project-guide/hosting.md:30-38`: the old page said `pygithub_service` builds the PyGithub client with `retry=hosting_retry()`. That fact is dropped, so nothing says where the retry is used (criterion 2). It is true in `pygithub_hosting.py:172`, together with `lazy=True`, which is why building the service sends no request. Fix: add a bullet saying `pygithub_service` builds a lazy `github.Github` with `retry=hosting_retry()`.
+   7. `docs/project-guide/hosting.md:153`: the section *Deleting and merging branches* opens with its code block. The style page's project-guide section asks for two or three plain sentences first, saying what the part does and why it exists. Fix: add those sentences above the block.
+   8. `docs/project-guide/hosting.md`: three sentences break style rule 2 (about 25 words at most, one parenthesis at most). Fix: split them.
+      - Line 7 holds two parentheses, "(pull requests and their comments)" and "(`factory.hosting.application.hosting`)".
+      - The `ignored` row of the Reference table (line 299) holds two, "(1,000)" and "(`-z` needs `--stdin`, which is not fed)".
+      - The `work_tree_id` row (line 304) is one sentence of about 70 words. Its "set through `GIT_INDEX_FILE` and removed afterwards" reads as if it were about the modification time, not the temporary index.
+   9. `docs/project-guide/hosting.md:240`: the table says `status` is used by the tick only. The code also calls it in the claim (`src/factory/pipeline/application/claims.py:96`) and in stall handling (`src/factory/pipeline/application/stalls.py:111`). Fix: add the claim and the stall handling to the row's "Used by".
+
+   Rejected as findings:
+   - The example ids `F0001-S0001` in the key comment and the fake's code sample: they illustrate a format and are the test fixture's story, not a reference to history.
+   - The glossary page linked once per word: style rule 3 asks for that.
+   - `git clean -fd` in the Reference against `--force -d` in the section: they are equivalent.
+
+   Open: nothing beyond the findings above.
+8. factory: started docs-only as vm.
+9. documenter: Round 1: I fixed the reviewer's nine findings in `docs/project-guide/hosting.md`. `make documents` ends with `documents ok (9.0 s)`, and no finding names `hosting.md`. I did not run `make check`, because the only file I changed is a document.
+
+   Files changed:
+   - `docs/project-guide/hosting.md` is the only file. `docs/checked-documents.txt` stays as it was.
+
+   How each finding was handled:
+   1. `wiring.py` is linked once, in *The PyGithub client*. In *The git wrapper* it is now plain text.
+   2. `pipeline.md` is linked at its first mention, in the first See also. `machine.md` is linked in the See also of *The git wrapper*. `decisions.md` is linked at its first mention, in *The marker and the post key*. Later mentions are plain. I kept the link in the section where the page is first named, so the plain mentions follow the linked one in reading order.
+   3. `git-credential-factory` and `setup.sh` under `operator/vm/` are linked by a relative link at their first mention. The credential helper's name is kept in the link text, in code, so the name check still resolves it.
+   4. Glossary words are linked at their first use: instance, crash, stall, story, project commands, dataset, claim, pipeline definition, feature, backlog, stage environment and write paths. I removed the second link on "take", which was already linked in *The git wrapper*.
+   5. The *Reference* now names `InstanceSettings.checkout` and `InstanceSettings.state_directory` as the fields that `FACTORY_CHECKOUT` and `FACTORY_STATE` fill. It also says that the validator of `InstanceSettings` refuses a relative path. It is a separate paragraph from the "models are frozen" sentence about `GitOptions`.
+   6. A new bullet in *The PyGithub client* says that `pygithub_service` builds a lazy `github.Github` with `retry=hosting_retry()`.
+   7. *Deleting and merging branches* now opens with a short paragraph before its code block.
+   8. The sentences are split:
+      - the opening sentence of *The hosting service* now has no parentheses;
+      - the `ignored` row of the Reference table has no parentheses;
+      - the `work_tree_id` temporary-index sentence is now several sentences, and `GIT_INDEX_FILE` is tied to the temporary index.
+   9. The `status` row in *Which part uses which operation* now says the claim and the stall handling read `status` too. I checked `claims.py:96` and `stalls.py:111` as the reviewer cited them.
+
+   Cross-read: `docs/project-guide/README.md` and `docs/project-guide/machine.md` still agree with the page. They name only the page and its *The git wrapper* section, and I changed no heading.
+
+   Not touched (unchanged from round 0):
+   - The hosting area's files `application/opening.py`, `application/pushes.py`, `domain/hand_over.py`, `domain/post_texts.py`, `adapters/checkout_fixture.py` and `adapters/instance_fixture.py` are not described on this page. The old page did not describe them either.
+   - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder but looks like a machine-area test.
+   - I wrote no "Rejected" line in `docs/decisions.md`; that file is out of scope for this story.
+
+   `check`: check: green
+   `secrets`: secrets: green (0.4 s)
+   `documents`: documents ok (9.1 s)
+10. factory: started docs-review as vm.
+11. reviewer: Round 1 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I checked the page against the code on the branch, against the old page on `main` and against `docs/project-guide/style.md`.
+
+    What holds:
+    - All nine round-0 findings are fixed. `wiring.py`, `pipeline.md`, `machine.md` and `decisions.md` are each linked once. Both `operator/vm/` files are linked. *Deleting and merging branches* now opens with plain sentences. The `status` row now names the claim and the stall handling (`claims.py:96`, `stalls.py:111`).
+    - The new `pygithub_service` bullet (line 37) matches `pygithub_hosting.py:172`: `lazy=True`, `retry=hosting_retry()`.
+    - The `InstanceSettings.checkout` and `InstanceSettings.state_directory` paragraph (line 279) matches `settings.py:192-193`, `:231-234` and `:606-610`.
+    - The environment order (lines 228-229) matches `git_cli.py:472-489`.
+    - The checked list holds the line, and no heading that another document links to has changed.
+
+    Findings:
+    1. `docs/project-guide/hosting.md:245`, `:156` and `:181`: these lines say only "the merge and the discard" delete branches, but the code deletes them in two more places. Restoring the checkout deletes the local work item branches (`src/factory/pipeline/application/tick.py:199-200`). The recovery deletes the stale remote branches of stories that are back in the backlog or done (`src/factory/pipeline/application/recovery.py:247`). Fix: add both to the row's "Used by" and to the "Who uses them" sentence at line 181. Make line 156 say that the branches are deleted after a merge or a discard, by the tick and by the recovery.
+    2. `docs/project-guide/hosting.md:198`: the glossary word "take" is not linked anywhere on the page. Round 1 removed its only link, and the entry's claim that it is "already linked in The git wrapper" is wrong. Its first use is the section name at line 134, and its first use in prose is "The take's restore" at line 198. Fix: link `take` to `glossary.md` at its first use in prose (line 198).
+    3. `docs/project-guide/hosting.md:156`: the glossary word "work item" is used here first ("A merge or a discard of a work item"), but it is linked only at line 181. That breaks style rule 3. Fix: move the link to line 156 and write the name plain at line 181.
+    4. `docs/project-guide/hosting.md:309`: the first sentence of the `work_tree_id` row still holds two parentheses, "(`factory.hosting.domain.git`, 40 lower-case hex characters, …)" and "(`matches_any`, as for write paths: …)". The sentence "Tracked files count … as in a commit." runs to about 40 words. Both break style rule 2. Fix: move the `TreeId` description into its own sentence, and split the sentence about what counts at its semicolon.
+
+    Rejected as findings:
+    - Row 272 names only `GIT_CEILING_DIRECTORIES` and `GIT_CONFIG_NOSYSTEM` as set after `environment`. It is incomplete, but nothing in it is false, and lines 228-229 give the full order.
+    - Line 279 gives `SettingsInvalid` when the settings are read from the environment and `ValidationError` from the model's own validator. Both are true (`settings.py:609`, `:233`).
+
+    Open: nothing beyond the findings above.
+12. factory: started docs-only as vm.
+13. documenter: Round 2: I fixed the reviewer's four findings in `docs/project-guide/hosting.md`. `make documents` ends with `documents ok (9.3 s)`. I did not run `make check`, because the only file I changed is a document.
+
+    Files changed:
+    - `docs/project-guide/hosting.md` is the only file. `docs/checked-documents.txt` stays as it was.
+
+    How each finding was handled:
+    1. Branch deletion: the "Used by" row now names the tick's restore of the checkout (`delete_branch`) and the recovery's stale remote branches (`delete_remote_branch`) beside the merge and the discard. The "Who uses them" sentence of *Deleting and merging branches* says the same. The opening paragraph says the tick and the recovery delete the branches. I took both places from the reviewer's citations (`tick.py:199-200`, `recovery.py:247`) and did not read that code myself.
+    2. `take` is linked to `glossary.md` at "The take's restore" in *Restoring the checkout*, as the reviewer asked. The italic section name "The take" in the See also of *The git wrapper* is earlier on the page and stays unlinked. Moving the link there is a one-line change if the reviewer wants it.
+    3. `work item` is linked at its first use in *Deleting and merging branches*. The later mention is plain.
+    4. The first sentence of the `work_tree_id` Reference row is split. The `TreeId` description, the `left_out` matching and the list of what counts are now separate short sentences, with no parentheses.
+
+    Cross-read: `docs/project-guide/README.md` and `docs/project-guide/machine.md` still agree with the page, because no heading changed.
+
+    Not touched, not mine to fix:
+    - The area `hosting` also holds `application/opening.py`, `application/pushes.py`, `domain/hand_over.py`, `domain/post_texts.py`, `adapters/checkout_fixture.py` and `adapters/instance_fixture.py`. The old page did not describe them either.
+    - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder although it looks like a machine-area test.
+    - I wrote no "Rejected" line in `docs/decisions.md`; the story names none and that file is out of scope.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (8.8 s)
+14. factory: started docs-review as vm.
+15. reviewer: Round 2 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I read the whole page and checked the round-2 changes against the code on the branch and against `docs/project-guide/style.md`.
+
+    What holds:
+    - Round-1 finding 2 is fixed: `take` is linked at line 198, its first use in prose. The italic section name *The take* at line 134 refers to a heading in `machine.md`, so leaving it unlinked is acceptable.
+    - Round-1 finding 3 is fixed: `work item` is linked at line 156 and is plain at line 181.
+    - Round-1 finding 4 is fixed: the `work_tree_id` row (line 309) has no doubled parenthesis and no long sentence. It matches `git_cli.py:393-410`: `shutil.copy2` of the own index, `add --all`, `update-index --force-remove --` for paths `matches_any` selects, then `write-tree`.
+    - Round-1 finding 1 is fixed in the table. The row at line 245 now names the tick's restore (`delete_branch`, `tick.py:199-200`) and the stale-branch cleanup (`delete_remote_branch`, `recovery.py:247`) beside the merge and the discard handlers (`merged.py:36`, `closed.py:70`, `recording.py:90-93`).
+    - The checked-list line is present, and no heading that another document links to has changed.
+
+    Findings:
+    1. `docs/project-guide/hosting.md:181`: the sentence "After a merge or a discard, the tick deletes the local work item branches when it restores the checkout, and the recovery deletes the stale remote branches…" ties both deletions to a merge or a discard, and the code does not.
+       - `Tick._restore_checkout` runs at every tick (`tick.py:114`, `:168`, `:188-200`). It deletes the local branch of every work item that has a remote branch or is in progress, because that branch may hold a rejected push (comment at `tick.py:197-198`).
+       - `delete_stale_branches` also runs at every tick (`tick.py:123`). It deletes the remote branches of stories that are back in the backlog or done (`recovery.py:235-253`).
+       - Fix: keep "After a merge or a discard, the merge and discard handlers delete the work item's branch from the remote and the checkout". Then add separately: at every tick, the restore of the checkout deletes the local branch of each work item with a remote branch or in progress, so a rejected push is not kept; and the stale-branch cleanup deletes the remote branches of stories back in the backlog or done.
+       - Line 156's "The tick and the recovery delete the branches" should be made to agree with that.
+
+    Rejected as findings:
+    - In the `work_tree_id` row, "The index is a copy of the checkout's own" leaves out that the copy is made only when the own index exists (`git_cli.py:402`). The old page left it out too, and nothing in the sentence is false.
+    - The `move` entry in row 245 names only the merge and the discard. Moving the file back to the backlog (`closed.py:67`) is part of the discard, so the row is true.
+
+    Open: nothing beyond the finding above.
+16. factory: started docs-only as vm.
+17. documenter: Round 3: I fixed the reviewer's one finding in `docs/project-guide/hosting.md`. `make documents` ends with `documents ok (9.0 s)`. I did not run `make check`, because the only file I changed is a document.
+
+    Files changed:
+    - `docs/project-guide/hosting.md` is the only file. `docs/checked-documents.txt` stays as it was.
+
+    How the finding was handled:
+    1. In *Deleting and merging branches*, the "Who uses them" sentence no longer ties every deletion to a merge or a discard. It now says three things:
+       - After a merge or a discard, the merge and discard handlers delete the work item's branch from the remote and the checkout.
+       - At every tick, the restore of the checkout deletes the local branch of each work item that has a remote branch or is in progress, so a rejected push is not kept.
+       - The recovery's stale-branch cleanup deletes the remote branches of stories that are back in the backlog or done.
+
+       I checked the first two against `Tick._restore_checkout` in `src/factory/pipeline/application/tick.py` (lines 189-200). I took the cleanup from the reviewer's citation of `recovery.py:235-253` and did not read that code myself.
+    2. The opening paragraph of that section no longer says "The tick and the recovery delete the branches". It now says they delete branches at other times too, and points to the "Who uses them" sentence.
+
+    Cross-read: `docs/project-guide/README.md` and `docs/project-guide/machine.md` still agree with the page, because no heading changed.
+
+    Not touched, not mine to fix:
+    - The hosting area's files `application/opening.py`, `application/pushes.py`, `domain/hand_over.py`, `domain/post_texts.py`, `adapters/checkout_fixture.py` and `adapters/instance_fixture.py` are not described on this page. The old page did not describe them either.
+    - `tests/hosting/adapters/test_zfs_snapshots_diff.py` sits in the hosting test folder although it looks like a machine-area test.
+    - I wrote no "Rejected" line in `docs/decisions.md`; the story names none and that file is out of scope.
+
+    `check`: check: green
+    `secrets`: secrets: green (0.4 s)
+    `documents`: documents ok (9.3 s)
+18. factory: started docs-review as vm.
+19. reviewer: Round 3 review of `git diff main...HEAD -- README.md docs operator/README.md`, which changes `docs/project-guide/hosting.md` and `docs/checked-documents.txt`. I read the round-3 change (`git diff 444e0e932 b7bd8a974 -- docs/`) and checked it against the code on the branch and against `docs/project-guide/style.md`.
+
+    What holds:
+    - The round-2 finding is fixed at `docs/project-guide/hosting.md:181`. The sentence no longer ties every deletion to a merge or a discard.
+      - The merge and discard handlers delete the branch from the remote and from the checkout. Both go through `WorkItemRecorder.delete_branch` (`src/factory/pipeline/application/handlers/merged.py:36`, `closed.py:70`), which calls `delete_remote_branch` and then `delete_branch` (`recording.py:90-93`). The acceptance's merge and close do the same (`src/factory/work/application/acceptance.py:298`, `:366`).
+      - At every tick, `Tick._restore_checkout` deletes the local branch of each work item with a branch (`tick.py:188-200`). Its comment says why: a local branch may hold a rejected push.
+      - `delete_stale_branches` deletes the remote branches of stories that are back in the backlog or done (`recovery.py:235-253`). The tick calls it at `tick.py:123`.
+    - Line 156 now agrees with line 181: "The tick and the recovery delete branches at other times too".
+    - `docs/checked-documents.txt` still has the line `docs/project-guide/hosting.md` (criterion 3). No heading that another document links to has changed (criterion 5). The documenter reports `documents ok` (criteria 3 and 4).
+    - The fixes from rounds 0 to 2 are still in place: each file and page is linked once, glossary words are linked at their first use, and the sentence-length splits are kept.
+
+    Findings: no findings.
+
+    Rejected as findings:
+    - Line 156, "Both return a value for the outcomes a caller must decide on": `delete_branch` returns `None`. But it has no outcome a caller must decide on, and the signature block right below shows `-> None`. The sentence holds for `delete_remote_branch` and `merge`. "Raise `GitError` for the rest" holds for all three.
+    - Line 181 says the restore covers work items "that has a remote branch or is in progress". It names the tick's restore, not the acceptance, and the round-2 review already checked it against `_work_items_with_branches`.
+
+    Open: nothing.
