@@ -1,11 +1,11 @@
 ---
 stage: intake
-blocked: question
+blocked: null
 round: 0
 attempts: 0
 crashes: 0
 pull_request: 636
-comments_read: []
+comments_read: [6707209251]
 handed_over: null
 claim: null
 journal:
@@ -26,6 +26,11 @@ journal:
   stage: intake
   run: 0ce00804ad524f8ba09e3b96104c90cf
   blocked: question
+- number: 4
+  speaker: human
+  kind: comment
+  at: '2026-11-07T12:55:25.780069Z'
+  stage: intake
 ---
 
 # The tests say how they are laid out
@@ -68,3 +73,6 @@ Expect: `documents ok (<seconds> s)`
    3. Criterion 1 requires at least one link to a guide page, and it says `tests/support/README.md` links to *Shared test helpers*. That heading exists, so this part is fine. The criteria never name which heading `tests/README.md` links to besides `CLAUDE.md`, *Tests*. Please confirm that link target alone is enough.
 
    Findings of the form check: none (passed). The other checks look fine. The Interface is concrete, the smoke test is runnable, and `addopts` doesn't matter because the smoke test doesn't call pytest. The docs criterion dictates no sentences. The architecture and the scope fit feature decisions 2, 4 and 6.
+4. 2026-11-07 human: 1. (a): the story goes to tests. The tester adds README.md to the expected entries of test_the_root_holds_only_conftest_and_packages, and of any other check of tests/guards/test_tests_layout.py or another earlier guard whose only failure is one of this story's three READMEs, under the leave in the Interface; the entry names each. Drop 'docs route' from the Interface and criteria. The tester runs the guards with the three READMEs in place to find every such check.
+   2. Link *The files* in docs/project-guide/README.md. No new section.
+   3. Yes: CLAUDE.md, *Tests*, alone is enough for tests/README.md.
