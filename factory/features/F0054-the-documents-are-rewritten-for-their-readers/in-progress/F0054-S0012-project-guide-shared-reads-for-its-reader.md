@@ -7,7 +7,11 @@ crashes: 0
 pull_request: 620
 comments_read: []
 handed_over: null
-claim: null
+claim:
+  instance: vm
+  stage: docs-only
+  started_at: '2026-11-07T03:04:41.247907Z'
+  lease_duration: 60
 journal:
 - number: 1
   speaker: human
@@ -47,6 +51,11 @@ journal:
   at: '2026-11-07T03:04:35.830588Z'
   stage: docs-review
   run: 8ee8556dac6e4b73857c8c4d0ea58a61
+- number: 8
+  speaker: factory
+  kind: started
+  at: '2026-11-07T03:04:41.247907Z'
+  stage: docs-only
 ---
 
 # The project guide's page on the shared area reads for the developer
@@ -158,3 +167,4 @@ Expect: `1`
    13. `docs/project-guide/shared.md:164-180` (*The examples*), `133-145` (*The checked documents and the report*) and `206-218` (*How the check is tested*) do not follow the project guide's form in `style.md`. They name the main signatures only inside bullets: `examples(text)`, `Fixture.prepare(folder)`, `ExampleRunner.run_document(document, examples, fixtures)`, `read_checked_documents(text)`, `minimal_documents(root)` and `add_and_commit(root, {path: text})`. They have no signature block. Fix: put these signatures in an indented block after each section's opening sentences.
 
    Open: the stale docstring in `tests/guards/test_wrapper_search.py` ("the three wrappers") that the documenter noted is outside this story's write paths, and I have not named it as a finding.
+8. factory: started docs-only as vm.
