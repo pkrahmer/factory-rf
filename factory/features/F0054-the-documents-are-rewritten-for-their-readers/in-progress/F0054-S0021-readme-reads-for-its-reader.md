@@ -1,5 +1,5 @@
 ---
-stage: docs-review
+stage: docs-approval
 blocked: null
 round: 1
 attempts: 0
@@ -7,11 +7,7 @@ crashes: 0
 pull_request: 629
 comments_read: [6704964498]
 handed_over: null
-claim:
-  instance: vm
-  stage: docs-review
-  started_at: '2026-11-07T09:23:30.414215Z'
-  lease_duration: 60
+claim: null
 journal:
 - number: 1
   speaker: human
@@ -156,6 +152,12 @@ journal:
   kind: started
   at: '2026-11-07T09:23:30.414215Z'
   stage: docs-review
+- number: 27
+  speaker: reviewer
+  kind: result
+  at: '2026-11-07T09:23:59.565146Z'
+  stage: docs-review
+  run: 5841f4cde4124ab99a6edcf4325385a7
 ---
 
 # The README reads for a newcomer
@@ -395,3 +397,16 @@ Expect: `1`
     `secrets`: secrets: green (0.3 s)
     `documents`: documents ok (58.1 s)
 26. factory: started docs-review as vm.
+27. reviewer: Docs review after the documenter's entry 25, which followed the human's answer in entry 21. In my first command I read the work item and `git diff main...HEAD -- README.md docs operator/README.md`. Only `README.md` and `docs/checked-documents.txt` changed; the second gains the line `README.md`. I checked the *Document check* paragraph against `src/factory/shared/domain/documents.py` (`_stop_rows` :340-346, `_project_guide_rows` :349-361, `_stops_messages`, `_project_guide_messages`, `_missing_sections`). I checked the sentences against `docs/project-guide/style.md` rules 2 and 3.
+
+    Both findings of entry 23 are fixed:
+    - README.md:53: the two long sentences are now four short ones, one check each. "Kill point case" and "fault-injection path" no longer appear as common nouns; the project guide's check is named through its sections *Kill points* and *Fault-injection paths*. The facts match the code: stop rows are checked with their destination in the stops file; `OPERATOR_GUIDE_SECTIONS` holds *Install*, *Configuration* and *The stops*; `PROJECT_GUIDE_SECTIONS` holds the two project-guide sections; and the project guide's tables are checked for the rows of `KILL_POINT_CASES` and `FAULT_PATHS`. This is the wording entry 21 asked for.
+    - README.md:3: the 30-word sentence now ends after "updates the docs", and "A last one runs a smoke test." stands alone. I counted the third sentence at 25 words, within the style page's limit of about 25.
+
+    Nothing else in the page changed since entry 19's review, which found criteria 2 and 4 met. No other document links to an old README heading. The `make documents` result (`documents ok`) is the documenter's, from entry 25; I did not run it.
+
+    I left one point out as a finding: the code reads the project guide's rows from all of its tables (`_table_rows(text)`), not only those under the two sections. The text "whose tables there" is the human's chosen wording from entry 21, and it is close enough for a newcomer's reference section.
+
+    no findings
+
+    Earlier tests: none. The diff changes no test file.
